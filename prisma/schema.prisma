@@ -11,7 +11,34 @@ datasource db {
 }
 
 model User {
-  id     String @id @default(cuid())
-  name   String
-  number Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String
+  books     Book[]
+}
+
+model Book {
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  id                 Int      @id @default(autoincrement())
+  mediatype          String
+  genre              String
+  location           String
+  title              String
+  subtitle           String?
+  author             String
+  topic              String
+  isbn               String?
+  origininfo         String
+  publisherLocation  String
+  publisher          String
+  publisherYear      Int
+  pages              Int
+  appearance         String
+  additionalMaterial String
+  price              Float
+  minAge             Int
+  User               User?    @relation(fields: [userId], references: [id])
+  userId             Int?
 }
