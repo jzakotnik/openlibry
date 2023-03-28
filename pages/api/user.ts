@@ -22,7 +22,7 @@ export default async function handler(
     try {
       await prisma.user.create({
         data: {
-          name: "Test user",
+          name: user.name,
         },
       });
       res.status(200).json({ data: "User " + user.name + " created" });
