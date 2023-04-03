@@ -21,8 +21,8 @@ export default async function handler(
     const user = req.body as UserType;
 
     try {
-      addUser(prisma, user.name);
-      res.status(200).json({ data: "User " + user.name + " created" });
+      addUser(prisma, user);
+      res.status(200).json({ data: "User " + user + " created" });
     } catch (error) {
       console.log(error);
       res.status(400).json({ data: "ERROR: " + error });

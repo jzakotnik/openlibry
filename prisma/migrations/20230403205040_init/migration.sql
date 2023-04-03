@@ -3,7 +3,11 @@ CREATE TABLE "User" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL
+    "lastName" TEXT NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "schoolGrade" TEXT,
+    "schoolTeacherName" TEXT,
+    "eMail" TEXT
 );
 
 -- CreateTable

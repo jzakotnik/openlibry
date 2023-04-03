@@ -11,11 +11,16 @@ datasource db {
 }
 
 model User {
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  id        Int      @id @default(autoincrement())
-  name      String
-  books     Book[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  lastName          String
+  firstName         String
+  // could be 3A or so
+  schoolGrade       String?
+  schoolTeacherName String?
+  eMail             String?
+  books             Book[]
 }
 
 model Book {

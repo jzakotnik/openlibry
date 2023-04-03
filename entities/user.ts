@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { UserType } from "@/entities/UserType";
 
 export async function getUser(client: PrismaClient, id: number) {
   return client.user.findUnique({ where: { id } });
@@ -8,9 +9,9 @@ export async function countUser(client: PrismaClient) {
   return client.user.count({});
 }
 
-export async function addUser(client: PrismaClient, name: string) {
+export async function addUser(client: PrismaClient, user: UserType) {
   return client.user.create({
-    data: { name: name },
+    data: { ...user },
   });
 }
 
