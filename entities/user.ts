@@ -18,13 +18,13 @@ export async function addUser(client: PrismaClient, user: UserType) {
 export async function updateUser(
   client: PrismaClient,
   id: number,
-  name: string
+  user: UserType
 ) {
   return client.user.update({
     where: {
       id,
     },
-    data: { name: name },
+    data: { ...user },
   });
 }
 
