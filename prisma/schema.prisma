@@ -35,6 +35,7 @@ model Book {
   subtitle     String?
   author       String
   topics       String
+  imageLink    String?
 
   //additional fields from OpenBiblio data model
   isbn                    String?
@@ -45,9 +46,9 @@ model Book {
   minPlayers              String?
   publisherName           String?
   otherPhysicalAttributes String?
-  supplierComent          String?
+  supplierComment         String?
   publisherDate           String?
-  size                    Int?
+  physicalSize            String?
   minAge                  String?
   maxAge                  String?
   additionalMaterial      String?

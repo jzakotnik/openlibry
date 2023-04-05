@@ -7,6 +7,7 @@ Die einfache Software für die Schulbibliothek
 - Start podman with docker compose
 - Open myphpadmin, create openbiblio database
 - Execute script to copy mySQL files
+- Use API to import data `curl -X POST -H "Content-Type: application/json" -d @member.json http://localhost:3000/api/openbiblioimport/migrate`
 
 
 
@@ -46,3 +47,10 @@ These fields are migrated:
 - 901 c min Alter
 - 300 e Begleitmaterial
 - 541 h Kaufpreis	
+
+
+# How to access Open Library
+ISBN Service für 10 und 13 ISBN: 
+https://openlibrary.org/isbn/9780140328721
+Cover: 
+https://covers.openlibrary.org/13834659

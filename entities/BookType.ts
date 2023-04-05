@@ -8,22 +8,23 @@ export interface BookType {
   subtitle?: string;
   author: string;
   topics?: string;
+  imageLink?: string;
 
   //additional fields from OpenBiblio data model
-  isbn: string;
-  editionDescription: string;
-  publisherLocation: string;
-  pages: number;
-  summary: string;
-  minPlayers: string;
-  publisherName: string;
-  otherPhysicalAttributes: string;
-  supplierComent: string;
-  publisherDate: string;
-  size: number;
-  minAge: string;
-  maxAge: string;
-  additionalMaterial: string;
-  price: number;
+  isbn?: string;
+  editionDescription?: string;
+  publisherLocation?: string;
+  pages?: number;
+  summary?: string;
+  minPlayers?: string;
+  publisherName?: string;
+  otherPhysicalAttributes?: string;
+  supplierComment?: string;
+  publisherDate?: string;
+  physicalSize?: string;
+  minAge?: string;
+  maxAge?: string;
+  additionalMaterial?: string;
+  price?: number;
   userId: number;
 }

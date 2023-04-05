@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { UserType } from "../../../entities/UserType";
+import { BookType } from "../../../entities/BookType";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { addBook } from "@/entities/book";
 
@@ -9,33 +9,58 @@ type Data = {
   data: string;
 };
 
-type User = {
-  user: UserType;
+type book = {
+  book: BookType;
+};
+
+const sampleBook = {
+  id: 1,
+  rentalStatus: "out",
+  rentedDate: new Date(),
+  dueDate: new Date(),
+  renewalCount: 3,
+  title: "Buch titel",
+  subtitle: "Buch Subtitel",
+  author: "Jure",
+  topics: "Schlagwort",
+  imageLink: "url",
+  //additional fields from OpenBiblio data model
+  isbn: "123",
+  editionDescription: "Edition",
+  publisherLocation: "Mammolshain",
+  pages: 123,
+  summary: "Zusammenfassung",
+  minPlayers: "2-3",
+  publisherName: "Publish Jure",
+  otherPhysicalAttributes: "gebraucht",
+  supplierComment: "supplier",
+  publisherDate: "yea",
+  physicalSize: "xl",
+  minAge: "5",
+  maxAge: "89",
+  additionalMaterial: "CD",
+  price: 3,
 };
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | User>
+  res: NextApiResponse<Data | BookType>
 ) {
   if (req.method === "POST") {
+    //TEST RUN
+    addBook(prisma, sampleBook);
     try {
-      const userslist = req.body as any;
-      const users = userslist[2].data;
-      const migratedUsers = users?.map((u: any) => {
-        const user = {
-          id: parseInt(u.mbrid),
-          lastName: u.last_name,
-          firstName: u.first_name,
-          schoolTeacherName: u.school_teacher,
-          schoolGrade: u.school_grade,
-        } as UserType;
-        addUser(prisma, user);
-        return user;
+      const booklist = req.body as any;
+      const books = booklist[2].data;
+      const migratedBooks = books?.map((u: any) => {
+        const book = sampleBook;
+        //addBook(prisma, book);
+        return book;
       });
-      console.log(migratedUsers);
+      console.log(migratedBooks);
       res
         .status(200)
-        .json({ data: "User " + JSON.stringify(migratedUsers) + " created" });
+        .json({ data: "User " + JSON.stringify(migratedBooks) + " created" });
     } catch (error) {
       console.log(error);
       res.status(400).json({ data: "ERROR: " + error });
