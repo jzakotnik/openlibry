@@ -1,15 +1,14 @@
 export interface BookType {
   id: number;
   rentalStatus: string;
-  rentedDate: string;
-  dueDate: string;
+  rentedDate: Date;
+  dueDate: Date;
   renewalCount: number;
   title: string;
   subtitle?: string;
   author: string;
   topics?: string;
   imageLink?: string;
-
   //additional fields from OpenBiblio data model
   isbn?: string;
   editionDescription?: string;
@@ -26,5 +25,5 @@ export interface BookType {
   maxAge?: string;
   additionalMaterial?: string;
   price?: number;
-  userId: number;
+  userId?: number;
 }
