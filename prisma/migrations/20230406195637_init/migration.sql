@@ -40,5 +40,5 @@ CREATE TABLE "Book" (
     "additionalMaterial" TEXT,
     "price" REAL,
     "userId" INTEGER,
-    CONSTRAINT "Book_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "Book_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );

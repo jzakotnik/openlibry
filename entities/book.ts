@@ -11,7 +11,7 @@ export async function countBook(client: PrismaClient) {
 
 export async function addBook(client: PrismaClient, book: BookType) {
   console.log("Adding book", book);
-  return client.book.create({
+  return await client.book.create({
     data: { ...book },
   });
 }
@@ -21,7 +21,7 @@ export async function updateBook(
   id: number,
   book: BookType
 ) {
-  return client.book.update({
+  return await client.book.update({
     where: {
       id,
     },
@@ -30,9 +30,13 @@ export async function updateBook(
 }
 
 export async function deleteBook(client: PrismaClient, id: number) {
-  return client.book.delete({
+  return await client.book.delete({
     where: {
       id,
     },
   });
+}
+
+export async function deleteAllBooks(client: PrismaClient) {
+  return await client.book.deleteMany({});
 }

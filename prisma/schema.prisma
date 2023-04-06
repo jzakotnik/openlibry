@@ -54,6 +54,6 @@ model Book {
   additionalMaterial      String?
   price                   Float?
 
-  user   User? @relation(fields: [userId], references: [id])
+  user   User? @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId Int?
 }

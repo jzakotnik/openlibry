@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { UserType } from "@/entities/UserType";
 
 export async function getUser(client: PrismaClient, id: number) {
-  return client.user.findUnique({ where: { id } });
+  return await client.user.findUnique({ where: { id } });
 }
 
 export async function countUser(client: PrismaClient) {
