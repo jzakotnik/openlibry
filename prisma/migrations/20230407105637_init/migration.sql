@@ -7,7 +7,8 @@ CREATE TABLE "User" (
     "firstName" TEXT NOT NULL,
     "schoolGrade" TEXT,
     "schoolTeacherName" TEXT,
-    "eMail" TEXT
+    "eMail" TEXT,
+    "active" BOOLEAN NOT NULL DEFAULT true
 );
 
 -- CreateTable

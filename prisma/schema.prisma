@@ -20,6 +20,7 @@ model User {
   schoolGrade       String?
   schoolTeacherName String?
   eMail             String?
+  active            Boolean  @default(true)
   books             Book[]
 }
 

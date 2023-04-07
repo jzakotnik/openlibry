@@ -4,5 +4,6 @@ export interface UserType {
   firstName: string;
   schoolGrade?: string;
   schoolTeacherName?: string;
+  active: boolean;
   eMail?: string;
 }

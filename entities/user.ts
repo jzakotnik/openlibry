@@ -6,11 +6,11 @@ export async function getUser(client: PrismaClient, id: number) {
 }
 
 export async function countUser(client: PrismaClient) {
-  return client.user.count({});
+  return await client.user.count({});
 }
 
 export async function addUser(client: PrismaClient, user: UserType) {
-  return client.user.create({
+  return await client.user.create({
     data: { ...user },
   });
 }
@@ -29,7 +29,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(client: PrismaClient, id: number) {
-  return client.user.delete({
+  return await client.user.delete({
     where: {
       id,
     },
