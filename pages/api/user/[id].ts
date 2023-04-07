@@ -1,4 +1,5 @@
-import { deleteUser, updateUser } from "@/entities/user";
+import { UserType } from "@/entities/UserType";
+import { deleteUser, getUser, updateUser } from "@/entities/user";
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -19,11 +20,24 @@ export default async function handle(
       break;
 
     case "PUT":
-      if (!req.query.name) return res.status(404).end("No name provided");
-      const name = req.query.name && (req.query.name as string);
-      const updateResult = await updateUser(prisma, id, name);
+      if (!req.body) return res.status(404).end("No data provided");
+
+      const userdata = req.body as UserType;
+      console.log("Handle user request ", userdata);
+      const updateResult = await updateUser(prisma, id, userdata);
       res.json(updateResult);
       break;
+
+    case "GET":
+      try {
+        const user = (await getUser(prisma, id)) as UserType;
+        if (!user)
+          return res.status(400).json({ data: "ERROR: User not found" });
+        res.status(200).json({ user: user });
+      } catch (error) {
+        console.log(error);
+        res.status(400).json({ data: "ERROR: " + error });
+      }
 
     default:
       res.status(405).end(`${req.method} Not Allowed`);

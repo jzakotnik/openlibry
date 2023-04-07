@@ -2,6 +2,10 @@
 
 Die einfache Software für die Schulbibliothek
 
+# How to use the REST API examples
+update user:
+`curl -X PUT http://localhost:3000/api/user/1080 -H 'Content-Type: application/json' -d '{"firstName":"julia","schoolGrade":"12"}'`
+
 # Import from OpenBiblio
 
 - Start podman with docker compose

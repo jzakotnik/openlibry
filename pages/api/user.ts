@@ -1,7 +1,7 @@
 import { UserType } from "@/entities/UserType";
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { addUser, getUser } from "@/entities/user";
+import { addUser, getAllUsers, getUser } from "@/entities/user";
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,7 @@ type Data = {
 };
 
 type User = {
-  user: UserType;
+  user: Array<UserType>;
 };
 
 export default async function handler(
@@ -21,7 +21,7 @@ export default async function handler(
     const user = req.body as UserType;
 
     try {
-      addUser(prisma, user);
+      await addUser(prisma, user);
       res.status(200).json({ data: "User " + user + " created" });
     } catch (error) {
       console.log(error);
@@ -31,9 +31,10 @@ export default async function handler(
 
   if (req.method === "GET") {
     try {
-      const user = await getUser(prisma, req.body.id);
-      if (!user) return res.status(400).json({ data: "ERROR: User not found" });
-      res.status(200).json({ user });
+      const users = (await getAllUsers(prisma)) as Array<UserType>;
+      if (!users)
+        return res.status(400).json({ data: "ERROR: User not found" });
+      res.status(200).json({ user: users });
     } catch (error) {
       console.log(error);
       res.status(400).json({ data: "ERROR: " + error });

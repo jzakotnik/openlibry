@@ -5,6 +5,10 @@ export async function getUser(client: PrismaClient, id: number) {
   return await client.user.findUnique({ where: { id } });
 }
 
+export async function getAllUsers(client: PrismaClient) {
+  return await client.user.findMany({});
+}
+
 export async function countUser(client: PrismaClient) {
   return await client.user.count({});
 }
