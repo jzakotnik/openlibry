@@ -6,7 +6,8 @@ Die einfache Software für die Schulbibliothek
 
 - Start podman with docker compose
 - Open myphpadmin, create openbiblio database
-- Execute script to copy mySQL files
+- Export the following tables, sort them by date: `member`, `biblio_status_hist`, `biblio`, `biblio_field`
+
 - Use API to import members `curl -X POST -H "Content-Type: application/json" -d @member.json http://localhost:3000/api/openbiblioimport/migrateUsers`
 
 - Copy 3 book jsons together to one book_all.json, this includes the exports for tables `biblio.json`, `biblio_status_hist.json` and `usmarc_subfield_dm.json`
@@ -14,27 +15,13 @@ Die einfache Software für die Schulbibliothek
 
 
 
-Import members via `SELECT * FROM member`. Export as json. 
-
-
-## this does not work
-Import books via 
-```sql
-SELECT `biblio_copy`.*, `biblio`.*, `biblio_status_hist`.* FROM `biblio_copy` , `biblio`, `biblio_status_hist` WHERE biblio_copy.bibid = biblio.bibid AND biblio.bibid = biblio_status_hist.bibid;
-```
-
-
-Import fields and attach them to the books via
-```sql
-SELECT * FROM `biblio_field`, `usmarc_tag_dm`, `usmarc_subfield_dm` WHERE biblio_field.tag = usmarc_tag_dm.tag AND biblio_field.subfield_cd = usmarc_subfield_dm.subfield_cd;
-```
-
 Field structure:
 ```sql
 SELECT `usmarc_subfield_dm`.*, `usmarc_tag_dm`.*
 FROM `usmarc_subfield_dm`
 	, `usmarc_tag_dm` WHERE usmarc_tag_dm.tag = usmarc_subfield_dm.tag
 ```
+
 
 Sample book:
 ```json

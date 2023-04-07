@@ -24,6 +24,6 @@ export interface BookType {
   minAge?: string;
   maxAge?: string;
   additionalMaterial?: string;
-  price?: number;
+  price?: string;
   userId?: number;
 }

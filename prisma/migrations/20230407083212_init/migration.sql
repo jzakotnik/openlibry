@@ -38,7 +38,7 @@ CREATE TABLE "Book" (
     "minAge" TEXT,
     "maxAge" TEXT,
     "additionalMaterial" TEXT,
-    "price" REAL,
+    "price" TEXT,
     "userId" INTEGER,
     CONSTRAINT "Book_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );

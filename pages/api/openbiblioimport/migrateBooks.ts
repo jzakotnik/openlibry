@@ -20,7 +20,7 @@ const prisma = new PrismaClient();
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: "4mb", // Set desired value here
+      sizeLimit: "8mb", // Set desired value here
     },
   },
 };
@@ -60,7 +60,7 @@ const sampleBook = {
   minAge: "5",
   maxAge: "89",
   additionalMaterial: "CD",
-  price: 3,
+  price: "3",
   userId: 1356,
 };
 
@@ -104,6 +104,94 @@ const sampleStatusFromOpenBiblio = {
   renewal_count: "0",
 };
 
+//field mapping from fields and subfields in OpenBiblio that were used in this data model
+const fieldMapping = (openbibliofieldname: string) => {
+  switch (openbibliofieldname) {
+    case "20a":
+      return "isbn";
+      break;
+    case "20c":
+      return "supplierComment";
+      break;
+    case "250a":
+      return "editionDescription";
+      break;
+    case "260a":
+      return "publisherLocation";
+      break;
+    case "260b":
+      return "publisherName";
+      break;
+    case "260c":
+      return "publisherDate";
+      break;
+    case "300a":
+      return "pages";
+      break;
+    case "300b":
+      return "otherPhysicalAttributes";
+      break;
+    case "300c":
+      return "physicalSize";
+      break;
+    case "300e":
+      return "additionalMaterial";
+      break;
+    case "520a":
+      return "summary";
+      break;
+    case "541h":
+      return "price";
+      break;
+    case "901a":
+      return "minPlayers";
+      break;
+    case "901c":
+      return "minAge";
+      break;
+    case "901d":
+      return "maxAge";
+      break;
+    default:
+      console.log("ERROR Field not found ", openbibliofieldname);
+      return "fieldNotFound";
+  }
+};
+
+const transformRentalStatus = (openbibliorental: string) => {
+  switch (openbibliorental) {
+    case "in":
+      return "verfügbar";
+      break;
+    case "out":
+      return "ausgeliehen";
+      break;
+    case "mnd":
+      return "beschädigt";
+      break;
+    case "dis":
+      return "in Präsentation";
+      break;
+    case "hld":
+      return "vorbestellt";
+      break;
+    case "lst":
+      return "verloren";
+      break;
+    case "ln":
+      return "leihgabe";
+      break;
+    case "ord":
+      return "bestellt";
+      break;
+    case "crt":
+      return "verfügbar";
+    default:
+      console.log("ERROR, rental status not found");
+      return "ERROR. not found";
+  }
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data | BookType>
@@ -111,7 +199,6 @@ export default async function handler(
   if (req.method === "POST") {
     //reset database first for fresh migration, this all needs to be done in one transaction
     const transaction = [];
-    //deleteAllBooks(prisma);
     transaction.push(prisma.book.deleteMany({}));
     let importedBooksCount = 0;
 
@@ -125,16 +212,18 @@ export default async function handler(
       //console.log(users);
       const existingUsers = new Set();
       users.map((u: any) => {
-        console.log(u);
+        //console.log(u);
         existingUsers.add(parseInt(u.mbrid));
       });
 
       //First create basic table with the biblio books
       const migratedBooks = books?.map((u: any) => {
         //map the fields from OpenBiblio correctly:
+
         const book = {
           id: parseInt(u.bibid),
-          rentalStatus: (u.status_cd ??= "out"),
+
+          rentalStatus: "verfügbar",
           rentedDate: (u.status_begin_dt ??= new Date()),
           dueDate: (u.due_back_dt ??= new Date()),
           renewalCount: parseInt((u.renewal_count ??= 0)),
@@ -183,6 +272,7 @@ export default async function handler(
 
         //console.log("Connecting user ", u.mbrid);
         if (existingUsers.has(parseInt(u.mbrid))) {
+          rentalStatusCount++;
           transaction.push(
             prisma.user.update({
               where: {
@@ -201,7 +291,7 @@ export default async function handler(
 
         // update the rest
         const bookUpdate = {
-          rentalStatus: u.status_cd,
+          rentalStatus: transformRentalStatus(u.status_cd),
           rentedDate: rentedTime,
           dueDate: dueDate,
           renewalCount: parseInt(u.renewal_count),
@@ -219,6 +309,35 @@ export default async function handler(
 
       //Attach additional fields from the fields table in OpenBiblio
       let additionalFieldsCount = 0;
+      //console.log(bookExtraFields);
+      bookExtraFields.map((f: any) => {
+        //console.log(f);
+        //wow this is dirty
+        const combinedTag = f.tag + f.subfield_cd;
+        const fieldUpdate = {} as any;
+        const fieldTag = fieldMapping(combinedTag);
+        let fieldData;
+        const bibid = parseInt(f.bibid);
+        if (fieldTag == "pages") {
+          //console.log(f.bibid, f.field_data);
+          //skip Seiten string
+          const removedText = f.field_data.replace("Seiten", "");
+          fieldData = parseInt(removedText) || 0;
+        } else fieldData = f.field_data;
+
+        fieldUpdate[fieldTag] = fieldData;
+        //console.log("Updating field", fieldUpdate);
+        transaction.push(
+          prisma.book.update({
+            where: {
+              id: bibid,
+            },
+            data: { ...fieldUpdate },
+          })
+        );
+
+        additionalFieldsCount++;
+      });
 
       //execute all queries in sequential order
       prisma.$transaction(transaction);
