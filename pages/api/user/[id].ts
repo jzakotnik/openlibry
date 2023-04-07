@@ -5,7 +5,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 
-// DELETE /api/user/:id
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
@@ -21,7 +20,6 @@ export default async function handle(
 
     case "PUT":
       if (!req.body) return res.status(404).end("No data provided");
-
       const userdata = req.body as UserType;
       console.log("Handle user request ", userdata);
       const updateResult = await updateUser(prisma, id, userdata);
@@ -38,6 +36,7 @@ export default async function handle(
         console.log(error);
         res.status(400).json({ data: "ERROR: " + error });
       }
+      break;
 
     default:
       res.status(405).end(`${req.method} Not Allowed`);
