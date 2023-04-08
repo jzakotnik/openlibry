@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { BookType } from "@/entities/BookType";
+import dayjs from "dayjs";
 
 export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
@@ -39,4 +40,66 @@ export async function deleteBook(client: PrismaClient, id: number) {
 
 export async function deleteAllBooks(client: PrismaClient) {
   return await client.book.deleteMany({});
+}
+
+export async function extendBook(
+  client: PrismaClient,
+  bookid: number,
+  days: number
+) {
+  //to extend a book, count the renewal counter and updated the due date
+  const book = await getBook(client, bookid);
+  if (!book?.dueDate) return; //you can't extend a book without a due date
+  const updatedDueDate = dayjs(book?.dueDate).add(days, "day").toISOString();
+  client.book.update({
+    where: { id: bookid },
+    data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
+  });
+}
+
+export async function returnBook(client: PrismaClient, bookid: number) {
+  return await client.book.update({
+    where: { id: bookid },
+    data: { renewalCount: 0, rentalStatus: "available" },
+  });
+}
+
+export async function rentBook(
+  client: PrismaClient,
+  userid: number,
+  bookid: number,
+  duration: number = 14
+) {
+  //change due date, connect to user
+  //put all into one transaction
+  const transaction = [];
+
+  transaction.push(
+    client.user.update({
+      where: {
+        id: userid,
+      },
+      data: {
+        books: {
+          connect: {
+            id: bookid,
+          },
+        },
+      },
+    })
+  );
+  transaction.push(
+    client.book.update({
+      where: { id: bookid },
+      data: { rentalStatus: "rented", renewalCount: 0 },
+    })
+  );
+  const nowDate = dayjs().add(duration, "day");
+  transaction.push(
+    client.book.update({
+      where: { id: bookid },
+      data: { dueDate: nowDate.toISOString() },
+    })
+  );
+  return await client.$transaction(transaction);
 }

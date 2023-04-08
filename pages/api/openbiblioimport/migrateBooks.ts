@@ -161,31 +161,31 @@ const fieldMapping = (openbibliofieldname: string) => {
 const transformRentalStatus = (openbibliorental: string) => {
   switch (openbibliorental) {
     case "in":
-      return "verfügbar";
+      return "available";
       break;
     case "out":
-      return "ausgeliehen";
+      return "rented";
       break;
     case "mnd":
-      return "beschädigt";
+      return "broken";
       break;
     case "dis":
-      return "in Präsentation";
+      return "presentation";
       break;
     case "hld":
-      return "vorbestellt";
+      return "ordered";
       break;
     case "lst":
-      return "verloren";
+      return "lost";
       break;
     case "ln":
-      return "leihgabe";
+      return "remote";
       break;
     case "ord":
-      return "bestellt";
+      return "ordered";
       break;
     case "crt":
-      return "verfügbar";
+      return "available";
     default:
       console.log("ERROR, rental status not found");
       return "ERROR. not found";

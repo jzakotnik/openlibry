@@ -32,6 +32,34 @@ export async function updateUser(
   });
 }
 
+export async function disableUser(client: PrismaClient, id: number) {
+  return await client.user.update({
+    where: {
+      id,
+    },
+    data: { active: false },
+  });
+}
+
+export async function enableUser(client: PrismaClient, id: number) {
+  return await client.user.update({
+    where: {
+      id,
+    },
+    data: { active: true },
+  });
+}
+
+export async function isActive(client: PrismaClient, id: number) {
+  const user = await client.user.findUnique({
+    where: { id },
+    select: {
+      active: true,
+    },
+  });
+  return user?.active;
+}
+
 export async function deleteUser(client: PrismaClient, id: number) {
   return await client.user.delete({
     where: {
