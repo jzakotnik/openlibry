@@ -19,7 +19,6 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const user = req.body as UserType;
-
     try {
       await addUser(prisma, user);
       res.status(200).json({ data: "User " + user + " created" });

@@ -14,8 +14,13 @@ export default async function handle(
 
   switch (req.method) {
     case "DELETE":
-      const deleteResult = await deleteUser(prisma, id);
-      res.json(deleteResult);
+      try {
+        const deleteResult = await deleteUser(prisma, id);
+        res.status(200).json(deleteResult);
+      } catch (error) {
+        console.log(error);
+        res.status(400).json({ data: "ERROR DELETE: " + error });
+      }
       break;
 
     case "PUT":
