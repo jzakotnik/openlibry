@@ -1,0 +1,11 @@
+POST http://localhost:3000/api/user HTTP/1.1
+content-type: application/json
+
+{
+  "lastName": "Duck",
+  "firstName": "Donald",
+  "schoolGrade": "3b",
+  "schoolTeacherName": "Batman",
+  "active": true,
+  "eMail": "some_email@gmx.de"
+}
