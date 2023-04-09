@@ -22,7 +22,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "openbiblio_migration/migrate.js"
+    "openbiblio_migration/migrate.js",
+    "pages/api/book/[id]"
   ],
   "exclude": ["node_modules"]
 }
