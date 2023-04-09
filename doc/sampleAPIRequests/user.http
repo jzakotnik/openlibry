@@ -1,0 +1,46 @@
+POST http://localhost:3000/api/user HTTP/1.1
+content-type: application/json
+
+{
+  "id": 9999,
+  "lastName": "Duck",
+  "firstName": "Donald",
+  "schoolGrade": "3b",
+  "schoolTeacherName": "Batman",
+  "active": true,
+  "eMail": "some_email@gmx.de"
+}
+
+###
+
+PUT http://localhost:3000/api/user/9999 HTTP/1.1
+content-type: application/json
+
+{
+  "id": 9999,
+  "lastName": "Downduck",
+  "schoolGrade": "4b",
+  "schoolTeacherName": "Antman",
+  "active": true,
+  "eMail": "some_other_email@gmx.de"
+}
+
+###
+
+DELETE http://localhost:3000/api/user/9999 HTTP/1.1
+content-type: application/json
+
+{
+  "id": 9999
+}
+
+###
+
+GET http://localhost:3000/api/user HTTP/1.1
+content-type: application/json
+
+###
+
+GET http://localhost:3000/api/user/9999 HTTP/1.1
+content-type: application/json
+

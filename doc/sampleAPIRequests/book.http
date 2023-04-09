@@ -1,0 +1,45 @@
+POST http://localhost:3000/api/book HTTP/1.1
+content-type: application/json
+
+{
+    "id": 99999,
+    "rentalStatus": "available",
+    "renewalCount": 0,
+    "title": "HTTP Test Title",
+    "subtitle": "Subtitle",
+    "author": "Uebe, Ingrid"
+}
+
+###
+
+PUT http://localhost:3000/api/book/99999 HTTP/1.1
+content-type: application/json
+
+{
+
+    "rentalStatus": "available",
+    "renewalCount": 0,
+    "title": "HTTP Test Title 2",
+    "subtitle": "Subtitle",
+    "author": "Uebe, Ingrid"
+}
+
+###
+
+DELETE http://localhost:3000/api/book/99999 HTTP/1.1
+content-type: application/json
+
+{
+  "id": 9999
+}
+
+###
+
+GET http://localhost:3000/api/book HTTP/1.1
+content-type: application/json
+
+###
+
+GET http://localhost:3000/api/book/99999 HTTP/1.1
+content-type: application/json
+
