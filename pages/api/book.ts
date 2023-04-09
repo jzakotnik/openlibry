@@ -1,7 +1,7 @@
-import { UserType } from "@/entities/UserType";
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { addUser, getAllUsers } from "@/entities/user";
+import { addBook, getAllBooks } from "@/entities/book";
+import { BookType } from "@/entities/BookType";
 
 const prisma = new PrismaClient();
 
@@ -11,12 +11,12 @@ type Data = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | UserType | Array<UserType>>
+  res: NextApiResponse<Data | BookType | Array<BookType>>
 ) {
   if (req.method === "POST") {
-    const user = req.body as UserType;
+    const book = req.body as BookType;
     try {
-      const result = (await addUser(prisma, user)) as UserType;
+      const result = (await addBook(prisma, book)) as BookType;
       console.log(result);
       res.status(200).json(result);
     } catch (error) {
@@ -27,10 +27,10 @@ export default async function handler(
 
   if (req.method === "GET") {
     try {
-      const users = (await getAllUsers(prisma)) as Array<UserType>;
-      if (!users)
-        return res.status(400).json({ result: "ERROR: User not found" });
-      res.status(200).json(users);
+      const books = (await getAllBooks(prisma)) as Array<BookType>;
+      if (!books)
+        return res.status(400).json({ result: "ERROR: Book not found" });
+      res.status(200).json(books);
     } catch (error) {
       console.log(error);
       res.status(400).json({ result: "ERROR: " + error });

@@ -1,5 +1,5 @@
-import { UserType } from "@/entities/UserType";
-import { deleteUser, getUser, updateUser } from "@/entities/user";
+import { BookType } from "@/entities/BookType";
+import { deleteBook, getBook, updateBook } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -15,7 +15,7 @@ export default async function handle(
   switch (req.method) {
     case "DELETE":
       try {
-        const deleteResult = await deleteUser(prisma, id);
+        const deleteResult = await deleteBook(prisma, id);
 
         res.status(200).json(deleteResult);
       } catch (error) {
@@ -26,10 +26,10 @@ export default async function handle(
 
     case "PUT":
       if (!req.body) return res.status(404).end("No data provided");
-      const userdata = req.body as UserType;
-      console.log("Handle user request ", userdata);
+      const bookdata = req.body as BookType;
+      console.log("Handle book request ", bookdata);
       try {
-        const updateResult = await updateUser(prisma, id, userdata);
+        const updateResult = await updateBook(prisma, id, bookdata);
         res.status(200).json(updateResult);
       } catch (error) {
         console.log(error);
@@ -40,10 +40,12 @@ export default async function handle(
 
     case "GET":
       try {
-        const user = (await getUser(prisma, id)) as UserType;
-        if (!user)
-          return res.status(400).json({ data: "ERROR: User not found" });
-        res.status(200).json(user);
+        const book = (await getBook(prisma, id)) as BookType;
+        if (!book)
+          return res
+            .status(400)
+            .json({ data: "ERROR: Book with ID " + id + " not found" });
+        res.status(200).json(book);
       } catch (error) {
         console.log(error);
         res.status(400).json({ data: "ERROR: " + error });
