@@ -1,22 +1,62 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { UserType } from "@/entities/UserType";
 
 export async function getUser(client: PrismaClient, id: number) {
-  return await client.user.findUnique({ where: { id } });
+  try {
+    return await client.user.findUnique({ where: { id } });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getUser: ", e);
+    }
+    throw e;
+  }
 }
 
 export async function getAllUsers(client: PrismaClient) {
-  return await client.user.findMany({});
+  try {
+    return await client.user.findMany({});
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getAllUsers: ", e);
+    }
+    throw e;
+  }
 }
 
 export async function countUser(client: PrismaClient) {
-  return await client.user.count({});
+  try {
+    return await client.user.count({});
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in count User: ", e);
+    }
+    throw e;
+  }
 }
 
 export async function addUser(client: PrismaClient, user: UserType) {
-  return await client.user.create({
-    data: { ...user },
-  });
+  try {
+    return await client.user.create({
+      data: { ...user },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in adding User: ", e);
+    }
+    throw e;
+  }
 }
 
 export async function updateUser(
@@ -24,12 +64,22 @@ export async function updateUser(
   id: number,
   user: UserType
 ) {
-  return client.user.update({
-    where: {
-      id,
-    },
-    data: { ...user },
-  });
+  try {
+    return client.user.update({
+      where: {
+        id,
+      },
+      data: { ...user },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in updating User: ", e);
+    }
+    throw e;
+  }
 }
 
 export async function disableUser(client: PrismaClient, id: number) {
