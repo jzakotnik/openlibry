@@ -148,6 +148,27 @@ export async function returnBook(client: PrismaClient, bookid: number) {
   }
 }
 
+export async function hasRentedBook(
+  client: PrismaClient,
+  bookid: number,
+  userid: number
+) {
+  try {
+    const book = await client.book.findFirst({ where: { id: bookid } });
+    console.log("Rent check for ", userid, bookid, book);
+    if (book?.userId == userid && book.rentalStatus == "rented") return true;
+    else return false;
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getting status of a book: ", e);
+    }
+    throw e;
+  }
+}
+
 export async function rentBook(
   client: PrismaClient,
   userid: number,
