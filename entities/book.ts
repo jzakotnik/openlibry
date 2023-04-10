@@ -177,6 +177,24 @@ export async function rentBook(
 ) {
   //change due date, connect to user
   //put all into one transaction
+
+  //if the book is rented already, you cannot rent it
+  try {
+    const book = await getBook(client, bookid);
+    if (book?.rentalStatus == "rented") {
+      console.log("ERROR in renting a book: It is rented already");
+      return "ERROR, book is rented";
+    }
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in renting a book: ", e);
+    }
+    throw e;
+  }
+
   const transaction = [];
 
   transaction.push(
