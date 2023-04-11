@@ -15,7 +15,7 @@ import { useTheme } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
-import logo from "../../../assets/logo.png";
+import logo from "../../public/logo.png";
 
 import { publicNavItems } from "./navigationItems";
 
@@ -92,11 +92,16 @@ export default function TopBar() {
               width: "100%",
             }}
           >
-            <Box sx={{ width: 150, height: 40, display: "block" }}>
+            <Box sx={{ width: 100, height: 40, display: "block" }}>
               <Link href="/">
-                <a>
-                  <Image src={logo} alt="Logo" layout="responsive" />
-                </a>
+                <Image
+                  src={logo}
+                  alt="Logo"
+                  layout="responsive"
+                  style={{
+                    borderRadius: "5",
+                  }}
+                />
               </Link>
             </Box>
           </Box>
