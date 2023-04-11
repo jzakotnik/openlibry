@@ -1,4 +1,13 @@
 
-GET http://localhost:3000/api/book/3758/user/1431 HTTP/1.1
+GET http://localhost:3000/api/book/2001/user/1080 HTTP/1.1
 content-type: application/json
 
+### rent a book, so user 1080 should have book 2001 afterwards
+
+POST http://localhost:3000/api/book/2001/user/1080 HTTP/1.1
+content-type: application/json
+
+### give the same book back
+
+DELETE http://localhost:3000/api/book/2001/user/1080 HTTP/1.1
+content-type: application/json

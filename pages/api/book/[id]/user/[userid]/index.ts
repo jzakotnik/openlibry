@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { hasRentedBook, addBook } from "@/entities/book";
+import { hasRentedBook, addBook, rentBook, returnBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 
 const prisma = new PrismaClient();
@@ -13,12 +13,40 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data | BookType | Array<BookType>>
 ) {
+  //rent a book
   if (req.method === "POST") {
+    if (!req.query.id || !req.query.userid)
+      return res
+        .status(400)
+        .json({ result: "ERROR, rented book or user not specified" });
+
     const book = req.body as BookType;
     try {
-      const result = (await addBook(prisma, book)) as BookType;
-      console.log(result);
-      res.status(200).json(result);
+      console.log("Rent book for user and book", req.query);
+      const rental = await rentBook(
+        prisma,
+        parseInt(req.query.userid as string),
+        parseInt(req.query.id as string)
+      );
+      res.status(200).json({ result: JSON.stringify(rental) });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({ result: "ERROR: " + error });
+    }
+  }
+
+  //give the book back
+  if (req.method === "DELETE") {
+    if (!req.query.id || !req.query.userid)
+      return res
+        .status(400)
+        .json({ result: "ERROR, rented book or user not specified" });
+
+    const book = req.body as BookType;
+    try {
+      console.log("Return book for user and book", req.query);
+      const rental = await returnBook(prisma, parseInt(req.query.id as string));
+      res.status(200).json({ result: JSON.stringify(rental) });
     } catch (error) {
       console.log(error);
       res.status(400).json({ result: "ERROR: " + error });

@@ -133,10 +133,34 @@ export async function extendBook(
 
 export async function returnBook(client: PrismaClient, bookid: number) {
   try {
-    return await client.book.update({
-      where: { id: bookid },
-      data: { renewalCount: 0, rentalStatus: "available" },
-    });
+    //get the user for that book
+    const book = (await getBook(client, bookid)) as BookType;
+    if (!book.userId) {
+      console.log("ERROR in returning a book, this user does not have a book");
+      return "ERROR in returning a book, this user does not have a book";
+    }
+    const userid = book.userId;
+    const transaction = [];
+    transaction.push(
+      client.book.update({
+        where: { id: bookid },
+        data: {
+          renewalCount: 0,
+          rentalStatus: "available",
+        },
+      })
+    );
+    transaction.push(
+      client.user.update({
+        where: { id: userid },
+        data: {
+          books: {
+            disconnect: { id: bookid },
+          },
+        },
+      })
+    );
+    return await client.$transaction(transaction);
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||

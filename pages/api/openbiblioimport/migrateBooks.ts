@@ -223,7 +223,7 @@ export default async function handler(
         const book = {
           id: parseInt(u.bibid),
 
-          rentalStatus: "verfügbar",
+          rentalStatus: "available",
           rentedDate: (u.status_begin_dt ??= new Date()),
           dueDate: (u.due_back_dt ??= new Date()),
           renewalCount: parseInt((u.renewal_count ??= 0)),

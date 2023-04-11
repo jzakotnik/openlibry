@@ -11,6 +11,7 @@
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.11.14",
     "@prisma/client": "^4.11.0",
     "@types/node": "18.15.10",
