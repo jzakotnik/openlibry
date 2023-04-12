@@ -1,47 +1,64 @@
 import * as React from "react";
-
-import Image from "next/image";
-import Link from "next/link";
-
-import MenuIcon from "@mui/icons-material/Menu";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-
-import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import { useTheme } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-
-import logo from "../../public/logo.png";
+import Menu from "@mui/material/Menu";
+import MenuIcon from "@mui/icons-material/Menu";
+import Container from "@mui/material/Container";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import Tooltip from "@mui/material/Tooltip";
+import MenuItem from "@mui/material/MenuItem";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import { useTheme } from "@mui/material/styles";
+import { useRouter } from "next/router";
 
 import { publicNavItems } from "./navigationItems";
 
 export default function TopBar() {
+  const router = useRouter();
+  const theme = useTheme();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
-
-  const theme = useTheme();
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
+  const handleCloseNavMenu = (e: any, page: any) => {
+    console.log("Navigating to ", e, page);
+    if (page == "backdropClick") setAnchorElNav(null);
+    else router.push(page);
   };
 
   return (
-    <AppBar
-      position="static"
-      elevation={0}
-      sx={{ backgroundColor: theme.palette.background.default }}
-    >
+    <AppBar position="static" color="secondary">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
+          <LibraryBooksIcon
+            sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
+          />
+          <Typography
+            variant="h6"
+            noWrap
+            component="a"
+            href="/"
+            sx={{
+              mr: 2,
+              display: { xs: "none", md: "flex" },
+
+              fontWeight: 700,
+              letterSpacing: ".3rem",
+              color: "inherit",
+              textDecoration: "none",
+            }}
+          >
+            OpenLibry
+          </Typography>
+
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
@@ -49,7 +66,7 @@ export default function TopBar() {
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              color="secondary"
+              color="inherit"
             >
               <MenuIcon />
             </IconButton>
@@ -71,39 +88,47 @@ export default function TopBar() {
                 display: { xs: "block", md: "none" },
               }}
             >
-              {publicNavItems.map((navItem) => (
+              {publicNavItems.map((page) => (
                 <MenuItem
-                  key={navItem.title}
-                  onClick={handleCloseNavMenu}
-                  sx={{ width: "100vw" }}
+                  key={page.title}
+                  onClick={(event) => handleCloseNavMenu(event, page.slug)}
                 >
-                  <Link href={navItem.slug}>
-                    <Typography textAlign="center">{navItem.title}</Typography>
-                  </Link>
+                  <Typography textAlign="center">{page.title}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-          <Box
+          <LibraryBooksIcon
+            sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
+          />
+          <Typography
+            variant="h5"
+            noWrap
+            component="a"
+            href=""
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%",
+              mr: 2,
+              display: { xs: "flex", md: "none" },
+              flexGrow: 1,
+              fontFamily: "monospace",
+              fontWeight: 700,
+              letterSpacing: ".3rem",
+              color: "inherit",
+              textDecoration: "none",
             }}
           >
-            <Box sx={{ width: 100, height: 40, display: "block" }}>
-              <Link href="/">
-                <Image
-                  src={logo}
-                  alt="Logo"
-                  layout="responsive"
-                  style={{
-                    borderRadius: "5",
-                  }}
-                />
-              </Link>
-            </Box>
+            OpenLibry
+          </Typography>
+          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+            {publicNavItems.map((page) => (
+              <Button
+                key={page.title}
+                onClick={(event) => handleCloseNavMenu(event, page.slug)}
+                sx={{ my: 2, color: "white", display: "block" }}
+              >
+                {page.title}
+              </Button>
+            ))}
           </Box>
         </Toolbar>
       </Container>

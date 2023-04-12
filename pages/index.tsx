@@ -8,12 +8,18 @@ import TopBar from "@/components/layout/TopBar";
 import Layout from "@/components/layout/Layout";
 import TitleTile from "@/components/title/TitleTile";
 import splashbanner from "../components/title/splashbanner.jpg";
-import admin_icon from "../components/title/admin-icon.jpg";
+
+import { useRouter } from "next/router";
+import { publicNavItems } from "@/components/layout/navigationItems";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const onClick = (e: any) => {};
+  const router = useRouter();
+  const onClick = (e: any, slug: string) => {
+    console.log("Selected", slug);
+    router.push(slug);
+  };
 
   return (
     <Layout>
@@ -29,6 +35,7 @@ export default function Home() {
           backgroundPosition: "center",
           backgroundSize: "cover",
           zIndex: "-1",
+          opacity: 0.4,
         }}
       />
       <Grid
@@ -37,20 +44,19 @@ export default function Home() {
         direction="column"
         sx={{
           py: 4,
-          minHeight: 600,
         }}
       >
         <Grid item>
           <Typography
             variant="h1"
             align="center"
-            sx={{ fontWeight: "bold", fontSize: 40 }}
+            sx={{ fontWeight: "bold", fontSize: 30 }}
           >
             Open Libry - die <b>einfache</b> Bücherei Verwaltung
           </Typography>
         </Grid>
 
-        <Grid container alignItems="center" sx={{ pt: 6, mt: 8, m: 8 }}>
+        <Grid container alignItems="center" sx={{ pt: 6, mt: 8 }}>
           <Grid
             container
             direction="row"
@@ -58,83 +64,31 @@ export default function Home() {
             justifyContent="center"
             sx={{ px: 10 }}
           >
-            {" "}
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={3}
-              justifyContent="center"
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                position: "relative",
-                mb: 0,
-              }}
-            >
-              <TitleTile
-                title="User"
-                subtitle="Verwaltung Nutzerinnen"
-                onClick={onClick}
-              />
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={3}
-              justifyContent="center"
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                position: "relative",
-                mb: 0,
-              }}
-            >
-              <TitleTile
-                title="Bücher"
-                subtitle="Verwaltung Bücher"
-                onClick={onClick}
-              />
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={3}
-              justifyContent="center"
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                position: "relative",
-                mb: 0,
-              }}
-            >
-              <TitleTile
-                title="Admin"
-                subtitle="Einstellungen"
-                onClick={onClick}
-              />
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={3}
-              justifyContent="center"
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                position: "relative",
-                mb: 0,
-              }}
-            >
-              <TitleTile
-                title="Reports"
-                subtitle="Überblick"
-                onClick={onClick}
-              />
-            </Grid>
+            {publicNavItems.map((p) => {
+              return (
+                <Grid
+                  item
+                  key={p.slug}
+                  xs={12}
+                  sm={6}
+                  md={3}
+                  justifyContent="center"
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    position: "relative",
+                    mb: 0,
+                    my: 5,
+                  }}
+                >
+                  <TitleTile
+                    title={p.title}
+                    subtitle={p.subtitle}
+                    onClick={(e: any) => onClick(e, p.slug)}
+                  />
+                </Grid>
+              );
+            })}
           </Grid>{" "}
         </Grid>
       </Grid>

@@ -1,5 +1,6 @@
 export const publicNavItems = [
-  { title: "ausleihe", slug: "/rental" },
-  { title: "user", slug: "/user" },
-  { title: "bücher", slug: "/books" },
+  { title: "Leihe", subtitle: "Entleihe und Rückgabe", slug: "/rental" },
+  { title: "User", subtitle: "NutzerInnen Verwaltung", slug: "/user" },
+  { title: "Bücher", subtitle: "Bücher Datenbank", slug: "/books" },
+  { title: "Reports", subtitle: "Überblick über Bestand", slug: "/reports" },
 ];

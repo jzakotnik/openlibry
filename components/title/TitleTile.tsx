@@ -25,18 +25,20 @@ export default function TitleTile({ title, subtitle, onClick }: TitleFileType) {
         alignItems: "center",
         justifyContent: "center",
         ":hover": {
-          boxShadow: 5,
+          boxShadow: 10,
         },
-        backgroundColor: "background.card",
+        backgroundColor: "tertiary.dark",
         borderRadius: 5,
         p: 2,
       }}
       onClick={onClick}
     >
-      <Typography variant="h5" component="div">
+      <Typography variant="h3" component="div" sx={{ color: "primary.light" }}>
         {title}
       </Typography>
-      <Typography sx={{ mb: 1.5 }}>{subtitle}</Typography>
+      <Typography sx={{ mb: 1.5, color: "primary.light" }}>
+        {subtitle}
+      </Typography>
     </Paper>
   );
 }

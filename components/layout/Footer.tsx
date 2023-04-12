@@ -16,24 +16,17 @@ export default function Footer() {
         container
         alignItems="center"
         justifyContent="space-around"
-        rowSpacing={2}
+        rowSpacing={5}
       >
         <Grid container item columnSpacing={2} xs={12} md="auto">
           <Grid item xs={12} md={4}>
             <Typography variant="body2">Copyright</Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography
-              sx={{
-                borderLeft: { md: "1px solid" },
-                borderRight: { md: "1px solid" },
-              }}
-            >
-              Impressum
-            </Typography>
+            <Typography variant="body2">Impressum</Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography>Datenschutz</Typography>
+            <Typography variant="body2">Datenschutz</Typography>
           </Grid>
         </Grid>
       </Grid>
