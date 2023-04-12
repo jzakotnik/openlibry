@@ -49,7 +49,7 @@ export default function Reports({ data }) {
     //convert data to the respective
     const colTitles = convertedData[0];
     //console.log(reportType, convertedData, colTitles);
-    const fields = Object.keys(colTitles);
+    const fields = Object.keys(colTitles) as any;
     console.log("Fields", fields);
     const columns = fields.map((f) => {
       const col = { field: f, minWidth: 150 };
