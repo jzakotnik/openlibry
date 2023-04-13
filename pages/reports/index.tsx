@@ -9,8 +9,9 @@ import SelectReport from "@/components/reports/SelectReport";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
-
+import { translations } from "@/entities/fieldTranslations";
 import {
   DataGrid,
   GridRowsProp,
@@ -18,8 +19,11 @@ import {
   GridToolbar,
   deDE,
 } from "@mui/x-data-grid";
+import dayjs from "dayjs";
 
 import type {} from "@mui/x-data-grid/themeAugmentation";
+import { convertDateToDayString } from "@/utils/convertDateToDayString";
+
 const prisma = new PrismaClient();
 
 const theme = createTheme(
@@ -32,38 +36,80 @@ const theme = createTheme(
   coreDeDE // core translations
 );
 
-export default function Reports({ data }) {
-  const reportTypes = ["user", "books", "rentals"];
-  const [reportType, setReportType] = useState("user");
+interface ReportPropsType {
+  users: any;
+  books: any;
+  rentals: any;
+}
+
+interface ReportKeyType {
+  translations: string;
+}
+
+export default function Reports({ users, books, rentals }: ReportPropsType) {
+  const reportTypes = ["users", "books", "rentals"];
+  const [reportType, setReportType] = useState("users");
   const [reportData, setReportData] = useState({ columns: [], rows: [] });
 
-  const convertedData = JSON.parse(data);
+  //TODO find a better way for dynamic layouts
+  function getWidth(columnName: string = "") {
+    switch (columnName) {
+      case "ID":
+        return 40;
+        break;
+      case "title":
+        return 350;
+        break;
+      case "lastName":
+        return 180;
+        break;
+      default:
+        return 100;
+    }
+  }
 
   function handleReportType(e: any) {
-    console.log("Changed type", e.target.value);
     //convert the relevant data for the grid
     setReportType(e.target.value);
   }
 
   useEffect(() => {
+    //console.log("Changed data", users, books, rentals);
+    let data = [] as any;
+    reportTypes.map((t) => {
+      if (t == reportType) {
+        console.log("Type found", reportType);
+        data = eval(t);
+      }
+    });
+
     //convert data to the respective
-    const colTitles = convertedData[0];
-    //console.log(reportType, convertedData, colTitles);
+    const colTitles = data[0];
+    //console.log(reportType, data, colTitles);
     const fields = Object.keys(colTitles) as any;
-    console.log("Fields", fields);
-    const columns = fields.map((f) => {
-      const col = { field: f, minWidth: 150 };
+
+    const columns = fields.map((f: string) => {
+      const fieldTranslation = (translations as any)[reportType][f];
+      const col = {
+        field: f,
+        headerName: fieldTranslation,
+        width: getWidth(f),
+      };
       return col;
     });
-    const rows = convertedData.map((r) => {
-      console.log(r);
-      return { id: r.id, ...r };
+    const rows = data.map((r: any) => {
+      const rowCopy = {
+        id: r.id,
+        ...r,
+        rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
+      };
+      //console.log("Row Copy", rowCopy);
+      return rowCopy;
     });
-    console.log("columns", columns);
+    //console.log("columns", columns);
     setReportData({ columns: columns, rows: rows });
   }, [reportType]);
 
-  console.log("Changed Report Type, getting data for ", reportType);
   return (
     <Layout>
       <ThemeProvider theme={theme}>
@@ -94,10 +140,46 @@ export default function Reports({ data }) {
 
 export async function getServerSideProps() {
   const allUsers = await getAllUsers(prisma);
-  //convert the dates to scalar sadly
-  const data = JSON.stringify(allUsers);
-  //console.log("Get Server Side Props", data);
+
+  const users = allUsers.map((u) => {
+    const newUser = { ...u } as any; //define a better type there with conversion of Date to string
+    newUser.createdAt = convertDateToDayString(u.createdAt);
+    newUser.updatedAt = convertDateToDayString(u.updatedAt);
+    return newUser;
+  });
+
+  const allBooks = await getAllBooks(prisma);
+  const books = allBooks.map((b) => {
+    const newBook = { ...b } as any; //define a better type there with conversion of Date to string
+    newBook.createdAt = convertDateToDayString(b.createdAt);
+    newBook.updatedAt = convertDateToDayString(b.updatedAt);
+    newBook.rentedDate = b.rentedDate
+      ? convertDateToDayString(b.rentedDate)
+      : "";
+    newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+    //temp TODO
+    return newBook;
+  });
+  const allRentals = await getRentedBooksWithUsers(prisma);
+  const rentals = allRentals.map((r) => {
+    //calculate remaining days for the rental
+    const due = dayjs(r.dueDate);
+    const today = dayjs();
+    const diff = today.diff(due, "days");
+
+    return {
+      id: r.id,
+      title: r.title,
+      lastName: r.user?.lastName,
+      firstName: r.user?.firstName,
+      remainingDays: diff,
+      dueDate: convertDateToDayString(due.toDate()),
+      renewalCount: r.renewalCount,
+    };
+  });
+
+  console.log(allRentals);
 
   // Pass data to the page via props
-  return { props: { data } };
+  return { props: { users, books, rentals } };
 }

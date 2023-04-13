@@ -25,7 +25,7 @@ export default function SelectReport({
           label="Report"
           onChange={handleReportType}
         >
-          <MenuItem value="user">Nutzerinnen</MenuItem>
+          <MenuItem value="users">Nutzerinnen</MenuItem>
           <MenuItem value="books">Bücher</MenuItem>
           <MenuItem value="rentals">Leihstatus</MenuItem>
         </Select>
