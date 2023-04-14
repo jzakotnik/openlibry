@@ -3,6 +3,7 @@ import styles from "@/styles/Home.module.css";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
 import Image from "next/image";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import SelectReport from "@/components/reports/SelectReport";
@@ -23,6 +24,7 @@ import dayjs from "dayjs";
 
 import type {} from "@mui/x-data-grid/themeAugmentation";
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import Dashboard from "@/components/reports/Dashboard";
 
 const prisma = new PrismaClient();
 
@@ -48,7 +50,8 @@ interface ReportKeyType {
 
 export default function Reports({ users, books, rentals }: ReportPropsType) {
   const reportTypes = ["users", "books", "rentals"];
-  const [reportType, setReportType] = useState("users");
+  const [reportType, setReportType] = useState("");
+  const [dashboardDisplay, setDashboardDisplay] = useState(true);
   const [reportData, setReportData] = useState({ columns: [], rows: [] });
 
   //TODO find a better way for dynamic layouts
@@ -70,69 +73,81 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
 
   function handleReportType(e: any) {
     //convert the relevant data for the grid
+
     setReportType(e.target.value);
+    setDashboardDisplay(false);
   }
 
   useEffect(() => {
-    //console.log("Changed data", users, books, rentals);
-    let data = [] as any;
-    reportTypes.map((t) => {
-      if (t == reportType) {
-        console.log("Type found", reportType);
-        data = eval(t);
-      }
-    });
-
-    //convert data to the respective
-    const colTitles = data[0];
-    //console.log(reportType, data, colTitles);
-    const fields = Object.keys(colTitles) as any;
-
-    const columns = fields.map((f: string) => {
-      const fieldTranslation = (translations as any)[reportType][f];
-      const col = {
-        field: f,
-        headerName: fieldTranslation,
-        width: getWidth(f),
-      };
-      return col;
-    });
-    const rows = data.map((r: any) => {
-      const rowCopy = {
-        id: r.id,
-        ...r,
-        rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
-      };
-      //console.log("Row Copy", rowCopy);
-      return rowCopy;
-    });
-    //console.log("columns", columns);
-    setReportData({ columns: columns, rows: rows });
+    if (reportType != "") {
+      let data = [] as any;
+      reportTypes.map((t) => {
+        if (t == reportType) {
+          console.log("Type found", reportType);
+          data = eval(t);
+        }
+      });
+      const colTitles = data[0];
+      const fields = Object.keys(colTitles) as any;
+      const columns = fields.map((f: string) => {
+        const fieldTranslation = (translations as any)[reportType][f];
+        const col = {
+          field: f,
+          headerName: fieldTranslation,
+          width: getWidth(f),
+        };
+        return col;
+      });
+      const rows = data.map((r: any) => {
+        const rowCopy = {
+          id: r.id,
+          ...r,
+          rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
+        };
+        //console.log("Row Copy", rowCopy);
+        return rowCopy;
+      });
+      //console.log("columns", columns);
+      setReportData({ columns: columns, rows: rows });
+    }
   }, [reportType]);
 
   return (
     <Layout>
       <ThemeProvider theme={theme}>
-        <Box sx={{ mt: 2 }}>
-          <SelectReport
-            reportType={reportType}
-            handleReportType={handleReportType}
-          />
-        </Box>
-        <Box
-          sx={{
-            backgroundColor: "#CFCFCF",
-            width: "100%",
-            mt: 5,
-          }}
+        <Grid
+          container
+          direction="row"
+          justifyContent="flex-start"
+          alignItems="center"
+          spacing={2}
+          sx={{ mt: 2 }}
         >
-          <DataGrid
-            autoHeight
-            columns={reportData.columns}
-            rows={reportData.rows}
-            slots={{ toolbar: GridToolbar }}
-          />
-        </Box>
+          <Grid item xs={6}>
+            <SelectReport
+              reportType={reportType}
+              handleReportType={handleReportType}
+            />
+          </Grid>
+        </Grid>
+        {!dashboardDisplay ? (
+          <Box
+            sx={{
+              backgroundColor: "#CFCFCF",
+              width: "100%",
+              mt: 5,
+            }}
+          >
+            <DataGrid
+              autoHeight
+              columns={reportData.columns}
+              rows={reportData.rows}
+              slots={{ toolbar: GridToolbar }}
+            />
+          </Box>
+        ) : (
+          <Dashboard users={users} rentals={rentals} books={books} />
+        )}
       </ThemeProvider>
     </Layout>
   );
@@ -178,7 +193,7 @@ export async function getServerSideProps() {
     };
   });
 
-  console.log(allRentals);
+  //console.log(allRentals);
 
   // Pass data to the page via props
   return { props: { users, books, rentals } };

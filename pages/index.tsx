@@ -11,6 +11,7 @@ import splashbanner from "../components/title/splashbanner.jpg";
 
 import { useRouter } from "next/router";
 import { publicNavItems } from "@/components/layout/navigationItems";
+import palette from "@/styles/palette";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -50,7 +51,7 @@ export default function Home() {
           <Typography
             variant="h1"
             align="center"
-            sx={{ fontWeight: "bold", fontSize: 30 }}
+            sx={{ fontWeight: "bold", fontSize: 50 }}
           >
             Open Libry - die <b>einfache</b> Bücherei Verwaltung
           </Typography>

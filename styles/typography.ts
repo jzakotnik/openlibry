@@ -44,7 +44,7 @@ const baseStyles = {
 
 const header = {
   h1: {
-    color: palette.text.tertiary,
+    color: palette.text.secondary,
     ...baseStyles.header.h1,
   },
   h1_primary_contrast: {

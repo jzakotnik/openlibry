@@ -3,7 +3,8 @@ import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
+import Select from "@mui/material/Select";
+import { Typography, Grid } from "@mui/material";
 
 interface SelectReportType {
   reportType: string;
@@ -17,7 +18,7 @@ export default function SelectReport({
   return (
     <Box sx={{ minWidth: 120 }}>
       <FormControl fullWidth>
-        <InputLabel id="report-select-label">Art</InputLabel>
+        <InputLabel id="report-select-label">Tabelle</InputLabel>
         <Select
           labelId="report-select-label"
           id="report-select-label"
