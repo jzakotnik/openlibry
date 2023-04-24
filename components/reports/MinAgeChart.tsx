@@ -43,7 +43,7 @@ export default function MinAgeChart({ books }: MinAgeChartType) {
   Chart.register(LinearScale);
   Chart.register(BarController);
   Chart.register(BarElement);
-  console.log("Rendering Min Age Chart", books);
+  //console.log("Rendering Min Age Chart", books);
   //const data = calculateHistogram({ books: books });
   const sampledata = {
     labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
@@ -51,23 +51,6 @@ export default function MinAgeChart({ books }: MinAgeChartType) {
       {
         label: "# of Votes",
         data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.2)",
-          "rgba(54, 162, 235, 0.2)",
-          "rgba(255, 206, 86, 0.2)",
-          "rgba(75, 192, 192, 0.2)",
-          "rgba(153, 102, 255, 0.2)",
-          "rgba(255, 159, 64, 0.2)",
-        ],
-        borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(75, 192, 192, 1)",
-          "rgba(153, 102, 255, 1)",
-          "rgba(255, 159, 64, 1)",
-        ],
-        borderWidth: 1,
       },
     ],
   };
@@ -76,7 +59,7 @@ export default function MinAgeChart({ books }: MinAgeChartType) {
   const labels = calcData.labels;
   const datasets = calcData.values;
   const data = { labels: labels, datasets: datasets.datasets };
-  console.log(sampledata, data);
+  //console.log(sampledata, data);
 
   return (
     <Bar
