@@ -190,6 +190,7 @@ export async function getServerSideProps() {
       remainingDays: diff,
       dueDate: convertDateToDayString(due.toDate()),
       renewalCount: r.renewalCount,
+      userid: r.user?.id,
     };
   });
 

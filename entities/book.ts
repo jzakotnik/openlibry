@@ -34,7 +34,12 @@ export async function getRentedBooksWithUsers(client: PrismaClient) {
         dueDate: true,
         renewalCount: true,
         user: {
-          select: { lastName: true, firstName: true, schoolGrade: true },
+          select: {
+            lastName: true,
+            firstName: true,
+            schoolGrade: true,
+            id: true,
+          },
         },
       },
     });

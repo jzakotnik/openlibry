@@ -49,6 +49,7 @@ export const translations = {
     renewalCount: "Verlängert",
     dueDate: "Rückgabe",
     remainingDays: "Verzug",
+    userid: "Nutzer ID",
   },
   rentalStatus: {
     available: "Verfügbar",

@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
+import { getUser } from "../../entities/user";
 
 import { translations } from "@/entities/fieldTranslations";
 import Input from "@mui/material/Input";
@@ -20,6 +21,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import UserAdminList from "@/components/user/UserAdminList";
 
 import {
   DataGrid,
@@ -36,6 +38,7 @@ import Dashboard from "@/components/reports/Dashboard";
 import { UserType } from "@/entities/UserType";
 import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
+import UserDetailsCard from "@/components/user/UserDetailsCard";
 
 const prisma = new PrismaClient();
 
@@ -57,10 +60,16 @@ interface UsersPropsType {
 
 export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
+  const [displayDetail, setDisplayDetail] = useState(0);
   useEffect(() => {}, []);
 
   const handleInputChange = (e: any) => {
     setUserSearchInput(e.target.value);
+  };
+
+  const selectItem = (id: string) => {
+    console.log("selected user", users, rentals);
+    setDisplayDetail(parseInt(id));
   };
 
   return (
@@ -68,19 +77,19 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       <ThemeProvider theme={theme}>
         <Grid
           container
-          direction="row"
+          direction="column"
           justifyContent="flex-start"
           alignItems="center"
           spacing={2}
           sx={{ mt: 2 }}
         >
-          <Grid item xs={12}>
+          <Grid item xs={6}>
             <FormControl variant="standard">
-              <InputLabel htmlFor="input-with-icon-adornment">
-                Nutzer
+              <InputLabel htmlFor="user-search-input-label">
+                Sucher NutzerIn
               </InputLabel>
               <Input
-                id="input-with-icon-adornment"
+                id="user-search-input"
                 startAdornment={
                   <InputAdornment position="start">
                     <AccountCircle />
@@ -91,19 +100,23 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               />
             </FormControl>
           </Grid>{" "}
-          <Grid item xs={12}>
-            {users.map((u) => {
-              const searchString = userSearchInput;
-              if (
-                u.lastName.toLowerCase().includes(searchString.toLowerCase()) ||
-                u.firstName.toLowerCase().includes(searchString.toLowerCase())
-              )
-                return (
-                  <Typography key={u.id} color={palette.primary.main}>
-                    {u.lastName + ", " + u.firstName}
-                  </Typography>
-                );
-            })}
+          {displayDetail > 0 ? (
+            <Grid item xs={6}>
+              <UserDetailsCard
+                user={users.filter((u) => u.id == displayDetail)}
+                rentals={rentals}
+              />
+            </Grid>
+          ) : (
+            0
+          )}
+          <Grid item xs={6}>
+            <UserAdminList
+              users={users}
+              rentals={rentals}
+              searchString={userSearchInput}
+              selectItem={selectItem}
+            />
           </Grid>
         </Grid>
       </ThemeProvider>
@@ -148,6 +161,7 @@ export async function getServerSideProps() {
       remainingDays: diff,
       dueDate: convertDateToDayString(due.toDate()),
       renewalCount: r.renewalCount,
+      userid: r.user?.id,
     };
   });
 

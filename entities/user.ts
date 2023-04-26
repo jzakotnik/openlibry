@@ -17,7 +17,16 @@ export async function getUser(client: PrismaClient, id: number) {
 
 export async function getAllUsers(client: PrismaClient) {
   try {
-    return await client.user.findMany({});
+    return await client.user.findMany({
+      orderBy: [
+        {
+          lastName: "asc",
+        },
+        {
+          firstName: "asc",
+        },
+      ],
+    });
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
