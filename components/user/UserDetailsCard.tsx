@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
@@ -69,7 +70,9 @@ export default function UserDetailsCard({
         )}
       </CardContent>
       <CardActions>
-        <Button size="small">Editieren</Button>
+        <Link href={"/user/" + user.id} passHref>
+          <Button size="small">Editieren</Button>
+        </Link>
       </CardActions>
     </Card>
   );

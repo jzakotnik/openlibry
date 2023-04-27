@@ -43,13 +43,13 @@ export default function UserDetail({ user, books }: any) {
   }, []);
 
   const userid = parseInt(router.query.userid);
-  console.log("User Page", userid);
-  console.log("User, Books", user, books);
+  //console.log("User Page", userid);
+  //console.log("User, Books", user, books);
 
   const toggleEditButton = () => {
     editable
       ? setEditButtonLabel("Editieren")
-      : setEditButtonLabel("Verwerfen");
+      : setEditButtonLabel("Abbrechen");
     setEditable(!editable);
   };
 
@@ -162,19 +162,19 @@ export default function UserDetail({ user, books }: any) {
                 label="Aktiv"
               />
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} md={4}>
               <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
                 {editButtonLabel}
               </Button>
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} md={4}>
               {editable && (
                 <Button onClick={handleSaveButton} startIcon={<SaveAltIcon />}>
                   Speichern
                 </Button>
               )}
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} md={4}>
               {editable && (
                 <Button startIcon={<DeleteForeverIcon />}>Löschen</Button>
               )}
