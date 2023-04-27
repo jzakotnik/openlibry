@@ -9,6 +9,17 @@ import {
   Checkbox,
   Button,
   IconButton,
+  Typography,
+} from "@mui/material";
+import InputIcon from "@mui/icons-material/Input";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import {
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
 } from "@mui/material";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
@@ -24,6 +35,8 @@ import { useRouter } from "next/router";
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 import { updateUser } from "../../entities/user";
+import palette from "@/styles/palette";
+import { BookType } from "@/entities/BookType";
 
 const theme = createTheme({
   palette: {
@@ -44,7 +57,7 @@ export default function UserDetail({ user, books }: any) {
 
   const userid = parseInt(router.query.userid);
   //console.log("User Page", userid);
-  //console.log("User, Books", user, books);
+  console.log("User, Books", user, books);
 
   const toggleEditButton = () => {
     editable
@@ -161,6 +174,18 @@ export default function UserDetail({ user, books }: any) {
                 }
                 label="Aktiv"
               />
+            </Grid>
+            <Grid container>
+              {books.map((b: BookType) => {
+                return (
+                  <ListItem key={b.id}>
+                    <ListItemIcon>
+                      <LibraryBooksIcon />
+                    </ListItemIcon>
+                    <ListItemText>{b.title}</ListItemText>
+                  </ListItem>
+                );
+              })}
             </Grid>
             <Grid item xs={12} md={4}>
               <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
