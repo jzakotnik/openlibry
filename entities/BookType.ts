@@ -1,8 +1,8 @@
 export interface BookType {
   id: number;
   rentalStatus: string;
-  rentedDate: Date;
-  dueDate: Date;
+  rentedDate: Date | string;
+  dueDate: Date | string;
   renewalCount: number;
   title: string;
   subtitle?: string;

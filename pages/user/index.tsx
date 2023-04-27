@@ -72,6 +72,12 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     setDisplayDetail(parseInt(id));
   };
 
+  const booksForUser = (id: number) => {
+    const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
+    console.log("Filtered rentals", userRentals);
+    return userRentals;
+  };
+
   return (
     <Layout>
       <ThemeProvider theme={theme}>
@@ -103,8 +109,8 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
           {displayDetail > 0 ? (
             <Grid item xs={6}>
               <UserDetailsCard
-                user={users.filter((u) => u.id == displayDetail)}
-                rentals={rentals}
+                user={users.filter((u) => u.id == displayDetail)[0]}
+                rentals={booksForUser(displayDetail)}
               />
             </Grid>
           ) : (

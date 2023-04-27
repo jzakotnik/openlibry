@@ -54,6 +54,43 @@ export async function getRentedBooksWithUsers(client: PrismaClient) {
   }
 }
 
+export async function getRentedBooksForUser(client: PrismaClient, id: number) {
+  try {
+    return await client.book.findMany({
+      where: {
+        rentalStatus: {
+          contains: "rented",
+        },
+        userId: {
+          equals: id,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        dueDate: true,
+        renewalCount: true,
+        user: {
+          select: {
+            lastName: true,
+            firstName: true,
+            schoolGrade: true,
+            id: true,
+          },
+        },
+      },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getting all Books: ", e);
+    }
+    throw e;
+  }
+}
+
 export async function countBook(client: PrismaClient) {
   try {
     return await client.book.count({});
