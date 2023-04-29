@@ -14,6 +14,7 @@ import { UserType } from "@/entities/UserType";
 
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
+import { Divider } from "@mui/material";
 
 const bull = (
   <Box
@@ -51,6 +52,7 @@ export default function UserDetailsCard({
         <Typography variant="h5" component="div">
           {selectedUser.lastName + ", " + selectedUser.firstName}
         </Typography>
+
         <Typography>Ausgeliehene Bücher:</Typography>
         {rentals.length == 0 ? (
           <Typography color={palette.success.main}>Keine</Typography>
