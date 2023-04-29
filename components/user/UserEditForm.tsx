@@ -45,6 +45,7 @@ interface UserEditFormPropType {
   setUserData: any;
   deleteUser: any;
   saveUser: any;
+  returnBook: any;
 }
 
 export default function UserEditForm({
@@ -53,6 +54,7 @@ export default function UserEditForm({
   setUserData,
   deleteUser,
   saveUser,
+  returnBook,
 }: UserEditFormPropType) {
   const [editable, setEditable] = useState(false);
 
@@ -200,7 +202,7 @@ export default function UserEditForm({
             return (
               <ListItem key={b.id}>
                 <IconButton
-                  onClick={() => console.log("Returning book  ", b)}
+                  onClick={() => returnBook(b.id)}
                   aria-label="zurückgeben"
                 >
                   {" "}

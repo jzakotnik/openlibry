@@ -3,10 +3,8 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
 import { getUser } from "../../entities/user";
-import { Book } from "@prisma/client";
-import { getRentedBooksForUser } from "@/entities/book";
 
-import SaveAltIcon from "@mui/icons-material/SaveAlt";
+import { getRentedBooksForUser } from "@/entities/book";
 
 import { useRouter } from "next/router";
 
@@ -15,9 +13,7 @@ import {
   replaceUserDateString,
 } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
-import { updateUser } from "../../entities/user";
-import palette from "@/styles/palette";
-import { BookType } from "@/entities/BookType";
+
 import UserEditForm from "@/components/user/UserEditForm";
 import { Typography } from "@mui/material";
 
@@ -45,8 +41,8 @@ export default function UserDetail({ user, books }: any) {
       ? router.query.userid[0]
       : router.query.userid
   );
-  console.log("User Page", userid);
-  console.log("User, Books", user, books);
+  //console.log("User Page", userid);
+  //console.log("User, Books", user, books);
 
   const handleSaveButton = () => {
     console.log("Saving user ", userData);
@@ -63,6 +59,21 @@ export default function UserDetail({ user, books }: any) {
     })
       .then((res) => res.json())
       .then((data) => {});
+  };
+
+  const handleReturnBookButton = (bookid: number) => {
+    console.log("Returning book ", bookid);
+
+    fetch("/api/book/" + bookid + "/user/" + userid, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+      });
   };
 
   const handleDeleteButton = () => {
@@ -90,6 +101,7 @@ export default function UserDetail({ user, books }: any) {
           setUserData={setUserData}
           deleteUser={handleDeleteButton}
           saveUser={handleSaveButton}
+          returnBook={handleReturnBookButton}
         />
       </ThemeProvider>
     </Layout>
