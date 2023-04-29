@@ -7,6 +7,9 @@ import { getUser } from "../../entities/user";
 import { getRentedBooksForUser } from "@/entities/book";
 
 import { useRouter } from "next/router";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import { forwardRef } from "react";
 
 import {
   convertDateToDayString,
@@ -23,10 +26,18 @@ const theme = createTheme({
   },
 });
 
+const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
 export default function UserDetail({ user, books }: any) {
   const router = useRouter();
 
   const [userData, setUserData] = useState(user);
+  const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
 
   useEffect(() => {
     setUserData(user);
@@ -43,6 +54,17 @@ export default function UserDetail({ user, books }: any) {
   );
   //console.log("User Page", userid);
   //console.log("User, Books", user, books);
+
+  const handleCloseReturnBookSnackbar = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setReturnBookSnackbar(false);
+  };
 
   const handleSaveButton = () => {
     console.log("Saving user ", userData);
@@ -73,6 +95,7 @@ export default function UserDetail({ user, books }: any) {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
+        setReturnBookSnackbar(true);
       });
   };
 
@@ -103,6 +126,19 @@ export default function UserDetail({ user, books }: any) {
           saveUser={handleSaveButton}
           returnBook={handleReturnBookButton}
         />
+        <Snackbar
+          open={returnBookSnackbar}
+          autoHideDuration={8000}
+          onClose={handleCloseReturnBookSnackbar}
+        >
+          <Alert
+            onClose={handleCloseReturnBookSnackbar}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Buch zurück gegeben, super!
+          </Alert>
+        </Snackbar>
       </ThemeProvider>
     </Layout>
   );
