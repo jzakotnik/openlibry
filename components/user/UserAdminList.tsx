@@ -50,10 +50,10 @@ export default function UserAdminList({
                 </IconButton>
               }
             >
-              <ListItemButton onClick={() => selectItem(u.id.toString())}>
+              <ListItemButton onClick={() => selectItem(u.id!.toString())}>
                 <ListItemAvatar>
                   <Avatar>
-                    {rentalAmount[u.id] != undefined ? rentalAmount[u.id] : 0}
+                    {rentalAmount[u.id!] != undefined ? rentalAmount[u.id!] : 0}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText

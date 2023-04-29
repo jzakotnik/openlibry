@@ -17,12 +17,17 @@ interface MinAgeChartType {
   books: Array<BookType>;
 }
 
-function calculateHistogram(books: MinAgeChartType) {
+function calculateHistogram(books: Array<BookType>) {
   const data = {};
 
   books.map((b) => {
-    if (b.minAge in data) (data as any)[b.minAge] = (data as any)[b.minAge] + 1;
-    else (data as any)[b.minAge] = 1;
+    if ("minAge" in b) {
+      if (b.minAge! in data) {
+        (data as any)[b.minAge!] = (data as any)[b.minAge!] + 1;
+      } else {
+        (data as any)[b.minAge!] = 1;
+      }
+    }
   });
 
   const histogramLabels = [] as any;

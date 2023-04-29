@@ -1,7 +1,8 @@
 import { UserType } from "@/entities/UserType";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { addUser, getAllUsers } from "@/entities/user";
+import { replaceUsersDateString } from "@/utils/convertDateToDayString";
 
 const prisma = new PrismaClient();
 
@@ -14,11 +15,12 @@ export default async function handler(
   res: NextApiResponse<Data | UserType | Array<UserType>>
 ) {
   if (req.method === "POST") {
-    const user = req.body as UserType;
+    const { updatedAt, createdAt, ...user } = req.body;
+
     try {
-      const result = (await addUser(prisma, user)) as UserType;
+      const result = await addUser(prisma, user);
       console.log(result);
-      res.status(200).json(result);
+      res.status(200).json(result as any);
     } catch (error) {
       console.log(error);
       res.status(400).json({ result: "ERROR: " + error });
@@ -27,10 +29,12 @@ export default async function handler(
 
   if (req.method === "GET") {
     try {
-      const users = (await getAllUsers(prisma)) as Array<UserType>;
+      const users = await getAllUsers(prisma);
+      //this is annoying, Date cannot be serialised in nextjs
+      const convertedUsers = replaceUsersDateString(users);
       if (!users)
         return res.status(400).json({ result: "ERROR: User not found" });
-      res.status(200).json(users);
+      res.status(200).json(convertedUsers);
     } catch (error) {
       console.log(error);
       res.status(400).json({ result: "ERROR: " + error });

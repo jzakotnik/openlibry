@@ -1,5 +1,6 @@
 import { UserType } from "@/entities/UserType";
 import { deleteUser, getUser, updateUser } from "@/entities/user";
+import { replaceUserDateString } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -40,10 +41,12 @@ export default async function handle(
 
     case "GET":
       try {
-        const user = (await getUser(prisma, id)) as UserType;
+        const user = await getUser(prisma, id);
+
         if (!user)
           return res.status(400).json({ data: "ERROR: User not found" });
-        res.status(200).json(user);
+        const convertedUser = replaceUserDateString(user);
+        res.status(200).json(convertedUser);
       } catch (error) {
         console.log(error);
         res.status(400).json({ data: "ERROR: " + error });

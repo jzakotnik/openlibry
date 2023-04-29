@@ -3,18 +3,23 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
 import { getUser } from "../../entities/user";
+import { Book } from "@prisma/client";
 import { getRentedBooksForUser } from "@/entities/book";
 
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
 import { useRouter } from "next/router";
 
-import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import {
+  convertDateToDayString,
+  replaceUserDateString,
+} from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 import { updateUser } from "../../entities/user";
 import palette from "@/styles/palette";
 import { BookType } from "@/entities/BookType";
 import UserEditForm from "@/components/user/UserEditForm";
+import { Typography } from "@mui/material";
 
 const theme = createTheme({
   palette: {
@@ -31,8 +36,16 @@ export default function UserDetail({ user, books }: any) {
     setUserData(user);
   }, []);
 
-  const userid = parseInt(router.query.userid);
-  //console.log("User Page", userid);
+  if (!router.query.userid) {
+    return <Typography>ID not found</Typography>;
+  }
+
+  const userid = parseInt(
+    Array.isArray(router.query.userid)
+      ? router.query.userid[0]
+      : router.query.userid
+  );
+  console.log("User Page", userid);
   console.log("User, Books", user, books);
 
   const handleSaveButton = () => {
@@ -86,15 +99,20 @@ export default function UserDetail({ user, books }: any) {
 export async function getServerSideProps(context: any) {
   const prisma = new PrismaClient();
 
-  const user = await getUser(prisma, parseInt(context.query.userid));
+  const dbuser = await getUser(prisma, parseInt(context.query.userid));
 
-  user.createdAt = convertDateToDayString(user?.createdAt);
-  user.updatedAt = convertDateToDayString(user?.updatedAt);
+  if (!dbuser) return;
 
-  const allBooks = user ? await getRentedBooksForUser(prisma, user?.id) : [];
+  const user = replaceUserDateString(dbuser);
+
+  if (!("id" in user) || !user.id) return; //shouldn't happen
+
+  const allBooks = (await getRentedBooksForUser(prisma, user.id)) as any;
+
+  //TODO fix the type for book incl user
 
   console.log("User, Books", user, allBooks);
-  const books = allBooks.map((b) => {
+  const books = allBooks.map((b: any) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
     newBook.updatedAt = convertDateToDayString(b.updatedAt);

@@ -68,7 +68,7 @@ export default function UserEditForm({
   return (
     <Paper sx={{ mt: 5, px: 4 }}>
       <Divider sx={{ mb: 3 }}>
-        <Typography variant="body" color={palette.info.main}>
+        <Typography variant="body1" color={palette.info.main}>
           Daten
         </Typography>
       </Divider>
@@ -183,7 +183,7 @@ export default function UserEditForm({
         </Grid>
       </Grid>
       <Divider sx={{ mb: 3 }}>
-        <Typography variant="body" color={palette.info.main}>
+        <Typography variant="body1" color={palette.info.main}>
           Geliehene Bücher
         </Typography>
       </Divider>
