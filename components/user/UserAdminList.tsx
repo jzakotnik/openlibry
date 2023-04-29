@@ -19,6 +19,7 @@ export default function UserAdminList({
   rentals,
   searchString,
   selectItem,
+  handleEditUser,
 }: any) {
   //attach amount of rented books to the user
   const rentalAmount: { [key: number]: number } = {};
@@ -39,9 +40,12 @@ export default function UserAdminList({
           return (
             <ListItem
               key={u.id}
-              id={u.id.toString()}
               secondaryAction={
-                <IconButton edge="end" aria-label="delete">
+                <IconButton
+                  onClick={() => handleEditUser(u.id)}
+                  edge="end"
+                  aria-label="delete"
+                >
                   <InputIcon />
                 </IconButton>
               }

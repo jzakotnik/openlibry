@@ -40,3 +40,4 @@ prisma/dev.db
 prisma/dev.db-journal
 openbiblio_migration/*
 pages/api/openbiblioimport/member.json
+prisma/dev_clean.db

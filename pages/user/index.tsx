@@ -1,12 +1,8 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import styles from "@/styles/Home.module.css";
+import { useRouter } from "next/router";
 import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import Image from "next/image";
-import { deDE as coreDeDE } from "@mui/material/locale";
-import SelectReport from "@/components/reports/SelectReport";
+
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
@@ -23,18 +19,10 @@ import TextField from "@mui/material/TextField";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import UserAdminList from "@/components/user/UserAdminList";
 
-import {
-  DataGrid,
-  GridRowsProp,
-  GridColDef,
-  GridToolbar,
-  deDE,
-} from "@mui/x-data-grid";
 import dayjs from "dayjs";
 
-import type {} from "@mui/x-data-grid/themeAugmentation";
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
-import Dashboard from "@/components/reports/Dashboard";
+
 import { UserType } from "@/entities/UserType";
 import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
@@ -42,15 +30,11 @@ import UserDetailsCard from "@/components/user/UserDetailsCard";
 
 const prisma = new PrismaClient();
 
-const theme = createTheme(
-  {
-    palette: {
-      primary: { main: "#1976d2" },
-    },
+const theme = createTheme({
+  palette: {
+    primary: { main: "#1976d2" },
   },
-  deDE, // x-data-grid translations
-  coreDeDE // core translations
-);
+});
 
 interface UsersPropsType {
   users: Array<UserType>;
@@ -61,10 +45,39 @@ interface UsersPropsType {
 export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [displayDetail, setDisplayDetail] = useState(0);
+  const [userCreating, setUserCreating] = useState(false);
+
+  const router = useRouter();
+
   useEffect(() => {}, []);
 
   const handleInputChange = (e: any) => {
     setUserSearchInput(e.target.value);
+  };
+
+  const handleCreateNewUser = (e: any) => {
+    console.log("Creating a new user");
+    setUserCreating(true);
+    const user: UserType = { firstName: "", lastName: "", active: true };
+
+    fetch("/api/user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(user),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUserCreating(false);
+        router.push("user/" + data.id);
+        console.log("User created", data);
+      });
+  };
+
+  const handleEditUser = (id: string) => {
+    console.log("Editing user ", id);
+    router.push("user/" + id);
   };
 
   const selectItem = (id: string) => {
@@ -89,22 +102,37 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
           spacing={2}
           sx={{ mt: 2 }}
         >
-          <Grid item xs={6}>
-            <FormControl variant="standard">
-              <InputLabel htmlFor="user-search-input-label">
-                Sucher NutzerIn
-              </InputLabel>
-              <Input
-                id="user-search-input"
-                startAdornment={
-                  <InputAdornment position="start">
-                    <AccountCircle />
-                  </InputAdornment>
-                }
-                value={userSearchInput}
-                onChange={handleInputChange}
-              />
-            </FormControl>
+          <Grid
+            container
+            item
+            xs={6}
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            spacing={2}
+          >
+            <Grid item>
+              <FormControl variant="standard">
+                <InputLabel htmlFor="user-search-input-label">
+                  Suche NutzerIn
+                </InputLabel>
+                <Input
+                  id="user-search-input"
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <AccountCircle />
+                    </InputAdornment>
+                  }
+                  value={userSearchInput}
+                  onChange={handleInputChange}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item>
+              <Button disabled={userCreating} onClick={handleCreateNewUser}>
+                Neu
+              </Button>
+            </Grid>
           </Grid>{" "}
           {displayDetail > 0 ? (
             <Grid item xs={6}>
@@ -122,6 +150,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               rentals={rentals}
               searchString={userSearchInput}
               selectItem={selectItem}
+              handleEditUser={handleEditUser}
             />
           </Grid>
         </Grid>

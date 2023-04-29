@@ -86,6 +86,22 @@ export default function UserDetail({ user, books }: any) {
       });
   };
 
+  const handleDeleteButton = () => {
+    console.log("Deleting user ", userData);
+
+    fetch("/api/user/" + userid, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Delete operation performed on ", userid, data);
+        router.push("/user");
+      });
+  };
+
   return (
     <Layout>
       <ThemeProvider theme={theme}>
@@ -157,8 +173,35 @@ export default function UserDetail({ user, books }: any) {
                 }}
               />
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                id="createdAt"
+                name="createdAt"
+                label="Erzeugt am"
+                defaultValue={
+                  "Erzeugt am " +
+                  userData.createdAt +
+                  " mit Nummer " +
+                  userData.id
+                }
+                disabled={true}
+                fullWidth
+                variant="standard"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                id="lastUpdated"
+                name="lastUpdated"
+                label="Letztes Update"
+                defaultValue={userData.updatedAt}
+                disabled={true}
+                fullWidth
+                variant="standard"
+              />
+            </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -175,6 +218,7 @@ export default function UserDetail({ user, books }: any) {
                 label="Aktiv"
               />
             </Grid>
+
             <Grid container>
               {books.map((b: BookType) => {
                 return (
@@ -182,7 +226,9 @@ export default function UserDetail({ user, books }: any) {
                     <ListItemIcon>
                       <LibraryBooksIcon />
                     </ListItemIcon>
-                    <ListItemText>{b.title}</ListItemText>
+                    <ListItemText>
+                      {b.title + ", " + b.renewalCount + "x verlängert"}
+                    </ListItemText>
                   </ListItem>
                 );
               })}
@@ -201,7 +247,13 @@ export default function UserDetail({ user, books }: any) {
             </Grid>
             <Grid item xs={12} md={4}>
               {editable && (
-                <Button startIcon={<DeleteForeverIcon />}>Löschen</Button>
+                <Button
+                  color="error"
+                  onClick={handleDeleteButton}
+                  startIcon={<DeleteForeverIcon />}
+                >
+                  Löschen
+                </Button>
               )}
             </Grid>
           </Grid>
