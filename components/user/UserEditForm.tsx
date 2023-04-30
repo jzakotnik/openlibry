@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import List from "@mui/material/List";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ListItem from "@mui/material/ListItem";
+import List from "@mui/material/List";
+
 import ListItemIcon from "@mui/material/ListItemIcon";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import ListItemText from "@mui/material/ListItemText";
@@ -48,6 +50,11 @@ interface UserEditFormPropType {
   returnBook: any;
 }
 
+interface ReturnBooksType {
+  bookid: number;
+  time: Date;
+}
+
 export default function UserEditForm({
   user,
   books,
@@ -59,6 +66,10 @@ export default function UserEditForm({
   const [editable, setEditable] = useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
+  const [returnedBooks, setReturnedBooks] = useState<{
+    bookID: number;
+    time: Date;
+  }>;
 
   const toggleEditButton = () => {
     editable
@@ -202,11 +213,20 @@ export default function UserEditForm({
             return (
               <ListItem key={b.id}>
                 <IconButton
-                  onClick={() => returnBook(b.id)}
+                  onClick={() => {
+                    returnBook(b.id);
+                    const time = Date.now();
+                    const newbook = {};
+                    (newbook as any)[b.id] = time;
+                    setReturnedBooks({ ...returnedBooks, newbook });
+                  }}
                   aria-label="zurückgeben"
                 >
-                  {" "}
-                  <ArrowCircleLeftIcon />
+                  {b.id in returnedBooks ? (
+                    <ArrowCircleLeftIcon />
+                  ) : (
+                    <CheckCircleIcon />
+                  )}
                 </IconButton>
                 <ListItemText>
                   {b.title + ", " + b.renewalCount + "x verlängert"}
