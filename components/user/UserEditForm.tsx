@@ -66,16 +66,22 @@ export default function UserEditForm({
   const [editable, setEditable] = useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
-  const [returnedBooks, setReturnedBooks] = useState<{
-    bookID: number;
-    time: Date;
-  }>;
+  const [returnedBooks, setReturnedBooks] = useState({});
 
   const toggleEditButton = () => {
     editable
       ? setEditButtonLabel("Editieren")
       : setEditButtonLabel("Abbrechen");
     setEditable(!editable);
+  };
+
+  const ReturnedIcon = ({ id }: any) => {
+    //console.log("Rendering icon ", id, returnedBooks);
+    if (id in returnedBooks) {
+      return <CheckCircleIcon color="success" />;
+    } else {
+      return <ArrowCircleLeftIcon />;
+    }
   };
 
   return (
@@ -218,15 +224,11 @@ export default function UserEditForm({
                     const time = Date.now();
                     const newbook = {};
                     (newbook as any)[b.id] = time;
-                    setReturnedBooks({ ...returnedBooks, newbook });
+                    setReturnedBooks({ ...returnedBooks, ...newbook });
                   }}
                   aria-label="zurückgeben"
                 >
-                  {b.id in returnedBooks ? (
-                    <ArrowCircleLeftIcon />
-                  ) : (
-                    <CheckCircleIcon />
-                  )}
+                  <ReturnedIcon id={b.id} />
                 </IconButton>
                 <ListItemText>
                   {b.title + ", " + b.renewalCount + "x verlängert"}
