@@ -10,7 +10,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { UserType } from "@/entities/UserType";
+import { BookType } from "@/entities/BookType";
 
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
@@ -24,54 +24,41 @@ const bull = (
   </Box>
 );
 
-interface UserDetailsCardPropType {
-  user: UserType;
+interface BookSummaryCardPropType {
+  book: BookType;
   rentals: Array<any>;
 }
 
-export default function UserDetailsCard({
-  user,
+export default function BookSummaryCard({
+  book,
   rentals,
-}: UserDetailsCardPropType) {
-  console.log("Details for user ", user);
-  console.log("User has these books ", rentals);
-  const selectedUser = user;
+}: BookSummaryCardPropType) {
+  const selectedBook = book;
   return (
     <Card sx={{ minWidth: 275 }}>
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {"Nr. " +
-            selectedUser.id +
+            selectedBook.id +
             ", " +
             "Klasse " +
-            selectedUser.schoolGrade +
+            selectedBook.author +
             ", " +
-            selectedUser.schoolTeacherName}
+            selectedBook.title}
         </Typography>
         <Typography variant="h5" component="div">
-          {selectedUser.lastName + ", " + selectedUser.firstName}
+          {selectedBook.title + +", " + selectedBook.subtitle}
         </Typography>
 
-        <Typography>Ausgeliehene Bücher:</Typography>
+        <Typography>Ausgeliehen an</Typography>
         {rentals.length == 0 ? (
           <Typography color={palette.success.main}>Keine</Typography>
         ) : (
-          <List>
-            {rentals?.map((r: any) => {
-              return (
-                <ListItem key={r.id}>
-                  <ListItemIcon>
-                    <LibraryBooksIcon />
-                  </ListItemIcon>
-                  <ListItemText>{r.title}</ListItemText>
-                </ListItem>
-              );
-            })}
-          </List>
+          <Typography>Ausgeliehen an </Typography>
         )}
       </CardContent>
       <CardActions>
-        <Link href={"/user/" + user.id} passHref>
+        <Link href={"/book/" + book.id} passHref>
           <Button size="small">Editieren</Button>
         </Link>
       </CardActions>

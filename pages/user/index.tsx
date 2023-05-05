@@ -142,7 +142,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               />
             </Grid>
           ) : (
-            0
+            <div></div>
           )}
           <Grid item xs={6}>
             <UserAdminList

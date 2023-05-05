@@ -24,6 +24,13 @@ model User {
   books             Book[]
 }
 
+model Audit {
+  createdAt    DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  eventType    String
+  eventContent String
+}
+
 model Book {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

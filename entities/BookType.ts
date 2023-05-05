@@ -1,5 +1,5 @@
 export interface BookType {
-  id: number;
+  id?: number;
   rentalStatus: string;
   rentedDate: Date | string;
   dueDate: Date | string;

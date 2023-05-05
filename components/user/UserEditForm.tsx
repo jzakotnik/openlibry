@@ -164,7 +164,10 @@ export default function UserEditForm({
             name="createdAt"
             label="Erzeugt am"
             defaultValue={
-              "Erzeugt am " + user.createdAt + " mit Nummer " + user.id
+              "User erstellt am " +
+              user.createdAt +
+              " mit Ausweisnummer " +
+              user.id
             }
             disabled={true}
             fullWidth
@@ -216,14 +219,14 @@ export default function UserEditForm({
         <Grid item xs={12}>
           {" "}
           {books.map((b: BookType) => {
-            return (
+            return "id" in b ? (
               <ListItem key={b.id}>
                 <IconButton
                   onClick={() => {
                     returnBook(b.id);
                     const time = Date.now();
                     const newbook = {};
-                    (newbook as any)[b.id] = time;
+                    (newbook as any)[b.id!] = time;
                     setReturnedBooks({ ...returnedBooks, ...newbook });
                   }}
                   aria-label="zurückgeben"
@@ -234,6 +237,8 @@ export default function UserEditForm({
                   {b.title + ", " + b.renewalCount + "x verlängert"}
                 </ListItemText>
               </ListItem>
+            ) : (
+              <div>ID not found</div>
             );
           })}
         </Grid>
@@ -244,7 +249,13 @@ export default function UserEditForm({
         </Grid>
         <Grid item xs={12} md={4}>
           {editable && (
-            <Button onClick={saveUser} startIcon={<SaveAltIcon />}>
+            <Button
+              onClick={() => {
+                saveUser();
+                toggleEditButton();
+              }}
+              startIcon={<SaveAltIcon />}
+            >
               Speichern
             </Button>
           )}

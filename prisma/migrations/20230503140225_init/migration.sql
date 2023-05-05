@@ -12,6 +12,14 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Audit" (
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "eventType" TEXT NOT NULL,
+    "eventContent" TEXT NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "Book" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
