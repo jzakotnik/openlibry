@@ -3,7 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import { UserType } from "../../../entities/UserType";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAllBooks } from "@/entities/book";
+import { getAllBooks, updateBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 
 const prisma = new PrismaClient();
@@ -41,7 +41,10 @@ export default async function handler(
       const result: any = [];
       //console.log(userlist);
       const { start, stop } = req.query;
-      const books = books_all.slice(parseInt(start![0]), parseInt(stop![0]));
+      if (Array.isArray(start) || Array.isArray(stop))
+        return res.status(400).json({ data: "ERROR query " });
+      const books = books_all.slice(parseInt(start!), parseInt(stop!));
+      console.log("Searching books", books, req.query);
 
       //http://localhost:2000/bookcover?book_title=Die%20Schule%20der%20magischen%20Tiere%20ermittelt&author_name=Margit%20Auer
 
@@ -55,6 +58,8 @@ export default async function handler(
               sanitizedTitle +
               "&search_type=books&search[field]=on"
           );
+          console.log("Searching url", url);
+          const { updatedAt, createdAt, dueDate, ...newBook } = b as any;
 
           await fetch(url).then((response) =>
             response.text().then((x) => {
@@ -63,8 +68,12 @@ export default async function handler(
               const matches = x.match(regex); // search for matches in the string
 
               result.push({ id: b.id, title: b.title, bookURLs: matches });
+
+              newBook.externalLinks = JSON.stringify(matches);
             })
           );
+          const updated = await updateBook(prisma, b.id, newBook);
+          console.log("Updated", updated);
           console.log("Book URLs", result);
           return { id: b.id, title: b.title, bookURLs: result };
         })

@@ -39,6 +39,7 @@ export const translations = {
     maxAge: "Max. Alter",
     additionalMaterial: "Material",
     price: "Preis",
+    externalLinks: "Externe Links",
   },
   rentals: {
     id: "id",

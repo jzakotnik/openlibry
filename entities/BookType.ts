@@ -2,7 +2,7 @@ export interface BookType {
   id?: number;
   rentalStatus: string;
   rentedDate: Date | string;
-  dueDate: Date | string;
+  dueDate?: Date | string;
   renewalCount: number;
   title: string;
   subtitle?: string;
@@ -25,5 +25,6 @@ export interface BookType {
   maxAge?: string;
   additionalMaterial?: string;
   price?: string;
+  externalLinks?: string;
   userId?: number;
 }
