@@ -9,12 +9,26 @@ import { BookType } from "@/entities/BookType";
 const prisma = new PrismaClient();
 
 type Data = {
-  data: string;
+  data: any;
 };
 
 type Book = {
   book: BookType;
 };
+
+async function fetchCover(url: string, results: any) {
+  const result = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) =>
+    response.json().then((x) => {
+      console.log("Result of the search", x);
+      results.push(x);
+      return x;
+    })
+  );
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -25,28 +39,27 @@ export default async function handler(
       const books_all = await getAllBooks(prisma);
       const result: any = [];
       //console.log(userlist);
-      const books = books_all.slice(0, 2);
+      const books = books_all.slice(15, 20);
 
-      await books.map((b) => {
-        const cover: any = fetch(
-          encodeURI(
-            "https://api.bookcover.longitood.com/bookcover?book_title=" +
-              b.title +
+      //http://localhost:2000/bookcover?book_title=Die%20Schule%20der%20magischen%20Tiere%20ermittelt&author_name=Margit%20Auer
+
+      const x = await Promise.all(
+        books.map(async (b) => {
+          //try some sanitization for better search
+          const sanitizedTitle = b.title.replace(/[.,]/g, " ");
+          const sanitizedAuthor = b.author.replace(/[.,]/g, " ");
+          const url = encodeURI(
+            "http://localhost:2000/bookcover?book_title=" +
+              sanitizedTitle +
               "&author_name=" +
-              b.author
-          ),
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ).then((response) =>
-          response.json().then((x) => {
-            console.log(x);
-            result.push(x);
-          })
-        );
-      });
+              " "
+          );
+          console.log("Getting book", url);
+          const cover = await fetchCover(url, result);
+          console.log("Got cover", cover, result);
+        })
+      );
+
       res.status(200).json({ data: result });
     } catch (error) {
       console.log(error);
