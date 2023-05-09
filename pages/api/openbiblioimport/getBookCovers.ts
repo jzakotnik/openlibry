@@ -9,6 +9,7 @@ import { BookType } from "@/entities/BookType";
 const prisma = new PrismaClient();
 
 type Data = {
+  id: number;
   data: any;
 };
 
@@ -32,34 +33,43 @@ async function fetchCover(url: string, results: any) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | Book>
+  res: NextApiResponse<any | Book>
 ) {
   if (req.method === "GET") {
     try {
       const books_all = await getAllBooks(prisma);
       const result: any = [];
       //console.log(userlist);
-      const books = books_all.slice(15, 20);
+      const { start, stop } = req.query;
+      const books = books_all.slice(parseInt(start![0]), parseInt(stop![0]));
 
       //http://localhost:2000/bookcover?book_title=Die%20Schule%20der%20magischen%20Tiere%20ermittelt&author_name=Margit%20Auer
 
-      const x = await Promise.all(
+      await Promise.all(
         books.map(async (b) => {
           //try some sanitization for better search
           const sanitizedTitle = b.title.replace(/[.,]/g, " ");
           const sanitizedAuthor = b.author.replace(/[.,]/g, " ");
           const url = encodeURI(
-            "http://localhost:2000/bookcover?book_title=" +
+            "https://www.goodreads.com/search?q=" +
               sanitizedTitle +
-              "&author_name=" +
-              " "
+              "&search_type=books&search[field]=on"
           );
-          console.log("Getting book", url);
-          const cover = await fetchCover(url, result);
-          console.log("Got cover", cover, result);
+
+          await fetch(url).then((response) =>
+            response.text().then((x) => {
+              console.log("Result of the search", x);
+              const regex = /\/book\/show[^\s]+/g; // regex to match "/book/show" substring
+              const matches = x.match(regex); // search for matches in the string
+
+              result.push({ id: b.id, title: b.title, bookURLs: matches });
+            })
+          );
+          console.log("Book URLs", result);
+          return { id: b.id, title: b.title, bookURLs: result };
         })
       );
-
+      console.log("x", result);
       res.status(200).json({ data: result });
     } catch (error) {
       console.log(error);
