@@ -1,12 +1,12 @@
 #!/bin/bash
 
-start=5  # initialize counting variable
-stop=6
+start=200  # initialize counting variable
+stop=201
 
 while true; do
     # construct the URL with the current value of the counting variable
     #http://localhost:3000/api/openbiblioimport/getBookCovers?start=0&stop=5
-    url="http://localhost:3000/api/openbiblioimport/getBookCovers?start=$start&stop=$stop"
+    url="http://localhost:3000/api/openbiblioimport/saveBookCovers?start=$start&stop=$stop"
     
     # execute curl with the constructed URL
     curl "$url"
