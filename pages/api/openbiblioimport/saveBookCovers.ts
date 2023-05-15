@@ -56,7 +56,7 @@ export default async function handler(
           b.externalLinks != "null" &&
           b.externalLinks != null
         ) {
-          const book = JSON.parse(b.externalLinks!);
+          const book = JSON.parse(b.externalLinks);
           //console.log("Booklink", book[0]);
           if (Array.isArray(book)) {
             const simpleURL = "https://goodreads.com/" + book[0].split("?")[0];
