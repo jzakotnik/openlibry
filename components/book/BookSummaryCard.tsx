@@ -37,9 +37,13 @@ const bull = (
 
 interface BookSummaryCardPropType {
   book: BookType;
+  hasImage: boolean;
 }
 
-export default function BookSummaryCard({ book }: BookSummaryCardPropType) {
+export default function BookSummaryCard({
+  book,
+  hasImage,
+}: BookSummaryCardPropType) {
   const [src, setSrc] = useState("/coverimages/default.png");
 
   const selectedBook = book;
@@ -80,13 +84,15 @@ export default function BookSummaryCard({ book }: BookSummaryCardPropType) {
         subheader={"Nr. " + selectedBook.id}
       />
       <CardMedia sx={{ position: "relative" }}>
-        <Image
-          src={"/coverimages/" + book.id + ".jpg"}
-          width={320}
-          height={200}
-          alt=""
-          style={{ objectFit: "cover" }}
-        />
+        {hasImage && (
+          <Image
+            src={"/coverimages/" + book.id + ".jpg"}
+            width={320}
+            height={200}
+            alt=""
+            style={{ objectFit: "cover" }}
+          />
+        )}
       </CardMedia>
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>

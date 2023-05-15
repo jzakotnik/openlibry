@@ -2,6 +2,7 @@ import React from "react";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { getImages } from "../api/images";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/router";
@@ -32,18 +33,17 @@ import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import { UserType } from "@/entities/UserType";
 import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
-import UserDetailsCard from "@/components/user/UserDetailsCard";
+
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 
 const prisma = new PrismaClient();
 
 interface BookPropsType {
-  users: Array<UserType>;
   books: Array<BookType>;
-  rentals: any;
+  images: Array<string>;
 }
 
-export default function Books({ users, books, rentals }: BookPropsType) {
+export default function Books({ books, images }: BookPropsType) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -63,6 +63,7 @@ export default function Books({ users, books, rentals }: BookPropsType) {
   }
 
   console.log("Rendering books", books);
+  console.log("received Cover images", images);
   const cardData = books.map((b) => {
     return { id: b.id, title: b.title };
   });
@@ -77,7 +78,10 @@ export default function Books({ users, books, rentals }: BookPropsType) {
             {...gridItemProps}
             key={book.id}
           >
-            <BookSummaryCard book={book} />
+            <BookSummaryCard
+              book={book}
+              hasImage={book.id?.toString() + ".jpg" in images}
+            />
           </Grid>
         ))}
       </Grid>
@@ -86,14 +90,10 @@ export default function Books({ users, books, rentals }: BookPropsType) {
 }
 
 export async function getServerSideProps() {
-  const allUsers = await getAllUsers(prisma);
-
-  const users = allUsers.map((u) => {
-    const newUser = { ...u } as any; //define a better type there with conversion of Date to string
-    newUser.createdAt = convertDateToDayString(u.createdAt);
-    newUser.updatedAt = convertDateToDayString(u.updatedAt);
-    return newUser;
-  });
+  const imagesArray = await getImages();
+  //push array to object for performance reasons
+  const images = {};
+  imagesArray.map((i) => ((images as any)[i] = "1"));
 
   const allBooks = await getAllBooks(prisma);
   const books = allBooks.map((b) => {
@@ -107,24 +107,6 @@ export async function getServerSideProps() {
     //temp TODO
     return newBook;
   });
-  const allRentals = await getRentedBooksWithUsers(prisma);
-  const rentals = allRentals.map((r) => {
-    //calculate remaining days for the rental
-    const due = dayjs(r.dueDate);
-    const today = dayjs();
-    const diff = today.diff(due, "days");
 
-    return {
-      id: r.id,
-      title: r.title,
-      lastName: r.user?.lastName,
-      firstName: r.user?.firstName,
-      remainingDays: diff,
-      dueDate: convertDateToDayString(due.toDate()),
-      renewalCount: r.renewalCount,
-      userid: r.user?.id,
-    };
-  });
-
-  return { props: { users, books, rentals } };
+  return { props: { books, images } };
 }
