@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -22,6 +23,8 @@ import { BookType } from "@/entities/BookType";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
 import { CardHeader, CardMedia } from "@mui/material";
+import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 const bull = (
   <Box
@@ -37,7 +40,22 @@ interface BookSummaryCardPropType {
 }
 
 export default function BookSummaryCard({ book }: BookSummaryCardPropType) {
+  const [src, setSrc] = useState("/coverimages/default.png");
+
   const selectedBook = book;
+
+  const getAvatarIcon = (b: BookType) => {
+    return b.rentalStatus == "rented" ? (
+      <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
+        <CancelPresentationIcon />
+      </Avatar>
+    ) : (
+      <Avatar sx={{ bgcolor: palette.info.main }} aria-label="avatar">
+        <TaskAltIcon />
+      </Avatar>
+    );
+  };
+
   return (
     <Card
       raised
@@ -46,14 +64,13 @@ export default function BookSummaryCard({ book }: BookSummaryCardPropType) {
         minWidth: 275,
         margin: "0 auto",
         padding: "0.1em",
+        display: "flex",
+        justifyContent: "space-between",
+        flexDirection: "column",
       }}
     >
       <CardHeader
-        avatar={
-          <Avatar sx={{ bgcolor: palette.info.main }} aria-label="avatar">
-            B
-          </Avatar>
-        }
+        avatar={getAvatarIcon(selectedBook)}
         action={
           <IconButton aria-label="settings">
             <MoreVertIcon />
@@ -62,25 +79,21 @@ export default function BookSummaryCard({ book }: BookSummaryCardPropType) {
         title={selectedBook.title.substring(0, 20) + "..."}
         subheader={"Nr. " + selectedBook.id}
       />
-      <CardMedia
-        component="img"
-        height="100"
-        image={"/coverimages/" + book.id + ".jpg"}
-        alt="Buch Cover"
-        sx={{ padding: "1em 1em 0 1em", objectFit: "contain" }}
-      />
+      <CardMedia sx={{ position: "relative" }}>
+        <Image
+          src={"/coverimages/" + book.id + ".jpg"}
+          width={320}
+          height={200}
+          alt=""
+          style={{ objectFit: "cover" }}
+        />
+      </CardMedia>
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          {"Nr. " +
-            selectedBook.id +
-            ", " +
-            "Klasse " +
-            selectedBook.author +
-            ", " +
-            selectedBook.title}
+          {selectedBook.title}
         </Typography>
-        <Typography variant="h5" component="div">
-          {selectedBook.title + +", " + selectedBook.subtitle}
+        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+          {selectedBook.author}
         </Typography>
       </CardContent>
       <CardActions>

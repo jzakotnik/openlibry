@@ -69,9 +69,14 @@ export default function Books({ users, books, rentals }: BookPropsType) {
 
   return (
     <Layout>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} alignItems="stretch">
         {books.map((book) => (
-          <Grid item {...gridItemProps} key={book.id}>
+          <Grid
+            item
+            style={{ display: "flex" }}
+            {...gridItemProps}
+            key={book.id}
+          >
             <BookSummaryCard book={book} />
           </Grid>
         ))}
