@@ -33,6 +33,7 @@ import { UserType } from "@/entities/UserType";
 import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
+import BookSummaryCard from "@/components/book/BookSummaryCard";
 
 const prisma = new PrismaClient();
 
@@ -48,10 +49,10 @@ export default function Books({ users, books, rentals }: BookPropsType) {
 
   const gridItemProps = {
     xs: 12,
-    sm: 6,
-    md: 4,
-    lg: 3,
-    xl: 2,
+    sm: 12,
+    md: 6,
+    lg: 4,
+    xl: 4,
   };
 
   if (isMobile) {
@@ -69,9 +70,9 @@ export default function Books({ users, books, rentals }: BookPropsType) {
   return (
     <Layout>
       <Grid container spacing={2}>
-        {cardData.map((card) => (
-          <Grid item {...gridItemProps} key={card.id}>
-            <Card>{card.title}</Card>
+        {books.map((book) => (
+          <Grid item {...gridItemProps} key={book.id}>
+            <BookSummaryCard book={book} />
           </Grid>
         ))}
       </Grid>

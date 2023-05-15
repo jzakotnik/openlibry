@@ -10,10 +10,18 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Image from "next/image";
+import { IconButton, Avatar } from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ShareIcon from "@mui/icons-material/Share";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+
 import { BookType } from "@/entities/BookType";
 
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
+import { CardHeader, CardMedia } from "@mui/material";
 
 const bull = (
   <Box
@@ -26,16 +34,41 @@ const bull = (
 
 interface BookSummaryCardPropType {
   book: BookType;
-  rentals: Array<any>;
 }
 
-export default function BookSummaryCard({
-  book,
-  rentals,
-}: BookSummaryCardPropType) {
+export default function BookSummaryCard({ book }: BookSummaryCardPropType) {
   const selectedBook = book;
   return (
-    <Card sx={{ minWidth: 275 }}>
+    <Card
+      raised
+      sx={{
+        maxWidth: 280,
+        minWidth: 275,
+        margin: "0 auto",
+        padding: "0.1em",
+      }}
+    >
+      <CardHeader
+        avatar={
+          <Avatar sx={{ bgcolor: palette.info.main }} aria-label="avatar">
+            B
+          </Avatar>
+        }
+        action={
+          <IconButton aria-label="settings">
+            <MoreVertIcon />
+          </IconButton>
+        }
+        title={selectedBook.title.substring(0, 20) + "..."}
+        subheader={"Nr. " + selectedBook.id}
+      />
+      <CardMedia
+        component="img"
+        height="100"
+        image={"/coverimages/" + book.id + ".jpg"}
+        alt="Buch Cover"
+        sx={{ padding: "1em 1em 0 1em", objectFit: "contain" }}
+      />
       <CardContent>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
           {"Nr. " +
@@ -49,13 +82,6 @@ export default function BookSummaryCard({
         <Typography variant="h5" component="div">
           {selectedBook.title + +", " + selectedBook.subtitle}
         </Typography>
-
-        <Typography>Ausgeliehen an</Typography>
-        {rentals.length == 0 ? (
-          <Typography color={palette.success.main}>Keine</Typography>
-        ) : (
-          <Typography>Ausgeliehen an </Typography>
-        )}
       </CardContent>
       <CardActions>
         <Link href={"/book/" + book.id} passHref>
