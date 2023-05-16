@@ -11,7 +11,7 @@ import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 
 import Layout from "@/components/layout/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getAllUsers } from "../../entities/user";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
@@ -26,6 +26,8 @@ import TextField from "@mui/material/TextField";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import UserAdminList from "@/components/user/UserAdminList";
 
+import LocalLibraryIcon from "@mui/icons-material/LocalLibrary";
+
 import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
@@ -35,6 +37,9 @@ import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
 
 import BookSummaryCard from "@/components/book/BookSummaryCard";
+import { Typography } from "@mui/material";
+
+const { Index, Document, Worker } = require("flexsearch");
 
 const prisma = new PrismaClient();
 
@@ -46,6 +51,10 @@ interface BookPropsType {
 export default function Books({ books, images }: BookPropsType) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [renderedBooks, setRenderedBooks] = useState(books.slice(0, 10));
+  const [bookSearchInput, setBookSearchInput] = useState("");
+  const [searchIndex, setSearchIndex] = useState();
 
   const gridItemProps = {
     xs: 12,
@@ -61,30 +70,78 @@ export default function Books({ books, images }: BookPropsType) {
     gridItemProps.lg = 12;
     gridItemProps.xl = 12;
   }
+  const index = new Index();
 
-  console.log("Rendering books", books);
-  console.log("received Cover images", images);
-  const cardData = books.map((b) => {
-    return { id: b.id, title: b.title };
-  });
+  useMemo(() => {
+    books.map((b) => {
+      index.add(b.id, b.title);
+    });
+    setSearchIndex(index);
+  }, [books]);
+
+  useEffect(() => {
+    const resultBooks = [] as Array<BookType>;
+    const search = searchIndex.search(bookSearchInput);
+    search != null
+      ? setRenderedBooks(books.filter((b) => search.includes(b.id)))
+      : 0;
+    console.log("Result of search: ", search);
+    /*books.map((b) => {
+      if (b.title.includes(bookSearchInput)) resultBooks.push(b);
+      
+      //console.log("Filtering for search string ", bookSearchInput);
+    });*/
+    //setRenderedBooks(resultBooks);
+  }, [bookSearchInput]);
+
+  const handleInputChange = (e: any) => {
+    const searchString = e.target.value;
+    setBookSearchInput(searchString);
+  };
 
   return (
     <Layout>
-      <Grid container spacing={2} alignItems="stretch">
-        {books.map((book) => (
-          <Grid
-            item
-            style={{ display: "flex" }}
-            {...gridItemProps}
-            key={book.id}
+      <Grid
+        container
+        direction="row"
+        alignItems="center"
+        justifyContent="center"
+        sx={{ px: 10, my: 5 }}
+      >
+        <Grid item>
+          <FormControl variant="standard">
+            <Input
+              id="user-search-input"
+              startAdornment={
+                <InputAdornment position="start">
+                  <LocalLibraryIcon />
+                </InputAdornment>
+              }
+              value={bookSearchInput}
+              onChange={handleInputChange}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item>
+          <Button
+            onClick={() => {
+              console.log("click");
+            }}
           >
+            Suche
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid container spacing={2} alignItems="stretch">
+        {renderedBooks.map((b) => (
+          <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
-              book={book}
-              hasImage={book.id?.toString() + ".jpg" in images}
+              book={b}
+              hasImage={b.id?.toString() + ".jpg" in images}
             />
           </Grid>
         ))}
-      </Grid>
+      </Grid>{" "}
     </Layout>
   );
 }
@@ -96,6 +153,7 @@ export async function getServerSideProps() {
   imagesArray.map((i) => ((images as any)[i] = "1"));
 
   const allBooks = await getAllBooks(prisma);
+
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
@@ -104,7 +162,7 @@ export async function getServerSideProps() {
       ? convertDateToDayString(b.rentedDate)
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-    //temp TODO
+
     return newBook;
   });
 

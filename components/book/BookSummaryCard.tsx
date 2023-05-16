@@ -63,6 +63,7 @@ export default function BookSummaryCard({
   return (
     <Card
       raised
+      key={book.id}
       sx={{
         maxWidth: 280,
         minWidth: 275,
