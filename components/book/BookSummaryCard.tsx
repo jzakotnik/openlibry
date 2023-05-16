@@ -80,8 +80,7 @@ export default function BookSummaryCard({
             <MoreVertIcon />
           </IconButton>
         }
-        title={selectedBook.title.substring(0, 20) + "..."}
-        subheader={"Nr. " + selectedBook.id}
+        title={"Buch id " + selectedBook.id}
       />
       <CardMedia sx={{ position: "relative" }}>
         {hasImage && (
@@ -95,7 +94,7 @@ export default function BookSummaryCard({
         )}
       </CardMedia>
       <CardContent>
-        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+        <Typography variant="h5" color="text.secondary" gutterBottom>
           {selectedBook.title}
         </Typography>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
