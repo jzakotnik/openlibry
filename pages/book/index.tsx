@@ -79,8 +79,7 @@ export default function Books({ books, images }: BookPropsType) {
     setSearchIndex(index);
   }, [books]);*/
 
-  const handleInputChange = (e: any) => {
-    const searchString = e.target.value;
+  async function searchBooks(searchString: string) {
     const resultBooks = [] as Array<BookType>;
     const foundBooks = itemsjs.search({
       per_page: 20,
@@ -90,7 +89,11 @@ export default function Books({ books, images }: BookPropsType) {
     });
     //console.log("Found books", foundBooks);
     setRenderedBooks(foundBooks.data.items);
+  }
 
+  const handleInputChange = (e: any) => {
+    const searchString = e.target.value;
+    const result = searchBooks(searchString);
     setBookSearchInput(searchString);
   };
 
@@ -128,7 +131,6 @@ export default function Books({ books, images }: BookPropsType) {
         </Grid>
       </Grid>
       <Grid container spacing={2} alignItems="stretch">
-        (renderedBooks.length)?
         {renderedBooks.map((b) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
@@ -137,7 +139,6 @@ export default function Books({ books, images }: BookPropsType) {
             />
           </Grid>
         ))}{" "}
-        : {<Typography>Keine Suchergebnisse gefunden..</Typography>}
       </Grid>{" "}
     </Layout>
   );
