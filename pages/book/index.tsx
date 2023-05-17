@@ -69,14 +69,7 @@ export default function Books({ books, images }: BookPropsType) {
     gridItemProps.xl = 12;
   }
   const itemsjs = require("itemsjs")(books, {
-    sortings: {
-      name_asc: {
-        field: "title",
-        order: "asc",
-      },
-    },
-
-    searchableFields: ["title"],
+    searchableFields: ["title", "author", "subtitle", "topics"],
   });
 
   /*useMemo(() => {
@@ -90,12 +83,12 @@ export default function Books({ books, images }: BookPropsType) {
     const searchString = e.target.value;
     const resultBooks = [] as Array<BookType>;
     const foundBooks = itemsjs.search({
-      per_page: 50,
+      per_page: 20,
       sort: "name_asc",
       // full text search
       query: searchString,
     });
-    console.log("Found books", foundBooks);
+    //console.log("Found books", foundBooks);
     setRenderedBooks(foundBooks.data.items);
 
     setBookSearchInput(searchString);
