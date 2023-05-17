@@ -22,7 +22,7 @@
     "dayjs": "^1.11.7",
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
-    "flexsearch": "^0.7.31",
+    "itemsjs": "^2.1.21",
     "next": "13.2.4",
     "react": "18.2.0",
     "react-chartjs-2": "^5.2.0",

@@ -39,8 +39,6 @@ import palette from "@/styles/palette";
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 import { Typography } from "@mui/material";
 
-const { Index, Document, Worker } = require("flexsearch");
-
 const prisma = new PrismaClient();
 
 interface BookPropsType {
@@ -54,7 +52,7 @@ export default function Books({ books, images }: BookPropsType) {
 
   const [renderedBooks, setRenderedBooks] = useState(books.slice(0, 10));
   const [bookSearchInput, setBookSearchInput] = useState("");
-  const [searchIndex, setSearchIndex] = useState();
+  const [searchIndex, setSearchIndex] = useState<any>();
 
   const gridItemProps = {
     xs: 12,
@@ -70,32 +68,36 @@ export default function Books({ books, images }: BookPropsType) {
     gridItemProps.lg = 12;
     gridItemProps.xl = 12;
   }
-  const index = new Index();
+  const itemsjs = require("itemsjs")(books, {
+    sortings: {
+      name_asc: {
+        field: "title",
+        order: "asc",
+      },
+    },
 
-  useMemo(() => {
+    searchableFields: ["title"],
+  });
+
+  /*useMemo(() => {
     books.map((b) => {
-      index.add(b.id, b.title);
+      index.add(b.id, b.title.toLowerCase());
     });
     setSearchIndex(index);
-  }, [books]);
-
-  useEffect(() => {
-    const resultBooks = [] as Array<BookType>;
-    const search = searchIndex.search(bookSearchInput);
-    search != null
-      ? setRenderedBooks(books.filter((b) => search.includes(b.id)))
-      : 0;
-    console.log("Result of search: ", search);
-    /*books.map((b) => {
-      if (b.title.includes(bookSearchInput)) resultBooks.push(b);
-      
-      //console.log("Filtering for search string ", bookSearchInput);
-    });*/
-    //setRenderedBooks(resultBooks);
-  }, [bookSearchInput]);
+  }, [books]);*/
 
   const handleInputChange = (e: any) => {
     const searchString = e.target.value;
+    const resultBooks = [] as Array<BookType>;
+    const foundBooks = itemsjs.search({
+      per_page: 50,
+      sort: "name_asc",
+      // full text search
+      query: searchString,
+    });
+    console.log("Found books", foundBooks);
+    setRenderedBooks(foundBooks.data.items);
+
     setBookSearchInput(searchString);
   };
 
@@ -133,6 +135,7 @@ export default function Books({ books, images }: BookPropsType) {
         </Grid>
       </Grid>
       <Grid container spacing={2} alignItems="stretch">
+        (renderedBooks.length)?
         {renderedBooks.map((b) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
@@ -140,7 +143,8 @@ export default function Books({ books, images }: BookPropsType) {
               hasImage={b.id?.toString() + ".jpg" in images}
             />
           </Grid>
-        ))}
+        ))}{" "}
+        : {<Typography>Keine Suchergebnisse gefunden..</Typography>}
       </Grid>{" "}
     </Layout>
   );
