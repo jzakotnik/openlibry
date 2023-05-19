@@ -61,7 +61,7 @@ export default function Books({ books, images }: BookPropsType) {
 
   const [renderedBooks, setRenderedBooks] = useState(books.slice(0, 10));
   const [bookSearchInput, setBookSearchInput] = useState("");
-  const [detailView, setDetailView] = useState(false);
+  const [detailView, setDetailView] = useState(true);
 
   if (isMobile) {
     gridItemProps.sm = 12;
