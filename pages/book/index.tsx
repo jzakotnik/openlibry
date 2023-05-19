@@ -38,8 +38,17 @@ import palette from "@/styles/palette";
 
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 import { Typography } from "@mui/material";
+import BookSearchBar from "@/components/book/BookSearchBar";
+import BookSummaryRow from "@/components/book/BookSummaryRow";
 
 const prisma = new PrismaClient();
+const gridItemProps = {
+  xs: 12,
+  sm: 12,
+  md: 6,
+  lg: 4,
+  xl: 4,
+};
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -52,15 +61,7 @@ export default function Books({ books, images }: BookPropsType) {
 
   const [renderedBooks, setRenderedBooks] = useState(books.slice(0, 10));
   const [bookSearchInput, setBookSearchInput] = useState("");
-  const [searchIndex, setSearchIndex] = useState<any>();
-
-  const gridItemProps = {
-    xs: 12,
-    sm: 12,
-    md: 6,
-    lg: 4,
-    xl: 4,
-  };
+  const [detailView, setDetailView] = useState(false);
 
   if (isMobile) {
     gridItemProps.sm = 12;
@@ -71,13 +72,6 @@ export default function Books({ books, images }: BookPropsType) {
   const itemsjs = require("itemsjs")(books, {
     searchableFields: ["title", "author", "subtitle", "topics"],
   });
-
-  /*useMemo(() => {
-    books.map((b) => {
-      index.add(b.id, b.title.toLowerCase());
-    });
-    setSearchIndex(index);
-  }, [books]);*/
 
   async function searchBooks(searchString: string) {
     const resultBooks = [] as Array<BookType>;
@@ -97,46 +91,31 @@ export default function Books({ books, images }: BookPropsType) {
     setBookSearchInput(searchString);
   };
 
+  const toggleView = () => {
+    const newView = !detailView;
+    setDetailView(newView);
+    console.log("Detail view render toggled", newView);
+  };
+
   return (
     <Layout>
-      <Grid
-        container
-        direction="row"
-        alignItems="center"
-        justifyContent="center"
-        sx={{ px: 10, my: 5 }}
-      >
-        <Grid item>
-          <FormControl variant="standard">
-            <Input
-              id="user-search-input"
-              startAdornment={
-                <InputAdornment position="start">
-                  <LocalLibraryIcon />
-                </InputAdornment>
-              }
-              value={bookSearchInput}
-              onChange={handleInputChange}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item>
-          <Button
-            onClick={() => {
-              console.log("click");
-            }}
-          >
-            Suche
-          </Button>
-        </Grid>
-      </Grid>
+      <BookSearchBar
+        handleInputChange={handleInputChange}
+        bookSearchInput={bookSearchInput}
+        toggleView={toggleView}
+        detailView={detailView}
+      />
       <Grid container spacing={2} alignItems="stretch">
         {renderedBooks.map((b) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
-            <BookSummaryCard
-              book={b}
-              hasImage={b.id?.toString() + ".jpg" in images}
-            />
+            {detailView ? (
+              <BookSummaryCard
+                book={b}
+                hasImage={b.id?.toString() + ".jpg" in images}
+              />
+            ) : (
+              <BookSummaryRow book={b} />
+            )}
           </Grid>
         ))}{" "}
       </Grid>{" "}
