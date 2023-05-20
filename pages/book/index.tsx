@@ -101,7 +101,7 @@ export default function Books({ books, images }: BookPropsType) {
   const DetailCardContainer = ({ renderedBooks }: any) => {
     return (
       <Grid container spacing={2} alignItems="stretch">
-        {renderedBooks.map((b) => (
+        {renderedBooks.map((b: BookType) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             (
             <BookSummaryCard
