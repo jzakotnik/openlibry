@@ -11,12 +11,14 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Paper from "@mui/material/Paper";
 import { IconButton, Avatar } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShareIcon from "@mui/icons-material/Share";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
 
 import { BookType } from "@/entities/BookType";
 
@@ -33,7 +35,7 @@ interface BookSummaryRowPropType {
 export default function BookSummaryRow({ book }: BookSummaryRowPropType) {
   const selectedBook = book;
 
-  const getAvatarIcon = (b: BookType) => {
+  const BookAvatarIcon = ({ b }: any) => {
     return b.rentalStatus == "rented" ? (
       <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
         <CancelPresentationIcon />
@@ -45,5 +47,21 @@ export default function BookSummaryRow({ book }: BookSummaryRowPropType) {
     );
   };
 
-  return <Paper>{selectedBook.title}</Paper>;
+  return (
+    <ListItem
+      key={book.id}
+      secondaryAction={
+        <IconButton edge="end" aria-label="delete">
+          <EditIcon />
+        </IconButton>
+      }
+    >
+      <ListItemAvatar>
+        <Avatar>
+          <BookAvatarIcon b={book} />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText primary={book.title} secondary={book.author} />
+    </ListItem>
+  );
 }

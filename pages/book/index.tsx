@@ -23,6 +23,7 @@ import InputLabel from "@mui/material/InputLabel";
 import InputAdornment from "@mui/material/InputAdornment";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
+import List from "@mui/material/List";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import UserAdminList from "@/components/user/UserAdminList";
 
@@ -37,7 +38,7 @@ import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
 
 import BookSummaryCard from "@/components/book/BookSummaryCard";
-import { Typography } from "@mui/material";
+import { ListItem, ListItemText, Typography } from "@mui/material";
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
 
@@ -97,6 +98,33 @@ export default function Books({ books, images }: BookPropsType) {
     console.log("Detail view render toggled", newView);
   };
 
+  const DetailCardContainer = ({ renderedBooks }: any) => {
+    return (
+      <Grid container spacing={2} alignItems="stretch">
+        {renderedBooks.map((b) => (
+          <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
+            (
+            <BookSummaryCard
+              book={b}
+              hasImage={b.id?.toString() + ".jpg" in images}
+            />
+            )
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
+  const SummaryRowContainer = ({ renderedBooks }: any) => {
+    return (
+      <List sx={{ width: "70%" }} dense={true}>
+        {renderedBooks.map((b: BookType) => (
+          <BookSummaryRow key={b.id} book={b} />
+        ))}
+      </List>
+    );
+  };
+
   return (
     <Layout>
       <BookSearchBar
@@ -105,20 +133,11 @@ export default function Books({ books, images }: BookPropsType) {
         toggleView={toggleView}
         detailView={detailView}
       />
-      <Grid container spacing={2} alignItems="stretch">
-        {renderedBooks.map((b) => (
-          <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
-            {detailView ? (
-              <BookSummaryCard
-                book={b}
-                hasImage={b.id?.toString() + ".jpg" in images}
-              />
-            ) : (
-              <BookSummaryRow book={b} />
-            )}
-          </Grid>
-        ))}{" "}
-      </Grid>{" "}
+      {detailView ? (
+        <DetailCardContainer renderedBooks={renderedBooks} />
+      ) : (
+        <SummaryRowContainer renderedBooks={renderedBooks} />
+      )}
     </Layout>
   );
 }
