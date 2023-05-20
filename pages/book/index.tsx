@@ -103,12 +103,10 @@ export default function Books({ books, images }: BookPropsType) {
       <Grid container spacing={2} alignItems="stretch">
         {renderedBooks.map((b: BookType) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
-            (
             <BookSummaryCard
               book={b}
               hasImage={b.id?.toString() + ".jpg" in images}
             />
-            )
           </Grid>
         ))}
       </Grid>
