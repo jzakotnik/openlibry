@@ -29,6 +29,7 @@ import {
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { translations } from "@/entities/fieldTranslations";
 
 const bull = (
   <Box
@@ -81,23 +82,43 @@ export default function BookEditForm({
       return <ArrowCircleLeftIcon />;
     }
   };
+
+  const BookTextField = ({ fieldType }): any => {
+    return (
+      <Grid item xs={12} sm={6}>
+        <TextField
+          required
+          id={fieldType}
+          name={fieldType}
+          label={translations["books"][fieldType]}
+          defaultValue={book[fieldType]}
+          disabled={!editable}
+          fullWidth
+          variant="standard"
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setBookData({ ...book, [fieldType]: event.target.value });
+          }}
+        />
+      </Grid>
+    );
+  };
   /*
 id?: number;
   rentalStatus: string;
   rentedDate: Date | string;
   dueDate?: Date | string;
   renewalCount: number;
-  title: string;
-  subtitle?: string;
-  author: string;
-  topics?: string;
+  -title: string;
+  -subtitle?: string;
+  -author: string;
+  -topics?: string;
   imageLink?: string;
   //additional fields from OpenBiblio data model
-  isbn?: string;
-  editionDescription?: string;
+  - isbn?: string;
+  - editionDescription?: string;
   publisherLocation?: string;
   pages?: number;
-  summary?: string;
+  - summary?: string;
   minPlayers?: string;
   publisherName?: string;
   otherPhysicalAttributes?: string;
@@ -120,66 +141,13 @@ id?: number;
         </Typography>
       </Divider>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            required
-            id="title"
-            name="title"
-            label="Titel"
-            defaultValue={book.title}
-            disabled={!editable}
-            fullWidth
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setBookData({ ...book, title: event.target.value });
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            required
-            id="author"
-            name="author"
-            label="AutorIn"
-            defaultValue={book.author}
-            disabled={!editable}
-            fullWidth
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setBookData({ ...book, author: event.target.value });
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            required
-            id="subtitle"
-            name="subtitle"
-            label="Untertitel"
-            defaultValue={book.subtitle}
-            disabled={!editable}
-            fullWidth
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setBookData({ ...book, subtitle: event.target.value });
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            required
-            id="isbn"
-            name="isbn"
-            label="ISBN"
-            defaultValue={book.isbn}
-            disabled={!editable}
-            fullWidth
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setBookData({ ...book, isbn: event.target.value });
-            }}
-          />
-        </Grid>
+        <BookTextField fieldType={"title"} />
+        <BookTextField fieldType={"author"} />
+        <BookTextField fieldType={"subtitle"} />
+        <BookTextField fieldType={"topics"} />
+        <BookTextField fieldType={"summary"} />
+        <BookTextField fieldType={"isbn"} />
+        <BookTextField fieldType={"editionDescription"} />
       </Grid>
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>

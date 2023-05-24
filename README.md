@@ -8,7 +8,7 @@ update user:
 
 # Import from OpenBiblio
 
-- Start podman with docker compose, copy the files over
+- Start podman with docker compose, copy the files over (see OpenBiblio folder)
 - Open myphpadmin, create openbiblio database
 - Export the following tables, sort them by date: `member`, `biblio_status_hist`, `biblio`, `biblio_field`
 
