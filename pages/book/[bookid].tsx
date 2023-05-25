@@ -3,6 +3,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
 import { getBook } from "../../entities/book";
+import { getImages } from "../api/images";
 
 import { getRentedBooksForUser } from "@/entities/book";
 
@@ -34,7 +35,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function BookDetail({ user, book }: any) {
+export default function BookDetail({ user, book, images }: any) {
   const router = useRouter();
 
   const [bookData, setBookData] = useState(book);
@@ -124,6 +125,7 @@ export default function BookDetail({ user, book }: any) {
           deleteBook={handleDeleteButton}
           saveBook={handleSaveButton}
           returnBook={handleReturnBookButton}
+          hasImage={book.id?.toString() + ".jpg" in images}
         />
         <Snackbar
           open={returnBookSnackbar}
@@ -151,9 +153,14 @@ export async function getServerSideProps(context: any) {
   if (!dbbook) return;
 
   const book = replaceBookDateString(dbbook);
+  const imagesArray = await getImages();
+  //console.log("Images", imagesArray);
+  //push array to object for performance reasons
+  const images = {};
+  imagesArray.map((i) => ((images as any)[i] = "1"));
 
   if (!("id" in book) || !book.id) return; //shouldn't happen
 
   // Pass data to the page via props
-  return { props: { book } };
+  return { props: { book, images } };
 }

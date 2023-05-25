@@ -2,6 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
@@ -47,6 +48,7 @@ interface BookEditFormPropType {
   deleteBook: any;
   saveBook: any;
   returnBook: any;
+  hasImage: boolean;
 }
 
 interface ReturnBooksType {
@@ -61,6 +63,7 @@ export default function BookEditForm({
   deleteBook,
   saveBook,
   returnBook,
+  hasImage,
 }: BookEditFormPropType) {
   const [editable, setEditable] = useState(false);
 
@@ -116,14 +119,14 @@ id?: number;
   //additional fields from OpenBiblio data model
   - isbn?: string;
   - editionDescription?: string;
-  publisherLocation?: string;
-  pages?: number;
+  -publisherLocation?: string;
+  -pages?: number;
   - summary?: string;
-  minPlayers?: string;
-  publisherName?: string;
-  otherPhysicalAttributes?: string;
-  supplierComment?: string;
-  publisherDate?: string;
+  -minPlayers?: string;
+  --publisherName?: string;
+  - otherPhysicalAttributes?: string;
+  - supplierComment?: string;
+  - publisherDate?: string;
   physicalSize?: string;
   minAge?: string;
   maxAge?: string;
@@ -137,21 +140,65 @@ id?: number;
     <Paper sx={{ mt: 5, px: 4 }}>
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
-          Daten
+          Stammdaten des Buchs
         </Typography>
       </Divider>
-      <Grid container spacing={3}>
-        <BookTextField fieldType={"title"} />
-        <BookTextField fieldType={"author"} />
-        <BookTextField fieldType={"subtitle"} />
-        <BookTextField fieldType={"topics"} />
-        <BookTextField fieldType={"summary"} />
-        <BookTextField fieldType={"isbn"} />
-        <BookTextField fieldType={"editionDescription"} />
+
+      <Grid
+        container
+        direction="row"
+        justifyContent="top"
+        alignItems="top"
+        spacing={2}
+      >
+        {" "}
+        <Grid item xs={12} sm={3}>
+          {hasImage && (
+            <Image
+              src={"/coverimages/" + book.id + ".jpg"}
+              width="200"
+              height="200"
+              alt="cover image"
+              style={{
+                border: "1px solid #fff",
+                width: "auto",
+              }}
+            />
+          )}
+        </Grid>{" "}
+        <Grid item container xs={12} sm={9} spacing={3}>
+          {" "}
+          <BookTextField fieldType={"title"} />
+          <BookTextField fieldType={"author"} />
+          <BookTextField fieldType={"subtitle"} />
+          <BookTextField fieldType={"topics"} />
+          <BookTextField fieldType={"summary"} />
+          <BookTextField fieldType={"isbn"} />
+          <BookTextField fieldType={"editionDescription"} />
+          <BookTextField fieldType={"publisherName"} />
+          <BookTextField fieldType={"publisherLocation"} />
+          <BookTextField fieldType={"publisherDate"} />
+          <BookTextField fieldType={"pages"} />
+          <BookTextField fieldType={"minAge"} />
+          <BookTextField fieldType={"maxAge"} />
+          <BookTextField fieldType={"rentalStatus"} />
+          <BookTextField fieldType={"renewalCount"} />
+          <BookTextField fieldType={"rentedDate"} />
+          <BookTextField fieldType={"dueDate"} />
+          <BookTextField fieldType={"price"} />
+          <BookTextField fieldType={"externalLinks"} />
+          <BookTextField fieldType={"additionalMaterial"} />
+          <BookTextField fieldType={"minPlayers"} />
+          <BookTextField fieldType={"otherPhysicalAttributes"} />
+          <BookTextField fieldType={"supplierComment"} />
+          <BookTextField fieldType={"physicalSize"} />
+          <BookTextField fieldType={"additionalMaterial"} />
+        </Grid>
       </Grid>
+
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
-          Some Text
+          Weitere Information
         </Typography>
       </Divider>
       <Grid
