@@ -9,7 +9,8 @@ update user:
 # Import from OpenBiblio
 
 - Start podman with docker compose, copy the files over (see OpenBiblio folder)
-- Open myphpadmin, create openbiblio database
+- Open myphpadmin, create openbiblio database manually
+- execute import script that copies the frame files over
 - Export the following tables, sort them by date: `member`, `biblio_status_hist`, `biblio`, `biblio_field`
 
 - Use API to import members `curl -X POST -H "Content-Type: application/json" -d @member.json http://localhost:3000/api/openbiblioimport/migrateUsers`

@@ -86,15 +86,16 @@ export default function BookEditForm({
     }
   };
 
-  const BookTextField = ({ fieldType }): any => {
+  const BookTextField = (props: any): any => {
+    const fieldType = props.fieldType;
     return (
       <Grid item xs={12} sm={6}>
         <TextField
           required
           id={fieldType}
           name={fieldType}
-          label={translations["books"][fieldType]}
-          defaultValue={book[fieldType]}
+          label={(translations["books"] as any)[fieldType]}
+          defaultValue={(book as any)[fieldType]}
           disabled={!editable}
           fullWidth
           variant="standard"

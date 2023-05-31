@@ -192,6 +192,36 @@ const transformRentalStatus = (openbibliorental: string) => {
   }
 };
 
+function createBookIDMapping(bookCopy: any) {
+  const mapping: { [key: string]: number } = {};
+  var count = 0;
+  const updated = bookCopy.map((b: any) => {
+    mapping[b.bibid] = parseInt(b.barcode_nmbr);
+    count++;
+  });
+  console.log("Mapped books:", count);
+  return mapping;
+}
+
+function filterForBarcode(data: any, mapping: any) {
+  var count = 0;
+  //console.log("Filtering data", data);
+  const updatedData: any = [];
+
+  data.map((d: any) => {
+    if (d.bibid in mapping) {
+      count++;
+      //console.log("Found this book with barcode", d );
+      updatedData.push({ ...d });
+    } else {
+      return;
+      //console.log("Book has no barcode", d);
+    }
+  });
+  console.log("Filtered for barcode: ", updatedData.length, data.length, count);
+  return updatedData;
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data | BookType>
@@ -202,12 +232,28 @@ export default async function handler(
     transaction.push(prisma.book.deleteMany({}));
     let importedBooksCount = 0;
 
+    //do not import books without a barcode!
     try {
       const booklist = req.body as any;
       //console.log("Booklist", booklist);
-      const books = booklist.biblio[2].data;
-      const bookStatus = booklist.biblio_hist[2].data;
-      const bookExtraFields = booklist.fields[2].data;
+      const bookCopy = booklist.biblio_copy[2].data;
+      //for some reason, the real ID of the book is in the hist table.. didn't get it
+      const bookIDMapping = createBookIDMapping(bookCopy);
+      //filter out the books that have no barcode..
+      //console.log("Book ID Mapping", bookIDMapping);
+      const books = filterForBarcode(booklist.biblio[2].data, bookIDMapping);
+      console.log("Filtered books", books.length);
+      const bookStatus = filterForBarcode(
+        booklist.biblio_hist[2].data,
+        bookIDMapping
+      );
+      console.log("Filtered book status", bookStatus.length);
+
+      const bookExtraFields = filterForBarcode(
+        booklist.fields[2].data,
+        bookIDMapping
+      );
+      console.log("Filtered book fields", bookExtraFields.length);
       const users = booklist.users[2].data;
       //console.log(users);
       const existingUsers = new Set();
@@ -220,8 +266,14 @@ export default async function handler(
       const migratedBooks = books?.map((u: any) => {
         //map the fields from OpenBiblio correctly:
 
+        const barcodeID = bookIDMapping[u.bibid];
+        if (isNaN(barcodeID)) {
+          console.log("Barcode not found", u.bibid);
+          return;
+        }
+
         const book = {
-          id: parseInt(u.bibid),
+          id: barcodeID,
 
           rentalStatus: "available",
           rentedDate: (u.status_begin_dt ??= new Date()),
@@ -242,18 +294,20 @@ export default async function handler(
             (u.topic5 ??= " "),
           imageLink: "",
         } as BookType;
-        //console.log("Adding BookType book", book);
+        //console.log("Adding book", book);
         //transaction.push(addBook(prisma, book));
         //addBook(prisma, book);
         transaction.push(prisma.book.create({ data: { ...book } }));
         importedBooksCount++;
         return book;
       });
+      console.log("Created books", importedBooksCount);
 
       //Attach rental status from history table in OpenBiblio
       let rentalStatusCount = 0;
       const migratedStatus = bookStatus?.map((u: any) => {
-        const bibid = parseInt(u.bibid);
+        const barcodeID = bookIDMapping[u.bibid];
+        //skip the books that are not needed
         //rented date has format 2022-11-11 12:37:39
         const rentedTime = dayjs(
           u.status_begin_dt,
@@ -281,7 +335,7 @@ export default async function handler(
               data: {
                 books: {
                   connect: {
-                    id: parseInt(u.bibid),
+                    id: barcodeID,
                   },
                 },
               },
@@ -300,7 +354,7 @@ export default async function handler(
         transaction.push(
           prisma.book.update({
             where: {
-              id: bibid,
+              id: barcodeID,
             },
             data: { ...bookUpdate },
           })
@@ -311,13 +365,18 @@ export default async function handler(
       let additionalFieldsCount = 0;
       //console.log(bookExtraFields);
       bookExtraFields.map((f: any) => {
+        const barcodeID = bookIDMapping[f.bibid];
+        if (isNaN(barcodeID)) {
+          console.log("Barcode not found", f.bibid);
+          return;
+        }
         //console.log(f);
         //wow this is dirty
         const combinedTag = f.tag + f.subfield_cd;
         const fieldUpdate = {} as any;
         const fieldTag = fieldMapping(combinedTag);
         let fieldData;
-        const bibid = parseInt(f.bibid);
+
         if (fieldTag == "pages") {
           //console.log(f.bibid, f.field_data);
           //skip Seiten string
@@ -330,7 +389,7 @@ export default async function handler(
         transaction.push(
           prisma.book.update({
             where: {
-              id: bibid,
+              id: barcodeID,
             },
             data: { ...fieldUpdate },
           })
