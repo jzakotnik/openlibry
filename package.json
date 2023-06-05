@@ -14,6 +14,7 @@
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.12.0",
     "@mui/x-data-grid": "^6.1.0",
+    "@mui/x-date-pickers": "^6.6.0",
     "@prisma/client": "^4.11.0",
     "@types/node": "18.15.10",
     "@types/react": "18.0.30",

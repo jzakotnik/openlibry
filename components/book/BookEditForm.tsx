@@ -31,6 +31,7 @@ import {
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { translations } from "@/entities/fieldTranslations";
+import BookDateField from "./edit/BookDateField";
 
 const bull = (
   <Box
@@ -91,7 +92,6 @@ export default function BookEditForm({
     return (
       <Grid item xs={12} sm={6}>
         <TextField
-          required
           id={fieldType}
           name={fieldType}
           label={(translations["books"] as any)[fieldType]}
@@ -106,6 +106,7 @@ export default function BookEditForm({
       </Grid>
     );
   };
+
   /*
 id?: number;
   rentalStatus: string;
@@ -184,8 +185,18 @@ id?: number;
           <BookTextField fieldType={"maxAge"} />
           <BookTextField fieldType={"rentalStatus"} />
           <BookTextField fieldType={"renewalCount"} />
-          <BookTextField fieldType={"rentedDate"} />
-          <BookTextField fieldType={"dueDate"} />
+          <BookDateField
+            fieldType={"rentedDate"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookDateField
+            fieldType={"dueDate"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
           <BookTextField fieldType={"price"} />
           <BookTextField fieldType={"externalLinks"} />
           <BookTextField fieldType={"additionalMaterial"} />
