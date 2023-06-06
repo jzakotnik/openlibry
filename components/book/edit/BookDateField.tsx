@@ -12,7 +12,7 @@ import {
 } from "@/utils/convertDateToDayString";
 
 const convertFromDatePicker = (time: any) => {
-  return time;
+  return convertDateToDayString(time);
 };
 
 const convertToDatePicker = (time: any) => {
@@ -31,19 +31,17 @@ const BookDateField = (props: any): any => {
     <Grid item xs={12} sm={6}>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
         <DatePicker
-          name={fieldType}
-          id={fieldType}
           label={(translations["books"] as any)[fieldType]}
+          defaultValue={convertToDatePicker((book as any)[fieldType])}
           value={convertToDatePicker((book as any)[fieldType])}
           disabled={!editable}
-          fullWidth
-          variant="standard"
-          onChange={(newValue) =>
+          onChange={(newValue) => {
+            console.log("new value", convertFromDatePicker(newValue));
             setBookData({
               ...book,
-              [fieldType]: newValue,
-            })
-          }
+              [fieldType]: convertFromDatePicker(newValue),
+            });
+          }}
         />
       </LocalizationProvider>
     </Grid>

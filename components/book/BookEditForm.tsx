@@ -32,6 +32,8 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { translations } from "@/entities/fieldTranslations";
 import BookDateField from "./edit/BookDateField";
+import BookTextField from "./edit/BookTextField";
+import BookNumberField from "./edit/BookNumberField";
 
 const bull = (
   <Box
@@ -87,57 +89,6 @@ export default function BookEditForm({
     }
   };
 
-  const BookTextField = (props: any): any => {
-    const fieldType = props.fieldType;
-    return (
-      <Grid item xs={12} sm={6}>
-        <TextField
-          id={fieldType}
-          name={fieldType}
-          label={(translations["books"] as any)[fieldType]}
-          defaultValue={(book as any)[fieldType]}
-          disabled={!editable}
-          fullWidth
-          variant="standard"
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setBookData({ ...book, [fieldType]: event.target.value });
-          }}
-        />
-      </Grid>
-    );
-  };
-
-  /*
-id?: number;
-  rentalStatus: string;
-  rentedDate: Date | string;
-  dueDate?: Date | string;
-  renewalCount: number;
-  -title: string;
-  -subtitle?: string;
-  -author: string;
-  -topics?: string;
-  imageLink?: string;
-  //additional fields from OpenBiblio data model
-  - isbn?: string;
-  - editionDescription?: string;
-  -publisherLocation?: string;
-  -pages?: number;
-  - summary?: string;
-  -minPlayers?: string;
-  --publisherName?: string;
-  - otherPhysicalAttributes?: string;
-  - supplierComment?: string;
-  - publisherDate?: string;
-  physicalSize?: string;
-  minAge?: string;
-  maxAge?: string;
-  additionalMaterial?: string;
-  price?: string;
-  externalLinks?: string;
-  userId?: number;
-  */
-
   return (
     <Paper sx={{ mt: 5, px: 4 }}>
       <Divider sx={{ mb: 3 }}>
@@ -170,21 +121,96 @@ id?: number;
         </Grid>{" "}
         <Grid item container xs={12} sm={9} spacing={3}>
           {" "}
-          <BookTextField fieldType={"title"} />
-          <BookTextField fieldType={"author"} />
-          <BookTextField fieldType={"subtitle"} />
-          <BookTextField fieldType={"topics"} />
-          <BookTextField fieldType={"summary"} />
-          <BookTextField fieldType={"isbn"} />
-          <BookTextField fieldType={"editionDescription"} />
-          <BookTextField fieldType={"publisherName"} />
-          <BookTextField fieldType={"publisherLocation"} />
-          <BookTextField fieldType={"publisherDate"} />
-          <BookTextField fieldType={"pages"} />
-          <BookTextField fieldType={"minAge"} />
-          <BookTextField fieldType={"maxAge"} />
-          <BookTextField fieldType={"rentalStatus"} />
-          <BookTextField fieldType={"renewalCount"} />
+          <BookTextField
+            fieldType={"title"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"author"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"subtitle"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"topics"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"summary"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"isbn"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"editionDescription"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"publisherName"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"publisherLocation"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"publisherDate"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"pages"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"minAge"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"maxAge"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookNumberField
+            fieldType={"rentalStatus"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"renewalCount"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
           <BookDateField
             fieldType={"rentedDate"}
             editable={editable}
@@ -197,14 +223,54 @@ id?: number;
             setBookData={setBookData}
             book={book}
           />
-          <BookTextField fieldType={"price"} />
-          <BookTextField fieldType={"externalLinks"} />
-          <BookTextField fieldType={"additionalMaterial"} />
-          <BookTextField fieldType={"minPlayers"} />
-          <BookTextField fieldType={"otherPhysicalAttributes"} />
-          <BookTextField fieldType={"supplierComment"} />
-          <BookTextField fieldType={"physicalSize"} />
-          <BookTextField fieldType={"additionalMaterial"} />
+          <BookTextField
+            fieldType={"price"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"externalLinks"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"additionalMaterial"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"minPlayers"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"otherPhysicalAttributes"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"supplierComment"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"physicalSize"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
+          <BookTextField
+            fieldType={"additionalMaterial"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+          />
         </Grid>
       </Grid>
 

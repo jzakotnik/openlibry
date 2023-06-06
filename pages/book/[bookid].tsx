@@ -16,6 +16,7 @@ import {
   convertDateToDayString,
   replaceUserDateString,
   replaceBookDateString,
+  convertStringToDay,
 } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 
@@ -68,6 +69,9 @@ export default function BookDetail({ user, book, images }: any) {
 
   const handleSaveButton = () => {
     console.log("Saving book ", bookData);
+    //convert eventual dates
+    bookData.rentedDate = convertStringToDay(bookData.rentedDate);
+    bookData.dueDate = convertStringToDay(bookData.dueDate);
 
     //we don't need to update the dates
     const { updatedAt, createdAt, ...savingBook } = bookData;
