@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
-import { getBook } from "../../entities/book";
+import { getBook, getAllTopics } from "../../entities/book";
 import { getImages } from "../api/images";
 
 import { getRentedBooksForUser } from "@/entities/book";
@@ -36,7 +36,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function BookDetail({ user, book, images }: any) {
+export default function BookDetail({ user, book, images, topics }: any) {
   const router = useRouter();
 
   const [bookData, setBookData] = useState(book);
@@ -129,6 +129,7 @@ export default function BookDetail({ user, book, images }: any) {
           deleteBook={handleDeleteButton}
           saveBook={handleSaveButton}
           returnBook={handleReturnBookButton}
+          topics={topics}
           hasImage={book.id?.toString() + ".jpg" in images}
         />
         <Snackbar
@@ -153,6 +154,15 @@ export async function getServerSideProps(context: any) {
   const prisma = new PrismaClient();
 
   const dbbook = await getBook(prisma, parseInt(context.query.bookid));
+  const dbtopics = await getAllTopics(prisma);
+  const redundanttopics: string[] = [];
+  dbtopics.map((t) => {
+    const singletopics = t.topics.split(";");
+    singletopics.map((s) => (s.length > 0 ? redundanttopics.push(s) : 0));
+  });
+  const topics = [...new Set(redundanttopics)];
+
+  console.log("Found these topics:", topics);
 
   if (!dbbook) return;
 
@@ -166,5 +176,5 @@ export async function getServerSideProps(context: any) {
   if (!("id" in book) || !book.id) return; //shouldn't happen
 
   // Pass data to the page via props
-  return { props: { book, images } };
+  return { props: { book, images, topics } };
 }

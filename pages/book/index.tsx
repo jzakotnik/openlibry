@@ -17,19 +17,7 @@ import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 import { getUser } from "../../entities/user";
 
-import { translations } from "@/entities/fieldTranslations";
-import Input from "@mui/material/Input";
-import InputLabel from "@mui/material/InputLabel";
-import InputAdornment from "@mui/material/InputAdornment";
-import FormControl from "@mui/material/FormControl";
-import TextField from "@mui/material/TextField";
 import List from "@mui/material/List";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import UserAdminList from "@/components/user/UserAdminList";
-
-import LocalLibraryIcon from "@mui/icons-material/LocalLibrary";
-
-import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
 
@@ -71,7 +59,7 @@ export default function Books({ books, images }: BookPropsType) {
     gridItemProps.xl = 12;
   }
   const itemsjs = require("itemsjs")(books, {
-    searchableFields: ["title", "author", "subtitle", "topics"],
+    searchableFields: ["title", "author", "subtitle", "topics", "id"],
   });
 
   async function searchBooks(searchString: string) {

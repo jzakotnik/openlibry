@@ -34,6 +34,8 @@ import { translations } from "@/entities/fieldTranslations";
 import BookDateField from "./edit/BookDateField";
 import BookTextField from "./edit/BookTextField";
 import BookNumberField from "./edit/BookNumberField";
+import BookStatusDropdown from "./edit/BookStatusDropdown";
+import BookTopicsChips from "./edit/BookTopicsChips";
 
 const bull = (
   <Box
@@ -52,6 +54,7 @@ interface BookEditFormPropType {
   saveBook: any;
   returnBook: any;
   hasImage: boolean;
+  topics: string[];
 }
 
 interface ReturnBooksType {
@@ -67,6 +70,7 @@ export default function BookEditForm({
   saveBook,
   returnBook,
   hasImage,
+  topics,
 }: BookEditFormPropType) {
   const [editable, setEditable] = useState(false);
 
@@ -139,11 +143,12 @@ export default function BookEditForm({
             setBookData={setBookData}
             book={book}
           />
-          <BookTextField
+          <BookTopicsChips
             fieldType={"topics"}
             editable={editable}
             setBookData={setBookData}
             book={book}
+            topics={topics}
           />
           <BookTextField
             fieldType={"summary"}
@@ -199,13 +204,13 @@ export default function BookEditForm({
             setBookData={setBookData}
             book={book}
           />
-          <BookNumberField
+          <BookStatusDropdown
             fieldType={"rentalStatus"}
             editable={editable}
             setBookData={setBookData}
             book={book}
           />
-          <BookTextField
+          <BookNumberField
             fieldType={"renewalCount"}
             editable={editable}
             setBookData={setBookData}

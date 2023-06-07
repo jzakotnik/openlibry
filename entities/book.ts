@@ -6,6 +6,24 @@ export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
 }
 
+export async function getAllTopics(client: PrismaClient) {
+  try {
+    return await client.book.findMany({
+      select: {
+        topics: true,
+      },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getting all Books: ", e);
+    }
+    throw e;
+  }
+}
+
 export async function getAllBooks(client: PrismaClient) {
   try {
     return await client.book.findMany({});
