@@ -158,7 +158,10 @@ export async function getServerSideProps(context: any) {
   const redundanttopics: string[] = [];
   dbtopics.map((t) => {
     const singletopics = t.topics.split(";");
-    singletopics.map((s) => (s.length > 0 ? redundanttopics.push(s) : 0));
+    singletopics.map((s) => {
+      const filteredTopic = s.trim();
+      s.trim().length > 0 ? redundanttopics.push(s) : 0;
+    });
   });
   const topics = [...new Set(redundanttopics)];
 

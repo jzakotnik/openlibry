@@ -7,7 +7,8 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { Autocomplete, Chip, TextField, Grid } from "@mui/material";
 
 const parseTopics = (combined: string) => {
-  return combined.split(";");
+  const parsedTopics = combined.split(";").filter((t: string) => t.length > 0);
+  return parsedTopics;
 };
 
 export default function BookTopicsChips(props: any) {
@@ -16,11 +17,12 @@ export default function BookTopicsChips(props: any) {
   const setBookData = props.setBookData;
   const book = props.book;
   const topics = props.topics;
-  const [val, setVal] = useState(parseTopics(book.topics));
+  const [bookTopics, setBookTopics] = useState(parseTopics(book.topics));
 
   // test topics
-
-  const valHtml = val.map((option, index) => {
+  console.log("Topics for this book:", book.topics);
+  console.log("All topics", topics);
+  const valHtml = bookTopics.map((option, index) => {
     // This is to handle new options added by the user (allowed by freeSolo prop).
     const label = option;
     return (
@@ -29,7 +31,7 @@ export default function BookTopicsChips(props: any) {
         label={label}
         deleteIcon={<ClearIcon />}
         onDelete={() => {
-          setVal(val.filter((entry) => entry !== option));
+          setBookTopics(bookTopics.filter((entry) => entry !== option));
         }}
       />
     );
@@ -45,10 +47,10 @@ export default function BookTopicsChips(props: any) {
         freeSolo
         filterSelectedOptions
         options={topics}
-        onChange={(e, newValue: any) => setVal(newValue)}
+        onChange={(e, newValue: any) => setBookTopics(newValue)}
         getOptionLabel={(option) => option}
         renderTags={() => {}}
-        value={val}
+        value={bookTopics}
         renderInput={(params) => (
           <TextField
             {...params}

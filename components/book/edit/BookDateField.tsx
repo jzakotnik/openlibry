@@ -16,7 +16,7 @@ const convertFromDatePicker = (time: any) => {
 };
 
 const convertToDatePicker = (time: any) => {
-  console.log("Converting time to date picker", time, convertStringToDay(time));
+  //console.log("Converting time to date picker", time, convertStringToDay(time));
 
   return convertStringToDay(time);
 };
@@ -26,7 +26,7 @@ const BookDateField = (props: any): any => {
   const editable = props.editable;
   const setBookData = props.setBookData;
   const book = props.book;
-  console.log("Rendering book", book);
+  //console.log("Rendering book", book);
   return (
     <Grid item xs={12} sm={6}>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
