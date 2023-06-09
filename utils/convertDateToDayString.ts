@@ -21,6 +21,10 @@ export function convertStringToDay(d: string) {
   return dayjs(d, "YYYY-MM-DD");
 }
 
+export function currentTime() {
+  return dayjs().toDate();
+}
+
 export function replaceUsersDateString(users: Array<User>): Array<UserType> {
   const convertedUsers = users.map((u) => {
     return {

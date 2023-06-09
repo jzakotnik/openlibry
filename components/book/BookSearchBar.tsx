@@ -25,6 +25,7 @@ import Grid from "@mui/material/Grid";
 
 interface BookSearchBarPropType {
   handleInputChange: any;
+  handleNewBook: any;
   bookSearchInput: any;
   toggleView: any;
   detailView: boolean;
@@ -32,6 +33,7 @@ interface BookSearchBarPropType {
 
 export default function BookSearchBar({
   handleInputChange,
+  handleNewBook,
   bookSearchInput,
   toggleView,
   detailView,
@@ -68,7 +70,12 @@ export default function BookSearchBar({
             <SearchIcon />
           </IconButton>
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          <IconButton color="primary" sx={{ p: "10px" }} aria-label="new-book">
+          <IconButton
+            color="primary"
+            sx={{ p: "10px" }}
+            aria-label="new-book"
+            onClick={handleNewBook}
+          >
             <QueueIcon />
           </IconButton>
         </Paper>

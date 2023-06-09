@@ -1,7 +1,7 @@
 import { Grid, TextField } from "@mui/material";
 import { translations } from "@/entities/fieldTranslations";
 
-const BookTextField = (props: any): any => {
+const BookMultiText = (props: any): any => {
   const fieldType = props.fieldType;
   const editable = props.editable;
   const setBookData = props.setBookData;
@@ -9,6 +9,8 @@ const BookTextField = (props: any): any => {
   return (
     <TextField
       id={fieldType}
+      multiline
+      maxRows={4}
       name={fieldType}
       label={(translations["books"] as any)[fieldType]}
       defaultValue={(book as any)[fieldType]}
@@ -22,4 +24,4 @@ const BookTextField = (props: any): any => {
   );
 };
 
-export default BookTextField;
+export default BookMultiText;

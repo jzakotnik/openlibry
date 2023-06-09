@@ -12,21 +12,22 @@ import Button from "@mui/material/Button";
 
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState, useMemo } from "react";
-import { getAllUsers } from "../../entities/user";
+
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
-import { getUser } from "../../entities/user";
 
 import List from "@mui/material/List";
 
-import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import {
+  convertDateToDayString,
+  currentTime,
+} from "@/utils/convertDateToDayString";
 
-import { UserType } from "@/entities/UserType";
 import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
 
 import BookSummaryCard from "@/components/book/BookSummaryCard";
-import { ListItem, ListItemText, Typography } from "@mui/material";
+
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
 
@@ -46,11 +47,13 @@ interface BookPropsType {
 
 export default function Books({ books, images }: BookPropsType) {
   const theme = useTheme();
+  const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [renderedBooks, setRenderedBooks] = useState(books.slice(0, 10));
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
+  const [bookCreating, setBookCreating] = useState(false);
 
   if (isMobile) {
     gridItemProps.sm = 12;
@@ -73,6 +76,35 @@ export default function Books({ books, images }: BookPropsType) {
     //console.log("Found books", foundBooks);
     setRenderedBooks(foundBooks.data.items);
   }
+
+  const handleCreateNewBook = (e: any) => {
+    console.log("Creating a new book");
+    setBookCreating(true);
+    const book: BookType = {
+      title: "",
+      subtitle: "",
+      author: "",
+      renewalCount: 0,
+      rentalStatus: "available",
+      topics: ";",
+      rentedDate: currentTime(),
+      dueDate: currentTime(),
+    };
+
+    fetch("/api/book", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(book),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setBookCreating(false);
+        router.push("book/" + data.id);
+        console.log("Book created", data);
+      });
+  };
 
   const handleInputChange = (e: any) => {
     const searchString = e.target.value;
@@ -115,6 +147,7 @@ export default function Books({ books, images }: BookPropsType) {
     <Layout>
       <BookSearchBar
         handleInputChange={handleInputChange}
+        handleNewBook={handleCreateNewBook}
         bookSearchInput={bookSearchInput}
         toggleView={toggleView}
         detailView={detailView}

@@ -51,7 +51,7 @@ export default function BookTopicsChips(props: any) {
   });
 
   return (
-    <Grid item xs={12} sm={6}>
+    <span>
       <Autocomplete
         disabled={!editable}
         fullWidth
@@ -80,6 +80,6 @@ export default function BookTopicsChips(props: any) {
         )}
       />
       <div className="selectedTags">{valHtml}</div>
-    </Grid>
+    </span>
   );
 }

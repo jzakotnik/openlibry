@@ -89,6 +89,7 @@ export default function BookSummaryCard({
             src={"/coverimages/" + book.id + ".jpg"}
             width={320}
             height={200}
+            priority={false}
             alt=""
             style={{ objectFit: "cover" }}
           />

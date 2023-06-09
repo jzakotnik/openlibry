@@ -36,6 +36,7 @@ import BookTextField from "./edit/BookTextField";
 import BookNumberField from "./edit/BookNumberField";
 import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTopicsChips from "./edit/BookTopicsChips";
+import BookMultiText from "./edit/BookMultiText";
 
 const bull = (
   <Box
@@ -109,12 +110,219 @@ export default function BookEditForm({
         spacing={2}
       >
         {" "}
+        <Grid item container xs={12} sm={9} direction="row" spacing={2}>
+          {" "}
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"title"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"author"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"subtitle"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTopicsChips
+              fieldType={"topics"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+              topics={topics}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <BookMultiText
+              fieldType={"summary"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"isbn"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"editionDescription"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"publisherName"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"publisherLocation"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"publisherDate"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"pages"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>{" "}
+          <Divider sx={{ mb: 3 }}></Divider>
+          <Grid item xs={12} sm={6}>
+            <BookStatusDropdown
+              fieldType={"rentalStatus"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookNumberField
+              fieldType={"renewalCount"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookDateField
+              fieldType={"rentedDate"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookDateField
+              fieldType={"dueDate"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>{" "}
+          <Divider sx={{ mb: 3 }}></Divider>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"minAge"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"maxAge"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"price"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"externalLinks"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"additionalMaterial"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"minPlayers"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"otherPhysicalAttributes"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"supplierComment"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"physicalSize"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />{" "}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <BookTextField
+              fieldType={"additionalMaterial"}
+              editable={editable}
+              setBookData={setBookData}
+              book={book}
+            />
+          </Grid>
+        </Grid>
         <Grid item xs={12} sm={3}>
           {hasImage && (
             <Image
               src={"/coverimages/" + book.id + ".jpg"}
               width="200"
               height="200"
+              priority={false}
               alt="cover image"
               style={{
                 border: "1px solid #fff",
@@ -123,167 +331,9 @@ export default function BookEditForm({
             />
           )}
         </Grid>{" "}
-        <Grid item container xs={12} sm={9} spacing={3}>
-          {" "}
-          <BookTextField
-            fieldType={"title"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"author"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"subtitle"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTopicsChips
-            fieldType={"topics"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-            topics={topics}
-          />
-          <BookTextField
-            fieldType={"summary"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"isbn"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"editionDescription"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"publisherName"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"publisherLocation"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"publisherDate"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"pages"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"minAge"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"maxAge"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookStatusDropdown
-            fieldType={"rentalStatus"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookNumberField
-            fieldType={"renewalCount"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookDateField
-            fieldType={"rentedDate"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookDateField
-            fieldType={"dueDate"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"price"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"externalLinks"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"additionalMaterial"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"minPlayers"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"otherPhysicalAttributes"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"supplierComment"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"physicalSize"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-          <BookTextField
-            fieldType={"additionalMaterial"}
-            editable={editable}
-            setBookData={setBookData}
-            book={book}
-          />
-        </Grid>
       </Grid>
 
-      <Divider sx={{ mb: 3 }}>
-        <Typography variant="body1" color={palette.info.main}>
-          Weitere Information
-        </Typography>
-      </Divider>
+      <Divider sx={{ mb: 3 }}></Divider>
       <Grid
         container
         direction="row"
