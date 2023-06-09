@@ -19,6 +19,10 @@ export default function BookTopicsChips(props: any) {
   const topics = props.topics;
   const [bookTopics, setBookTopics] = useState(parseTopics(book.topics));
 
+  const serializeTopics = (topics: string[]): string => {
+    return topics.join(";");
+  };
+
   // test topics
   console.log("Topics for this book:", book.topics);
   console.log("All topics", topics);
@@ -31,7 +35,16 @@ export default function BookTopicsChips(props: any) {
         label={label}
         deleteIcon={<ClearIcon />}
         onDelete={() => {
-          setBookTopics(bookTopics.filter((entry) => entry !== option));
+          if (editable) {
+            const newBookTopics = bookTopics.filter(
+              (entry) => entry !== option
+            );
+            /*setBookData({
+              ...book,
+              [fieldType]: serializeTopics(newBookTopics),
+            });*/
+            setBookTopics(newBookTopics);
+          }
         }}
       />
     );
@@ -40,14 +53,17 @@ export default function BookTopicsChips(props: any) {
   return (
     <Grid item xs={12} sm={6}>
       <Autocomplete
-        enabled={!editable}
+        disabled={!editable}
         fullWidth
         multiple
         id="tags-standard"
         freeSolo
         filterSelectedOptions
         options={topics}
-        onChange={(e, newValue: any) => setBookTopics(newValue)}
+        onChange={(e, newValue: any) => {
+          setBookTopics(newValue);
+          //setBookData({ ...book, [fieldType]: serializeTopics(newValue) });
+        }}
         getOptionLabel={(option) => option}
         renderTags={() => {}}
         value={bookTopics}
