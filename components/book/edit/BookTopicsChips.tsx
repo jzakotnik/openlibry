@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 import React, { useState } from "react";
 
-import RemoveIcon from "@mui/icons-material/Remove";
 import ClearIcon from "@mui/icons-material/Clear";
 
 import { Autocomplete, Chip, TextField, Grid } from "@mui/material";
@@ -17,7 +16,7 @@ export default function BookTopicsChips(props: any) {
   const setBookData = props.setBookData;
   const book = props.book;
   const topics = props.topics;
-  const [bookTopics, setBookTopics] = useState(parseTopics(book.topics));
+  //const [bookTopics, setBookTopics] = useState(parseTopics(book.topics));
 
   const serializeTopics = (topics: string[]): string => {
     return topics.join(";");
@@ -26,7 +25,7 @@ export default function BookTopicsChips(props: any) {
   // test topics
   console.log("Topics for this book:", book.topics);
   console.log("All topics", topics);
-  const valHtml = bookTopics.map((option, index) => {
+  const valHtml = parseTopics(book.topics).map((option, index) => {
     // This is to handle new options added by the user (allowed by freeSolo prop).
     const label = option;
     return (
@@ -36,14 +35,14 @@ export default function BookTopicsChips(props: any) {
         deleteIcon={<ClearIcon />}
         onDelete={() => {
           if (editable) {
-            const newBookTopics = bookTopics.filter(
+            const newBookTopics = parseTopics(book.topics).filter(
               (entry) => entry !== option
             );
-            /*setBookData({
+            setBookData({
               ...book,
               [fieldType]: serializeTopics(newBookTopics),
-            });*/
-            setBookTopics(newBookTopics);
+            });
+            //setBookTopics(newBookTopics);
           }
         }}
       />
@@ -61,12 +60,12 @@ export default function BookTopicsChips(props: any) {
         filterSelectedOptions
         options={topics}
         onChange={(e, newValue: any) => {
-          setBookTopics(newValue);
-          //setBookData({ ...book, [fieldType]: serializeTopics(newValue) });
+          //setBookTopics(newValue);
+          setBookData({ ...book, [fieldType]: serializeTopics(newValue) });
         }}
         getOptionLabel={(option) => option}
         renderTags={() => {}}
-        value={bookTopics}
+        value={parseTopics(book.topics)}
         renderInput={(params) => (
           <TextField
             {...params}
