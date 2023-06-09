@@ -64,7 +64,9 @@ export default function BookTopicsChips(props: any) {
           setBookData({ ...book, [fieldType]: serializeTopics(newValue) });
         }}
         getOptionLabel={(option) => option}
-        renderTags={() => {}}
+        renderTags={() => {
+          return null;
+        }}
         value={parseTopics(book.topics)}
         renderInput={(params) => (
           <TextField
