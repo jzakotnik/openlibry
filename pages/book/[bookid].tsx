@@ -155,15 +155,27 @@ export async function getServerSideProps(context: any) {
 
   const dbbook = await getBook(prisma, parseInt(context.query.bookid));
   const dbtopics = await getAllTopics(prisma);
-  const redundanttopics: string[] = [];
-  dbtopics.map((t) => {
-    const singletopics = t.topics.split(";");
-    singletopics.map((s) => {
-      const filteredTopic = s.trim();
-      s.trim().length > 0 ? redundanttopics.push(s) : 0;
+  const topics: string[] = [];
+  if (dbtopics != null) {
+    const redundanttopics: string[] = [];
+    dbtopics.map((t) => {
+      if ("topics" in t && t.topics != null) {
+        const singletopics = t.topics.split(";");
+        singletopics.map((s) => {
+          const filteredTopic = s.trim();
+          s.trim().length > 0 ? redundanttopics.push(s) : 0;
+        });
+      }
     });
-  });
-  const topics = [...new Set(redundanttopics)];
+
+    //const topics = [...new Set(redundanttopics)];
+
+    redundanttopics.map((element: any) => {
+      if (!topics.includes(element)) {
+        topics.push(element);
+      }
+    });
+  }
 
   console.log("Found these topics:", topics);
 
