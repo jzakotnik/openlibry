@@ -32,6 +32,7 @@ export default function BookTopicsChips(props: any) {
       <Chip
         key={label}
         label={label}
+        variant={!editable ? "outlined" : "filled"}
         deleteIcon={<ClearIcon />}
         onDelete={() => {
           if (editable) {
