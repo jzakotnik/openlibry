@@ -115,7 +115,7 @@ export default function BookDetail({ user, book, images, topics }: any) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", bookid, data);
-        router.push("/user");
+        router.push("/book");
       });
   };
 

@@ -96,12 +96,49 @@ export default function BookEditForm({
 
   return (
     <Paper sx={{ mt: 5, px: 4 }}>
+      {" "}
+      <Grid
+        container
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+      >
+        <Grid item xs={12} md={4}>
+          <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
+            {editButtonLabel}
+          </Button>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          {editable && (
+            <Button
+              onClick={() => {
+                saveBook();
+                toggleEditButton();
+              }}
+              startIcon={<SaveAltIcon />}
+            >
+              Speichern
+            </Button>
+          )}
+        </Grid>
+        <Grid item xs={12} md={4}>
+          {editable && (
+            <Button
+              color="error"
+              onClick={deleteBook}
+              startIcon={<DeleteForeverIcon />}
+            >
+              Löschen
+            </Button>
+          )}
+        </Grid>{" "}
+      </Grid>
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
           Stammdaten des Buchs
         </Typography>
       </Divider>
-
       <Grid
         container
         direction="row"
@@ -332,45 +369,7 @@ export default function BookEditForm({
           )}
         </Grid>{" "}
       </Grid>
-
       <Divider sx={{ mb: 3 }}></Divider>
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
-      >
-        <Grid item xs={12} md={4}>
-          <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
-            {editButtonLabel}
-          </Button>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          {editable && (
-            <Button
-              onClick={() => {
-                saveBook();
-                toggleEditButton();
-              }}
-              startIcon={<SaveAltIcon />}
-            >
-              Speichern
-            </Button>
-          )}
-        </Grid>
-        <Grid item xs={12} md={4}>
-          {editable && (
-            <Button
-              color="error"
-              onClick={deleteBook}
-              startIcon={<DeleteForeverIcon />}
-            >
-              Löschen
-            </Button>
-          )}
-        </Grid>{" "}
-      </Grid>
     </Paper>
   );
 }
