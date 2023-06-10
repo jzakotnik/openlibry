@@ -149,7 +149,11 @@ export async function getServerSideProps(context: any) {
 
   const dbuser = await getUser(prisma, parseInt(context.query.userid));
 
-  if (!dbuser) return;
+  if (!dbuser) {
+    return {
+      notFound: true,
+    };
+  }
 
   const user = replaceUserDateString(dbuser);
 

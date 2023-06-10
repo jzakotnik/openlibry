@@ -154,6 +154,12 @@ export async function getServerSideProps(context: any) {
   const prisma = new PrismaClient();
 
   const dbbook = await getBook(prisma, parseInt(context.query.bookid));
+  if (!dbbook) {
+    return {
+      notFound: true,
+    };
+  }
+
   const dbtopics = await getAllTopics(prisma);
   const topics: string[] = [];
   if (dbtopics != null) {
