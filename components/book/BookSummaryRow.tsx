@@ -8,6 +8,7 @@ import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
+import SearchIcon from "@mui/icons-material/Search";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
@@ -52,7 +53,9 @@ export default function BookSummaryRow({ book }: BookSummaryRowPropType) {
       key={book.id}
       secondaryAction={
         <IconButton edge="end" aria-label="delete">
-          <EditIcon />
+          <Link href={"/book/" + book.id} passHref>
+            <SearchIcon />
+          </Link>
         </IconButton>
       }
     >

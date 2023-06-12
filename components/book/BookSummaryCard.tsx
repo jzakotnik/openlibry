@@ -107,6 +107,9 @@ export default function BookSummaryCard({
         <Link href={"/book/" + book.id} passHref>
           <Button size="small">Editieren</Button>
         </Link>
+        <Link href={"/book/" + book.id} passHref>
+          <Button size="small">Abgeben</Button>
+        </Link>
       </CardActions>
     </Card>
   );

@@ -13,7 +13,11 @@ import Button from "@mui/material/Button";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState, useMemo } from "react";
 
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import {
+  getAllBooks,
+  getRentedBooksWithUsers,
+  returnBook,
+} from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 
 import List from "@mui/material/List";
