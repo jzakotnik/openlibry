@@ -146,7 +146,7 @@ export default function Books({ books, images }: BookPropsType) {
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
               book={b}
-              returnBook={() => handleReturnBook(b.id, b.userId)}
+              returnBook={() => handleReturnBook(b.id!, b.userId!)}
               hasImage={b.id?.toString() + ".jpg" in images}
             />
           </Grid>
