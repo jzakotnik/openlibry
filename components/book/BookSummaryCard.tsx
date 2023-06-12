@@ -37,11 +37,13 @@ const bull = (
 
 interface BookSummaryCardPropType {
   book: BookType;
+  returnBook: any;
   hasImage: boolean;
 }
 
 export default function BookSummaryCard({
   book,
+  returnBook,
   hasImage,
 }: BookSummaryCardPropType) {
   const [src, setSrc] = useState("/coverimages/default.png");
@@ -107,9 +109,11 @@ export default function BookSummaryCard({
         <Link href={"/book/" + book.id} passHref>
           <Button size="small">Editieren</Button>
         </Link>
-        <Link href={"/book/" + book.id} passHref>
-          <Button size="small">Abgeben</Button>
-        </Link>
+        {book.rentalStatus != "available" ? (
+          <Button size="small" onClick={returnBook}>
+            Abgeben
+          </Button>
+        ) : null}
       </CardActions>
     </Card>
   );

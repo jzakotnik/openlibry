@@ -43,3 +43,4 @@ pages/api/openbiblioimport/member.json
 prisma/dev_clean.db
 
 public/coverimages
+prisma/dev_original.db

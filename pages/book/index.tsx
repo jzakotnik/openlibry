@@ -13,11 +13,7 @@ import Button from "@mui/material/Button";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState, useMemo } from "react";
 
-import {
-  getAllBooks,
-  getRentedBooksWithUsers,
-  returnBook,
-} from "@/entities/book";
+import { getAllBooks } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 
 import List from "@mui/material/List";
@@ -110,6 +106,27 @@ export default function Books({ books, images }: BookPropsType) {
       });
   };
 
+  const handleReturnBook = (id: number, userid: number) => {
+    console.log("Return  book");
+
+    fetch(`/api/book/${id}/user/${userid}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Book returned, relationship deleted", data, id, userid);
+        const newRenderedBooks = renderedBooks.map((b) => {
+          console.log("Compare rendered books", b.id, id);
+          return b.id === id ? { ...b, rentalStatus: "available" } : b;
+        });
+        console.log("New rendered books", newRenderedBooks, renderedBooks);
+        setRenderedBooks(newRenderedBooks);
+      });
+  };
+
   const handleInputChange = (e: any) => {
     const searchString = e.target.value;
     const result = searchBooks(searchString);
@@ -129,6 +146,7 @@ export default function Books({ books, images }: BookPropsType) {
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
               book={b}
+              returnBook={() => handleReturnBook(b.id, b.userId)}
               hasImage={b.id?.toString() + ".jpg" in images}
             />
           </Grid>

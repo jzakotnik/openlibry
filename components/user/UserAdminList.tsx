@@ -26,9 +26,11 @@ export default function UserAdminList({ users, rentals, searchString }: any) {
   return (
     <div>
       {users.map((u: UserType) => {
+        const lowerCaseSearch = searchString.toLowerCase();
         if (
-          u.lastName.toLowerCase().includes(searchString.toLowerCase()) ||
-          u.firstName.toLowerCase().includes(searchString.toLowerCase())
+          u.lastName.toLowerCase().includes(lowerCaseSearch) ||
+          u.firstName.toLowerCase().includes(lowerCaseSearch) ||
+          u.id!.toString().includes(lowerCaseSearch)
         )
           return (
             <Accordion key={u.id}>
