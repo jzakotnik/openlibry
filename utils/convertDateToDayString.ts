@@ -21,6 +21,12 @@ export function convertStringToDay(d: string) {
   return dayjs(d, "YYYY-MM-DD");
 }
 
+export function extendWeeks(d: Date, weeks: number) {
+  console.log("Converting string to dayjs", d, dayjs(d));
+  const newDate = dayjs(d).add(weeks, "week");
+  return newDate;
+}
+
 export function currentTime() {
   return dayjs().toDate();
 }
@@ -51,5 +57,15 @@ export function replaceBookDateString(book: any): BookType {
     updatedAt: convertDateToDayString(book.updatedAt),
     rentedDate: convertDateToDayString(book.rentedDate),
     dueDate: convertDateToDayString(book.dueDate),
+  };
+}
+
+export function replaceBookStringDate(book: any): BookType {
+  return {
+    ...book,
+    createdAt: convertStringToDay(book.createdAt).toDate(),
+    updatedAt: convertStringToDay(book.updatedAt).toDate(),
+    rentedDate: convertStringToDay(book.rentedDate).toDate(),
+    dueDate: convertStringToDay(book.dueDate).toDate(),
   };
 }

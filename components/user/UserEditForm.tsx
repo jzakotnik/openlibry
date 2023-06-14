@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ListItem from "@mui/material/ListItem";
 import List from "@mui/material/List";
+import MoreTimeIcon from "@mui/icons-material/MoreTime";
 
 import ListItemIcon from "@mui/material/ListItemIcon";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
@@ -48,6 +49,7 @@ interface UserEditFormPropType {
   deleteUser: any;
   saveUser: any;
   returnBook: any;
+  extendBook: any;
 }
 
 interface ReturnBooksType {
@@ -62,8 +64,10 @@ export default function UserEditForm({
   deleteUser,
   saveUser,
   returnBook,
+  extendBook,
 }: UserEditFormPropType) {
   const [editable, setEditable] = useState(false);
+  const [userBooks, setUserBooks] = useState(books);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
   const [returnedBooks, setReturnedBooks] = useState({});
@@ -218,7 +222,7 @@ export default function UserEditForm({
       >
         <Grid item xs={12}>
           {" "}
-          {books.map((b: BookType) => {
+          {userBooks.map((b: BookType, index: number) => {
             return "id" in b ? (
               <ListItem key={b.id}>
                 <IconButton
@@ -231,7 +235,18 @@ export default function UserEditForm({
                   }}
                   aria-label="zurückgeben"
                 >
-                  <ReturnedIcon id={b.id} />
+                  <ReturnedIcon key={b.id} />
+                </IconButton>
+                <IconButton
+                  onClick={() => {
+                    extendBook(b.id, b);
+                    const newBooks = [...books];
+                    newBooks[index].renewalCount++;
+                    setUserBooks(newBooks);
+                  }}
+                  aria-label="verlängern"
+                >
+                  <MoreTimeIcon key={b.id} />
                 </IconButton>
                 <ListItemText>
                   {b.title + ", " + b.renewalCount + "x verlängert"}

@@ -86,9 +86,18 @@ export default function BookSummaryCard({
         title={"Buch id " + selectedBook.id}
       />
       <CardMedia sx={{ position: "relative" }}>
-        {hasImage && (
+        {hasImage ? (
           <Image
             src={"/coverimages/" + book.id + ".jpg"}
+            width={320}
+            height={200}
+            priority={false}
+            alt=""
+            style={{ objectFit: "cover" }}
+          />
+        ) : (
+          <Image
+            src={"/coverimages/default.png"}
             width={320}
             height={200}
             priority={false}

@@ -14,11 +14,16 @@ import { forwardRef } from "react";
 import {
   convertDateToDayString,
   replaceUserDateString,
+  convertStringToDay,
+  replaceBookDateString,
+  replaceBookStringDate,
+  extendWeeks,
 } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 
 import UserEditForm from "@/components/user/UserEditForm";
 import { Typography } from "@mui/material";
+import { BookType } from "@/entities/BookType";
 
 const theme = createTheme({
   palette: {
@@ -38,6 +43,8 @@ export default function UserDetail({ user, books }: any) {
 
   const [userData, setUserData] = useState(user);
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
+
+  const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
 
   useEffect(() => {
     setUserData(user);
@@ -64,6 +71,16 @@ export default function UserDetail({ user, books }: any) {
     }
 
     setReturnBookSnackbar(false);
+  };
+
+  const handleCloseExtendBookSnackbar = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setExtendBookSnackbar(false);
   };
 
   const handleSaveButton = () => {
@@ -99,6 +116,35 @@ export default function UserDetail({ user, books }: any) {
       });
   };
 
+  const handleExtendBookButton = (bookid: number, book: BookType) => {
+    //we don't need to update the dates
+
+    //console.log("Extended date", book, extendWeeks(book.dueDate as Date, 2));
+
+    const newbook = replaceBookStringDate(book) as any;
+    //extend logic
+    const newDueDate = extendWeeks(book.dueDate as Date, 2);
+    newbook.dueDate = newDueDate.toDate();
+    newbook.renewalCount = newbook.renewalCount + 1;
+
+    //console.log("Saving an extended book", newbook);
+    delete newbook.user; //don't need the user here
+
+    fetch("/api/book/" + bookid, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newbook),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setExtendBookSnackbar(true);
+      });
+    //T
+  };
+
   const handleDeleteButton = () => {
     console.log("Deleting user ", userData);
 
@@ -125,6 +171,7 @@ export default function UserDetail({ user, books }: any) {
           deleteUser={handleDeleteButton}
           saveUser={handleSaveButton}
           returnBook={handleReturnBookButton}
+          extendBook={handleExtendBookButton}
         />
         <Snackbar
           open={returnBookSnackbar}
@@ -137,6 +184,19 @@ export default function UserDetail({ user, books }: any) {
             sx={{ width: "100%" }}
           >
             Buch zurück gegeben, super!
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={extendBookSnackbar}
+          autoHideDuration={8000}
+          onClose={handleCloseExtendBookSnackbar}
+        >
+          <Alert
+            onClose={handleCloseExtendBookSnackbar}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Buch verlängert, ist ein U-Boot, taucht wieder auf!
           </Alert>
         </Snackbar>
       </ThemeProvider>
@@ -173,6 +233,7 @@ export async function getServerSideProps(context: any) {
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
     //temp TODO
+    console.log("Book", newBook);
     return newBook;
   });
 

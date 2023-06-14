@@ -354,7 +354,7 @@ export default function BookEditForm({
           </Grid>
         </Grid>
         <Grid item xs={12} sm={3}>
-          {hasImage && (
+          {hasImage ? (
             <Image
               src={"/coverimages/" + book.id + ".jpg"}
               width="200"
@@ -365,6 +365,15 @@ export default function BookEditForm({
                 border: "1px solid #fff",
                 width: "auto",
               }}
+            />
+          ) : (
+            <Image
+              src={"/coverimages/default.png"}
+              width={320}
+              height={200}
+              priority={false}
+              alt=""
+              style={{ objectFit: "cover" }}
             />
           )}
         </Grid>{" "}
