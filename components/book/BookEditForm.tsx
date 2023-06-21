@@ -37,6 +37,7 @@ import BookNumberField from "./edit/BookNumberField";
 import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTopicsChips from "./edit/BookTopicsChips";
 import BookMultiText from "./edit/BookMultiText";
+import BookBarcode from "./edit/BookBarcode";
 
 const bull = (
   <Box
@@ -139,13 +140,7 @@ export default function BookEditForm({
           Stammdaten des Buchs
         </Typography>
       </Divider>
-      <Grid
-        container
-        direction="row"
-        justifyContent="top"
-        alignItems="top"
-        spacing={2}
-      >
+      <Grid container direction="row" justifyContent="center" alignItems="top">
         {" "}
         <Grid item container xs={12} sm={9} direction="row" spacing={2}>
           {" "}
@@ -353,30 +348,43 @@ export default function BookEditForm({
             />
           </Grid>
         </Grid>
-        <Grid item xs={12} sm={3}>
-          {hasImage ? (
-            <Image
-              src={"/coverimages/" + book.id + ".jpg"}
-              width="200"
-              height="200"
-              priority={false}
-              alt="cover image"
-              style={{
-                border: "1px solid #fff",
-                width: "auto",
-              }}
-            />
-          ) : (
-            <Image
-              src={"/coverimages/default.png"}
-              width={320}
-              height={200}
-              priority={false}
-              alt=""
-              style={{ objectFit: "cover" }}
-            />
-          )}
-        </Grid>{" "}
+        <Grid
+          item
+          container
+          xs={12}
+          sm={3}
+          direction="column"
+          justifyContent="top"
+          alignItems="center"
+        >
+          <Grid item>
+            {hasImage ? (
+              <Image
+                src={"/coverimages/" + book.id + ".jpg"}
+                width="200"
+                height="200"
+                priority={false}
+                alt="cover image"
+                style={{
+                  border: "1px solid #fff",
+                  width: "auto",
+                }}
+              />
+            ) : (
+              <Image
+                src={"/coverimages/default.png"}
+                width={320}
+                height={200}
+                priority={false}
+                alt=""
+                style={{ objectFit: "cover" }}
+              />
+            )}{" "}
+          </Grid>{" "}
+          <Grid item>
+            <BookBarcode book={book} />
+          </Grid>
+        </Grid>
       </Grid>
       <Divider sx={{ mb: 3 }}></Divider>
     </Paper>

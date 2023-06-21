@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 import Barcode from "react-barcode";
-import { Typography } from "@mui/material";
+import { Typography, Paper } from "@mui/material";
 import Layout from "@/components/layout/Layout";
 
 export default function Home() {
@@ -16,8 +16,8 @@ export default function Home() {
       : router.query.bookid
   );
   return (
-    <Layout>
-      <Typography>Barcode</Typography>
+    <Paper sx={{ mx: 10, my: 10 }}>
+      <Typography>Barcode Buch ID {bookid.toString()}</Typography>
 
       <Barcode
         value={bookid.toString()}
@@ -27,6 +27,6 @@ export default function Home() {
         textMargin={4}
         margin={0}
       />
-    </Layout>
+    </Paper>
   );
 }

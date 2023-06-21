@@ -106,6 +106,35 @@ export default function Books({ books, images }: BookPropsType) {
       });
   };
 
+  const handleCopyBook = (book: BookType) => {
+    console.log("Creating a new book from an existing book");
+    setBookCreating(true);
+    const newBook: BookType = {
+      title: book.title,
+      subtitle: book.subtitle,
+      author: book.author,
+      renewalCount: 0,
+      rentalStatus: "available",
+      topics: book.topics,
+      rentedDate: currentTime(),
+      dueDate: currentTime(),
+    };
+
+    fetch("/api/book", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newBook),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setBookCreating(false);
+        router.push("book/" + data.id);
+        console.log("Book created", data);
+      });
+  };
+
   const handleReturnBook = (id: number, userid: number) => {
     console.log("Return  book");
 
@@ -159,7 +188,11 @@ export default function Books({ books, images }: BookPropsType) {
     return (
       <List sx={{ width: "70%" }} dense={true}>
         {renderedBooks.map((b: BookType) => (
-          <BookSummaryRow key={b.id} book={b} />
+          <BookSummaryRow
+            key={b.id}
+            book={b}
+            handleCopyBook={() => handleCopyBook(b)}
+          />
         ))}
       </List>
     );

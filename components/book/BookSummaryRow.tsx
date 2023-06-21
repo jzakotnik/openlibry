@@ -9,10 +9,13 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import SearchIcon from "@mui/icons-material/Search";
+import ListItemButton from "@mui/material/ListItemButton";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+
+import QueueIcon from "@mui/icons-material/Queue";
 import Paper from "@mui/material/Paper";
 import { IconButton, Avatar } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -20,6 +23,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
+import { useRouter } from "next/router";
 
 import { BookType } from "@/entities/BookType";
 
@@ -31,10 +35,15 @@ import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 interface BookSummaryRowPropType {
   book: BookType;
+  handleCopyBook: any;
 }
 
-export default function BookSummaryRow({ book }: BookSummaryRowPropType) {
+export default function BookSummaryRow({
+  book,
+  handleCopyBook,
+}: BookSummaryRowPropType) {
   const selectedBook = book;
+  const router = useRouter();
 
   const BookAvatarIcon = ({ b }: any) => {
     return b.rentalStatus == "rented" ? (
@@ -52,19 +61,25 @@ export default function BookSummaryRow({ book }: BookSummaryRowPropType) {
     <ListItem
       key={book.id}
       secondaryAction={
-        <IconButton edge="end" aria-label="delete">
-          <Link href={"/book/" + book.id} passHref>
-            <SearchIcon />
-          </Link>
+        <IconButton
+          onClick={handleCopyBook}
+          color="primary"
+          sx={{ p: "10px" }}
+          aria-label="new-copy-book"
+        >
+          <QueueIcon />
         </IconButton>
       }
     >
-      <ListItemAvatar>
-        <Avatar>
-          <BookAvatarIcon b={book} />
-        </Avatar>
-      </ListItemAvatar>
-      <ListItemText primary={book.title} secondary={book.author} />
+      {" "}
+      <ListItemButton>
+        <ListItemAvatar>
+          <Avatar>
+            <BookAvatarIcon b={book} />
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText primary={book.title} secondary={book.author} />{" "}
+      </ListItemButton>
     </ListItem>
   );
 }
