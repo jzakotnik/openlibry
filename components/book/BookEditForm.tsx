@@ -373,11 +373,14 @@ export default function BookEditForm({
             ) : (
               <Image
                 src={"/coverimages/default.png"}
-                width={320}
-                height={200}
+                width="200"
+                height="200"
                 priority={false}
-                alt=""
-                style={{ objectFit: "cover" }}
+                alt="No cover image available placeholder"
+                style={{
+                  border: "1px solid #fff",
+                  width: "auto",
+                }}
               />
             )}{" "}
           </Grid>{" "}
