@@ -13,8 +13,9 @@ export default function BookRentalList({ books }: BookPropsType) {
       container
       direction="column"
       justifyContent="space-between"
-      alignItems="left"
-      sx={{ width: "100%", my: 2 }}
+      alignItems="center"
+      sx={{ width: "100%", my: 0.5 }}
+      columns={{ xs: 12, md: 12 }}
     >
       {books.map((b: BookType) => (
         <BookRentalRow key={b.id} book={b} />

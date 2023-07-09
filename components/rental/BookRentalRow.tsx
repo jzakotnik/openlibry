@@ -1,11 +1,14 @@
 import * as React from "react";
-import { useState } from "react";
 
 import QueueIcon from "@mui/icons-material/Queue";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import { IconButton, Avatar, Typography } from "@mui/material";
+import UpdateIcon from "@mui/icons-material/Update";
+import TransferWithinAStationIcon from "@mui/icons-material/TransferWithinAStation";
+import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
+import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 
 import { BookType } from "@/entities/BookType";
 
@@ -29,7 +32,7 @@ interface RenewalCountAvatarPropType {
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
   ...theme.typography.body2,
-  padding: theme.spacing(1),
+  width: "100%",
   textAlign: "center",
   color: theme.palette.text.secondary,
 }));
@@ -54,8 +57,8 @@ export default function BookRentalRow({ book }: BookSummaryRowPropType) {
     );
   };
 
-  const RenewalCountAvatar = ({ count, status }: any) => {
-    return status == "rented" ? (
+  const RenewalCountAvatar = ({ count, status, overdue }: any) => {
+    return status == "rented" && overdue ? (
       <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
         {count}
       </Avatar>
@@ -66,35 +69,87 @@ export default function BookRentalRow({ book }: BookSummaryRowPropType) {
     );
   };
 
+  const DueDateIndicator = ({ book }: any) => {
+    return book.rentalStatus != "available"
+      ? book.dueDate?.toLocaleString()
+      : null;
+  };
+
+  const StatusButtons = () => {
+    return selectedBook.rentalStatus != "available" ? (
+      <Grid
+        item
+        container
+        direction="row"
+        justifyContent="flex-end"
+        alignItems="center"
+        xs={4}
+      >
+        <Grid item>
+          <IconButton size="small" aria-label="weitergeben">
+            <TransferWithinAStationIcon />
+          </IconButton>{" "}
+        </Grid>
+        <Grid item>
+          <IconButton size="small" aria-label="verlängern">
+            <UpdateIcon />
+          </IconButton>
+        </Grid>
+        <Grid item>
+          <IconButton size="small" aria-label="zurückgeben">
+            <KeyboardReturnIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
+    ) : (
+      <Grid
+        item
+        container
+        direction="row"
+        justifyContent="flex-end"
+        alignItems="center"
+        xs={4}
+      >
+        <Grid item>
+          <IconButton size="small" aria-label="ausleihen">
+            <BookmarkAddIcon />
+          </IconButton>{" "}
+        </Grid>
+      </Grid>
+    );
+  };
+
   return (
     <Item sx={{ my: 0.5 }} key={book.id}>
       <Grid
         container
+        item
         direction="row"
-        justifyContent="left"
+        justifyContent="space-between"
         alignItems="center"
-        sx={{ mx: 1 }}
       >
-        <Grid item>
-          <RenewalCountAvatar
-            count={book.renewalCount}
-            status={book.rentalStatus}
-          />
+        <Grid
+          item
+          container
+          direction="row"
+          justifyContent="flex-start"
+          alignItems="center"
+          xs={8}
+        >
+          <Grid item>
+            <RenewalCountAvatar
+              count={book.renewalCount}
+              status={book.rentalStatus}
+              overdue={overdueDays > 0}
+            />
+          </Grid>
+          <Grid item>
+            <Typography sx={{ mx: 2 }}>
+              {book.title} <DueDateIndicator book={book} />
+            </Typography>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Typography sx={{ mx: 2 }}>
-            {book.title},{book.rentalStatus}, {book.dueDate?.toLocaleString()}
-          </Typography>
-        </Grid>
-        <Grid item>
-          <Button>Zurückgeben</Button>
-        </Grid>
-        <Grid item>
-          <Button>Verlängern</Button>
-        </Grid>
-        <Grid item>
-          <Button>Weitergeben</Button>
-        </Grid>
+        <StatusButtons />
       </Grid>
     </Item>
   );

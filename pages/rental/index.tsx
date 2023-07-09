@@ -12,6 +12,7 @@ import {
 import { getAllBooks } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 import { BookType } from "@/entities/BookType";
+import RentalSearchBar from "@/components/rental/RentalSearchBar";
 
 interface RentalPropsType {
   books: Array<BookType>;
@@ -25,7 +26,8 @@ export default function Rental({ books }: RentalPropsType) {
   return (
     <Layout>
       <Typography variant="h1">Wird noch gebaut</Typography>
-      <BookRentalList books={books}></BookRentalList>
+      <RentalSearchBar books={books}></RentalSearchBar>
+      <BookRentalList books={books.slice(0, 100)}></BookRentalList>
     </Layout>
   );
 }

@@ -187,6 +187,7 @@ export async function getServerSideProps() {
     const due = dayjs(r.dueDate);
     const today = dayjs();
     const diff = today.diff(due, "days");
+    console.log("Fetching rental", r);
 
     return {
       id: r.id,
