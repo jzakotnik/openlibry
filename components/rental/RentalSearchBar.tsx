@@ -1,17 +1,37 @@
 /* eslint-disable no-use-before-define */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import ClearIcon from "@mui/icons-material/Clear";
 import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 
 import { Autocomplete, Chip, TextField, Grid } from "@mui/material";
 
 interface RentalSearchBarPropType {
   books: Array<BookType>;
+  users: Array<UserType>;
 }
 
-export default function RentalSearchBar({ books }: RentalSearchBarPropType) {
+export default function RentalSearchBar({
+  books,
+  users,
+}: RentalSearchBarPropType) {
   const [searchContent, setSearchContent] = useState([]);
+  const [searchOptions, setSearchOptions] = useState([]);
+
+  useEffect(() => {
+    const options: any = [];
+    users.map((u) => {
+      options.push({
+        label: u.lastName + ", " + u.firstName,
+        type: "user",
+        key: u.id,
+        id: u.id,
+      });
+    });
+
+    setSearchOptions(options);
+  }, []);
 
   const valHtml = searchContent.map((option, index) => {
     // This is to handle new options added by the user (allowed by freeSolo prop).
@@ -38,25 +58,33 @@ export default function RentalSearchBar({ books }: RentalSearchBarPropType) {
         fullWidth
         multiple
         id="search-standard"
+        disableClearable
         freeSolo
         filterSelectedOptions
-        options={["test1", "test2"]}
+        options={searchOptions.map((s) => s)}
         onChange={(e, newValue: any) => {
           //setBookTopics(newValue);
-          setSearchContent([...searchContent, newValue]);
+          //setSearchContent([...searchContent, newValue]);
         }}
-        getOptionLabel={(option) => option}
         renderTags={() => {
           return null;
         }}
         value={searchContent}
+        renderOption={(props, option) => {
+          return (
+            <li {...props} key={option.id}>
+              {option.label}
+            </li>
+          );
+        }}
         renderInput={(params) => (
           <TextField
             {...params}
-            variant="standard"
-            placeholder="Suchtext"
-            margin="normal"
-            fullWidth
+            label="Nutzersuche"
+            InputProps={{
+              ...params.InputProps,
+              type: "search",
+            }}
           />
         )}
       />
