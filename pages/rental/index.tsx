@@ -4,14 +4,20 @@ import Layout from "@/components/layout/Layout";
 
 import { useRouter } from "next/router";
 import BookRentalList from "@/components/rental/BookRentalList";
+
 import {
   convertDateToDayString,
-  currentTime,
+  replaceUserDateString,
+  convertStringToDay,
+  replaceBookDateString,
+  replaceBookStringDate,
+  extendWeeks,
 } from "@/utils/convertDateToDayString";
+import { PrismaClient } from "@prisma/client";
 
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 import { getAllUsers } from "@/entities/user";
-import { PrismaClient } from "@prisma/client";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
@@ -27,12 +33,58 @@ const prisma = new PrismaClient();
 
 export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
+  const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
+  const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
+
+  const handleReturnBookButton = (bookid: number, userid: number) => {
+    console.log("Returning book ", bookid);
+    fetch("/api/book/" + bookid + "/user/" + userid, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setReturnBookSnackbar(true);
+      });
+  };
+
+  const handleExtendBookButton = (bookid: number, book: BookType) => {
+    const newbook = replaceBookStringDate(book) as any;
+    //extend logic
+    const newDueDate = extendWeeks(book.dueDate as Date, 2);
+    newbook.dueDate = newDueDate.toDate();
+    newbook.renewalCount = newbook.renewalCount + 1;
+
+    delete newbook.user; //don't need the user here
+    console.log("Extending book ", bookid);
+    fetch("/api/book/" + bookid, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newbook),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setExtendBookSnackbar(true);
+      });
+  };
 
   return (
     <Layout>
       <Typography variant="h1">Wird noch gebaut</Typography>
 
-      <UserRentalList users={users} books={books} rentals={rentals} />
+      <UserRentalList
+        users={users}
+        books={books}
+        rentals={rentals}
+        handleExtendBookButton={handleExtendBookButton}
+        handleReturnBookButton={handleReturnBookButton}
+      />
     </Layout>
   );
 }
