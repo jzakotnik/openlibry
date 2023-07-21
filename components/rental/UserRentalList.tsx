@@ -22,6 +22,7 @@ import IconButton from "@mui/material/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import UpdateIcon from "@mui/icons-material/Update";
 import CancelIcon from "@mui/icons-material/Cancel";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
@@ -30,15 +31,20 @@ interface UserPropsType {
   users: Array<UserType>;
   books: Array<BookType>;
   rentals: any;
+  handleExtendBookButton: any;
+  handleReturnBookButton: any;
 }
 
 export default function UserRentalList({
   users,
   books,
   rentals,
+  handleExtendBookButton,
+  handleReturnBookButton,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [selectedUser, setSelectedUser] = useState(users[0]);
+
   const [displayUserDetail, setDisplayUserDetail] = useState(false);
   const [rentalsUser, setRentalsUser] = useState([]);
   const [returnedBooks, setReturnedBooks] = useState({});
@@ -58,6 +64,11 @@ export default function UserRentalList({
     const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
     console.log("Filtered rentals", userRentals);
     return userRentals;
+  };
+
+  const getBookFromID = (id: number): BookType => {
+    const book = books.filter((b: BookType) => b.id == id);
+    return book[0];
   };
 
   const ReturnedIcon = ({ id }: any) => {
@@ -119,7 +130,7 @@ export default function UserRentalList({
                   aria-label="menu"
                   onClick={(e) => handleSelectedUser(e, u)}
                 >
-                  <CheckCircleIcon />
+                  <CheckBoxOutlineBlankIcon />
                 </IconButton>
               </Grid>
               <Grid item>
@@ -177,28 +188,28 @@ export default function UserRentalList({
                       <IconButton
                         aria-label="extend"
                         onClick={() => {
-                          extendBook(b.id);
+                          handleExtendBookButton(r.id, getBookFromID(r.id));
                           const time = Date.now();
                           const newbook = {};
-                          (newbook as any)[b.id!] = time;
+                          (newbook as any)[r.id!] = time;
                           setReturnedBooks({ ...returnedBooks, ...newbook });
                         }}
                       >
-                        <ExtendedIcon key={r.id} />
+                        <ExtendedIcon key={r.id} id={r.id} />
                       </IconButton>
                     </Grid>
                     <Grid item>
                       <IconButton
                         onClick={() => {
-                          returnBook(b.id);
+                          handleReturnBookButton(r.id, selectedUser.id);
                           const time = Date.now();
                           const newbook = {};
-                          (newbook as any)[b.id!] = time;
+                          (newbook as any)[r.id!] = time;
                           setReturnedBooks({ ...returnedBooks, ...newbook });
                         }}
                         aria-label="zurückgeben"
                       >
-                        <ReturnedIcon key={r.id} />
+                        <ReturnedIcon key={r.id} id={r.id} />
                       </IconButton>{" "}
                     </Grid>
                     <Grid item>
