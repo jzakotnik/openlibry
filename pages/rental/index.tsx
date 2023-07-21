@@ -9,28 +9,30 @@ import {
   currentTime,
 } from "@/utils/convertDateToDayString";
 
-import { getAllBooks } from "@/entities/book";
+import dayjs from "dayjs";
 import { getAllUsers } from "@/entities/user";
 import { PrismaClient } from "@prisma/client";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import RentalSearchBar from "@/components/rental/RentalSearchBar";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import UserRentalList from "@/components/rental/UserRentalList";
 
 interface RentalPropsType {
   books: Array<BookType>;
   users: Array<UserType>;
+  rentals: any;
 }
 
 const prisma = new PrismaClient();
 
-export default function Rental({ books, users }: RentalPropsType) {
+export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
 
   return (
     <Layout>
       <Typography variant="h1">Wird noch gebaut</Typography>
-      <RentalSearchBar books={books} users={users}></RentalSearchBar>
-      <BookRentalList books={books.slice(0, 100)}></BookRentalList>
+
+      <UserRentalList users={users} books={books} rentals={rentals} />
     </Layout>
   );
 }
@@ -43,6 +45,26 @@ export async function getServerSideProps() {
     newUser.createdAt = convertDateToDayString(u.createdAt);
     newUser.updatedAt = convertDateToDayString(u.updatedAt);
     return newUser;
+  });
+
+  const allRentals = await getRentedBooksWithUsers(prisma);
+  const rentals = allRentals.map((r) => {
+    //calculate remaining days for the rental
+    const due = dayjs(r.dueDate);
+    const today = dayjs();
+    const diff = today.diff(due, "days");
+    console.log("Fetching rental", r);
+
+    return {
+      id: r.id,
+      title: r.title,
+      lastName: r.user?.lastName,
+      firstName: r.user?.firstName,
+      remainingDays: diff,
+      dueDate: convertDateToDayString(due.toDate()),
+      renewalCount: r.renewalCount,
+      userid: r.user?.id,
+    };
   });
 
   const allBooks = await getAllBooks(prisma);
@@ -59,5 +81,5 @@ export async function getServerSideProps() {
     return newBook;
   });
 
-  return { props: { books, users } };
+  return { props: { books, users, rentals } };
 }
