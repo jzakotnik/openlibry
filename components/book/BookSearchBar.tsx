@@ -64,7 +64,7 @@ export default function BookSearchBar({
             value={bookSearchInput}
             onChange={handleInputChange}
             placeholder="Buch suchen.."
-            inputProps={{ "aria-label": "search google maps" }}
+            inputProps={{ "aria-label": "search books" }}
           />
           <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
             <SearchIcon />

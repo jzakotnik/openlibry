@@ -1,6 +1,7 @@
 import Typography from "@mui/material/Typography";
-import Image from "next/image";
+
 import Layout from "@/components/layout/Layout";
+import { Grid } from "@mui/material";
 
 import { useRouter } from "next/router";
 import BookRentalList from "@/components/rental/BookRentalList";
@@ -76,15 +77,27 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
 
   return (
     <Layout>
-      <Typography variant="h1">Wird noch gebaut</Typography>
-
-      <UserRentalList
-        users={users}
-        books={books}
-        rentals={rentals}
-        handleExtendBookButton={handleExtendBookButton}
-        handleReturnBookButton={handleReturnBookButton}
-      />
+      <Grid
+        container
+        direction="row"
+        justifyContent="center"
+        alignItems="flex-start"
+        spacing={2}
+        sx={{ my: 1 }}
+      >
+        <Grid item xs={12} md={6}>
+          <UserRentalList
+            users={users}
+            books={books}
+            rentals={rentals}
+            handleExtendBookButton={handleExtendBookButton}
+            handleReturnBookButton={handleReturnBookButton}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <BookRentalList books={books} />
+        </Grid>
+      </Grid>
     </Layout>
   );
 }

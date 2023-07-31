@@ -134,7 +134,14 @@ export default function UserRentalList({
                 </IconButton>
               </Grid>
               <Grid item>
-                <Typography>{u.lastName + ", " + u.firstName}</Typography>
+                <Typography>
+                  {u.lastName +
+                    ", " +
+                    u.firstName +
+                    ", " +
+                    booksForUser(u.id!).length +
+                    " Bücher"}
+                </Typography>
               </Grid>
             </Grid>
           );
@@ -175,7 +182,7 @@ export default function UserRentalList({
               justifyContent="flex-start"
               sx={{ px: 2, my: 2 }}
             >
-              {rentalsUser.map((r) => (
+              {rentalsUser.map((r: any) => (
                 <Paper key={r.id}>
                   <Grid
                     container
@@ -188,7 +195,7 @@ export default function UserRentalList({
                       <IconButton
                         aria-label="extend"
                         onClick={() => {
-                          handleExtendBookButton(r.id, getBookFromID(r.id));
+                          handleExtendBookButton(r.id, getBookFromID(r.id!));
                           const time = Date.now();
                           const newbook = {};
                           (newbook as any)[r.id!] = time;
