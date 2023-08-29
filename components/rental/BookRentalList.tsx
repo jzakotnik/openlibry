@@ -107,7 +107,7 @@ export default function BookRentalList({
         sx={{ px: 2, my: 2 }}
       >
         {renderedBooks.slice(0, 100).map((b: BookType) => (
-          <Paper key={b.id}>
+          <div key={b.id}>
             <Grid
               container
               direction="row"
@@ -163,7 +163,7 @@ export default function BookRentalList({
                 <Typography sx={{ m: 2 }}>{b.title}</Typography>
               </Grid>
             </Grid>
-          </Paper>
+          </div>
         ))}
       </Grid>
     </div>
