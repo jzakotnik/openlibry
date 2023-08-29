@@ -21,25 +21,27 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import UpdateIcon from "@mui/icons-material/Update";
-import CancelIcon from "@mui/icons-material/Cancel";
+
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-
-interface UserPropsType {
-  users: Array<UserType>;
-  books: Array<BookType>;
-  rentals: any;
-  handleExtendBookButton: any;
-  handleReturnBookButton: any;
-}
+import { PlaylistAdd } from "@mui/icons-material";
 
 interface BookPropsType {
   books: Array<BookType>;
+  handleExtendBookButton: any;
+  handleReturnBookButton: any;
+  userSelected: boolean;
 }
 
-export default function BookRentalList({ books }: BookPropsType) {
+export default function BookRentalList({
+  books,
+  handleExtendBookButton,
+  handleReturnBookButton,
+  userSelected,
+}: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState(books);
   const [returnedBooks, setReturnedBooks] = useState({});
@@ -141,6 +143,22 @@ export default function BookRentalList({ books }: BookPropsType) {
                   <ReturnedIcon key={b.id} id={b.id} />
                 </IconButton>{" "}
               </Grid>
+              {userSelected && (
+                <Grid item>
+                  <IconButton
+                    onClick={() => {
+                      handleReturnBookButton(b.id);
+                      const time = Date.now();
+                      const newbook = {};
+                      (newbook as any)[b.id!] = time;
+                      setReturnedBooks({ ...returnedBooks, ...newbook });
+                    }}
+                    aria-label="zurückgeben"
+                  >
+                    <PlaylistAddIcon />
+                  </IconButton>{" "}
+                </Grid>
+              )}
               <Grid item>
                 <Typography sx={{ m: 2 }}>{b.title}</Typography>
               </Grid>

@@ -36,6 +36,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
   const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
+  const [userSelected, setUserSelected] = useState(false);
 
   const handleReturnBookButton = (bookid: number, userid: number) => {
     console.log("Returning book ", bookid);
@@ -92,10 +93,16 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
             rentals={rentals}
             handleExtendBookButton={handleExtendBookButton}
             handleReturnBookButton={handleReturnBookButton}
+            setUserSelected={setUserSelected}
           />
         </Grid>
         <Grid item xs={12} md={6}>
-          <BookRentalList books={books} />
+          <BookRentalList
+            books={books}
+            handleExtendBookButton={handleExtendBookButton}
+            handleReturnBookButton={handleReturnBookButton}
+            userSelected={userSelected}
+          />
         </Grid>
       </Grid>
     </Layout>

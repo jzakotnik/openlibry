@@ -33,6 +33,7 @@ interface UserPropsType {
   rentals: any;
   handleExtendBookButton: any;
   handleReturnBookButton: any;
+  setUserSelected: any;
 }
 
 export default function UserRentalList({
@@ -41,6 +42,7 @@ export default function UserRentalList({
   rentals,
   handleExtendBookButton,
   handleReturnBookButton,
+  setUserSelected,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [selectedUser, setSelectedUser] = useState(users[0]);
@@ -55,6 +57,7 @@ export default function UserRentalList({
 
   const handleSelectedUser = (e: any, u: UserType) => {
     setSelectedUser(u);
+    setUserSelected(true);
     setDisplayUserDetail(true);
     setRentalsUser(booksForUser(u.id!));
     console.log("Selected user", u);
@@ -155,6 +158,7 @@ export default function UserRentalList({
           <IconButton
             onClick={() => {
               setDisplayUserDetail(false);
+              setUserSelected(false);
             }}
             aria-label="liste"
           >
