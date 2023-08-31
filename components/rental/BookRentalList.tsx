@@ -28,6 +28,7 @@ import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { PlaylistAdd } from "@mui/icons-material";
+import { convertDateToDayString } from "@/utils/convertDateToDayString";
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -108,61 +109,92 @@ export default function BookRentalList({
       >
         {renderedBooks.slice(0, 100).map((b: BookType) => (
           <div key={b.id}>
-            <Grid
-              container
-              direction="row"
-              alignItems="flex-start"
-              justifyContent="flex-start"
-              sx={{ px: 2 }}
-            >
-              <Grid item>
-                <IconButton
-                  aria-label="extend"
-                  onClick={() => {
-                    handleExtendBookButton(b.id);
-                    const time = Date.now();
-                    const newbook = {};
-                    (newbook as any)[b.id!] = time;
-                    setReturnedBooks({ ...returnedBooks, ...newbook });
-                  }}
-                >
-                  <ExtendedIcon key={b.id} id={b.id} />
-                </IconButton>
-              </Grid>
-              <Grid item>
-                <IconButton
-                  onClick={() => {
-                    handleReturnBookButton(b.id);
-                    const time = Date.now();
-                    const newbook = {};
-                    (newbook as any)[b.id!] = time;
-                    setReturnedBooks({ ...returnedBooks, ...newbook });
-                  }}
-                  aria-label="zurückgeben"
-                >
-                  <ReturnedIcon key={b.id} id={b.id} />
-                </IconButton>{" "}
-              </Grid>
-              {userSelected && (
-                <Grid item>
-                  <IconButton
-                    onClick={() => {
-                      handleReturnBookButton(b.id);
-                      const time = Date.now();
-                      const newbook = {};
-                      (newbook as any)[b.id!] = time;
-                      setReturnedBooks({ ...returnedBooks, ...newbook });
-                    }}
-                    aria-label="zurückgeben"
-                  >
-                    <PlaylistAddIcon />
-                  </IconButton>{" "}
+            <Paper elevation={3} sx={{ my: 1, mx: 1 }}>
+              <Grid
+                item
+                container
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="flex-start"
+                sx={{ width: "400px" }}
+              >
+                <Grid item xs={12}>
+                  <Typography sx={{ m: 2 }}>{b.title}</Typography>
                 </Grid>
-              )}
-              <Grid item>
-                <Typography sx={{ m: 2 }}>{b.title}</Typography>
+                <Grid item xs={12}>
+                  {" "}
+                  <Typography variant="body2">
+                    Untertitel: {b.subtitle}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  {" "}
+                  <Typography variant="body2">
+                    Buch ID {b.id}
+                    {!(b.rentalStatus == "available") && (
+                      <span> - ausgeliehen bis {b.dueDate}</span>
+                    )}
+                  </Typography>
+                </Grid>
               </Grid>
-            </Grid>
+
+              <Grid
+                container
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="flex-start"
+                sx={{ px: 2 }}
+              >
+                <Grid item>
+                  {!(b.rentalStatus == "available") && (
+                    <IconButton
+                      aria-label="extend"
+                      onClick={() => {
+                        handleExtendBookButton(b.id);
+                        const time = Date.now();
+                        const newbook = {};
+                        (newbook as any)[b.id!] = time;
+                        setReturnedBooks({ ...returnedBooks, ...newbook });
+                      }}
+                    >
+                      <ExtendedIcon key={b.id} id={b.id} />
+                    </IconButton>
+                  )}
+                </Grid>
+                <Grid item>
+                  {!(b.rentalStatus == "available") && (
+                    <IconButton
+                      onClick={() => {
+                        handleReturnBookButton(b.id);
+                        const time = Date.now();
+                        const newbook = {};
+                        (newbook as any)[b.id!] = time;
+                        setReturnedBooks({ ...returnedBooks, ...newbook });
+                      }}
+                      aria-label="zurückgeben"
+                    >
+                      <ReturnedIcon key={b.id} id={b.id} />
+                    </IconButton>
+                  )}
+                </Grid>
+                {userSelected && b.rentalStatus == "available" && (
+                  <Grid container item>
+                    <IconButton
+                      onClick={() => {
+                        b.id;
+                        const time = Date.now();
+                        const newbook = {};
+                        (newbook as any)[b.id!] = time;
+                        setReturnedBooks({ ...returnedBooks, ...newbook });
+                      }}
+                      aria-label="ausleihen"
+                    >
+                      <PlaylistAddIcon />
+                    </IconButton>{" "}
+                  </Grid>
+                )}
+              </Grid>
+            </Paper>
           </div>
         ))}
       </Grid>

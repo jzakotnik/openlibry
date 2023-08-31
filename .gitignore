@@ -44,3 +44,4 @@ prisma/dev_clean.db
 
 public/coverimages
 prisma/dev_original.db
+prisma/dev_anonymised.db

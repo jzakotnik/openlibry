@@ -187,7 +187,7 @@ export async function getServerSideProps() {
     const due = dayjs(r.dueDate);
     const today = dayjs();
     const diff = today.diff(due, "days");
-    console.log("Fetching rental", r);
+    if (r.user?.lastName == undefined) console.log("Fetching rental", r);
 
     return {
       id: r.id,
@@ -201,8 +201,7 @@ export async function getServerSideProps() {
     };
   });
 
-  //console.log(allRentals);
-
   // Pass data to the page via props
+  //console.log("Fetched rentals", rentals);
   return { props: { users, books, rentals } };
 }
