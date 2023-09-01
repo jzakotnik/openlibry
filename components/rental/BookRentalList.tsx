@@ -132,7 +132,7 @@ export default function BookRentalList({
                   <Typography sx={{ m: 0.5 }} variant="body2">
                     Buch ID {b.id}
                     {!(b.rentalStatus == "available") && (
-                      <span> - ausgeliehen bis {b.dueDate}</span>
+                      <span> - ausgeliehen bis {b.dueDate as string}</span>
                     )}
                   </Typography>
                 </Grid>
