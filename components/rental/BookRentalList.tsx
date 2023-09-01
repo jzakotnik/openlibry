@@ -119,17 +119,17 @@ export default function BookRentalList({
                 sx={{ width: "400px" }}
               >
                 <Grid item xs={12}>
-                  <Typography sx={{ m: 2 }}>{b.title}</Typography>
+                  <Typography sx={{ m: 1 }}>{b.title}</Typography>
                 </Grid>
                 <Grid item xs={12}>
                   {" "}
-                  <Typography variant="body2">
+                  <Typography sx={{ m: 0.5 }} variant="body2">
                     Untertitel: {b.subtitle}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
                   {" "}
-                  <Typography variant="body2">
+                  <Typography sx={{ m: 0.5 }} variant="body2">
                     Buch ID {b.id}
                     {!(b.rentalStatus == "available") && (
                       <span> - ausgeliehen bis {b.dueDate}</span>
