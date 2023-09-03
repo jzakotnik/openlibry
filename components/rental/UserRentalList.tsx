@@ -50,6 +50,7 @@ export default function UserRentalList({
   const [displayUserDetail, setDisplayUserDetail] = useState(false);
   const [rentalsUser, setRentalsUser] = useState([]);
   const [returnedBooks, setReturnedBooks] = useState({});
+  console.log("Rendering updated users:", users);
 
   const handleInputChange = (e: any) => {
     setUserSearchInput(e.target.value);
@@ -65,7 +66,7 @@ export default function UserRentalList({
 
   const booksForUser = (id: number) => {
     const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
-    console.log("Filtered rentals", userRentals);
+    //console.log("Filtered rentals", userRentals);
     return userRentals;
   };
 

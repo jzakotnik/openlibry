@@ -36,7 +36,6 @@ interface BookPropsType {
   handleReturnBookButton: any;
   userSelected: boolean;
 }
-
 export default function BookRentalList({
   books,
   handleExtendBookButton,

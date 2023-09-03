@@ -1,5 +1,3 @@
-import Typography from "@mui/material/Typography";
-
 import Layout from "@/components/layout/Layout";
 import { Grid } from "@mui/material";
 
@@ -32,11 +30,24 @@ interface RentalPropsType {
 
 const prisma = new PrismaClient();
 
+("use client");
+import useSWR from "swr";
+
+const fetcher = (url) => fetch(url).then((r) => r.json());
+
 export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
   const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
   const [userSelected, setUserSelected] = useState(false);
+
+  const { data, error } = useSWR(
+    process.env.NEXT_PUBLIC_API_URL + "/api/user",
+    fetcher,
+    { refreshInterval: 1000 }
+  );
+  console.log("SWR Fetch", data);
+  const userData = data;
 
   const handleReturnBookButton = (bookid: number, userid: number) => {
     console.log("Returning book ", bookid);
@@ -88,7 +99,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       >
         <Grid item xs={12} md={6}>
           <UserRentalList
-            users={users}
+            users={userData ? userData : users}
             books={books}
             rentals={rentals}
             handleExtendBookButton={handleExtendBookButton}
