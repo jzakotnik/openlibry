@@ -36,7 +36,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
   const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
-  const [userSelected, setUserSelected] = useState(false);
+  const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const { data, error } = useSWR(
     process.env.NEXT_PUBLIC_API_URL + "/api/rental",
@@ -104,7 +104,8 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
             rentals={rentals}
             handleExtendBookButton={handleExtendBookButton}
             handleReturnBookButton={handleReturnBookButton}
-            setUserSelected={setUserSelected}
+            setUserExpanded={setUserExpanded}
+            userExpanded={userExpanded}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -112,7 +113,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
             books={books}
             handleExtendBookButton={handleExtendBookButton}
             handleReturnBookButton={handleReturnBookButton}
-            userSelected={userSelected}
+            userExpanded={userExpanded}
           />
         </Grid>
       </Grid>

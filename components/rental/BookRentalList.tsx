@@ -34,13 +34,13 @@ interface BookPropsType {
   books: Array<BookType>;
   handleExtendBookButton: any;
   handleReturnBookButton: any;
-  userSelected: boolean;
+  userExpanded: number | false;
 }
 export default function BookRentalList({
   books,
   handleExtendBookButton,
   handleReturnBookButton,
-  userSelected,
+  userExpanded,
 }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState(books);
@@ -176,7 +176,7 @@ export default function BookRentalList({
                     </IconButton>
                   )}
                 </Grid>
-                {userSelected && b.rentalStatus == "available" && (
+                {userExpanded && b.rentalStatus == "available" && (
                   <Grid container item>
                     <IconButton
                       onClick={() => {

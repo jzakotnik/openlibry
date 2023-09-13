@@ -12,10 +12,6 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
 
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -34,7 +30,8 @@ interface UserPropsType {
   rentals: any;
   handleExtendBookButton: any;
   handleReturnBookButton: any;
-  setUserSelected: any;
+  setUserExpanded: any;
+  userExpanded: number | false;
 }
 
 export default function UserRentalList({
@@ -43,10 +40,10 @@ export default function UserRentalList({
   rentals,
   handleExtendBookButton,
   handleReturnBookButton,
-  setUserSelected,
+  setUserExpanded,
+  userExpanded,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
-  const [expandedUser, setExpandedUser] = useState<number | false>(false);
 
   const [displayUserDetail, setDisplayUserDetail] = useState(false);
 
@@ -59,7 +56,7 @@ export default function UserRentalList({
 
   const handleExpandedUser =
     (userID: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-      setExpandedUser(isExpanded ? userID : false);
+      setUserExpanded(isExpanded ? userID : false);
       console.log("Expanded user", userID);
     };
 
@@ -121,7 +118,7 @@ export default function UserRentalList({
           return (
             //display the whole list to select one
             <Accordion
-              expanded={expandedUser == u.id!}
+              expanded={userExpanded == u.id!}
               onChange={handleExpandedUser(u.id!)}
               sx={{ minWidth: 275 }}
             >
@@ -196,7 +193,7 @@ export default function UserRentalList({
                         <Grid item>
                           <IconButton
                             onClick={() => {
-                              handleReturnBookButton(r.id, selectedUser.id);
+                              handleReturnBookButton(r.id, userExpanded);
                               const time = Date.now();
                               const newbook = {};
                               (newbook as any)[r.id!] = time;
