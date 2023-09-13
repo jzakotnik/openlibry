@@ -12,20 +12,17 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
 
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import UpdateIcon from "@mui/icons-material/Update";
-import CancelIcon from "@mui/icons-material/Cancel";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 
 interface UserPropsType {
   users: Array<UserType>;
@@ -33,7 +30,8 @@ interface UserPropsType {
   rentals: any;
   handleExtendBookButton: any;
   handleReturnBookButton: any;
-  setUserSelected: any;
+  setUserExpanded: any;
+  userExpanded: number | false;
 }
 
 export default function UserRentalList({
@@ -42,30 +40,29 @@ export default function UserRentalList({
   rentals,
   handleExtendBookButton,
   handleReturnBookButton,
-  setUserSelected,
+  setUserExpanded,
+  userExpanded,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
-  const [selectedUser, setSelectedUser] = useState(users[0]);
 
   const [displayUserDetail, setDisplayUserDetail] = useState(false);
-  const [rentalsUser, setRentalsUser] = useState([]);
+
   const [returnedBooks, setReturnedBooks] = useState({});
+  console.log("Rendering updated users:", users);
 
   const handleInputChange = (e: any) => {
     setUserSearchInput(e.target.value);
   };
 
-  const handleSelectedUser = (e: any, u: UserType) => {
-    setSelectedUser(u);
-    setUserSelected(true);
-    setDisplayUserDetail(true);
-    setRentalsUser(booksForUser(u.id!));
-    console.log("Selected user", u);
-  };
+  const handleExpandedUser =
+    (userID: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+      setUserExpanded(isExpanded ? userID : false);
+      console.log("Expanded user", userID);
+    };
 
   const booksForUser = (id: number) => {
     const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
-    console.log("Filtered rentals", userRentals);
+    //console.log("Filtered rentals", userRentals);
     return userRentals;
   };
 
@@ -111,6 +108,7 @@ export default function UserRentalList({
       </FormControl>
 
       {users.map((u: UserType) => {
+        const rentalsUser = booksForUser(u.id!);
         const lowerCaseSearch = userSearchInput.toLowerCase();
         if (
           u.lastName.toLowerCase().includes(lowerCaseSearch) ||
@@ -119,120 +117,110 @@ export default function UserRentalList({
         )
           return (
             //display the whole list to select one
-            <Grid
-              container
-              direction="row"
-              alignItems="center"
-              justifyContent="flex-start  "
-              sx={{ px: 10 }}
+            <Accordion
+              expanded={userExpanded == u.id!}
+              onChange={handleExpandedUser(u.id!)}
+              sx={{ minWidth: 275 }}
             >
-              <Grid item>
-                <IconButton
-                  sx={{ p: "10px" }}
-                  key={u.id}
-                  aria-label="menu"
-                  onClick={(e) => handleSelectedUser(e, u)}
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography
+                  sx={{ fontSize: 14, mx: 4 }}
+                  color="text.secondary"
+                  gutterBottom
                 >
-                  <CheckBoxOutlineBlankIcon />
-                </IconButton>
-              </Grid>
-              <Grid item>
-                <Typography>
-                  {u.lastName +
-                    ", " +
-                    u.firstName +
-                    ", " +
-                    booksForUser(u.id!).length +
-                    " Bücher"}
+                  {u.firstName +
+                    " " +
+                    u.lastName +
+                    (rentalsUser.length > 0
+                      ? ", " + rentalsUser.length + " Bücher"
+                      : "")}
                 </Typography>
-              </Grid>
-            </Grid>
+                <Typography
+                  sx={{ fontSize: 12 }}
+                  color="text.primary"
+                  gutterBottom
+                >
+                  {"Nr. " +
+                    u.id +
+                    ", " +
+                    "Klasse " +
+                    u.schoolGrade +
+                    ", " +
+                    u.schoolTeacherName}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid
+                  container
+                  direction="column"
+                  alignItems="stretch"
+                  justifyContent="flex-start"
+                  sx={{ px: 2, my: 2 }}
+                >
+                  {rentalsUser.map((r: any) => (
+                    <Paper key={r.id}>
+                      <Grid
+                        container
+                        direction="row"
+                        alignItems="flex-start"
+                        justifyContent="flex-start"
+                        sx={{ px: 2 }}
+                      >
+                        <Grid item>
+                          <IconButton
+                            aria-label="extend"
+                            onClick={() => {
+                              handleExtendBookButton(
+                                r.id,
+                                getBookFromID(r.id!)
+                              );
+                              const time = Date.now();
+                              const newbook = {};
+                              (newbook as any)[r.id!] = time;
+                              setReturnedBooks({
+                                ...returnedBooks,
+                                ...newbook,
+                              });
+                            }}
+                          >
+                            <ExtendedIcon key={r.id} id={r.id} />
+                          </IconButton>
+                        </Grid>
+                        <Grid item>
+                          <IconButton
+                            onClick={() => {
+                              handleReturnBookButton(r.id, userExpanded);
+                              const time = Date.now();
+                              const newbook = {};
+                              (newbook as any)[r.id!] = time;
+                              setReturnedBooks({
+                                ...returnedBooks,
+                                ...newbook,
+                              });
+                            }}
+                            aria-label="zurückgeben"
+                          >
+                            <ReturnedIcon key={r.id} id={r.id} />
+                          </IconButton>{" "}
+                        </Grid>
+                        <Grid item>
+                          <Typography sx={{ m: 2 }}>{r.title}</Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           );
       })}
     </div>
   ) : (
     //user detail is activated
-    <div>
-      <Card sx={{ minWidth: 275 }}>
-        <CardContent>
-          <IconButton
-            onClick={() => {
-              setDisplayUserDetail(false);
-              setUserSelected(false);
-            }}
-            aria-label="liste"
-          >
-            <CancelIcon />
-          </IconButton>{" "}
-          <Typography sx={{ fontSize: 14 }} color="text.primary" gutterBottom>
-            {"Nr. " +
-              selectedUser.id +
-              ", " +
-              "Klasse " +
-              selectedUser.schoolGrade +
-              ", " +
-              selectedUser.schoolTeacherName}
-          </Typography>
-          <Typography variant="h5" component="div" color="text.primary">
-            {selectedUser.lastName + ", " + selectedUser.firstName}
-          </Typography>
-          {rentalsUser.length == 0 ? (
-            <Typography color={palette.success.main}>Keine</Typography>
-          ) : (
-            <Grid
-              container
-              direction="column"
-              alignItems="stretch"
-              justifyContent="flex-start"
-              sx={{ px: 2, my: 2 }}
-            >
-              {rentalsUser.map((r: any) => (
-                <Paper key={r.id}>
-                  <Grid
-                    container
-                    direction="row"
-                    alignItems="flex-start"
-                    justifyContent="flex-start"
-                    sx={{ px: 2 }}
-                  >
-                    <Grid item>
-                      <IconButton
-                        aria-label="extend"
-                        onClick={() => {
-                          handleExtendBookButton(r.id, getBookFromID(r.id!));
-                          const time = Date.now();
-                          const newbook = {};
-                          (newbook as any)[r.id!] = time;
-                          setReturnedBooks({ ...returnedBooks, ...newbook });
-                        }}
-                      >
-                        <ExtendedIcon key={r.id} id={r.id} />
-                      </IconButton>
-                    </Grid>
-                    <Grid item>
-                      <IconButton
-                        onClick={() => {
-                          handleReturnBookButton(r.id, selectedUser.id);
-                          const time = Date.now();
-                          const newbook = {};
-                          (newbook as any)[r.id!] = time;
-                          setReturnedBooks({ ...returnedBooks, ...newbook });
-                        }}
-                        aria-label="zurückgeben"
-                      >
-                        <ReturnedIcon key={r.id} id={r.id} />
-                      </IconButton>{" "}
-                    </Grid>
-                    <Grid item>
-                      <Typography sx={{ m: 2 }}>{r.title}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              ))}
-            </Grid>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <div></div>
   );
 }
