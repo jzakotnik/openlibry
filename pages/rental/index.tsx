@@ -6,9 +6,6 @@ import BookRentalList from "@/components/rental/BookRentalList";
 
 import {
   convertDateToDayString,
-  replaceUserDateString,
-  convertStringToDay,
-  replaceBookDateString,
   replaceBookStringDate,
   extendWeeks,
 } from "@/utils/convertDateToDayString";
@@ -33,7 +30,7 @@ const prisma = new PrismaClient();
 ("use client");
 import useSWR from "swr";
 
-const fetcher = (url) => fetch(url).then((r) => r.json());
+const fetcher = (url: any) => fetch(url).then((r) => r.json());
 
 export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
@@ -42,12 +39,15 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
   const [userSelected, setUserSelected] = useState(false);
 
   const { data, error } = useSWR(
-    process.env.NEXT_PUBLIC_API_URL + "/api/user",
+    process.env.NEXT_PUBLIC_API_URL + "/api/rental",
     fetcher,
     { refreshInterval: 1000 }
   );
   console.log("SWR Fetch", data);
-  const userData = data;
+  data ? (rentals = data.rentals) : null;
+  data ? (books = data.books) : null;
+  data ? (users = data.users) : null; //books = data.books;
+  //users = data.users;
 
   const handleReturnBookButton = (bookid: number, userid: number) => {
     console.log("Returning book ", bookid);
@@ -99,7 +99,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       >
         <Grid item xs={12} md={6}>
           <UserRentalList
-            users={userData ? userData : users}
+            users={users}
             books={books}
             rentals={rentals}
             handleExtendBookButton={handleExtendBookButton}
