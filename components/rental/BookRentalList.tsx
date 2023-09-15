@@ -163,7 +163,8 @@ export default function BookRentalList({
                         {!(b.rentalStatus == "available") && (
                           <IconButton
                             onClick={() => {
-                              handleReturnBookButton(b.id);
+                              const result = handleReturnBookButton(b.id);
+                              console.log("Result of the return:", result);
                               const time = Date.now();
                               const newbook = {};
                               (newbook as any)[b.id!] = time;

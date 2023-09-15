@@ -20,7 +20,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import UserRentalList from "@/components/rental/UserRentalList";
 
-import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
 import { Snackbar } from "@mui/material";
 
 interface RentalPropsType {
@@ -33,13 +33,17 @@ const prisma = new PrismaClient();
 
 ("use client");
 import useSWR from "swr";
+import { getBookFromID } from "@/utils/getBookFromID";
 
 const fetcher = (url: any) => fetch(url).then((r) => r.json());
 
 export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+
   const [snackBarMessage, setSnackBarMessage] = useState("");
+  const [snackBarSeverity, setSnackBarSeverity] =
+    useState<AlertColor>("success");
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const { data, error } = useSWR(
@@ -61,10 +65,30 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
         "Content-Type": "application/json",
       },
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          console.log(
+            "ERROR while calling API for returning the book",
+            res.statusText
+          );
+          setSnackBarMessage(
+            "Leider hat es nicht geklappt, der Server ist aber erreichbar"
+          );
+          setSnackBarSeverity("error");
+          setSnackbarOpen(true);
+        }
+        return res.json();
+      })
       .then((data) => {
         console.log(data);
         setSnackBarMessage("Buch " + bookid + " zurück gegeben");
+        setSnackbarOpen(true);
+      })
+      .catch((error) => {
+        setSnackBarMessage(
+          "Server ist leider nicht erreichbar.. Alles ok mit dem internet?"
+        );
+        setSnackBarSeverity("error");
         setSnackbarOpen(true);
       });
   };
@@ -90,13 +114,29 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error(`Error: ${res.statusText}`);
+          console.log(
+            "ERROR while calling API for extending the book",
+            res.statusText
+          );
+          setSnackBarMessage(
+            "Leider hat es nicht geklappt, der Server ist aber erreichbar"
+          );
+          setSnackBarSeverity("error");
+          setSnackbarOpen(true);
         }
+
         return res.json();
       })
       .then((data) => {
         console.log(data);
         setSnackBarMessage("Buch - " + book.title + " - verlängert");
+        setSnackbarOpen(true);
+      })
+      .catch((error) => {
+        setSnackBarMessage(
+          "Server ist leider nicht erreichbar.. Alles ok mit dem internet?"
+        );
+        setSnackBarSeverity("error");
         setSnackbarOpen(true);
       });
     //TODO create negative snackbar if something went wrong
@@ -110,10 +150,32 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
         "Content-Type": "application/json",
       },
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          console.log(
+            "ERROR while calling API for renting the book",
+            res.statusText
+          );
+          setSnackBarMessage(
+            "Leider hat es nicht geklappt, der Server ist aber erreichbar"
+          );
+          setSnackBarSeverity("error");
+          setSnackbarOpen(true);
+        }
+        return res.json();
+      })
       .then((data) => {
         console.log(data);
-        setSnackBarMessage("Buch " + bookid + " ausgeliehen");
+        setSnackBarMessage(
+          "Buch " + getBookFromID(bookid, books).title + " ausgeliehen"
+        );
+        setSnackbarOpen(true);
+      })
+      .catch((error) => {
+        setSnackBarMessage(
+          "Server ist leider nicht erreichbar.. Alles ok mit dem internet?"
+        );
+        setSnackBarSeverity("error");
         setSnackbarOpen(true);
       });
   };
@@ -174,7 +236,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       >
         <Alert
           onClose={handleCloseSnackbar}
-          severity="success"
+          severity={snackBarSeverity}
           sx={{ width: "100%" }}
         >
           {snackBarMessage}
