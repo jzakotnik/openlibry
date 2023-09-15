@@ -17,6 +17,7 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import UpdateIcon from "@mui/icons-material/Update";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
@@ -51,7 +52,7 @@ export default function BookRentalList({
 
   useEffect(() => {
     searchBooks(bookSearchInput);
-  }, [books]);
+  }, [books, bookSearchInput]);
 
   async function searchBooks(searchString: string) {
     const resultBooks = [] as Array<BookType>;
@@ -61,9 +62,13 @@ export default function BookRentalList({
       // full text search
       query: searchString,
     });
-    console.log("Found books", foundBooks);
+    //console.log("Found books", foundBooks);
     setRenderedBooks(foundBooks.data.items);
   }
+
+  const handleClear = () => {
+    setBookSearchInput("");
+  };
 
   const handleInputChange = (e: any) => {
     setBookSearchInput(e.target.value);
@@ -87,7 +92,6 @@ export default function BookRentalList({
       return <UpdateIcon />;
     }
   };
-  console.log("booklist received an expanded user: ", userExpanded);
 
   return (
     <div>
@@ -99,6 +103,15 @@ export default function BookRentalList({
             <InputAdornment position="start">
               <MenuBookIcon />
             </InputAdornment>
+          }
+          endAdornment={
+            bookSearchInput && (
+              <InputAdornment position="end">
+                <IconButton edge="end" onClick={handleClear}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            )
           }
           value={bookSearchInput}
           onChange={handleInputChange}
@@ -113,7 +126,7 @@ export default function BookRentalList({
       >
         {renderedBooks.slice(0, 100).map((b: BookType) => (
           <div key={b.id}>
-            <Paper elevation={2} sx={{ my: 0.5, width: "500px" }}>
+            <Paper elevation={2} sx={{ my: 0.5 }}>
               <Grid
                 item
                 container
@@ -210,7 +223,7 @@ export default function BookRentalList({
                 <Grid item xs={12}>
                   {" "}
                   <Typography sx={{ m: 0.5 }} variant="body2">
-                    Buch ID {b.id}
+                    Buch Nr. {b.id}
                     {!(b.rentalStatus == "available") && (
                       <span>
                         {" "}

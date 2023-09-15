@@ -19,6 +19,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import UpdateIcon from "@mui/icons-material/Update";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
@@ -52,6 +53,9 @@ export default function UserRentalList({
 
   const [returnedBooks, setReturnedBooks] = useState({});
   //console.log("Rendering updated users:", users);
+  const handleClear = () => {
+    setUserSearchInput("");
+  };
 
   const handleInputChange = (e: any) => {
     setUserSearchInput(e.target.value);
@@ -99,11 +103,21 @@ export default function UserRentalList({
           Suche NutzerIn
         </InputLabel>
         <Input
+          sx={{ my: 0.5 }}
           id="user-search-input"
           startAdornment={
             <InputAdornment position="start">
               <AccountCircle />
             </InputAdornment>
+          }
+          endAdornment={
+            userSearchInput && (
+              <InputAdornment position="end">
+                <IconButton edge="end" onClick={handleClear}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            )
           }
           value={userSearchInput}
           onChange={handleInputChange}
