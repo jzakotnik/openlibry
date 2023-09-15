@@ -24,6 +24,9 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 
+import "dayjs/locale/de";
+import dayjs from "dayjs";
+
 interface UserPropsType {
   users: Array<UserType>;
   books: Array<BookType>;
@@ -48,7 +51,7 @@ export default function UserRentalList({
   const [displayUserDetail, setDisplayUserDetail] = useState(false);
 
   const [returnedBooks, setReturnedBooks] = useState({});
-  console.log("Rendering updated users:", users);
+  //console.log("Rendering updated users:", users);
 
   const handleInputChange = (e: any) => {
     setUserSearchInput(e.target.value);
@@ -127,31 +130,45 @@ export default function UserRentalList({
                 aria-controls="panel1a-content"
                 id="panel1a-header"
               >
-                <Typography
-                  sx={{ fontSize: 14, mx: 4 }}
-                  color="text.secondary"
-                  gutterBottom
+                <Grid
+                  container
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{ px: 0.5 }}
                 >
-                  {u.firstName +
-                    " " +
-                    u.lastName +
-                    (rentalsUser.length > 0
-                      ? ", " + rentalsUser.length + " Bücher"
-                      : "")}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: 12 }}
-                  color="text.primary"
-                  gutterBottom
-                >
-                  {"Nr. " +
-                    u.id +
-                    ", " +
-                    "Klasse " +
-                    u.schoolGrade +
-                    ", " +
-                    u.schoolTeacherName}
-                </Typography>
+                  <Grid item>
+                    <Typography
+                      sx={{ mx: 4 }}
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      {u.firstName +
+                        " " +
+                        u.lastName +
+                        (rentalsUser.length > 0
+                          ? ", " +
+                            rentalsUser.length +
+                            (rentalsUser.length > 1 ? " Bücher" : " Buch")
+                          : "")}
+                    </Typography>
+                  </Grid>
+                  <Grid item>
+                    <Typography
+                      sx={{ fontSize: 12 }}
+                      color="text.primary"
+                      gutterBottom
+                    >
+                      {"Nr. " +
+                        u.id +
+                        ", " +
+                        "Klasse " +
+                        u.schoolGrade +
+                        ", " +
+                        u.schoolTeacherName}
+                    </Typography>
+                  </Grid>
+                </Grid>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid
@@ -159,16 +176,16 @@ export default function UserRentalList({
                   direction="column"
                   alignItems="stretch"
                   justifyContent="flex-start"
-                  sx={{ px: 2, my: 2 }}
+                  sx={{ px: 1, my: 1 }}
                 >
                   {rentalsUser.map((r: any) => (
                     <Paper key={r.id}>
                       <Grid
                         container
                         direction="row"
-                        alignItems="flex-start"
+                        alignItems="center"
                         justifyContent="flex-start"
-                        sx={{ px: 2 }}
+                        sx={{ px: 1 }}
                       >
                         <Grid item>
                           <IconButton
@@ -208,7 +225,10 @@ export default function UserRentalList({
                           </IconButton>{" "}
                         </Grid>
                         <Grid item>
-                          <Typography sx={{ m: 2 }}>{r.title}</Typography>
+                          <Typography sx={{ m: 1 }}>
+                            {r.title}, bis{" "}
+                            {dayjs(r.dueDate).format("DD.MM.YYYY")}
+                          </Typography>
                         </Grid>
                       </Grid>
                     </Paper>

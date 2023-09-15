@@ -12,10 +12,6 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
 
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -29,17 +25,21 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { PlaylistAdd } from "@mui/icons-material";
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import "dayjs/locale/de";
+import dayjs from "dayjs";
 
 interface BookPropsType {
   books: Array<BookType>;
   handleExtendBookButton: any;
   handleReturnBookButton: any;
+  handleRentBookButton: any;
   userExpanded: number | false;
 }
 export default function BookRentalList({
   books,
   handleExtendBookButton,
   handleReturnBookButton,
+  handleRentBookButton,
   userExpanded,
 }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
@@ -48,6 +48,10 @@ export default function BookRentalList({
   const itemsjs = require("itemsjs")(books, {
     searchableFields: ["title", "author", "subtitle", "topics", "id"],
   });
+
+  useEffect(() => {
+    searchBooks(bookSearchInput);
+  }, [books]);
 
   async function searchBooks(searchString: string) {
     const resultBooks = [] as Array<BookType>;
@@ -83,6 +87,7 @@ export default function BookRentalList({
       return <UpdateIcon />;
     }
   };
+  console.log("booklist received an expanded user: ", userExpanded);
 
   return (
     <div>
@@ -104,21 +109,96 @@ export default function BookRentalList({
         direction="column"
         alignItems="stretch"
         justifyContent="flex-start"
-        sx={{ px: 2, my: 2 }}
+        sx={{ px: 0.5, my: 0.5 }}
       >
         {renderedBooks.slice(0, 100).map((b: BookType) => (
           <div key={b.id}>
-            <Paper elevation={3} sx={{ my: 1, mx: 1 }}>
+            <Paper elevation={2} sx={{ my: 0.5, width: "500px" }}>
               <Grid
                 item
                 container
-                direction="row"
+                direction="column"
                 alignItems="flex-start"
                 justifyContent="flex-start"
-                sx={{ width: "400px" }}
               >
-                <Grid item xs={12}>
-                  <Typography sx={{ m: 1 }}>{b.title}</Typography>
+                <Grid
+                  container
+                  item
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Grid item>
+                    <Typography sx={{ m: 0.5 }}>{b.title}</Typography>
+                  </Grid>
+                  <Grid>
+                    <Grid
+                      container
+                      direction="row"
+                      alignItems="flex-start"
+                      justifyContent="flex-start"
+                      sx={{ px: 0.5 }}
+                    >
+                      <Grid item>
+                        {!(b.rentalStatus == "available") && (
+                          <IconButton
+                            aria-label="extend"
+                            onClick={() => {
+                              console.log("Book rental list, extend button", b);
+                              handleExtendBookButton(b.id, b);
+                              const time = Date.now();
+                              const newbook = {};
+                              (newbook as any)[b.id!] = time;
+                              setReturnedBooks({
+                                ...returnedBooks,
+                                ...newbook,
+                              });
+                            }}
+                          >
+                            <ExtendedIcon key={b.id} id={b.id} />
+                          </IconButton>
+                        )}
+                      </Grid>
+                      <Grid item>
+                        {!(b.rentalStatus == "available") && (
+                          <IconButton
+                            onClick={() => {
+                              handleReturnBookButton(b.id);
+                              const time = Date.now();
+                              const newbook = {};
+                              (newbook as any)[b.id!] = time;
+                              setReturnedBooks({
+                                ...returnedBooks,
+                                ...newbook,
+                              });
+                            }}
+                            aria-label="zurückgeben"
+                          >
+                            <ReturnedIcon key={b.id} id={b.id} />
+                          </IconButton>
+                        )}
+                      </Grid>
+                      {userExpanded && b.rentalStatus == "available" && (
+                        <Grid container item>
+                          <IconButton
+                            onClick={() => {
+                              handleRentBookButton(b.id, userExpanded);
+                              const time = Date.now();
+                              const newbook = {};
+                              (newbook as any)[b.id!] = time;
+                              setReturnedBooks({
+                                ...returnedBooks,
+                                ...newbook,
+                              });
+                            }}
+                            aria-label="ausleihen"
+                          >
+                            <PlaylistAddIcon />
+                          </IconButton>{" "}
+                        </Grid>
+                      )}
+                    </Grid>
+                  </Grid>
                 </Grid>
                 <Grid item xs={12}>
                   {" "}
@@ -131,67 +211,14 @@ export default function BookRentalList({
                   <Typography sx={{ m: 0.5 }} variant="body2">
                     Buch ID {b.id}
                     {!(b.rentalStatus == "available") && (
-                      <span> - ausgeliehen bis {b.dueDate as string}</span>
+                      <span>
+                        {" "}
+                        - ausgeliehen bis{" "}
+                        {dayjs(b.dueDate).format("DD.MM.YYYY")}
+                      </span>
                     )}
                   </Typography>
                 </Grid>
-              </Grid>
-
-              <Grid
-                container
-                direction="row"
-                alignItems="flex-start"
-                justifyContent="flex-start"
-                sx={{ px: 2 }}
-              >
-                <Grid item>
-                  {!(b.rentalStatus == "available") && (
-                    <IconButton
-                      aria-label="extend"
-                      onClick={() => {
-                        handleExtendBookButton(b.id);
-                        const time = Date.now();
-                        const newbook = {};
-                        (newbook as any)[b.id!] = time;
-                        setReturnedBooks({ ...returnedBooks, ...newbook });
-                      }}
-                    >
-                      <ExtendedIcon key={b.id} id={b.id} />
-                    </IconButton>
-                  )}
-                </Grid>
-                <Grid item>
-                  {!(b.rentalStatus == "available") && (
-                    <IconButton
-                      onClick={() => {
-                        handleReturnBookButton(b.id);
-                        const time = Date.now();
-                        const newbook = {};
-                        (newbook as any)[b.id!] = time;
-                        setReturnedBooks({ ...returnedBooks, ...newbook });
-                      }}
-                      aria-label="zurückgeben"
-                    >
-                      <ReturnedIcon key={b.id} id={b.id} />
-                    </IconButton>
-                  )}
-                </Grid>
-                {userExpanded && b.rentalStatus == "available" && (
-                  <Grid container item>
-                    <IconButton
-                      onClick={() => {
-                        b.id;
-                        const time = Date.now();
-                        const newbook = {};
-                        (newbook as any)[b.id!] = time;
-                        setReturnedBooks({ ...returnedBooks, ...newbook });
-                      }}
-                      aria-label="ausleihen"
-                    >
-                      <PlaylistAddIcon />
-                    </IconButton>{" "}
-                  </Grid>
-                )}
               </Grid>
             </Paper>
           </div>

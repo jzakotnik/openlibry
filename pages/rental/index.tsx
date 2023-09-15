@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { Grid } from "@mui/material";
 
 import { useRouter } from "next/router";
+import { forwardRef } from "react";
 import BookRentalList from "@/components/rental/BookRentalList";
 
 import {
@@ -19,6 +20,9 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import UserRentalList from "@/components/rental/UserRentalList";
 
+import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import { Snackbar } from "@mui/material";
+
 interface RentalPropsType {
   books: Array<BookType>;
   users: Array<UserType>;
@@ -34,8 +38,8 @@ const fetcher = (url: any) => fetch(url).then((r) => r.json());
 
 export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
-  const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
-  const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackBarMessage, setSnackBarMessage] = useState("");
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const { data, error } = useSWR(
@@ -60,11 +64,13 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setReturnBookSnackbar(true);
+        setSnackBarMessage("Buch " + bookid + " zurück gegeben");
+        setSnackbarOpen(true);
       });
   };
 
   const handleExtendBookButton = (bookid: number, book: BookType) => {
+    console.log("Extending book ", bookid, book);
     const newbook = replaceBookStringDate(book) as any;
     //extend logic
     const newDueDate = extendWeeks(book.dueDate as Date, 2);
@@ -72,7 +78,9 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
     newbook.renewalCount = newbook.renewalCount + 1;
 
     delete newbook.user; //don't need the user here
-    console.log("Extending book ", bookid);
+    delete newbook._id; // I think this is an id introduced by SWR, no  idea why, but we don't need it in the update call
+    console.log("Extending book, json body", JSON.stringify(newbook));
+
     fetch("/api/book/" + bookid, {
       method: "PUT",
       headers: {
@@ -80,12 +88,52 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       },
       body: JSON.stringify(newbook),
     })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setSnackBarMessage("Buch - " + book.title + " - verlängert");
+        setSnackbarOpen(true);
+      });
+    //TODO create negative snackbar if something went wrong
+  };
+
+  const handleRentBookButton = (bookid: number, userid: number) => {
+    console.log("Renting book ", bookid);
+    fetch("/api/book/" + bookid + "/user/" + userid, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setExtendBookSnackbar(true);
+        setSnackBarMessage("Buch " + bookid + " ausgeliehen");
+        setSnackbarOpen(true);
       });
   };
+
+  const handleCloseSnackbar = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
+  const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
+    props,
+    ref
+  ) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
 
   return (
     <Layout>
@@ -113,10 +161,25 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
             books={books}
             handleExtendBookButton={handleExtendBookButton}
             handleReturnBookButton={handleReturnBookButton}
+            handleRentBookButton={handleRentBookButton}
             userExpanded={userExpanded}
           />
         </Grid>
       </Grid>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        sx={{ width: "50%" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 }
@@ -137,7 +200,7 @@ export async function getServerSideProps() {
     const due = dayjs(r.dueDate);
     const today = dayjs();
     const diff = today.diff(due, "days");
-    console.log("Fetching rental", r);
+    //console.log("Fetching rental", r);
 
     return {
       id: r.id,
@@ -164,6 +227,7 @@ export async function getServerSideProps() {
 
     return newBook;
   });
+  //console.log("Initial fetch of books", books[0]);
 
   return { props: { books, users, rentals } };
 }

@@ -187,7 +187,8 @@ export async function getServerSideProps() {
     const due = dayjs(r.dueDate);
     const today = dayjs();
     const diff = today.diff(due, "days");
-    if (r.user?.lastName == undefined) console.log("Fetching rental", r);
+    if (r.user?.lastName == undefined)
+      console.log("Fetching rental for undefined user", r);
 
     return {
       id: r.id,
