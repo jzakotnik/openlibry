@@ -81,7 +81,9 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       })
       .then((data) => {
         console.log(data);
-        setSnackBarMessage("Buch " + bookid + " zurück gegeben");
+        setSnackBarMessage(
+          "Buch - " + getBookFromID(bookid, books).title + " - zurück gegeben"
+        );
         setSnackbarOpen(true);
       })
       .catch((error) => {
