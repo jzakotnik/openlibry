@@ -228,7 +228,7 @@ export default function BookRentalList({
                       <span>
                         {" "}
                         - ausgeliehen bis{" "}
-                        {dayjs(b.dueDate).format("DD.MM.YYYY")}
+                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an {b.userId}
                       </span>
                     )}
                   </Typography>
