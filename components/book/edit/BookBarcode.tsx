@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import Barcode from "react-barcode";
 import { BookType } from "@/entities/BookType";
-import { Typography, Paper } from "@mui/material";
+import { Paper, Typography } from "@mui/material";
+import Barcode from "react-barcode";
 
 interface BookTypeProps {
   book: BookType;

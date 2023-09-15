@@ -1,14 +1,14 @@
+import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { PrismaClient, User } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { addUser, getAllUsers } from "@/entities/user";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { getAllUsers } from "@/entities/user";
 import {
   convertDateToDayString,
   replaceUsersDateString,
 } from "@/utils/convertDateToDayString";
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
-import { BookType } from "@/entities/BookType";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 

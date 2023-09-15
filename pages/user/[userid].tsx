@@ -6,24 +6,22 @@ import { getUser } from "../../entities/user";
 
 import { getRentedBooksForUser } from "@/entities/book";
 
-import { useRouter } from "next/router";
-import Snackbar from "@mui/material/Snackbar";
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import { useRouter } from "next/router";
 import { forwardRef } from "react";
 
 import {
   convertDateToDayString,
-  replaceUserDateString,
-  convertStringToDay,
-  replaceBookDateString,
-  replaceBookStringDate,
   extendWeeks,
+  replaceBookStringDate,
+  replaceUserDateString,
 } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 
 import UserEditForm from "@/components/user/UserEditForm";
-import { Typography } from "@mui/material";
 import { BookType } from "@/entities/BookType";
+import { Typography } from "@mui/material";
 
 const theme = createTheme({
   palette: {

@@ -1,15 +1,5 @@
-import {
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Switch,
-} from "@mui/material";
 import { translations } from "@/entities/fieldTranslations";
-
-import * as React from "react";
+import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
 
 const BookStatusDropdown = (props: any): any => {
   const fieldType = props.fieldType;

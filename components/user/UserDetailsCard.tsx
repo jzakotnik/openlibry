@@ -1,19 +1,18 @@
-import * as React from "react";
-import Link from "next/link";
+import { UserType } from "@/entities/UserType";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { UserType } from "@/entities/UserType";
+import Typography from "@mui/material/Typography";
+import Link from "next/link";
 
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 
 const bull = (
   <Box

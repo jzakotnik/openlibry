@@ -1,17 +1,13 @@
-import Box from "@mui/material/Box";
-import React from "react";
-import { Bar } from "react-chartjs-2";
 import {
-  CategoryScale,
-  LinearScale,
-  BarElement,
   BarController,
+  BarElement,
+  CategoryScale,
   Chart,
+  LinearScale,
 } from "chart.js";
+import { Bar } from "react-chartjs-2";
 
-import { Typography, Grid } from "@mui/material";
 import { BookType } from "@/entities/BookType";
-import { Category } from "@mui/icons-material";
 
 interface MinAgeChartType {
   books: Array<BookType>;

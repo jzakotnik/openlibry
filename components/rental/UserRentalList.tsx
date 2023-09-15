@@ -1,32 +1,27 @@
 import Grid from "@mui/material/Grid";
 
-import { useEffect, useState } from "react";
-import Layout from "@/components/layout/Layout";
-import Input from "@mui/material/Input";
-import Paper from "@mui/material/Paper";
-import Avatar from "@mui/material/Avatar";
-import InputLabel from "@mui/material/InputLabel";
-import InputAdornment from "@mui/material/InputAdornment";
-import FormControl from "@mui/material/FormControl";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import palette from "@/styles/palette";
+import FormControl from "@mui/material/FormControl";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import InputLabel from "@mui/material/InputLabel";
+import Paper from "@mui/material/Paper";
+import { useState } from "react";
 
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import UpdateIcon from "@mui/icons-material/Update";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import ClearIcon from "@mui/icons-material/Clear";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import UpdateIcon from "@mui/icons-material/Update";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 
-import "dayjs/locale/de";
 import dayjs from "dayjs";
+import "dayjs/locale/de";
 
 interface UserPropsType {
   users: Array<UserType>;
@@ -135,6 +130,7 @@ export default function UserRentalList({
           return (
             //display the whole list to select one
             <Accordion
+              key={u.id}
               expanded={userExpanded == u.id!}
               onChange={handleExpandedUser(u.id!)}
               sx={{ minWidth: 275 }}

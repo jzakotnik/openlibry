@@ -2,12 +2,12 @@ import Typography from "@mui/material/Typography";
 
 import { Avatar, Grid } from "@mui/material";
 
-import palette from "@/styles/palette";
 import { UserType } from "@/entities/UserType";
+import palette from "@/styles/palette";
 
 import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 

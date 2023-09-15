@@ -2,21 +2,17 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
-import { getBook, getAllTopics } from "../../entities/book";
+import { getAllTopics, getBook } from "../../entities/book";
 import { getImages } from "../api/images";
 
-import { getRentedBooksForUser } from "@/entities/book";
-
-import { useRouter } from "next/router";
-import Snackbar from "@mui/material/Snackbar";
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import { useRouter } from "next/router";
 import { forwardRef } from "react";
 
 import {
-  convertDateToDayString,
-  replaceUserDateString,
-  replaceBookDateString,
   convertStringToDay,
+  replaceBookDateString,
 } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 

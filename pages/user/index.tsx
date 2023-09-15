@@ -1,32 +1,28 @@
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/router";
-import Grid from "@mui/material/Grid";
-import Button from "@mui/material/Button";
 
 import Layout from "@/components/layout/Layout";
-import { useEffect, useState } from "react";
-import { getAllUsers } from "../../entities/user";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
-import { getUser } from "../../entities/user";
+import { useEffect, useState } from "react";
+import { getAllUsers } from "../../entities/user";
 
-import { translations } from "@/entities/fieldTranslations";
-import Input from "@mui/material/Input";
-import InputLabel from "@mui/material/InputLabel";
-import InputAdornment from "@mui/material/InputAdornment";
-import FormControl from "@mui/material/FormControl";
-import TextField from "@mui/material/TextField";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import UserAdminList from "@/components/user/UserAdminList";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import FormControl from "@mui/material/FormControl";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import InputLabel from "@mui/material/InputLabel";
 
 import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
 
-import { UserType } from "@/entities/UserType";
-import { BookType } from "@/entities/BookType";
-import palette from "@/styles/palette";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
+import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 
 const prisma = new PrismaClient();
 

@@ -1,37 +1,32 @@
-import * as React from "react";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react";
+import * as React from "react";
+import { useState } from "react";
 
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import MoreTimeIcon from "@mui/icons-material/MoreTime";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ListItem from "@mui/material/ListItem";
-import List from "@mui/material/List";
-import MoreTimeIcon from "@mui/icons-material/MoreTime";
+import Typography from "@mui/material/Typography";
 
-import ListItemIcon from "@mui/material/ListItemIcon";
+import { UserType } from "@/entities/UserType";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import ListItemText from "@mui/material/ListItemText";
-import { UserType } from "@/entities/UserType";
 
+import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
-import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
 import {
-  Divider,
-  Paper,
-  Grid,
-  TextField,
   Checkbox,
+  Divider,
   FormControlLabel,
+  Grid,
+  Paper,
+  TextField,
 } from "@mui/material";
-import { deleteUser } from "@/entities/user";
-import { BookType } from "@/entities/BookType";
 
 const bull = (
   <Box

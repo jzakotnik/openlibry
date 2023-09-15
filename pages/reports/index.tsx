@@ -1,30 +1,20 @@
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import styles from "@/styles/Home.module.css";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Image from "next/image";
-import { deDE as coreDeDE } from "@mui/material/locale";
-import SelectReport from "@/components/reports/SelectReport";
 import Layout from "@/components/layout/Layout";
+import SelectReport from "@/components/reports/SelectReport";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { translations } from "@/entities/fieldTranslations";
+import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+import { deDE as coreDeDE } from "@mui/material/locale";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { DataGrid, deDE, GridToolbar } from "@mui/x-data-grid";
+import { PrismaClient } from "@prisma/client";
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
-import { PrismaClient } from "@prisma/client";
-import { translations } from "@/entities/fieldTranslations";
-import {
-  DataGrid,
-  GridRowsProp,
-  GridColDef,
-  GridToolbar,
-  deDE,
-} from "@mui/x-data-grid";
-import dayjs from "dayjs";
 
-import type {} from "@mui/x-data-grid/themeAugmentation";
-import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import Dashboard from "@/components/reports/Dashboard";
+import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();
 

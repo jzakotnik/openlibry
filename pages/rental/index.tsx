@@ -1,27 +1,29 @@
 import Layout from "@/components/layout/Layout";
 import { Grid } from "@mui/material";
 
+import BookRentalList from "@/components/rental/BookRentalList";
 import { useRouter } from "next/router";
 import { forwardRef } from "react";
-import BookRentalList from "@/components/rental/BookRentalList";
 
 import {
   convertDateToDayString,
-  replaceBookStringDate,
   extendWeeks,
+  replaceBookStringDate,
 } from "@/utils/convertDateToDayString";
 import { PrismaClient } from "@prisma/client";
 
-import dayjs from "dayjs";
-import { useEffect, useState } from "react";
-import { getAllUsers } from "@/entities/user";
+import UserRentalList from "@/components/rental/UserRentalList";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
-import UserRentalList from "@/components/rental/UserRentalList";
+import { getAllUsers } from "@/entities/user";
+import dayjs from "dayjs";
+import { useState } from "react";
 
-import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
+import { getBookFromID } from "@/utils/getBookFromID";
 import { Snackbar } from "@mui/material";
+import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
+import useSWR from "swr";
 
 interface RentalPropsType {
   books: Array<BookType>;
@@ -32,8 +34,6 @@ interface RentalPropsType {
 const prisma = new PrismaClient();
 
 ("use client");
-import useSWR from "swr";
-import { getBookFromID } from "@/utils/getBookFromID";
 
 const fetcher = (url: any) => fetch(url).then((r) => r.json());
 
@@ -51,7 +51,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
     fetcher,
     { refreshInterval: 1000 }
   );
-  console.log("SWR Fetch", data);
+  console.log("SWR Fetch performed");
   data ? (rentals = data.rentals) : null;
   data ? (books = data.books) : null;
   data ? (users = data.users) : null; //books = data.books;

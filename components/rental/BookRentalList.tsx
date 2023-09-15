@@ -1,33 +1,24 @@
-import { useEffect, useState } from "react";
-import Layout from "@/components/layout/Layout";
-import Input from "@mui/material/Input";
-import { Grid } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Avatar from "@mui/material/Avatar";
-import InputLabel from "@mui/material/InputLabel";
-import InputAdornment from "@mui/material/InputAdornment";
-import FormControl from "@mui/material/FormControl";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import palette from "@/styles/palette";
+import { Grid } from "@mui/material";
+import FormControl from "@mui/material/FormControl";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import InputLabel from "@mui/material/InputLabel";
+import Paper from "@mui/material/Paper";
+import { useEffect, useState } from "react";
 
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import UpdateIcon from "@mui/icons-material/Update";
 import ClearIcon from "@mui/icons-material/Clear";
+import UpdateIcon from "@mui/icons-material/Update";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 
 import { BookType } from "@/entities/BookType";
-import { UserType } from "@/entities/UserType";
-import { PlaylistAdd } from "@mui/icons-material";
-import { convertDateToDayString } from "@/utils/convertDateToDayString";
-import "dayjs/locale/de";
 import dayjs from "dayjs";
+import "dayjs/locale/de";
 
 interface BookPropsType {
   books: Array<BookType>;

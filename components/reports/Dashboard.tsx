@@ -1,14 +1,9 @@
-import * as React from "react";
-import Box from "@mui/material/Box";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import { Typography, Grid } from "@mui/material";
-import { UserType } from "@/entities/UserType";
 import { BookType } from "@/entities/BookType";
-import MinAgeChart from "./MinAgeChart";
+import { UserType } from "@/entities/UserType";
+import { Grid } from "@mui/material";
+import Box from "@mui/material/Box";
 import InfoTile from "./InfoTile";
+import MinAgeChart from "./MinAgeChart";
 
 interface DashboardType {
   users: Array<UserType>;

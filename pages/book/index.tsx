@@ -1,17 +1,12 @@
-import React from "react";
-
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { getImages } from "../api/images";
 
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useRouter } from "next/router";
 import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
-import Button from "@mui/material/Button";
+import { useRouter } from "next/router";
 
 import Layout from "@/components/layout/Layout";
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 
 import { getAllBooks } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
@@ -24,7 +19,6 @@ import {
 } from "@/utils/convertDateToDayString";
 
 import { BookType } from "@/entities/BookType";
-import palette from "@/styles/palette";
 
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 

@@ -1,43 +1,29 @@
-import * as React from "react";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ListItem from "@mui/material/ListItem";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
-import ListItemText from "@mui/material/ListItemText";
 
+import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
-import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import palette from "@/styles/palette";
-import {
-  Divider,
-  Paper,
-  Grid,
-  TextField,
-  Checkbox,
-  FormControlLabel,
-} from "@mui/material";
+import { Divider, Grid, Paper } from "@mui/material";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { translations } from "@/entities/fieldTranslations";
+import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
-import BookTextField from "./edit/BookTextField";
+import BookMultiText from "./edit/BookMultiText";
 import BookNumberField from "./edit/BookNumberField";
 import BookStatusDropdown from "./edit/BookStatusDropdown";
+import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
-import BookMultiText from "./edit/BookMultiText";
-import BookBarcode from "./edit/BookBarcode";
 
 const bull = (
   <Box

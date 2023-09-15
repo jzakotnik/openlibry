@@ -1,0 +1,7 @@
+{
+  "cSpell.words": ["bookid", "clickaway", "newbook", "userid"],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  }
+}

@@ -1,9 +1,8 @@
 /* eslint-disable no-use-before-define */
-import React, { useState } from "react";
 
 import ClearIcon from "@mui/icons-material/Clear";
 
-import { Autocomplete, Chip, TextField, Grid } from "@mui/material";
+import { Autocomplete, Chip, TextField } from "@mui/material";
 
 const parseTopics = (combined: string) => {
   const parsedTopics = combined.split(";").filter((t: string) => t.length > 0);

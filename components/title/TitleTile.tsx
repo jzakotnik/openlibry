@@ -1,11 +1,5 @@
-import { Inter } from "next/font/google";
-import styles from "@/styles/Home.module.css";
-import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import Image from "next/image";
-import TopBar from "@/components/layout/TopBar";
-import Layout from "@/components/layout/Layout";
 
 interface TitleFileType {
   title: string;

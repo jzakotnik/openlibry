@@ -1,16 +1,7 @@
-import * as React from "react";
 import Box from "@mui/material/Box";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
 import Card from "@mui/material/Card";
 
-import Select from "@mui/material/Select";
-import { Typography, Grid, Divider } from "@mui/material";
-import { UserType } from "@/entities/UserType";
-import { BookType } from "@/entities/BookType";
-import { PlayForWorkOutlined } from "@mui/icons-material";
-import palette from "@/styles/palette";
+import { Divider, Typography } from "@mui/material";
 
 interface InfoTileType {
   title: string;
