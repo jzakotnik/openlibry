@@ -8,7 +8,6 @@ import Paper from "@mui/material/Paper";
 import { useEffect, useState } from "react";
 
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ClearIcon from "@mui/icons-material/Clear";
 import UpdateIcon from "@mui/icons-material/Update";
 import IconButton from "@mui/material/IconButton";
@@ -68,20 +67,21 @@ export default function BookRentalList({
 
   const ReturnedIcon = ({ id }: any) => {
     //console.log("Rendering icon ", id, returnedBooks);
+    return <ArrowCircleLeftIcon />; /*
     if (id in returnedBooks) {
       return <CheckCircleIcon color="success" />;
     } else {
       return <ArrowCircleLeftIcon />;
-    }
+    }*/
   };
 
   const ExtendedIcon = ({ id }: any) => {
-    //console.log("Rendering icon ", id, returnedBooks);
-    if (id in returnedBooks) {
+    return <UpdateIcon />; //console.log("Rendering icon ", id, returnedBooks);
+    /*if (id in returnedBooks) {
       return <CheckCircleIcon color="success" />;
     } else {
       return <UpdateIcon />;
-    }
+    }*/
   };
 
   return (
