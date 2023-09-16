@@ -1,6 +1,7 @@
-import { PrismaClient, Prisma } from "@prisma/client";
 import { BookType } from "@/entities/BookType";
+import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
+import { addAudit } from "./audit";
 
 export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
@@ -147,6 +148,11 @@ export async function updateBook(
   book: BookType
 ) {
   try {
+    await addAudit(
+      client,
+      "update",
+      book.id ? book.id.toString() : "undefined"
+    );
     return await client.book.update({
       where: {
         id,
@@ -166,6 +172,7 @@ export async function updateBook(
 
 export async function deleteBook(client: PrismaClient, id: number) {
   try {
+    await addAudit(client, "delete", id.toString());
     return await client.book.delete({
       where: {
         id,
@@ -210,6 +217,7 @@ export async function extendBook(
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
     });
+    await addAudit(client, "extend", bookid.toString());
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -230,6 +238,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
       return "ERROR in returning a book, this user does not have a book";
     }
     const userid = book.userId;
+    await addAudit(client, "return book", bookid.toString());
     const transaction = [];
     transaction.push(
       client.book.update({
@@ -250,6 +259,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
         },
       })
     );
+
     return await client.$transaction(transaction);
   } catch (e) {
     if (
@@ -308,7 +318,11 @@ export async function rentBook(
     }
     throw e;
   }
-
+  await addAudit(
+    client,
+    "rent book",
+    "user id " + userid.toString() + ", book id " + bookid.toString()
+  );
   const transaction = [];
 
   transaction.push(
