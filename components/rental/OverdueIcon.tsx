@@ -13,5 +13,5 @@ export default function OverdueIcon({ rentalsUser }: OverdueIconPropsType) {
       b.remainingDays > 0 ? (overdue = true) : (overdue = false);
     });
   }
-  return overdue ? <ErrorIcon fontSize="small" /> : "";
+  return overdue ? <ErrorIcon fontSize="small" /> : <></>;
 }
