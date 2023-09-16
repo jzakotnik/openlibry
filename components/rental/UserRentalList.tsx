@@ -19,6 +19,7 @@ import Typography from "@mui/material/Typography";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
+import OverdueIcon from "./OverdueIcon";
 
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -164,19 +165,20 @@ export default function UserRentalList({
                     </Typography>
                   </Grid>
                   <Grid item>
-                    <Typography
-                      sx={{ fontSize: 12 }}
-                      color="text.primary"
-                      gutterBottom
-                    >
-                      {"Nr. " +
-                        u.id +
-                        ", " +
-                        "Klasse " +
-                        u.schoolGrade +
-                        ", " +
-                        u.schoolTeacherName}
-                    </Typography>
+                    <Grid container>
+                      <Grid>
+                        <Typography
+                          sx={{ fontSize: 12 }}
+                          color="text.primary"
+                          gutterBottom
+                        >
+                          {"Nr. " + u.id + ", " + "Klasse " + u.schoolGrade}
+                        </Typography>
+                      </Grid>
+                      <Grid>
+                        <OverdueIcon rentalsUser={rentalsUser} />
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
               </AccordionSummary>
