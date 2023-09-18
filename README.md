@@ -1,9 +1,17 @@
 # OpenLibry - Die einfache und freie Software für die Schulbibliothek
 
 
-# Überblick
+
 
 ![Überblick Screenshot](./doc/titel1.jpg)
+
+![Leihe Screenshot](./doc/screen1.jpg)
+
+![Bücher Liste Screenshot](./doc/buch1.jpg)
+
+![Bücher Edit Screenshot](./doc/buchedit1.jpg)
+
+
 
 
 # How to use the REST API examples
