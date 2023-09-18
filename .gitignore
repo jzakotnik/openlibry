@@ -109,3 +109,4 @@ importscripts/openbiblio/input/usmarc_subfield_dm.MYI
 importscripts/openbiblio/input/usmarc_tag_dm.frm
 importscripts/openbiblio/input/usmarc_tag_dm.MYD
 importscripts/openbiblio/input/usmarc_tag_dm.MYI
+importscripts/openbiblio/coverDownloader/coverapp
