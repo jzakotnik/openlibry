@@ -1,6 +1,11 @@
 # OpenLibry - Die einfache und freie Software für die Schulbibliothek
 
 
+Warum gibt es die?
+
+Features?
+
+Inspiration Annette 
 
 ![Überblick Screenshot](./doc/titel1.jpg)
 
@@ -33,3 +38,5 @@ ISBN Service für 10 und 13 ISBN:
 https://openlibrary.org/isbn/9780140328721
 Cover: 
 https://covers.openlibrary.org/13834659
+
+## Kontakt
