@@ -1,12 +1,18 @@
-# Openlibly
+# OpenLibry - Die einfache und freie Software für die Schulbibliothek
 
-Die einfache Software für die Schulbibliothek
+
+# Überblick
+
+![Überblick Screenshot](./doc/titel1.jpg)
+
 
 # How to use the REST API examples
 update user:
 `curl -X PUT http://localhost:3000/api/user/1080 -H 'Content-Type: application/json' -d '{"firstName":"julia","schoolGrade":"12"}'`
 
 # Import from OpenBiblio
+
+If you use an old version of the open source software `OpenBiblio`, there's a possibility to migrate the data over. It's a bit of manual effort, in particular because it uses a very old mySQL version. Follow these steps to run a dockerized mySQL and export the data from the admin interface.
 
 - Start podman with docker compose (see OpenBiblio folder)
 ``
@@ -95,21 +101,6 @@ podman cp ./input-21-07-2023/usmarc_tag_dm.frm mysql-server-db:/var/lib/mysql/op
 
 
 - Use API to import books `curl -X POST -H "Content-Type: application/json" -d @book_all.json  http://localhost:3000/api/openbiblioimport/migrateBooks`
-
-
-
-Field structure:
-```sql
-SELECT `usmarc_subfield_dm`.*, `usmarc_tag_dm`.*
-FROM `usmarc_subfield_dm`
-	, `usmarc_tag_dm` WHERE usmarc_tag_dm.tag = usmarc_subfield_dm.tag
-```
-
-
-Sample book:
-```json
-{"bibid":"2185","copyid":"2185","copy_desc":"","barcode_nmbr":"2185","status_cd":"out","status_begin_dt":"2006-06-09 10:17:18","due_back_dt":"2006-06-30","mbrid":"1035","renewal_count":"0","create_dt":"2005-05-24 20:08:39","last_change_dt":"2023-01-27 10:56:54","last_change_userid":"4","material_cd":"2","collection_cd":"6","call_nmbr1":"Bücherei","call_nmbr2":"","call_nmbr3":"","title":"Die Wilden Fußballkerle. Bd. 09: Joschka, die siebte Kavallerie","title_remainder":"","responsibility_stmt":"","author":"Masannek, Joachim","topic1":"Fußball","topic2":"Teamgeist","topic3":"","topic4":"","topic5":"","opac_flg":"Y"},
-```
 
 
 
