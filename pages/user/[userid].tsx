@@ -181,7 +181,7 @@ export default function UserDetail({ user, books }: any) {
             severity="success"
             sx={{ width: "100%" }}
           >
-            Buch zurück gegeben, super!
+            Buch zurückgegeben, super!
           </Alert>
         </Snackbar>
         <Snackbar

@@ -138,7 +138,7 @@ export default function BookDetail({ user, book, images, topics }: any) {
             severity="success"
             sx={{ width: "100%" }}
           >
-            Buch zurück gegeben, super!
+            Buch zurückgegeben, super!
           </Alert>
         </Snackbar>
       </ThemeProvider>
