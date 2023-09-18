@@ -13,7 +13,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 
 import palette from "@/styles/palette";
-import { Divider, Grid, Paper } from "@mui/material";
+import { Divider, Grid, Paper, Tooltip } from "@mui/material";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
@@ -92,32 +92,38 @@ export default function BookEditForm({
         spacing={2}
       >
         <Grid item xs={12} md={4}>
-          <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
-            {editButtonLabel}
-          </Button>
+          <Tooltip title={editButtonLabel}>
+            <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
+              {editButtonLabel}
+            </Button>
+          </Tooltip>
         </Grid>
         <Grid item xs={12} md={4}>
           {editable && (
-            <Button
-              onClick={() => {
-                saveBook();
-                toggleEditButton();
-              }}
-              startIcon={<SaveAltIcon />}
-            >
-              Speichern
-            </Button>
+            <Tooltip title="Speichern">
+              <Button
+                onClick={() => {
+                  saveBook();
+                  toggleEditButton();
+                }}
+                startIcon={<SaveAltIcon />}
+              >
+                Speichern
+              </Button>
+            </Tooltip>
           )}
         </Grid>
         <Grid item xs={12} md={4}>
           {editable && (
-            <Button
-              color="error"
-              onClick={deleteBook}
-              startIcon={<DeleteForeverIcon />}
-            >
-              Löschen
-            </Button>
+            <Tooltip title="Löschen">
+              <Button
+                color="error"
+                onClick={deleteBook}
+                startIcon={<DeleteForeverIcon />}
+              >
+                Löschen
+              </Button>
+            </Tooltip>
           )}
         </Grid>{" "}
       </Grid>

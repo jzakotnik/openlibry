@@ -23,6 +23,7 @@ import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { Tooltip } from "@mui/material";
 
 const prisma = new PrismaClient();
 
@@ -125,9 +126,11 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               </FormControl>
             </Grid>
             <Grid item>
-              <Button disabled={userCreating} onClick={handleCreateNewUser}>
-                Neu
-              </Button>
+              <Tooltip title="Neu">
+                <Button disabled={userCreating} onClick={handleCreateNewUser}>
+                  Neu
+                </Button>
+              </Tooltip>
             </Grid>
           </Grid>{" "}
           {displayDetail > 0 ? (

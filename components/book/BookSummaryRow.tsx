@@ -4,7 +4,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 
 import QueueIcon from "@mui/icons-material/Queue";
-import { Avatar, IconButton } from "@mui/material";
+import { Avatar, IconButton, Tooltip } from "@mui/material";
 import { useRouter } from "next/router";
 
 import { BookType } from "@/entities/BookType";
@@ -41,14 +41,16 @@ export default function BookSummaryRow({
     <ListItem
       key={book.id}
       secondaryAction={
-        <IconButton
-          onClick={handleCopyBook}
-          color="primary"
-          sx={{ p: "10px" }}
-          aria-label="new-copy-book"
-        >
-          <QueueIcon />
-        </IconButton>
+        <Tooltip title="Buch kopieren">
+          <IconButton
+            onClick={handleCopyBook}
+            color="primary"
+            sx={{ p: "10px" }}
+            aria-label="new-copy-book"
+          >
+            <QueueIcon />
+          </IconButton>
+        </Tooltip>
       }
     >
       {" "}

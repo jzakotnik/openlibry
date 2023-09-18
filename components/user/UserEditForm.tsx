@@ -26,6 +26,7 @@ import {
   Grid,
   Paper,
   TextField,
+  Tooltip,
 } from "@mui/material";
 
 const bull = (
@@ -220,29 +221,33 @@ export default function UserEditForm({
           {userBooks.map((b: BookType, index: number) => {
             return "id" in b ? (
               <ListItem key={b.id}>
-                <IconButton
-                  onClick={() => {
-                    returnBook(b.id);
-                    const time = Date.now();
-                    const newbook = {};
-                    (newbook as any)[b.id!] = time;
-                    setReturnedBooks({ ...returnedBooks, ...newbook });
-                  }}
-                  aria-label="zurückgeben"
-                >
-                  <ReturnedIcon key={b.id} />
-                </IconButton>
-                <IconButton
-                  onClick={() => {
-                    extendBook(b.id, b);
-                    const newBooks = [...books];
-                    newBooks[index].renewalCount++;
-                    setUserBooks(newBooks);
-                  }}
-                  aria-label="verlängern"
-                >
-                  <MoreTimeIcon key={b.id} />
-                </IconButton>
+                <Tooltip title="Zurückgeben">
+                  <IconButton
+                    onClick={() => {
+                      returnBook(b.id);
+                      const time = Date.now();
+                      const newbook = {};
+                      (newbook as any)[b.id!] = time;
+                      setReturnedBooks({ ...returnedBooks, ...newbook });
+                    }}
+                    aria-label="zurückgeben"
+                  >
+                    <ReturnedIcon key={b.id} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Verlängern">
+                  <IconButton
+                    onClick={() => {
+                      extendBook(b.id, b);
+                      const newBooks = [...books];
+                      newBooks[index].renewalCount++;
+                      setUserBooks(newBooks);
+                    }}
+                    aria-label="verlängern"
+                  >
+                    <MoreTimeIcon key={b.id} />
+                  </IconButton>
+                </Tooltip>
                 <ListItemText>
                   {b.title + ", " + b.renewalCount + "x verlängert"}
                 </ListItemText>

@@ -1,4 +1,4 @@
-import { Divider, IconButton, InputBase, Paper } from "@mui/material";
+import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
 
 import GridViewIcon from "@mui/icons-material/GridView";
 import QueueIcon from "@mui/icons-material/Queue";
@@ -40,9 +40,15 @@ export default function BookSearchBar({
             width: 400,
           }}
         >
-          <IconButton sx={{ p: "10px" }} aria-label="menu" onClick={toggleView}>
-            {detailView ? <GridViewIcon /> : <ViewListIcon />}
-          </IconButton>
+          <Tooltip title="Ansicht wechseln">
+            <IconButton
+              sx={{ p: "10px" }}
+              aria-label="menu"
+              onClick={toggleView}
+            >
+              {detailView ? <GridViewIcon /> : <ViewListIcon />}
+            </IconButton>
+          </Tooltip>
           <InputBase
             sx={{ ml: 1, flex: 1 }}
             value={bookSearchInput}
@@ -50,18 +56,22 @@ export default function BookSearchBar({
             placeholder="Buch suchen.."
             inputProps={{ "aria-label": "search books" }}
           />
-          <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
-            <SearchIcon />
-          </IconButton>
+          <Tooltip title="Suche">
+            <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+              <SearchIcon />
+            </IconButton>
+          </Tooltip>
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          <IconButton
-            color="primary"
-            sx={{ p: "10px" }}
-            aria-label="new-book"
-            onClick={handleNewBook}
-          >
-            <QueueIcon />
-          </IconButton>
+          <Tooltip title="Neues Buch erzeugen">
+            <IconButton
+              color="primary"
+              sx={{ p: "10px" }}
+              aria-label="new-book"
+              onClick={handleNewBook}
+            >
+              <QueueIcon />
+            </IconButton>
+          </Tooltip>
         </Paper>
       </Grid>
     </Grid>

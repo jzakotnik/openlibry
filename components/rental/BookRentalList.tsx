@@ -1,5 +1,5 @@
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-import { Grid } from "@mui/material";
+import { Grid, Tooltip } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -98,9 +98,11 @@ export default function BookRentalList({
           endAdornment={
             bookSearchInput && (
               <InputAdornment position="end">
-                <IconButton edge="end" onClick={handleClear}>
-                  <ClearIcon fontSize="small" />
-                </IconButton>
+                <Tooltip title="Suche löschen">
+                  <IconButton edge="end" onClick={handleClear}>
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </InputAdornment>
             )
           }
@@ -145,61 +147,70 @@ export default function BookRentalList({
                     >
                       <Grid item>
                         {!(b.rentalStatus == "available") && (
-                          <IconButton
-                            aria-label="extend"
-                            onClick={() => {
-                              console.log("Book rental list, extend button", b);
-                              handleExtendBookButton(b.id, b);
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[b.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                          >
-                            <ExtendedIcon key={b.id} id={b.id} />
-                          </IconButton>
+                          <Tooltip title="Verlängern">
+                            <IconButton
+                              aria-label="extend"
+                              onClick={() => {
+                                console.log(
+                                  "Book rental list, extend button",
+                                  b
+                                );
+                                handleExtendBookButton(b.id, b);
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[b.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                            >
+                              <ExtendedIcon key={b.id} id={b.id} />
+                            </IconButton>
+                          </Tooltip>
                         )}
                       </Grid>
                       <Grid item>
                         {!(b.rentalStatus == "available") && (
-                          <IconButton
-                            onClick={() => {
-                              const result = handleReturnBookButton(b.id);
-                              console.log("Result of the return:", result);
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[b.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                            aria-label="zurückgeben"
-                          >
-                            <ReturnedIcon key={b.id} id={b.id} />
-                          </IconButton>
+                          <Tooltip title="Zurückgeben">
+                            <IconButton
+                              onClick={() => {
+                                const result = handleReturnBookButton(b.id);
+                                console.log("Result of the return:", result);
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[b.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                              aria-label="zurückgeben"
+                            >
+                              <ReturnedIcon key={b.id} id={b.id} />
+                            </IconButton>
+                          </Tooltip>
                         )}
                       </Grid>
                       {userExpanded && b.rentalStatus == "available" && (
                         <Grid container item>
-                          <IconButton
-                            onClick={() => {
-                              handleRentBookButton(b.id, userExpanded);
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[b.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                            aria-label="ausleihen"
-                          >
-                            <PlaylistAddIcon />
-                          </IconButton>{" "}
+                          <Tooltip title="Ausleihen">
+                            <IconButton
+                              onClick={() => {
+                                handleRentBookButton(b.id, userExpanded);
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[b.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                              aria-label="ausleihen"
+                            >
+                              <PlaylistAddIcon />
+                            </IconButton>
+                          </Tooltip>
                         </Grid>
                       )}
                     </Grid>

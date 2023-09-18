@@ -17,7 +17,12 @@ import Typography from "@mui/material/Typography";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Tooltip,
+} from "@mui/material";
 import OverdueIcon from "./OverdueIcon";
 
 import dayjs from "dayjs";
@@ -110,9 +115,11 @@ export default function UserRentalList({
           endAdornment={
             userSearchInput && (
               <InputAdornment position="end">
-                <IconButton edge="end" onClick={handleClear}>
-                  <ClearIcon fontSize="small" />
-                </IconButton>
+                <Tooltip title="Suche löschen">
+                  <IconButton edge="end" onClick={handleClear}>
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </InputAdornment>
             )
           }
@@ -201,41 +208,45 @@ export default function UserRentalList({
                         sx={{ px: 1 }}
                       >
                         <Grid item>
-                          <IconButton
-                            aria-label="extend"
-                            onClick={() => {
-                              handleExtendBookButton(
-                                r.id,
-                                getBookFromID(r.id!)
-                              );
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[r.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                          >
-                            <ExtendedIcon key={r.id} id={r.id} />
-                          </IconButton>
+                          <Tooltip title="Verlängern">
+                            <IconButton
+                              aria-label="extend"
+                              onClick={() => {
+                                handleExtendBookButton(
+                                  r.id,
+                                  getBookFromID(r.id!)
+                                );
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[r.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                            >
+                              <ExtendedIcon key={r.id} id={r.id} />
+                            </IconButton>
+                          </Tooltip>
                         </Grid>
                         <Grid item>
-                          <IconButton
-                            onClick={() => {
-                              handleReturnBookButton(r.id, userExpanded);
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[r.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                            aria-label="zurückgeben"
-                          >
-                            <ReturnedIcon key={r.id} id={r.id} />
-                          </IconButton>{" "}
+                          <Tooltip title="Zurückgeben">
+                            <IconButton
+                              onClick={() => {
+                                handleReturnBookButton(r.id, userExpanded);
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[r.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                              aria-label="zurückgeben"
+                            >
+                              <ReturnedIcon key={r.id} id={r.id} />
+                            </IconButton>
+                          </Tooltip>
                         </Grid>
                         <Grid item>
                           <Typography sx={{ m: 1 }}>
