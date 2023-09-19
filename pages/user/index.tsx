@@ -9,12 +9,8 @@ import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
 import UserAdminList from "@/components/user/UserAdminList";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import QueueIcon from "@mui/icons-material/Queue";
-import FormControl from "@mui/material/FormControl";
-import Input from "@mui/material/Input";
-import InputAdornment from "@mui/material/InputAdornment";
-import InputLabel from "@mui/material/InputLabel";
+import SearchIcon from "@mui/icons-material/Search";
 
 import dayjs from "dayjs";
 
@@ -23,7 +19,7 @@ import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { IconButton, Tooltip } from "@mui/material";
+import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
 
 const prisma = new PrismaClient();
 
@@ -99,39 +95,44 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
           spacing={2}
           sx={{ mt: 2 }}
         >
-          <Grid
-            container
-            item
-            xs={6}
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            spacing={2}
-          >
-            <Grid item>
-              <FormControl variant="standard">
-                <InputLabel htmlFor="user-search-input-label">
-                  Suche NutzerIn
-                </InputLabel>
-                <Input
-                  id="user-search-input"
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <AccountCircle />
-                    </InputAdornment>
-                  }
-                  value={userSearchInput}
-                  onChange={handleInputChange}
-                />
-              </FormControl>
-            </Grid>
-            <Grid item>
-              <Tooltip title="Neu">
-                <IconButton aria-label="new-user" onClick={handleCreateNewUser}>
+          <Grid item>
+            <Paper
+              component="form"
+              sx={{
+                p: "2px 4px",
+                display: "flex",
+                alignItems: "center",
+                width: 400,
+              }}
+            >
+              <InputBase
+                sx={{ ml: 1, flex: 1 }}
+                value={userSearchInput}
+                onChange={handleInputChange}
+                placeholder="NutzerIn suchen.."
+                inputProps={{ "aria-label": "search users" }}
+              />
+              <Tooltip title="Suche">
+                <IconButton
+                  type="button"
+                  sx={{ p: "10px" }}
+                  aria-label="search"
+                >
+                  <SearchIcon />
+                </IconButton>
+              </Tooltip>
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+              <Tooltip title="Neue Nutzerin erzeugen">
+                <IconButton
+                  color="primary"
+                  sx={{ p: "10px" }}
+                  aria-label="new-book"
+                  onClick={handleCreateNewUser}
+                >
                   <QueueIcon />
                 </IconButton>
               </Tooltip>
-            </Grid>
+            </Paper>
           </Grid>{" "}
           {displayDetail > 0 ? (
             <Grid item xs={6}>
