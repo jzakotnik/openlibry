@@ -1,4 +1,3 @@
-import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/router";
@@ -11,6 +10,7 @@ import { getAllUsers } from "../../entities/user";
 
 import UserAdminList from "@/components/user/UserAdminList";
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import QueueIcon from "@mui/icons-material/Queue";
 import FormControl from "@mui/material/FormControl";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -23,7 +23,7 @@ import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { Tooltip } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 
 const prisma = new PrismaClient();
 
@@ -127,9 +127,9 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             </Grid>
             <Grid item>
               <Tooltip title="Neu">
-                <Button disabled={userCreating} onClick={handleCreateNewUser}>
-                  Neu
-                </Button>
+                <IconButton aria-label="new-user" onClick={handleCreateNewUser}>
+                  <QueueIcon />
+                </IconButton>
               </Tooltip>
             </Grid>
           </Grid>{" "}
