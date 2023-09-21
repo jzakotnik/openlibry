@@ -8,7 +8,7 @@ Die Idee entstand in unserer Grundschule, in der OpenBiblio im Einsatz war, eine
 ## Features
 
 - Nutzbar auf Computer, Tablet und Handy
-- On-the-fly-Suche während man tippt nach Büchern, Leihen und NutzerInnen
+- On-the-fly-Suche während man tippt nach Büchern, Leihen und NutzerInnen. Einfacher Filter für überfällige Bücher in einer Klasse direkt um Ausleih-Screen
 - Optimiert auf wenige Maus- und Tastaturklicks, insbesondere für die Ausleihe und Rückgabe
 - Cover-Bilder für Bücher können eingefügt werden
 - Einfache Installation in einer lokalen Umgebung oder in einer Cloud
