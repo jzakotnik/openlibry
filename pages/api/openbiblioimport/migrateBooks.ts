@@ -234,10 +234,9 @@ export default async function handler(
       const booklist = req.body as any;
       //console.log("Booklist", booklist);
       const bookCopy = booklist.biblio_copy[2].data;
-      //for some reason, the real ID of the book is in the copy table.. didn't get it
+      //bibid to barcode id, which is used in openlibry since it's printed in the books already!
       const bookIDMapping = createBookIDMapping(bookCopy);
       //filter out the books that have no barcode..
-      //console.log("Book ID Mapping", bookIDMapping);
       const books = filterForBarcode(booklist.biblio[2].data, bookIDMapping);
       console.log("Filtered books", books.length);
       const bookStatus = filterForBarcode(
@@ -259,39 +258,38 @@ export default async function handler(
         existingUsers.add(parseInt(u.mbrid));
       });
 
-      //First create basic table with the biblio books
-      const migratedBooks = books?.map((u: any) => {
+      //First create basic table with the biblio table books
+      books?.map((b: any) => {
         //map the fields from OpenBiblio correctly:
 
-        const barcodeID = bookIDMapping[u.bibid];
+        const barcodeID = bookIDMapping[b.bibid];
         if (isNaN(barcodeID)) {
-          console.log("Barcode not found", u.bibid);
+          console.log("Barcode not found", b.bibid);
           return;
         }
 
         const book = {
           id: barcodeID,
-
-          rentalStatus: "available",
-          rentedDate: (u.status_begin_dt ??= new Date()),
-          dueDate: (u.due_back_dt ??= new Date()),
-          renewalCount: parseInt((u.renewal_count ??= 0)),
-          title: (u.title ??= "FEHLER Titel nicht importiert"),
-          subtitle: (u.title_remainder ??= "FEHLER Titel nicht importiert"),
-          author: (u.author ??= "FEHLER Autor nicht importiert"),
+          rentalStatus: transformRentalStatus(b.status_cd),
+          rentedDate: (b.status_begin_dt ??= new Date()),
+          dueDate: (b.due_back_dt ??= new Date()),
+          renewalCount: parseInt((b.renewal_count ??= 0)),
+          title: (b.title ??= "FEHLER Titel nicht importiert"),
+          subtitle: (b.title_remainder ??= "FEHLER Titel nicht importiert"),
+          author: (b.author ??= "FEHLER Autor nicht importiert"),
           topics:
-            (u.topic1 ??= " ") +
+            (b.topic1 ??= " ") +
             ";" +
-            (u.topic2 ??= " ") +
+            (b.topic2 ??= " ") +
             ";" +
-            (u.topic3 ??= " ") +
+            (b.topic3 ??= " ") +
             ";" +
-            (u.topic4 ??= " ") +
+            (b.topic4 ??= " ") +
             ";" +
-            (u.topic5 ??= " "),
+            (b.topic5 ??= " "),
           imageLink: "",
         } as BookType;
-        console.log("Adding book", book);
+        //console.log("Adding book", book);
         //transaction.push(addBook(prisma, book));
         //addBook(prisma, book);
         transaction.push(prisma.book.create({ data: { ...book } }));
@@ -300,34 +298,35 @@ export default async function handler(
       });
       console.log("Created books", importedBooksCount);
 
+      //Now all the books from the biblio table are imported with their values and rental status. But they are not connected to the users yet if renter
       //Attach rental status from history table in OpenBiblio
       let rentalStatusCount = 0;
-      const migratedStatus = bookStatus?.map((u: any) => {
-        const barcodeID = bookIDMapping[u.bibid];
+      bookCopy?.map((b: any) => {
+        const barcodeID = bookIDMapping[b.bibid];
         //skip the books that are not needed
         //rented date has format 2022-11-11 12:37:39
+        //if the book is in, the value in the DB is NULL
         const rentedTime = dayjs(
-          u.status_begin_dt,
+          b.status_begin_dt,
           "YYYY-MM-DD HH:mm:ss",
           true
         ).isValid()
-          ? dayjs(u.status_begin_dt, "YYYY-MM-DD HH:mm:ss", true).toDate()
+          ? dayjs(b.status_begin_dt, "YYYY-MM-DD HH:mm:ss", true).toDate()
           : undefined;
-        const dueDate = dayjs(u.due_back_dt, "YYYY-MM-DD", true).isValid()
-          ? dayjs(u.due_back_dt, "YYYY-MM-DD", true).toDate()
+        const dueDate = dayjs(b.due_back_dt, "YYYY-MM-DD", true).isValid()
+          ? dayjs(b.due_back_dt, "YYYY-MM-DD", true).toDate()
           : undefined;
 
         console.log("Timestamps: ", rentedTime, dueDate);
 
         //connect the book to the user, if it still exists
 
-        console.log("Connecting user ", u.mbrid);
-        if (existingUsers.has(parseInt(u.mbrid))) {
-          rentalStatusCount++;
+        console.log("Connecting user ", b.mbrid);
+        if (existingUsers.has(parseInt(b.mbrid)) && b.status_cd == "out") {
           transaction.push(
             prisma.user.update({
               where: {
-                id: parseInt(u.mbrid),
+                id: parseInt(b.mbrid),
               },
               data: {
                 books: {
@@ -342,10 +341,10 @@ export default async function handler(
 
         // update the rest
         const bookUpdate = {
-          rentalStatus: transformRentalStatus(u.status_cd),
+          rentalStatus: transformRentalStatus(b.status_cd),
           rentedDate: rentedTime,
           dueDate: dueDate,
-          renewalCount: parseInt(u.renewal_count),
+          renewalCount: parseInt(b.renewal_count),
         } as BookType;
 
         transaction.push(
