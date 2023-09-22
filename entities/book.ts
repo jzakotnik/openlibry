@@ -297,7 +297,7 @@ export async function rentBook(
   client: PrismaClient,
   userid: number,
   bookid: number,
-  duration: number = 14
+  duration: number = 21
 ) {
   //change due date, connect to user
   //put all into one transaction

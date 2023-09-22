@@ -121,7 +121,7 @@ export default function UserDetail({ user, books }: any) {
 
     const newbook = replaceBookStringDate(book) as any;
     //extend logic
-    const newDueDate = extendWeeks(book.dueDate as Date, 2);
+    const newDueDate = extendWeeks(book.dueDate as Date, 3);
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 

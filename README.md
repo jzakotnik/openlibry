@@ -42,6 +42,8 @@ Edit-Screen
 
 ### Bare metal am Beispiel Raspberry Pi
 
+- Beschreibung folgt
+
 ### Docker
 
 - Baue das image mit `docker build --no-cache -t openlibry .`

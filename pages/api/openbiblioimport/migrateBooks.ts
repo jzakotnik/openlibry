@@ -1,14 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { BookType } from "../../../entities/BookType";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { addBook, deleteAllBooks } from "@/entities/book";
-import { getUser } from "@/entities/user";
+import { BookType } from "../../../entities/BookType";
 
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { UserType } from "@/entities/UserType";
 
 export const TIMEZONE = "Europe/Berlin";
 dayjs.extend(utc);
@@ -237,7 +234,7 @@ export default async function handler(
       const booklist = req.body as any;
       //console.log("Booklist", booklist);
       const bookCopy = booklist.biblio_copy[2].data;
-      //for some reason, the real ID of the book is in the hist table.. didn't get it
+      //for some reason, the real ID of the book is in the copy table.. didn't get it
       const bookIDMapping = createBookIDMapping(bookCopy);
       //filter out the books that have no barcode..
       //console.log("Book ID Mapping", bookIDMapping);
@@ -294,7 +291,7 @@ export default async function handler(
             (u.topic5 ??= " "),
           imageLink: "",
         } as BookType;
-        //console.log("Adding book", book);
+        console.log("Adding book", book);
         //transaction.push(addBook(prisma, book));
         //addBook(prisma, book);
         transaction.push(prisma.book.create({ data: { ...book } }));
@@ -320,11 +317,11 @@ export default async function handler(
           ? dayjs(u.due_back_dt, "YYYY-MM-DD", true).toDate()
           : undefined;
 
-        //console.log("Timestamps: ", rentedTime, dueDate);
+        console.log("Timestamps: ", rentedTime, dueDate);
 
         //connect the book to the user, if it still exists
 
-        //console.log("Connecting user ", u.mbrid);
+        console.log("Connecting user ", u.mbrid);
         if (existingUsers.has(parseInt(u.mbrid))) {
           rentalStatusCount++;
           transaction.push(
@@ -363,7 +360,7 @@ export default async function handler(
 
       //Attach additional fields from the fields table in OpenBiblio
       let additionalFieldsCount = 0;
-      //console.log(bookExtraFields);
+      console.log(bookExtraFields);
       bookExtraFields.map((f: any) => {
         const barcodeID = bookIDMapping[f.bibid];
         if (isNaN(barcodeID)) {

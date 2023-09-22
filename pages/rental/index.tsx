@@ -99,7 +99,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
     console.log("Extending book ", bookid, book);
     const newbook = replaceBookStringDate(book) as any;
     //extend logic
-    const newDueDate = extendWeeks(book.dueDate as Date, 2);
+    const newDueDate = extendWeeks(book.dueDate as Date, 3);
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 
