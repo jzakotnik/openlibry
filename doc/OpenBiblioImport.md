@@ -19,7 +19,7 @@ podman machine start
 `podman-compose -f docker-compose.yaml up`
 - Create a database with name openbiblio in phpmyadmin running on `http://localhost:8080/`
 - Copy the files over the running container
-``
+```bash
 podman cp ./input-22-09-2023/biblio.MYD mysql-server-db:/var/lib/mysql/openbiblio
 podman cp ./input-22-09-2023/biblio.MYI mysql-server-db:/var/lib/mysql/openbiblio
 podman cp ./input-22-09-2023/biblio.frm mysql-server-db:/var/lib/mysql/openbiblio
@@ -84,7 +84,7 @@ podman cp ./input-22-09-2023/usmarc_subfield_dm.frm mysql-server-db:/var/lib/mys
 podman cp ./input-22-09-2023/usmarc_tag_dm.MYD mysql-server-db:/var/lib/mysql/openbiblio
 podman cp ./input-22-09-2023/usmarc_tag_dm.MYI mysql-server-db:/var/lib/mysql/openbiblio
 podman cp ./input-22-09-2023/usmarc_tag_dm.frm mysql-server-db:/var/lib/mysql/openbiblio
-``
+```
 
 - Export the following tables as json, sort them by date `create_dt`: `member`, `biblio_status_hist`, `biblio`, `biblio_field`, `biblio_copy`. Copy them together in `book_all.json` (this is a bit tedious). It is important to sort by date (oldest first), because the history of rentals needs to be in the correct order. 
 *IMPORTANT* don't click on export, first do the sorted SQL query and then export the query result as json. For example, the member export has the query `SELECT * FROM member ORDER BY member.create_dt ASC`
