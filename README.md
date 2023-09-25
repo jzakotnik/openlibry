@@ -72,4 +72,4 @@ https://covers.openlibrary.org/13834659
 
 ## Kontakt
 
-Falls ihr mitmachen wollt, die Software nutzen wollt oder ein Hosting sucht, schreibt mich gern unter [info@openlibry.de](info@openlibry.de) an. Falls ihr die Software finanziell unterstützen wollt, geht es bei (https://ko-fi.com/jzakotnik)[Ko-Fi] sehr einfach.
+Falls ihr mitmachen wollt, die Software nutzen wollt oder ein Hosting sucht, schreibt mich gern unter [info@openlibry.de](info@openlibry.de) an. Falls ihr die Software finanziell unterstützen wollt, geht es bei [https://ko-fi.com/jzakotnik](Ko-Fi) sehr einfach.
