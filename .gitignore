@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+
+
 # dependencies
 /node_modules
 /.pnp
@@ -42,7 +44,8 @@ openbiblio_migration/*
 pages/api/openbiblioimport/member.json
 prisma/dev_clean.db
 
-public/coverimages
+public/coverimages/*
+!public/coverimages/default.png
 prisma/dev_original.db
 prisma/dev_anonymised.db
 importscripts/openbiblio/input/biblio_copy.frm

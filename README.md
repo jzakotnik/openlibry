@@ -42,12 +42,24 @@ Edit-Screen
 
 ### Bare metal am Beispiel Raspberry Pi
 
-- Beschreibung folgt
+Für eine lokale Installation ohne Docker, befolge diese Schritte:
+
+- Update der Distribution: `sudo apt-get update` und `sudo apt-get upgrade`
+- Falls `curl` nicht installiert ist: `apt install curl`
+- Installiere den node version manager NVM: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash`. Damit sollte `nvm` installiert sein
+ - Installiere den node server: `nvm install --lts`
+ - Falls noch kein `git` installiert ist: `sudo apt-get install git-all` 
+ - Kopiere das Repository aus github: `git clone https://github.com/jzakotnik/openlibry.git`
+ - Nutze das entsprechende Verzeichnis: `cd openlibry`
+ - Kopiere das Beispielfile und passe den API endpoint mit dem entsprechenden Server Namen an: `cp .env_example .env` und .ggf `nano .env`
+- Installiere alle notwendigen node Pakete: `npm install`
+- Erzeuge eine leere Datenbank (sqlite): `npx prisma db push`
+- Starte openLibry mit `npm run start`. Achte darauf dass der entsprechende Port freigegeben ist und über den Browser zugänglich ist.
 
 ### Docker
 
 - Baue das image mit `docker build --no-cache -t openlibry .`
-- Führe das image in docker aus `docker run -p:3010:3010 openlibry`
+- Führe das image in docker aus `docker run -p:3010:3010 -v ./data:/prisma/dev.db openlibry`
 - Öffne OpenLibry im Browser: `http://localhost:3010`
 
 **Achtung**, das ist ein Sandbox Setup, um schnell damit spielen zu können. Für Production-Use sollte Docker noch automatisiert gestartet werden und die Datenbank auf einem persistenten Volume gehostet werden.
@@ -56,6 +68,8 @@ Edit-Screen
 ## REST API
 
 Die REST API kennt die Resourcen `book` und `user`. Für beide gibt es jeweils die entsprechenden http Operationen (GET, PUT, POST, DELETE). Die Ausleihe entsteht durch die Verknüpfung von `user` und `book`, also z.B. `http://localhost:3000/api/book/2001/user/1080` um ein Buch auszuleihen.
+
+Die API kann verwendet werden, um User/Bücher aus anderen Programmen automatisiert zu importieren.
 
 Weitere Beispiele sind im [docs](./doc/sampleAPIRequests/) Folder aufgeführt.
 
