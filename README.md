@@ -63,7 +63,7 @@ Für eine lokale Installation ohne Docker, befolge diese Schritte:
 - Das SQLite File wird auf einem volume gemappt. Beim ersten Ausführen, logge Dich in den Container ein `docker exec -it openlibry_openlibry_1 /bin/bash` und führe `npx prisma db push` aus um das DB File zu erzeugen.
 - Öffne OpenLibry im Browser: `http://localhost:3010`
 
-**Achtung**, das ist ein Sandbox Setup, um schnell damit spielen zu können. Für Production-Use sollte Docker noch automatisiert gestartet werden und die Datenbank auf einem persistenten Volume gehostet werden.
+**Achtung**, das ist ein Sandbox Setup, um schnell damit spielen zu können. Für Production-Use sollte Docker noch automatisiert gestartet werden.
 
 
 ## REST API
