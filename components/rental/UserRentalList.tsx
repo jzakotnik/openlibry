@@ -325,8 +325,9 @@ export default function UserRentalList({
                         </Tooltip>
                       </Grid>
                       <Grid item>
-                        <Typography sx={{ m: 1 }}>
+                        <Typography sx={{ m: 1 }} variant="caption">
                           {r.title}, bis {dayjs(r.dueDate).format("DD.MM.YYYY")}
+                          , {r.renewalCount}x verlängert
                         </Typography>
                       </Grid>
                     </Grid>

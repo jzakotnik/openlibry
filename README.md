@@ -65,6 +65,9 @@ Für eine lokale Installation ohne Docker, befolge diese Schritte:
 
 **Achtung**, das ist ein Sandbox Setup, um schnell damit spielen zu können. Für Production-Use sollte Docker noch automatisiert gestartet werden.
 
+### Installation mit nginx als reverse proxy und pm2 als Package Manager
+
+Eine Installationsanleitung für die Konfiguration mit dem Webserver nginx auf einer subdomain findet sich [hier](./doc/WebServerInstall.md)
 
 ## REST API
 
@@ -84,6 +87,8 @@ ISBN Service für 10 und 13 ISBN:
 https://openlibrary.org/isbn/9780140328721
 Cover: 
 https://covers.openlibrary.org/13834659
+
+
 
 ## Kontakt
 
