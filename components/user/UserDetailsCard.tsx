@@ -47,7 +47,7 @@ export default function UserDetailsCard({
             ", " +
             selectedUser.schoolTeacherName}
         </Typography>
-        <Typography variant="h5" component="div">
+        <Typography variant="h5" color="primary" component="div">
           {selectedUser.lastName + ", " + selectedUser.firstName}
         </Typography>
 

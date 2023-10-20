@@ -1,4 +1,4 @@
-import { useTheme } from "@mui/material/styles";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { getImages } from "../api/images";
 
@@ -26,6 +26,12 @@ import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
 
 const prisma = new PrismaClient();
+/*
+const theme = createTheme({
+  palette: {
+    primary: { main: "#1976d2" },
+  },
+});*/
 const gridItemProps = {
   xs: 12,
   sm: 12,
@@ -194,18 +200,20 @@ export default function Books({ books, images }: BookPropsType) {
 
   return (
     <Layout>
-      <BookSearchBar
-        handleInputChange={handleInputChange}
-        handleNewBook={handleCreateNewBook}
-        bookSearchInput={bookSearchInput}
-        toggleView={toggleView}
-        detailView={detailView}
-      />
-      {detailView ? (
-        <DetailCardContainer renderedBooks={renderedBooks} />
-      ) : (
-        <SummaryRowContainer renderedBooks={renderedBooks} />
-      )}
+      <ThemeProvider theme={theme}>
+        <BookSearchBar
+          handleInputChange={handleInputChange}
+          handleNewBook={handleCreateNewBook}
+          bookSearchInput={bookSearchInput}
+          toggleView={toggleView}
+          detailView={detailView}
+        />
+        {detailView ? (
+          <DetailCardContainer renderedBooks={renderedBooks} />
+        ) : (
+          <SummaryRowContainer renderedBooks={renderedBooks} />
+        )}
+      </ThemeProvider>
     </Layout>
   );
 }

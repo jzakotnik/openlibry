@@ -1,5 +1,5 @@
 import Grid from "@mui/material/Grid";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import { useRouter } from "next/router";
 
 import Layout from "@/components/layout/Layout";
@@ -22,13 +22,13 @@ import { UserType } from "@/entities/UserType";
 import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
 
 const prisma = new PrismaClient();
-
+/*
 const theme = createTheme({
   palette: {
     primary: { main: "#1976d2" },
   },
 });
-
+*/
 interface UsersPropsType {
   users: Array<UserType>;
   books: Array<BookType>;
@@ -41,6 +41,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userCreating, setUserCreating] = useState(false);
 
   const router = useRouter();
+  const theme = useTheme();
 
   useEffect(() => {}, []);
 
