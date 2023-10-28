@@ -1,9 +1,11 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { LoginUserType } from "./LoginUserType";
 
-export async function getLoginUser(client: PrismaClient, id: number) {
+export async function getLoginUser(client: PrismaClient, username: string) {
   try {
-    return await client.loginUser.findUnique({ where: { id } });
+    return await client.loginUser.findUnique({
+      where: { username: username },
+    });
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||

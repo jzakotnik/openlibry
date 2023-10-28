@@ -1,7 +1,7 @@
 import { addLoginUser } from "@/entities/loginuser";
+import { hashPassword } from "@/utils/hashPassword";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-import { createHash } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
@@ -17,9 +17,6 @@ export default async function handle(
     return res.status(405).json({ message: "Method Not allowed" });
   }
 }
-export const hashPassword = (password: string) => {
-  return createHash("sha256").update(password).digest("hex");
-};
 
 // function to create user in our database
 async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
