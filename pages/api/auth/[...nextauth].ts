@@ -3,10 +3,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 export default NextAuth({
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "Username",
 
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        name: { label: "Username", type: "text", placeholder: "jsmith" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
@@ -17,18 +17,23 @@ export default NextAuth({
           req.body!.password
         );
 
-        const res = await fetch("http://localhost:3000/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user: req.body!.user,
-            password: req.body!.password,
-          }),
-        });
-        const user = await res.json();
+        const res = await fetch(
+          process.env.NEXT_PUBLIC_API_URL + "/api/login/auth",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user: req.body!.user,
+              password: req.body!.password,
+            }),
+          }
+        );
+        const dbuser = await res.json();
+        const user = { id: "1", name: "J Smith", email: "jsmith@example.com" };
         console.log("Next-Auth - Result of the login", user);
+        console.log("Next Auth result of auth call:", dbuser);
 
         if (user) {
           return user;
@@ -38,8 +43,4 @@ export default NextAuth({
       },
     }),
   ],
-
-  pages: {
-    signIn: "/auth/login",
-  },
 });

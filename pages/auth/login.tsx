@@ -7,7 +7,8 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { signIn } from "next-auth/react";
+
+import { signIn, useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
 import loginsplash from "./loginsplashscreen.jpg";
@@ -18,6 +19,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [passwordInPutError, setPasswordInputError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { data: session } = useSession();
+  console.log("Session", session);
 
   useEffect(() => {
     validate();
@@ -30,18 +33,14 @@ export default function Login() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    /*
-    console.log({
-      user: user,
-      password: password,
-    });*/
-    let res = await signIn("login", {
+
+    let res = await signIn("", {
       user,
       password,
       callbackUrl: `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`,
       redirect: false,
     });
-    console.log("Result of the signin,", res);
+
     if (res?.ok) {
       // toast success
       console.log("success");

@@ -19,11 +19,13 @@ export default async function handle(
 }
 async function loginUserHandler(req: NextApiRequest, res: NextApiResponse) {
   const { user, password } = req.body;
+  console.log("api-login-auth processing request", req.body);
   if (!user || !password) {
     return res.status(400).json({ message: "No username or password" });
   }
   try {
     const retrievedUser = await getLoginUser(prisma, user);
+    console.log("api-login-auth retrieved user", retrievedUser);
     if (!retrievedUser) {
       return res
         .status(400)
