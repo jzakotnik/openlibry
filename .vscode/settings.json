@@ -1,5 +1,12 @@
 {
-  "cSpell.words": ["bookid", "clickaway", "newbook", "userid"],
+  "cSpell.words": [
+    "bookid",
+    "clickaway",
+    "loginsplash",
+    "loginsplashscreen",
+    "newbook",
+    "userid"
+  ],
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": true

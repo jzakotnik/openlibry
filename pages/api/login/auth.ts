@@ -31,7 +31,7 @@ async function loginUserHandler(req: NextApiRequest, res: NextApiResponse) {
     }
     const hashedPassword = hashPassword(password);
     if (user && retrievedUser.password === hashedPassword) {
-      return res.status(200);
+      return res.status(200).json({ user: user });
     } else {
       return res.status(401).json({ message: "invalid credentials" });
     }
