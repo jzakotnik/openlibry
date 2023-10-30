@@ -7,7 +7,7 @@ import Image from "next/image";
 import splashbanner from "../components/title/splashbanner.jpg";
 
 import { publicNavItems } from "@/components/layout/navigationItems";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,7 +20,7 @@ export default function Home() {
     console.log("Selected", slug);
     router.push(slug);
   };
-
+  /* handled via middleware
   if (status === "loading") {
     return <p>Loading...</p>;
   }
@@ -33,7 +33,7 @@ export default function Home() {
       </>
     );
   }
-
+*/
   return (
     <Layout>
       <Image

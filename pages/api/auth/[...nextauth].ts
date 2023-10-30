@@ -6,7 +6,7 @@ export default NextAuth({
       name: "Username",
 
       credentials: {
-        name: { label: "Username", type: "text", placeholder: "jsmith" },
+        user: { label: "Username", type: "text", placeholder: "bibadmin" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
@@ -30,13 +30,18 @@ export default NextAuth({
             }),
           }
         );
-        const dbuser = await res.json();
-        const user = { id: "1", name: "J Smith", email: "jsmith@example.com" };
-        console.log("Next-Auth - Result of the login", user);
-        console.log("Next Auth result of auth call:", dbuser);
+        const usertoken = await res.json();
+        const mockuser = {
+          id: "1",
+          name: "J Smith",
+          email: "jsmith@example.com",
+        };
+        console.log("Next-Auth - Result of the login", mockuser);
+        console.log("Next Auth result of auth call:", usertoken);
 
-        if (user) {
-          return user;
+        if (usertoken) {
+          console.log("Passing user token back to middleware", usertoken);
+          return usertoken;
         } else {
           return null;
         }

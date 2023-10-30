@@ -32,8 +32,8 @@ export default function UserDetailsCard({
   user,
   rentals,
 }: UserDetailsCardPropType) {
-  console.log("Details for user ", user);
-  console.log("User has these books ", rentals);
+  //console.log("Details for user ", user);
+  //console.log("User has these books ", rentals);
   const selectedUser = user;
   return (
     <Card sx={{ minWidth: 275 }}>

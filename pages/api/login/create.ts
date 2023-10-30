@@ -27,6 +27,7 @@ async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
       username: req.body.user,
       password: hashPassword(req.body.password),
       email: req.body.email,
+      role: req.body.role,
       active: true,
     };
     addLoginUser(prisma, userData);

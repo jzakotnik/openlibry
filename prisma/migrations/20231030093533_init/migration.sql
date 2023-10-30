@@ -12,6 +12,18 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "LoginUser" (
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true
+);
+
+-- CreateTable
 CREATE TABLE "Audit" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -52,3 +64,6 @@ CREATE TABLE "Book" (
     "userId" INTEGER,
     CONSTRAINT "Book_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "LoginUser_username_key" ON "LoginUser"("username");
