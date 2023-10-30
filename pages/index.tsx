@@ -7,33 +7,17 @@ import Image from "next/image";
 import splashbanner from "../components/title/splashbanner.jpg";
 
 import { publicNavItems } from "@/components/layout/navigationItems";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  console.log("Logged in session", session);
   const onClick = (e: any, slug: string) => {
     console.log("Selected", slug);
     router.push(slug);
   };
-  /* handled via middleware
-  if (status === "loading") {
-    return <p>Loading...</p>;
-  }
 
-  if (status === "unauthenticated") {
-    return (
-      <>
-        Not signed in <br />
-        <button onClick={() => signIn()}>Sign in</button>
-      </>
-    );
-  }
-*/
   return (
     <Layout>
       <Image

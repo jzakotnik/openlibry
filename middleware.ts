@@ -46,6 +46,8 @@ export default withAuth(
         //console.log("Middleware request:", req);
         console.log("Middleware received the token:", token);
         console.log("Middleware caught path:", req.nextUrl.pathname);
+        //console.log("Middleware role:", req.headers);
+        //we need the auth endpoint do be without authorization available
         if (token === null && req.nextUrl.pathname != "/api/login/auth") {
           return false;
         }

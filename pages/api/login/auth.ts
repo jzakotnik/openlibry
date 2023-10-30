@@ -11,7 +11,7 @@ export default async function handle(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    //login uer
+    //login user
     await loginUserHandler(req, res);
   } else {
     return res.status(405);
@@ -33,13 +33,13 @@ async function loginUserHandler(req: NextApiRequest, res: NextApiResponse) {
     }
     const hashedPassword = hashPassword(password);
     if (user && retrievedUser.password === hashedPassword) {
-      return res
-        .status(200)
-        .json({
-          user: user,
-          email: retrievedUser.email,
-          role: retrievedUser.role,
-        });
+      const loginResult = {
+        user: retrievedUser.username,
+        email: retrievedUser.email,
+        role: retrievedUser.role,
+      };
+      //console.log("auth service login result:", loginResult);
+      return res.status(200).json(loginResult);
     } else {
       return res.status(401).json({ message: "invalid credentials" });
     }
