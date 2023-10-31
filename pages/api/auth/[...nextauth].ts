@@ -16,6 +16,7 @@ export default NextAuth({
 
       async authorize(credentials, req) {
         // Add logic here to look up the user from the credentials supplied
+
         console.log(
           "Next-Auth - Request for login",
           req.body!.user,
@@ -24,14 +25,15 @@ export default NextAuth({
 
         const retrievedUser = await getLoginUser(prisma, req.body!.user);
         const hashedPassword = hashPassword(req.body!.password);
-        //const user = { id: "1", name: "J Smith", email: "jsmith@example.com" };
+        const user = {
+          id: "0",
+          name: retrievedUser!.username.toString(),
+          email: retrievedUser!.email.toString(),
+          role: retrievedUser!.role.toString(),
+        };
+
         if (retrievedUser && retrievedUser!.password === hashedPassword) {
           console.log("Passing user token back to middleware", retrievedUser);
-          const user = {
-            user: retrievedUser.username,
-            email: retrievedUser.email,
-            role: retrievedUser.role,
-          };
           return user;
         } else {
           return null;
