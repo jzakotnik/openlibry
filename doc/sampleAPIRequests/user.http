@@ -41,6 +41,6 @@ content-type: application/json
 
 ###
 
-GET http://localhost:3000/api/user/ HTTP/1.1
+GET http://localhost:3000/api/user/9999 HTTP/1.1
 content-type: application/json
 
