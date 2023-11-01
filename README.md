@@ -37,8 +37,9 @@ Edit-Screen
 ## Installation und Konfiguration
 
 - Kopiere das Beispiel Environment file: `cp .env_example .env`
-- Konfiguriere den Server Namen in einer `.env` Datei im Hauptordner, z.B. `NEXT_PUBLIC_API_URL="http://localhost:3000"
+- Konfiguriere den Server Namen in einer `.env` Datei im Hauptordner entsprechend der Werte im `.env_example`, z.B. `NEXT_PUBLIC_API_URL="http://localhost:3000"
 `
+- Der Wert `AUTH_ENABLED` sollte zunächst auf `false` gesetzt werden, so dass man sich beim ersten Login ohne Authentifizierung einloggen kann. Via `https://<domain>/auth/register` kann man dann den ersten User anlegen und danach `AUTH_ENABLED` auf `true` setzen.
 
 ### Bare metal am Beispiel Raspberry Pi
 
