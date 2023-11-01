@@ -24,6 +24,17 @@ model User {
   books             Book[]
 }
 
+model LoginUser {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String
+  password  String
+  role      String
+  active    Boolean  @default(true)
+}
+
 model Audit {
   createdAt    DateTime @default(now())
   id           Int      @id @default(autoincrement())

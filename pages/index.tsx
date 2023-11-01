@@ -1,17 +1,13 @@
-import { Inter } from "next/font/google";
-import styles from "@/styles/Home.module.css";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import Image from "next/image";
-import TopBar from "@/components/layout/TopBar";
 import Layout from "@/components/layout/Layout";
 import TitleTile from "@/components/title/TitleTile";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import { Inter } from "next/font/google";
+import Image from "next/image";
 import splashbanner from "../components/title/splashbanner.jpg";
 
-import { useRouter } from "next/router";
 import { publicNavItems } from "@/components/layout/navigationItems";
-import palette from "@/styles/palette";
+import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
 
