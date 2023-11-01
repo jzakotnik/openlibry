@@ -1,3 +1,4 @@
+//("use client");
 import Layout from "@/components/layout/Layout";
 import { Grid } from "@mui/material";
 
@@ -32,8 +33,6 @@ interface RentalPropsType {
 }
 
 const prisma = new PrismaClient();
-
-("use client");
 
 const fetcher = (url: any) => fetch(url).then((r) => r.json());
 

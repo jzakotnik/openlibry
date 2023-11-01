@@ -2,9 +2,10 @@ import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 export default withAuth(
   function middleware(req: NextRequest) {
-    //console.log("Middleware triggered with ", req);
+    ////console.log("Middleware triggered with ", req);
     //set CSP headers
     const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+    //console.log("Nonce", nonce);
     const cspHeader = `
     default-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'unsafe-inline';
     script-src 'self'  'unsafe-eval' 'unsafe-inline';
@@ -27,7 +28,7 @@ export default withAuth(
       cspHeader.replace(/\s{2,}/g, " ").trim()
     );
     if (req.nextUrl.pathname == "/admin") {
-      //console.log("Admin page fetched");
+      ////console.log("Admin page fetched");
 
       return new NextResponse("No admin", {
         status: 400,
@@ -60,9 +61,11 @@ export default withAuth(
           req.nextUrl.pathname != "/auth/error" &&
           process.env.AUTH_ENABLED == "true"
         ) {
+          //console.log("Middleware: not authorized");
           //if (token === null) {
           return false;
         }
+        //console.log("Middleware:  authorized");
         return true;
       },
     },
