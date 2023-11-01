@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export default NextAuth({
   providers: [
     CredentialsProvider({
-      name: "Username",
+      name: "credentials",
 
       credentials: {
         user: { label: "Username", type: "text", placeholder: "bibadmin" },
@@ -17,11 +17,11 @@ export default NextAuth({
       async authorize(credentials, req) {
         // Add logic here to look up the user from the credentials supplied
 
-        console.log(
+        /*console.log(
           "Next-Auth - Request for login",
           req.body!.user,
           req.body!.password
-        );
+        );*/
 
         const retrievedUser = await getLoginUser(prisma, req.body!.user);
         const hashedPassword = hashPassword(req.body!.password);
@@ -41,4 +41,8 @@ export default NextAuth({
       },
     }),
   ],
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
+  },
 });

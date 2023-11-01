@@ -49,9 +49,18 @@ export default withAuth(
         //console.log("Middleware role:", req.headers);
         //we need the auth endpoint do be without authorization available
 
+        console.log(
+          "Do we have authorization enabled?",
+          process.env.AUTH_ENABLED
+        );
         //I think we don't need the endpoint since everything is handled in the ..nextAuth.ts
-        //if (token === null && req.nextUrl.pathname != "/api/login/auth") {
-        if (token === null) {
+        if (
+          token === null &&
+          req.nextUrl.pathname != "/auth/login" &&
+          req.nextUrl.pathname != "/auth/error" &&
+          process.env.AUTH_ENABLED == "true"
+        ) {
+          //if (token === null) {
           return false;
         }
         return true;

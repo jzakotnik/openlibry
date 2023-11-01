@@ -21,7 +21,7 @@ export default async function handle(
 // function to create user in our database
 async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
   let errors = [];
-  //console.log("Creating login user with POST ", req.body);
+  console.log("Creating login user with POST ", req.body);
   try {
     const userData = {
       username: req.body.user,
