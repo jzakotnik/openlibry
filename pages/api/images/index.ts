@@ -1,18 +1,16 @@
 import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
 
 type Data = {
   result: Array<string>;
 };
 
+//TODO change this to the env folder
 export async function getImages() {
   const dirRelativeToPublicFolder = "coverimages";
-  const dir = path.resolve("./public", dirRelativeToPublicFolder);
-  const filenames = fs.readdirSync(dir);
-  /*const images = filenames.map((name) =>
-    path.join("/", dirRelativeToPublicFolder, name)
-  );*/
+  //const dir = path.resolve("./public", dirRelativeToPublicFolder);
+  const dir = process.env.COVERIMAGE_FILESTORAGE_PATH;
+  const filenames = fs.readdirSync(dir!);
   return filenames;
 }
 
@@ -23,6 +21,7 @@ export default async function handler(
   if (req.method === "GET") {
     try {
       const images = await getImages();
+      console.log("Found these images", images);
       res.statusCode = 200;
       res.json({ result: images });
     } catch (error) {

@@ -1,0 +1,1 @@
+curl -F cover=@test.jpg http://localhost:3000/api/book/cover/789

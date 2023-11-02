@@ -90,7 +90,7 @@ const header = {
     },
   },
   h6: {
-    fontFamily: "KFWCentroSansBold",
+    fontFamily: "Tahoma, sans-serif",
     color: palette.text.secondary,
     fontSize: "0.85rem",
     lineHeight: "1.5",
@@ -112,7 +112,7 @@ const body = {
     lineHeight: "1.5",
   },
   body1_white_bold: {
-    fontFamily: "KFWCentroSansBold",
+    fontFamily: "Tahoma, sans-serif",
     fontSize: "1rem",
     color: "#fff",
     lineHeight: "1.5",
@@ -131,7 +131,7 @@ const body = {
     lineHeight: "1.43",
   },
   body2_bold: {
-    fontFamily: "KFWCentroSansBold",
+    fontFamily: "Tahoma, sans-serif",
     color: palette.text.secondary,
     fontSize: "0.875rem",
     lineHeight: "1.43",
