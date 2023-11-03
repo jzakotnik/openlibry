@@ -19,6 +19,7 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
+import BookImageUploadButton from "./edit/BookImageUploadButton";
 import BookMultiText from "./edit/BookMultiText";
 import BookNumberField from "./edit/BookNumberField";
 import BookStatusDropdown from "./edit/BookStatusDropdown";
@@ -374,7 +375,8 @@ export default function BookEditForm({
                   width: "auto",
                 }}
               />
-            )}{" "}
+            )}
+            <BookImageUploadButton book={book} />
           </Grid>{" "}
           <Grid item>
             <BookBarcode book={book} />

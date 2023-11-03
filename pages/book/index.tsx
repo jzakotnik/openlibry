@@ -220,6 +220,8 @@ export default function Books({ books, images }: BookPropsType) {
 
 export async function getServerSideProps() {
   const imagesArray = await getImages();
+
+  //console.log("Received these book images on page", imagesArray);
   //push array to object for performance reasons
   const images = {};
   imagesArray.map((i) => ((images as any)[i] = "1"));
