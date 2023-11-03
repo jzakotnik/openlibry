@@ -365,7 +365,7 @@ export default function BookEditForm({
               />
             ) : (
               <Image
-                src={"/coverimages/default.png"}
+                src={"/coverimages" + "/default.png"}
                 width="200"
                 height="200"
                 priority={false}

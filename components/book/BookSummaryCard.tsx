@@ -88,7 +88,7 @@ export default function BookSummaryCard({
           />
         ) : (
           <Image
-            src={"/coverimages/default.png"}
+            src={"/coverimages/" + "/default.png"}
             width={320}
             height={200}
             priority={false}
