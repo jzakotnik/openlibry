@@ -19,7 +19,7 @@ const handler = async (
     error: string | null;
   }>
 ) => {
-  const { pid } = req.query;
+  //console.log("Received this request", req);
   const data = await new Promise((resolve, reject) => {
     //const form = new IncomingForm({  });
     const form = formidable({
