@@ -56,7 +56,11 @@ export default async function handle(
         res.status(200).send(imageBuffer);
       } catch (error) {
         console.log(error);
-        res.status(400).json({ data: "ERROR: " + error });
+        const imageBuffer = fs.readFileSync(
+          path.join(process.env.COVERIMAGE_FILESTORAGE_PATH!, "/default.jpg")
+        );
+        res.setHeader("Content-Type", "image/jpg");
+        res.status(200).send(imageBuffer);
       }
       break;
 

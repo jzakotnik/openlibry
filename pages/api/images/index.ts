@@ -5,6 +5,7 @@ type Data = {
   result: Array<string>;
 };
 
+//TODO this still needed?
 export async function getImages() {
   //const dir = path.resolve("./public", dirRelativeToPublicFolder);
   const dir = process.env.COVERIMAGE_FILESTORAGE_PATH;

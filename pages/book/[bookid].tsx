@@ -126,7 +126,6 @@ export default function BookDetail({ user, book, images, topics }: any) {
           saveBook={handleSaveButton}
           returnBook={handleReturnBookButton}
           topics={topics}
-          hasImage={book.id?.toString() + ".jpg" in images}
         />
         <Snackbar
           open={returnBookSnackbar}

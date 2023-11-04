@@ -1,6 +1,5 @@
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { getImages } from "../api/images";
 
 import Grid from "@mui/material/Grid";
 import { useRouter } from "next/router";
@@ -176,7 +175,6 @@ export default function Books({ books, images }: BookPropsType) {
             <BookSummaryCard
               book={b}
               returnBook={() => handleReturnBook(b.id!, b.userId!)}
-              hasImage={b.id?.toString() + ".jpg" in images}
             />
           </Grid>
         ))}
@@ -219,13 +217,6 @@ export default function Books({ books, images }: BookPropsType) {
 }
 
 export async function getServerSideProps() {
-  const imagesArray = await getImages();
-
-  //console.log("Received these book images on page", imagesArray);
-  //push array to object for performance reasons
-  const images = {};
-  imagesArray.map((i) => ((images as any)[i] = "1"));
-
   const allBooks = await getAllBooks(prisma);
 
   const books = allBooks.map((b) => {
@@ -240,5 +231,5 @@ export async function getServerSideProps() {
     return newBook;
   });
 
-  return { props: { books, images } };
+  return { props: { books } };
 }

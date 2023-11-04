@@ -28,13 +28,11 @@ const bull = (
 interface BookSummaryCardPropType {
   book: BookType;
   returnBook: any;
-  hasImage: boolean;
 }
 
 export default function BookSummaryCard({
   book,
   returnBook,
-  hasImage,
 }: BookSummaryCardPropType) {
   const [src, setSrc] = useState("/coverimages/default.png");
 
@@ -76,23 +74,13 @@ export default function BookSummaryCard({
         title={"Buch id " + selectedBook.id}
       />
       <CardMedia sx={{ position: "relative" }}>
-        {hasImage ? (
-          <img
-            src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
-            width={320}
-            height={200}
-            alt=""
-            style={{ objectFit: "cover" }}
-          />
-        ) : (
-          <img
-            src={process.env.NEXT_PUBLIC_API_URL + "/api/images/default.png"}
-            width={320}
-            height={200}
-            alt=""
-            style={{ objectFit: "cover" }}
-          />
-        )}
+        <img
+          src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
+          width={320}
+          height={200}
+          alt=""
+          style={{ objectFit: "cover" }}
+        />
       </CardMedia>
       <CardContent>
         <Typography variant="h5" color="text.secondary" gutterBottom>

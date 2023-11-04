@@ -41,7 +41,7 @@ interface BookEditFormPropType {
   deleteBook: any;
   saveBook: any;
   returnBook: any;
-  hasImage: boolean;
+
   topics: string[];
 }
 
@@ -57,7 +57,7 @@ export default function BookEditForm({
   deleteBook,
   saveBook,
   returnBook,
-  hasImage,
+
   topics,
 }: BookEditFormPropType) {
   const [editable, setEditable] = useState(false);
@@ -350,29 +350,17 @@ export default function BookEditForm({
           alignItems="center"
         >
           <Grid item>
-            {hasImage ? (
-              <img
-                src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
-                width="200"
-                height="200"
-                alt="cover image"
-                style={{
-                  border: "1px solid #fff",
-                  width: "auto",
-                }}
-              />
-            ) : (
-              <img
-                src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
-                width="200"
-                height="200"
-                alt="No cover image available placeholder"
-                style={{
-                  border: "1px solid #fff",
-                  width: "auto",
-                }}
-              />
-            )}
+            <img
+              src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
+              width="200"
+              height="200"
+              alt="cover image"
+              style={{
+                border: "1px solid #fff",
+                width: "auto",
+              }}
+            />
+
             <BookImageUploadButton book={book} />
           </Grid>{" "}
           <Grid item>
