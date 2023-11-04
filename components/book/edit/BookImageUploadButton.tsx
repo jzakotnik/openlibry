@@ -28,11 +28,9 @@ const BookImageUploadButton = (props: any): any => {
         console.log(json);
       });
   }, []);
+  console.log("Triggered file drop button");
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      "image/*": [],
-    },
   });
 
   return (
