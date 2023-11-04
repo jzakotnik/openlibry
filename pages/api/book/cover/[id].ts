@@ -19,7 +19,7 @@ const handler = async (
     error: string | null;
   }>
 ) => {
-  //console.log("Received this request", req);
+  console.log("Received this request", req);
   const data = await new Promise((resolve, reject) => {
     //const form = new IncomingForm({  });
     const form = formidable({
