@@ -5,9 +5,7 @@ type Data = {
   result: Array<string>;
 };
 
-//TODO change this to the env folder
 export async function getImages() {
-  const dirRelativeToPublicFolder = "coverimages";
   //const dir = path.resolve("./public", dirRelativeToPublicFolder);
   const dir = process.env.COVERIMAGE_FILESTORAGE_PATH;
   const filenames = fs.readdirSync(dir!);

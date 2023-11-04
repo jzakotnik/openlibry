@@ -1,5 +1,4 @@
 import Box from "@mui/material/Box";
-import Image from "next/image";
 import { useState } from "react";
 
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -352,11 +351,10 @@ export default function BookEditForm({
         >
           <Grid item>
             {hasImage ? (
-              <Image
-                src={"/coverimages/" + book.id + ".jpg"}
+              <img
+                src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
                 width="200"
                 height="200"
-                priority={false}
                 alt="cover image"
                 style={{
                   border: "1px solid #fff",
@@ -364,11 +362,10 @@ export default function BookEditForm({
                 }}
               />
             ) : (
-              <Image
-                src={"/coverimages" + "/default.png"}
+              <img
+                src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
                 width="200"
                 height="200"
-                priority={false}
                 alt="No cover image available placeholder"
                 style={{
                   border: "1px solid #fff",

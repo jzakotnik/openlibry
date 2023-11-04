@@ -6,7 +6,6 @@ import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -78,20 +77,18 @@ export default function BookSummaryCard({
       />
       <CardMedia sx={{ position: "relative" }}>
         {hasImage ? (
-          <Image
-            src={"/coverimages/" + book.id + ".jpg"}
+          <img
+            src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
             width={320}
             height={200}
-            priority={false}
             alt=""
             style={{ objectFit: "cover" }}
           />
         ) : (
-          <Image
-            src={"/coverimages/" + "/default.png"}
+          <img
+            src={process.env.NEXT_PUBLIC_API_URL + "/api/images/default.png"}
             width={320}
             height={200}
-            priority={false}
             alt=""
             style={{ objectFit: "cover" }}
           />

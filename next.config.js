@@ -4,6 +4,13 @@ const nextConfig = {
   swcMinify: true,
   images: {
     minimumCacheTTL: 5,
+
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
   },
 };
 
