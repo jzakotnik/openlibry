@@ -28,8 +28,10 @@ const BookImageUploadButton = (props: any): any => {
         console.log(json);
       });
   }, []);
-  console.log("Triggered file drop button");
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  //console.log("Triggered file drop button");
+  const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
+    noClick: true,
+    noKeyboard: true,
     onDrop,
   });
 
@@ -39,7 +41,9 @@ const BookImageUploadButton = (props: any): any => {
       {isDragActive ? (
         <p>Neues Bild </p>
       ) : (
-        <Button type="button">Neues Bild</Button>
+        <Button type="button" onClick={open}>
+          Neues Bild
+        </Button>
       )}
     </div>
   );
