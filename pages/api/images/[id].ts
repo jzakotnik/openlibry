@@ -48,19 +48,22 @@ export default async function handle(
           "/",
           fileName
         );
-        const imageBuffer = fs.readFileSync(filePath);
-        if (!imageBuffer) {
-          return res.status(400).json({ data: "ERROR: User not found" });
+        if (fs.existsSync(filePath)) {
+          const imageBuffer = fs.readFileSync(filePath);
+          if (!imageBuffer) {
+            return res.status(400).json({ data: "ERROR: User not found" });
+          }
+          res.setHeader("Content-Type", "image/jpg");
+          res.status(200).send(imageBuffer);
+        } else {
+          const imageBuffer = fs.readFileSync(
+            path.join(process.env.COVERIMAGE_FILESTORAGE_PATH!, "/default.jpg")
+          );
+          res.setHeader("Content-Type", "image/jpg");
+          res.status(200).send(imageBuffer);
         }
-        res.setHeader("Content-Type", "image/jpg");
-        res.status(200).send(imageBuffer);
       } catch (error) {
         console.log(error);
-        const imageBuffer = fs.readFileSync(
-          path.join(process.env.COVERIMAGE_FILESTORAGE_PATH!, "/default.jpg")
-        );
-        res.setHeader("Content-Type", "image/jpg");
-        res.status(200).send(imageBuffer);
       }
       break;
 

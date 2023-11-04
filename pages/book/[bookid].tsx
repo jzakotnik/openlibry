@@ -3,7 +3,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Layout from "@/components/layout/Layout";
 import { useEffect, useState } from "react";
 import { getAllTopics, getBook } from "../../entities/book";
-import { getImages } from "../api/images";
 
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
@@ -32,7 +31,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function BookDetail({ user, book, images, topics }: any) {
+export default function BookDetail({ user, book, topics }: any) {
   const router = useRouter();
 
   const [bookData, setBookData] = useState(book);
@@ -178,19 +177,19 @@ export async function getServerSideProps(context: any) {
     });
   }
 
-  console.log("Found these topics:", topics);
+  //console.log("Found these topics:", topics);
 
   if (!dbbook) return;
 
   const book = replaceBookDateString(dbbook);
-  const imagesArray = await getImages();
+  //const imagesArray = await getImages();
   //console.log("Images", imagesArray);
   //push array to object for performance reasons
-  const images = {};
-  imagesArray.map((i) => ((images as any)[i] = "1"));
+  //const images = {};
+  //imagesArray.map((i) => ((images as any)[i] = "1"));
 
   if (!("id" in book) || !book.id) return; //shouldn't happen
 
   // Pass data to the page via props
-  return { props: { book, images, topics } };
+  return { props: { book, topics } };
 }
