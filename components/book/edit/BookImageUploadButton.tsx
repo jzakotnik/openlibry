@@ -35,7 +35,7 @@ const BookImageUploadButton = (props: any): any => {
         color="primary"
         aria-label="upload picture"
         component="label"
-        onChange={handleChange}
+        onInput={handleChange}
       >
         <input hidden accept="image/*" type="file" />
         <PhotoCamera />
