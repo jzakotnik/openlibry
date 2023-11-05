@@ -2,7 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 export default withAuth(
   function middleware(req: NextRequest) {
-    ////console.log("Middleware triggered with ", req);
+    //console.log("Middleware triggered with ", req);
     //set CSP headers
     const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
     //console.log("Nonce", nonce);

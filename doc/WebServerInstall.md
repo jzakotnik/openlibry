@@ -4,7 +4,7 @@ Für eine Installation auf einer Subdomain mit `nginx` als Web-Server, `certbot`
 
 - Allgemeiner [Guide](https://dev.to/knowbee/how-to-setup-secure-subdomains-using-nginx-and-certbot-on-a-vps-4m8h) um eine Subdomain und Certbot in Nginx zu konfigurieren, das ist recht praktisch.
 
-- In dem allgemeinen Guide wird eine Subdomain in `/sites-available` in `nginx` angelegt. Beispielhaft ein config file für `sandbox.openlibry.de`. In `<port>` den entsprechenden Port des Node Servers anlegen.
+- In dem allgemeinen Guide wird eine Subdomain in `/sites-available` in `nginx` angelegt. Beispielhaft ein config file für `sandbox.openlibry.de`. In `<port>` den entsprechenden Port des Node Servers anlegen. *Wichtig*: Das Limit für maximale File Size beim Upload erhöhen, da sonst z.B. Cover-Photos vom Handy ggf. von nginx geblockt werden.
 
 ```nginx
 # sandbox.openlibry.de subdomain server block
@@ -17,6 +17,9 @@ server {
 }
 
 server {
+    sendfile on;
+    client_max_body_size 20M;
+    client_body_buffer_size 20M;
     listen 443 ssl;
     root /var/www/sandbox.openlibry.de;
     index index.html index.htm;

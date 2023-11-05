@@ -47,7 +47,7 @@ const handler = async (
           "/" +
           req.query.id +
           "." +
-          fileType;
+          "jpg";
       })
 
       .on("file", function (field, file) {
