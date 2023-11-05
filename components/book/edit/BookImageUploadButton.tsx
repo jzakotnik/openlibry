@@ -1,22 +1,22 @@
-import { Button } from "@mui/material";
-import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { PhotoCamera } from "@mui/icons-material";
+import { IconButton, Stack } from "@mui/material";
 
 const BookImageUploadButton = (props: any): any => {
-  const onDrop = useCallback((acceptedFiles: any) => {
-    const myFile = acceptedFiles[0];
-    console.log("Received the file for book", myFile, props.book.id);
+  const handleChange = (event: any) => {
+    console.log("Received the file for book", event, props.book.id);
+
     //const reader = new FileReader();
     const { book, setLoadingImage } = props;
     const formData = new FormData();
+    const file = event.target.files[0];
 
-    formData.set("cover", myFile);
-    //fetch API to save the file
+    formData.set("cover", file);
+    //fetch API to save the newFile
 
     fetch(process.env.NEXT_PUBLIC_API_URL + "/api/book/cover/" + book.id, {
       method: "POST",
       headers: {
-        "Content-length": myFile.size,
+        "Content-length": file.size,
       },
       body: formData, // Here, stringContent or bufferContent would also work
     })
@@ -27,25 +27,21 @@ const BookImageUploadButton = (props: any): any => {
         console.log(json);
         setLoadingImage(Math.floor(Math.random() * 10000));
       });
-  }, []);
-  //console.log("Triggered file drop button");
-  const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
-    noClick: true,
-    noKeyboard: true,
-    onDrop,
-  });
+  };
 
   return (
-    <div {...getRootProps()}>
-      <input {...getInputProps()} />
-      {isDragActive ? (
-        <p>Neues Bild </p>
-      ) : (
-        <Button type="button" onClick={open}>
-          Neues Bild
-        </Button>
-      )}
-    </div>
+    <Stack direction="row" alignItems="center" spacing={2}>
+      <IconButton
+        color="primary"
+        aria-label="upload picture"
+        component="label"
+        onChange={handleChange}
+      >
+        <input hidden accept="image/*" type="file" />
+        <PhotoCamera />
+        <input id="upload-image" hidden accept="image/*" type="file" />
+      </IconButton>
+    </Stack>
   );
 };
 
