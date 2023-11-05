@@ -39,7 +39,12 @@ const BookImageUploadButton = (props: any): any => {
       >
         <input hidden accept="image/*" type="file" />
         <PhotoCamera />
-        <input id="upload-image" hidden accept="image/*" type="file" />
+        <input
+          id="upload-image"
+          hidden
+          accept="image/*;capture=camera"
+          type="file"
+        />
       </IconButton>
     </Stack>
   );
