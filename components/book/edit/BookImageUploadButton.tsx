@@ -37,7 +37,6 @@ const BookImageUploadButton = (props: any): any => {
         component="label"
         onInput={handleChange}
       >
-        <input hidden accept="image/*" type="file" />
         <PhotoCamera />
         <input
           id="upload-image"
