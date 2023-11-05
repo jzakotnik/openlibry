@@ -47,7 +47,7 @@ const handler = async (
           "/" +
           req.query.id +
           "." +
-          fileType;
+          fileType?.toLowerCase();
       })
 
       .on("file", function (field, file) {

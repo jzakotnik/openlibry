@@ -28,7 +28,7 @@ export default function Login({
   const [passwordInPutError, setPasswordInputError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
-  console.log("Session", session);
+  //console.log("Session", session);
 
   useEffect(() => {
     validate();
