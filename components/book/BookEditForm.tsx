@@ -83,7 +83,7 @@ export default function BookEditForm({
   };
 
   const CoverImage = (props: any) => {
-    //console.log("Key", loadingImage);
+    //console.log("Key", loadingImage); //this forces a reload after upload
     return (
       <img
         src={
@@ -91,7 +91,7 @@ export default function BookEditForm({
           "/api/images/" +
           book.id +
           "?" +
-          new Date()
+          loadingImage
         }
         width="200"
         height="200"
