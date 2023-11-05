@@ -61,6 +61,7 @@ export default function BookEditForm({
   topics,
 }: BookEditFormPropType) {
   const [editable, setEditable] = useState(false);
+  const [loadingImage, setLoadingImage] = useState(1); //key for changing image
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
   const [returnedBooks, setReturnedBooks] = useState({});
@@ -79,6 +80,29 @@ export default function BookEditForm({
     } else {
       return <ArrowCircleLeftIcon />;
     }
+  };
+
+  const CoverImage = (props: any) => {
+    //console.log("Key", loadingImage);
+    return (
+      <img
+        src={
+          process.env.NEXT_PUBLIC_API_URL +
+          "/api/images/" +
+          book.id +
+          "?" +
+          new Date()
+        }
+        width="200"
+        height="200"
+        alt="cover image"
+        key={loadingImage}
+        style={{
+          border: "1px solid #fff",
+          width: "auto",
+        }}
+      />
+    );
   };
 
   return (
@@ -350,18 +374,11 @@ export default function BookEditForm({
           alignItems="center"
         >
           <Grid item>
-            <img
-              src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
-              width="200"
-              height="200"
-              alt="cover image"
-              style={{
-                border: "1px solid #fff",
-                width: "auto",
-              }}
+            <CoverImage />
+            <BookImageUploadButton
+              book={book}
+              setLoadingImage={setLoadingImage}
             />
-
-            <BookImageUploadButton book={book} />
           </Grid>{" "}
           <Grid item>
             <BookBarcode book={book} />
