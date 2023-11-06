@@ -1,5 +1,6 @@
 import { PhotoCamera } from "@mui/icons-material";
 import { IconButton, Stack } from "@mui/material";
+import sharp
 
 const BookImageUploadButton = (props: any): any => {
   const handleChange = (event: any) => {
@@ -9,6 +10,9 @@ const BookImageUploadButton = (props: any): any => {
     const { book, setLoadingImage } = props;
     const formData = new FormData();
     const file = event.target.files[0];
+
+    //resize image file
+
 
     formData.set("cover", file);
     //fetch API to save the newFile
