@@ -33,7 +33,8 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
-    "sharp": "^0.32.1",
+    "react-image-file-resizer": "^0.4.8",
+    "sharp": "^0.32.6",
     "swr": "^2.2.2"
   },
   "devDependencies": {
