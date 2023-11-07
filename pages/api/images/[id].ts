@@ -27,19 +27,7 @@ export default async function handle(
       }
       break;
 
-    case "PUT":
-      if (!req.body) return res.status(404).end("No data provided");
-      const userdata = req.body as UserType;
-      console.log("Handle user request ", userdata);
-      try {
-        const updateResult = await updateUser(prisma, id, userdata);
-        res.status(200).json(updateResult);
-      } catch (error) {
-        console.log(error);
-        res.status(400).json({ data: "ERROR DELETE: " + error });
-      }
-
-      break;
+    
 */
     case "GET":
       try {
