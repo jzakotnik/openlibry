@@ -15,6 +15,14 @@ body,
   }
 }
 
+.index-background {
+
+  width:100vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .project-screenshot {
   width: 100%;
   height: auto;
