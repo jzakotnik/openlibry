@@ -186,6 +186,7 @@ export default function UserRentalList({
           Suche NutzerIn
         </InputLabel>
         <Input
+          placeholder="Name, ID, klasse:, fällig:"
           sx={{ my: 0.5 }}
           id="user-search-input"
           startAdornment={
