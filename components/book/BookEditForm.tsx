@@ -41,8 +41,8 @@ interface BookEditFormPropType {
   deleteBook: any;
   saveBook: any;
   returnBook: any;
-
   topics: string[];
+  antolinResults: any;
 }
 
 interface ReturnBooksType {
@@ -57,8 +57,8 @@ export default function BookEditForm({
   deleteBook,
   saveBook,
   returnBook,
-
   topics,
+  antolinResults,
 }: BookEditFormPropType) {
   const [editable, setEditable] = useState(false);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
@@ -104,6 +104,10 @@ export default function BookEditForm({
       />
     );
   };
+  console.log(
+    "This is the antolin results for this book on the edit form",
+    antolinResults
+  );
 
   return (
     <Paper sx={{ mt: 5, px: 4 }}>
@@ -192,6 +196,10 @@ export default function BookEditForm({
               book={book}
               topics={topics}
             />
+            <Typography variant="caption">
+              Antolin-Suche:{" "}
+              {antolinResults ? antolinResults.foundNumber : "..."} Bücher
+            </Typography>
           </Grid>
           <Grid item xs={12}>
             <BookMultiText

@@ -3,6 +3,7 @@ import { getBook } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 import { parse } from "csv-parse/sync";
 import { promises as fs } from "fs";
+import itemsjs from "itemsjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 const prisma = new PrismaClient();
@@ -14,8 +15,10 @@ export default async function handle(
   switch (req.method) {
     case "GET":
       try {
+        console.log("Getting Antolin info API Call");
         if (!req.query.bookid)
           return res.status(404).end(`${req.query} id not found`);
+
         const bookid = parseInt(req.query.bookid as string);
         //retrieve the book in our database for this ID
         const book = (await getBook(prisma, bookid)) as BookType;
@@ -34,12 +37,26 @@ export default async function handle(
           skip_empty_lines: true,
         });
 
-        // Initialize the parser
-        //console.log("Reading record", records);
-        // Use the readable stream api to consume records
+        //figure out if our book is in the antolin DB?
+        console.time("searchEngine init");
+        const searchEngine = itemsjs(records, {
+          searchableFields: ["Titel", "Autor"],
+        });
+        console.timeEnd("searchEngine init");
+        console.time("search");
+        const itemsTitles = searchEngine.search({ query: book.title });
+        const itemsAuthors = searchEngine.search({ query: book.author });
+        const searchResult = itemsTitles.data.items.concat(
+          itemsAuthors.data.items
+        );
+        console.timeEnd("search");
+        console.log("Antolin items API", searchResult);
 
         res.setHeader("Content-Type", "application/json");
-        res.status(200).send({ bookid: bookid, message: records.length });
+        res.status(200).send({
+          foundNumber: searchResult.length,
+          items: searchResult,
+        });
       } catch (error) {
         console.log(error);
       }
