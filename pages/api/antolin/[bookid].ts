@@ -9,7 +9,7 @@ import path from "path";
 const prisma = new PrismaClient();
 
 const removeDuplicates = (searchResults: any) => {
-  console.log("Removing duplicates", searchResults);
+  //console.log("Removing duplicates", searchResults);
   const withoutDups = searchResults.reduce((accumulator: any, current: any) => {
     if (!accumulator.find((item: any) => item.Titel === current.Titel)) {
       accumulator.push(current);
@@ -27,7 +27,7 @@ export default async function handle(
   switch (req.method) {
     case "GET":
       try {
-        console.log("Getting Antolin info API Call");
+        //console.log("Getting Antolin info API Call");
         if (!req.query.bookid)
           return res.status(404).end(`${req.query} id not found`);
 
