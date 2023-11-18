@@ -198,7 +198,11 @@ export default function BookEditForm({
             />
             <Typography variant="caption">
               Antolin-Suche:{" "}
-              {antolinResults ? antolinResults.foundNumber : "..."} Bücher
+              {antolinResults
+                ? antolinResults.foundNumber > 1
+                  ? antolinResults.foundNumber + " Bücher"
+                  : "1 Buch"
+                : "..."}{" "}
             </Typography>
           </Grid>
           <Grid item xs={12}>

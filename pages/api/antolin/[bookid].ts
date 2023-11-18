@@ -8,6 +8,18 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 const prisma = new PrismaClient();
 
+const removeDuplicates = (searchResults: any) => {
+  console.log("Removing duplicates", searchResults);
+  const withoutDups = searchResults.reduce((accumulator: any, current: any) => {
+    if (!accumulator.find((item: any) => item.Titel === current.Titel)) {
+      accumulator.push(current);
+    }
+    return accumulator;
+  }, []);
+
+  return withoutDups;
+};
+
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
@@ -49,13 +61,17 @@ export default async function handle(
         const searchResult = itemsTitles.data.items.concat(
           itemsAuthors.data.items
         );
+        //remove duplicates
+        console.log("Antolin search with duplicates", searchResult);
+        const cleanedResult = removeDuplicates(searchResult);
+
         console.timeEnd("search");
-        console.log("Antolin items API", searchResult);
+        console.log("Antolin items API", cleanedResult);
 
         res.setHeader("Content-Type", "application/json");
         res.status(200).send({
-          foundNumber: searchResult.length,
-          items: searchResult,
+          foundNumber: cleanedResult.length,
+          items: cleanedResult,
         });
       } catch (error) {
         console.log(error);
