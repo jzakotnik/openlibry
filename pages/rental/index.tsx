@@ -87,7 +87,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       })
       .catch((error) => {
         setSnackBarMessage(
-          "Server ist leider nicht erreichbar.. Alles ok mit dem internet?"
+          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
         );
         setSnackBarSeverity("error");
         setSnackbarOpen(true);
@@ -135,7 +135,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       })
       .catch((error) => {
         setSnackBarMessage(
-          "Server ist leider nicht erreichbar.. Alles ok mit dem internet?"
+          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
         );
         setSnackBarSeverity("error");
         setSnackbarOpen(true);
@@ -174,7 +174,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
       })
       .catch((error) => {
         setSnackBarMessage(
-          "Server ist leider nicht erreichbar.. Alles ok mit dem internet?"
+          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
         );
         setSnackBarSeverity("error");
         setSnackbarOpen(true);
