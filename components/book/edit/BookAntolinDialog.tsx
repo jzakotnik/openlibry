@@ -1,9 +1,8 @@
-import { Typography } from "@mui/material";
+import { List, ListItem, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
 export default function BookAntolinDialog({
@@ -26,12 +25,17 @@ export default function BookAntolinDialog({
         {"Bücher aus der Antolin Datenbank"}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText id="antolin-info-dialog-description">
+        <List>
           {antolinBooks?.items.slice(0, 10).map((b: any) => {
-            console.log("Dialog book", b.Titel);
-            return <Typography key={b.book_id}>- {b.Titel}</Typography>;
+            return (
+              <ListItem key={b.book_id}>
+                <Typography component={"span"} key={b.book_id}>
+                  - {b.Titel}
+                </Typography>
+              </ListItem>
+            );
           })}
-        </DialogContentText>
+        </List>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} autoFocus>
