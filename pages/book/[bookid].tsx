@@ -35,10 +35,26 @@ export default function BookDetail({ user, book, topics }: any) {
   const router = useRouter();
 
   const [bookData, setBookData] = useState(book);
+  const [antolinResults, setAntolinResults] = useState();
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
 
   useEffect(() => {
     setBookData(book);
+    fetch("/api/antolin/" + book.id, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => {
+      if (!res.ok) {
+        console.log("ERROR while creating user", res.statusText);
+      }
+      //console.log("Retrieved Antolin data for book", book.title);
+      res.json().then((antolin) => {
+        //console.log("Antolin data", antolin);
+        setAntolinResults(antolin as any);
+      });
+    });
   }, []);
 
   if (!router.query.bookid) {
@@ -125,6 +141,7 @@ export default function BookDetail({ user, book, topics }: any) {
           saveBook={handleSaveButton}
           returnBook={handleReturnBookButton}
           topics={topics}
+          antolinResults={antolinResults}
         />
         <Snackbar
           open={returnBookSnackbar}

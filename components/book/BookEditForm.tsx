@@ -12,10 +12,11 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 
 import palette from "@/styles/palette";
-import { Divider, Grid, Paper, Tooltip } from "@mui/material";
+import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
 import BookImageUploadButton from "./edit/BookImageUploadButton";
@@ -41,8 +42,8 @@ interface BookEditFormPropType {
   deleteBook: any;
   saveBook: any;
   returnBook: any;
-
   topics: string[];
+  antolinResults: any;
 }
 
 interface ReturnBooksType {
@@ -57,11 +58,12 @@ export default function BookEditForm({
   deleteBook,
   saveBook,
   returnBook,
-
   topics,
+  antolinResults,
 }: BookEditFormPropType) {
   const [editable, setEditable] = useState(false);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
+  const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
   const [returnedBooks, setReturnedBooks] = useState({});
@@ -71,6 +73,9 @@ export default function BookEditForm({
       ? setEditButtonLabel("Editieren")
       : setEditButtonLabel("Abbrechen");
     setEditable(!editable);
+  };
+  const handleAntolinClick = () => {
+    setAntolinDetailsDialog(true);
   };
 
   const ReturnedIcon = ({ id }: any) => {
@@ -104,10 +109,18 @@ export default function BookEditForm({
       />
     );
   };
+  console.log(
+    "This is the antolin results for this book on the edit form",
+    antolinResults
+  );
 
   return (
     <Paper sx={{ mt: 5, px: 4 }}>
-      {" "}
+      <BookAntolinDialog
+        open={antolinDetailsDialog}
+        setOpen={setAntolinDetailsDialog}
+        antolinBooks={antolinResults}
+      />{" "}
       <Grid
         container
         direction="row"
@@ -192,6 +205,30 @@ export default function BookEditForm({
               book={book}
               topics={topics}
             />
+            <Typography variant="caption">
+              Antolin-Suche:{" "}
+              {antolinResults ? (
+                antolinResults.foundNumber > 1 ? (
+                  <Link
+                    onClick={handleAntolinClick}
+                    tabIndex={0}
+                    component="button"
+                  >
+                    {antolinResults.foundNumber + " Bücher"}
+                  </Link>
+                ) : (
+                  <Link
+                    onClick={handleAntolinClick}
+                    tabIndex={0}
+                    component="button"
+                  >
+                    1 Buch
+                  </Link>
+                )
+              ) : (
+                "..."
+              )}{" "}
+            </Typography>
           </Grid>
           <Grid item xs={12}>
             <BookMultiText
