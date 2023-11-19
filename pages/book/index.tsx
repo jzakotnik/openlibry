@@ -155,7 +155,9 @@ export default function Books({ books, images }: BookPropsType) {
       });
   };
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
     const searchString = e.target.value;
     const result = searchBooks(searchString);
     setBookSearchInput(searchString);

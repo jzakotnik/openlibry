@@ -8,10 +8,12 @@ import ViewListIcon from "@mui/icons-material/ViewList";
 import Grid from "@mui/material/Grid";
 
 interface BookSearchBarPropType {
-  handleInputChange: any;
+  handleInputChange: React.ChangeEventHandler<
+    HTMLTextAreaElement | HTMLInputElement
+  >;
   handleNewBook: any;
-  bookSearchInput: any;
-  toggleView: any;
+  bookSearchInput: string;
+  toggleView: React.MouseEventHandler<HTMLButtonElement>;
   detailView: boolean;
 }
 
