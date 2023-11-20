@@ -1,4 +1,5 @@
 import { BookType } from "@/entities/BookType";
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
@@ -15,7 +16,7 @@ const prisma = new PrismaClient();
 type Data = {
   users: Array<UserType>;
   books: Array<BookType>;
-  rentals: any;
+  rentals: Array<RentalsUserType>;
 };
 
 type Error = {
@@ -49,7 +50,7 @@ export default async function handler(
 
       //calculate the rental information
       const allRentals = await getRentedBooksWithUsers(prisma);
-      const rentals = allRentals.map((r) => {
+      const rentals = allRentals.map((r: any) => {
         //calculate remaining days for the rental
         const due = dayjs(r.dueDate);
         const today = dayjs();
