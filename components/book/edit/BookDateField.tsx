@@ -35,7 +35,7 @@ const BookDateField = (props: any): any => {
           value={convertToDatePicker((book as any)[fieldType])}
           disabled={!editable}
           onChange={(newValue) => {
-            console.log("new value", convertFromDatePicker(newValue));
+            //console.log("new value", convertFromDatePicker(newValue));
             setBookData({
               ...book,
               [fieldType]: convertFromDatePicker(newValue),

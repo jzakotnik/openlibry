@@ -1,11 +1,18 @@
 {
   "cSpell.words": [
+    "antolin",
     "bookid",
     "clickaway",
+    "coverimages",
+    "dbbook",
+    "dbtopics",
+    "isbn",
     "itemsjs",
     "loginsplash",
     "loginsplashscreen",
     "newbook",
+    "redundanttopics",
+    "singletopics",
     "userid"
   ],
   "editor.formatOnSave": true,

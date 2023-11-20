@@ -25,6 +25,7 @@ import {
 } from "@mui/material";
 import OverdueIcon from "./OverdueIcon";
 
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -32,7 +33,7 @@ import "dayjs/locale/de";
 interface UserPropsType {
   users: Array<UserType>;
   books: Array<BookType>;
-  rentals: any;
+  rentals: Array<RentalsUserType>;
   handleExtendBookButton: any;
   handleReturnBookButton: any;
   setUserExpanded: any;
@@ -69,7 +70,7 @@ export default function UserRentalList({
       console.log("Expanded user", userID);
     };
 
-  const booksForUser = (id: number) => {
+  const booksForUser = (id: number): Array<RentalsUserType> => {
     const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
     //console.log("Filtered rentals", userRentals);
     return userRentals;

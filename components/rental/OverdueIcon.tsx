@@ -1,7 +1,8 @@
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import ErrorIcon from "@mui/icons-material/Error";
 
 interface OverdueIconPropsType {
-  rentalsUser: any;
+  rentalsUser: Array<RentalsUserType>;
 }
 
 export default function OverdueIcon({ rentalsUser }: OverdueIconPropsType) {

@@ -1,19 +1,19 @@
+/* eslint-disable @next/next/no-img-element */
 import Box from "@mui/material/Box";
-import { useState } from "react";
+import { Dispatch, useState } from "react";
 
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
-import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 
 import palette from "@/styles/palette";
 import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
 
+import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
@@ -38,12 +38,11 @@ const bull = (
 interface BookEditFormPropType {
   user: UserType;
   book: BookType;
-  setBookData: any;
-  deleteBook: any;
-  saveBook: any;
-  returnBook: any;
+  setBookData: Dispatch<BookType>;
+  deleteBook: React.MouseEventHandler<HTMLButtonElement>;
+  saveBook: React.MouseEventHandler<HTMLButtonElement>;
   topics: string[];
-  antolinResults: any;
+  antolinResults: AntolinResultType | null;
 }
 
 interface ReturnBooksType {
@@ -57,7 +56,6 @@ export default function BookEditForm({
   setBookData,
   deleteBook,
   saveBook,
-  returnBook,
   topics,
   antolinResults,
 }: BookEditFormPropType) {
@@ -78,16 +76,7 @@ export default function BookEditForm({
     setAntolinDetailsDialog(true);
   };
 
-  const ReturnedIcon = ({ id }: any) => {
-    //console.log("Rendering icon ", id, returnedBooks);
-    if (id in returnedBooks) {
-      return <CheckCircleIcon color="success" />;
-    } else {
-      return <ArrowCircleLeftIcon />;
-    }
-  };
-
-  const CoverImage = (props: any) => {
+  const CoverImage = () => {
     //console.log("Key", loadingImage); //this forces a reload after upload
     return (
       <img
@@ -139,8 +128,8 @@ export default function BookEditForm({
           {editable && (
             <Tooltip title="Speichern">
               <Button
-                onClick={() => {
-                  saveBook();
+                onClick={(e) => {
+                  saveBook(e);
                   toggleEditButton();
                 }}
                 startIcon={<SaveAltIcon />}

@@ -15,7 +15,11 @@ import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 interface BookSummaryRowPropType {
   book: BookType;
-  handleCopyBook: any;
+  handleCopyBook: React.MouseEventHandler<HTMLButtonElement>;
+}
+
+interface BookAvatarIconPropType {
+  b: BookType;
 }
 
 export default function BookSummaryRow({
@@ -25,7 +29,7 @@ export default function BookSummaryRow({
   const selectedBook = book;
   const router = useRouter();
 
-  const BookAvatarIcon = ({ b }: any) => {
+  const BookAvatarIcon = ({ b }: BookAvatarIconPropType) => {
     return b.rentalStatus == "rented" ? (
       <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
         <CancelPresentationIcon />

@@ -16,7 +16,10 @@ import {
 import { PrismaClient } from "@prisma/client";
 
 import BookEditForm from "@/components/book/BookEditForm";
+import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
+import { GetServerSidePropsContext } from "next/types";
 
 const theme = createTheme({
   palette: {
@@ -31,11 +34,17 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function BookDetail({ user, book, topics }: any) {
+interface BookDetailProps {
+  user: UserType;
+  book: BookType;
+  topics: string[];
+}
+
+export default function BookDetail({ user, book, topics }: BookDetailProps) {
   const router = useRouter();
 
-  const [bookData, setBookData] = useState(book);
-  const [antolinResults, setAntolinResults] = useState();
+  const [bookData, setBookData] = useState<BookType>(book);
+  const [antolinResults, setAntolinResults] = useState(null);
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
 
   useEffect(() => {
@@ -47,7 +56,7 @@ export default function BookDetail({ user, book, topics }: any) {
       },
     }).then((res) => {
       if (!res.ok) {
-        console.log("ERROR while creating user", res.statusText);
+        console.log("ERROR while getting Antolin Data", res.statusText);
       }
       //console.log("Retrieved Antolin data for book", book.title);
       res.json().then((antolin) => {
@@ -80,9 +89,9 @@ export default function BookDetail({ user, book, topics }: any) {
 
   const handleSaveButton = () => {
     console.log("Saving book ", bookData);
-    //convert eventual dates
-    bookData.rentedDate = convertStringToDay(bookData.rentedDate);
-    bookData.dueDate = convertStringToDay(bookData.dueDate);
+
+    const rentedDate = convertStringToDay(bookData.rentedDate as string);
+    const dueDate = convertStringToDay(bookData.dueDate as string);
 
     //we don't need to update the dates
     const { updatedAt, createdAt, ...savingBook } = bookData;
@@ -92,7 +101,7 @@ export default function BookDetail({ user, book, topics }: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(savingBook),
+      body: JSON.stringify({ ...savingBook, rentedDate, dueDate }),
     })
       .then((res) => res.json())
       .then((data) => {});
@@ -139,7 +148,6 @@ export default function BookDetail({ user, book, topics }: any) {
           setBookData={setBookData}
           deleteBook={handleDeleteButton}
           saveBook={handleSaveButton}
-          returnBook={handleReturnBookButton}
           topics={topics}
           antolinResults={antolinResults}
         />
@@ -161,10 +169,10 @@ export default function BookDetail({ user, book, topics }: any) {
   );
 }
 
-export async function getServerSideProps(context: any) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const prisma = new PrismaClient();
 
-  const dbbook = await getBook(prisma, parseInt(context.query.bookid));
+  const dbbook = await getBook(prisma, parseInt(context.query.bookid as any));
   if (!dbbook) {
     return {
       notFound: true,

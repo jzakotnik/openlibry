@@ -11,7 +11,7 @@ interface BookSearchBarPropType {
   handleInputChange: React.ChangeEventHandler<
     HTMLTextAreaElement | HTMLInputElement
   >;
-  handleNewBook: any;
+  handleNewBook: React.MouseEventHandler<HTMLButtonElement>;
   bookSearchInput: string;
   toggleView: React.MouseEventHandler<HTMLButtonElement>;
   detailView: boolean;

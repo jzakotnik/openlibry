@@ -1,4 +1,6 @@
 export interface BookType {
+  createdAt?: Date;
+  updatedAt?: Date;
   id?: number;
   rentalStatus: string;
   rentedDate: Date | string;
