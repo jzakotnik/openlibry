@@ -1,11 +1,20 @@
+import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import { TextField } from "@mui/material";
 
-const BookMultiText = (props: any): any => {
-  const fieldType = props.fieldType;
-  const editable = props.editable;
-  const setBookData = props.setBookData;
-  const book = props.book;
+interface BookMultiTextPropsType {
+  fieldType: string;
+  editable: boolean;
+  setBookData: any;
+  book: BookType;
+}
+
+const BookMultiText = ({
+  fieldType,
+  editable,
+  setBookData,
+  book,
+}: BookMultiTextPropsType): any => {
   return (
     <TextField
       id={fieldType}

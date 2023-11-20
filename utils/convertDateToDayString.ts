@@ -11,7 +11,9 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
-export function convertDateToDayString(d: string | Date | undefined): string {
+export function convertDateToDayString(
+  d: string | Date | null | undefined
+): string {
   return d ? dayjs(d).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
 }
 

@@ -4,7 +4,7 @@ import Typography from "@mui/material/Typography";
 interface TitleFileType {
   title: string;
   subtitle: string;
-  onClick: any;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
 }
 
 export default function TitleTile({ title, subtitle, onClick }: TitleFileType) {
