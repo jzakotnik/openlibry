@@ -30,6 +30,8 @@ export default function Home() {
           <Grid item>
             <Typography
               variant="h1"
+              id="title_headline"
+              data-cy="title"
               align="center"
               sx={{ fontWeight: "bold", fontSize: 50 }}
             >
