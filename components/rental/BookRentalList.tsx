@@ -21,9 +21,9 @@ import "dayjs/locale/de";
 
 interface BookPropsType {
   books: Array<BookType>;
-  handleExtendBookButton: any;
-  handleReturnBookButton: any;
-  handleRentBookButton: any;
+  handleExtendBookButton: (id: number, b: BookType) => void;
+  handleReturnBookButton: (bookid: number, userid: number) => void;
+  handleRentBookButton: (id: number, userid: number) => void;
   userExpanded: number | false;
 }
 export default function BookRentalList({
@@ -155,7 +155,7 @@ export default function BookRentalList({
                                   "Book rental list, extend button",
                                   b
                                 );
-                                handleExtendBookButton(b.id, b);
+                                handleExtendBookButton(b.id!, b);
                                 const time = Date.now();
                                 const newbook = {};
                                 (newbook as any)[b.id!] = time;
@@ -175,7 +175,10 @@ export default function BookRentalList({
                           <Tooltip title="Zurückgeben">
                             <IconButton
                               onClick={() => {
-                                const result = handleReturnBookButton(b.id);
+                                const result = handleReturnBookButton(
+                                  b.id!,
+                                  b.userId!
+                                );
                                 console.log("Result of the return:", result);
                                 const time = Date.now();
                                 const newbook = {};
@@ -197,7 +200,7 @@ export default function BookRentalList({
                           <Tooltip title="Ausleihen">
                             <IconButton
                               onClick={() => {
-                                handleRentBookButton(b.id, userExpanded);
+                                handleRentBookButton(b.id!, b.userId!);
                                 const time = Date.now();
                                 const newbook = {};
                                 (newbook as any)[b.id!] = time;
