@@ -21,8 +21,14 @@ import { PrismaClient } from "@prisma/client";
 
 import UserEditForm from "@/components/user/UserEditForm";
 import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next/types";
+
+type UserDetailPropsType = {
+  user: UserType;
+  books: Array<BookType>;
+};
 
 const theme = createTheme({
   palette: {
@@ -37,7 +43,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function UserDetail({ user, books }: any) {
+export default function UserDetail({ user, books }: UserDetailPropsType) {
   const router = useRouter();
 
   const [userData, setUserData] = useState(user);

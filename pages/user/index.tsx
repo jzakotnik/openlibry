@@ -151,8 +151,6 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               users={users}
               rentals={rentals}
               searchString={userSearchInput}
-              selectItem={selectItem}
-              handleEditUser={handleEditUser}
             />
           </Grid>
         </Grid>
