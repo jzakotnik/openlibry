@@ -68,7 +68,7 @@ export default function BookRentalList({
     searchBooks(e.target.value);
   };
 
-  const ReturnedIcon = ({ id }: any) => {
+  const ReturnedIcon = () => {
     //console.log("Rendering icon ", id, returnedBooks);
     return <ArrowCircleLeftIcon />; /*
     if (id in returnedBooks) {
@@ -78,7 +78,7 @@ export default function BookRentalList({
     }*/
   };
 
-  const ExtendedIcon = ({ id }: any) => {
+  const ExtendedIcon = () => {
     return <UpdateIcon />; //console.log("Rendering icon ", id, returnedBooks);
     /*if (id in returnedBooks) {
       return <CheckCircleIcon color="success" />;
@@ -168,7 +168,7 @@ export default function BookRentalList({
                                 });
                               }}
                             >
-                              <ExtendedIcon key={b.id} id={b.id} />
+                              <ExtendedIcon key={b.id} />
                             </IconButton>
                           </Tooltip>
                         )}
@@ -193,7 +193,7 @@ export default function BookRentalList({
                               }}
                               aria-label="zurückgeben"
                             >
-                              <ReturnedIcon key={b.id} id={b.id} />
+                              <ReturnedIcon key={b.id} />
                             </IconButton>
                           </Tooltip>
                         )}
