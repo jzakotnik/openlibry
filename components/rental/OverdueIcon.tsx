@@ -11,7 +11,7 @@ export default function OverdueIcon({ rentalsUser }: OverdueIconPropsType) {
   let alertOverdue = false;
   //check if books are overdue
   if (rentalsUser.length > 0) {
-    rentalsUser.map((b: any) => {
+    rentalsUser.map((b: RentalsUserType) => {
       //console.log("Rental user", b);
       b.remainingDays > 0 ? (overdue = true) : (overdue = false);
       //if it is overdue and already renewed twice, take other color

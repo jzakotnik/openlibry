@@ -60,9 +60,12 @@ export default function BookRentalList({
     setBookSearchInput("");
   };
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
     setBookSearchInput(e.target.value);
-    const result = searchBooks(e.target.value);
+    //set rendered books
+    searchBooks(e.target.value);
   };
 
   const ReturnedIcon = ({ id }: any) => {
