@@ -1,11 +1,12 @@
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import { TextField } from "@mui/material";
+import { Dispatch } from "react";
 
 interface BookMultiTextPropsType {
   fieldType: string;
   editable: boolean;
-  setBookData: any;
+  setBookData: Dispatch<BookType>;
   book: BookType;
 }
 
@@ -14,7 +15,7 @@ const BookMultiText = ({
   editable,
   setBookData,
   book,
-}: BookMultiTextPropsType): any => {
+}: BookMultiTextPropsType) => {
   return (
     <TextField
       id={fieldType}
