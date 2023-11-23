@@ -36,10 +36,9 @@ const BookDateField = ({
   book,
 }: BookDateFieldProps): React.ReactElement => {
   return (
-    <Grid item xs={12} sm={6}>
+    <Grid item xs={12} sm={6} data-cy={"book_" + fieldType + "_datepicker"}>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
         <DesktopDatePicker
-          data-cy={"book_" + fieldType + "_datepicker"}
           label={(translations["books"] as any)[fieldType]}
           defaultValue={convertToDatePicker((book as any)[fieldType])}
           value={convertToDatePicker((book as any)[fieldType])}
