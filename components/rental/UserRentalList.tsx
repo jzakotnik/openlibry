@@ -183,7 +183,10 @@ export default function UserRentalList({
   return !displayUserDetail ? (
     <div>
       <FormControl variant="standard">
-        <InputLabel htmlFor="user-search-input-label">
+        <InputLabel
+          htmlFor="user-search-input-label"
+          data-cy="rental_input_searchuser"
+        >
           Suche NutzerIn
         </InputLabel>
         <Input

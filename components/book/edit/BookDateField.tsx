@@ -1,6 +1,6 @@
 import { Grid } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import "dayjs/locale/de";
 
@@ -36,9 +36,9 @@ const BookDateField = ({
   book,
 }: BookDateFieldProps): React.ReactElement => {
   return (
-    <Grid item xs={12} sm={6}>
+    <Grid item xs={12} sm={6} data-cy={"book_" + fieldType + "_datepicker"}>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
-        <DatePicker
+        <DesktopDatePicker
           label={(translations["books"] as any)[fieldType]}
           defaultValue={convertToDatePicker((book as any)[fieldType])}
           value={convertToDatePicker((book as any)[fieldType])}

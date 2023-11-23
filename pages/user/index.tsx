@@ -113,6 +113,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 onChange={handleInputChange}
                 placeholder="NutzerIn suchen.."
                 inputProps={{ "aria-label": "search users" }}
+                data-cy="rental_input_searchuser"
               />
               <Tooltip title="Suche">
                 <IconButton

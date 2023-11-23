@@ -115,3 +115,5 @@ importscripts/openbiblio/input/usmarc_tag_dm.MYI
 importscripts/openbiblio/coverDownloader/coverapp
 prisma/database/dev.db
 public/antolin/antolingesamt.csv
+cypress/cypress.env.json
+cypress.env.json

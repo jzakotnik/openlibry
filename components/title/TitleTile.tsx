@@ -4,10 +4,16 @@ import Typography from "@mui/material/Typography";
 interface TitleFileType {
   title: string;
   subtitle: string;
+  slug: string;
   onClick: React.MouseEventHandler<HTMLDivElement>;
 }
 
-export default function TitleTile({ title, subtitle, onClick }: TitleFileType) {
+export default function TitleTile({
+  title,
+  subtitle,
+  slug,
+  onClick,
+}: TitleFileType) {
   return (
     <Paper
       sx={{
@@ -25,6 +31,7 @@ export default function TitleTile({ title, subtitle, onClick }: TitleFileType) {
         borderRadius: 5,
         p: 2,
       }}
+      data-cy={"index_" + slug.substring(1) + "_button"} //skip the slash from the slug
       onClick={onClick}
     >
       <Typography variant="h3" component="div" sx={{ color: "primary.light" }}>

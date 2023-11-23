@@ -29,7 +29,8 @@
     "**/*.tsx",
     "openbiblio_migration/migrate.js",
     "pages/api/book/[id]",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "cypress/support/commands.js"
   ],
   "exclude": ["node_modules"]
 }

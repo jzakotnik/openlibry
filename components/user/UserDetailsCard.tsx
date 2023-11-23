@@ -71,7 +71,9 @@ export default function UserDetailsCard({
       </CardContent>
       <CardActions>
         <Link href={"/user/" + user.id} passHref>
-          <Button size="small">Editieren</Button>
+          <Button size="small" data-cy="user_card_editbutton">
+            Editieren
+          </Button>
         </Link>
       </CardActions>
     </Card>

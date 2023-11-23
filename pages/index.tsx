@@ -30,6 +30,8 @@ export default function Home() {
           <Grid item>
             <Typography
               variant="h1"
+              id="title_headline"
+              data-cy="indexpage"
               align="center"
               sx={{ fontWeight: "bold", fontSize: 50 }}
             >
@@ -46,6 +48,7 @@ export default function Home() {
               sx={{ px: 10 }}
             >
               {publicNavItems.map((p) => {
+                //console.log("index_" + p.slug.substring(1) + "_button");
                 return (
                   <Grid
                     item
@@ -65,6 +68,7 @@ export default function Home() {
                     <TitleTile
                       title={p.title}
                       subtitle={p.subtitle}
+                      slug={p.slug}
                       onClick={(e: any) => onClick(e, p.slug)}
                     />
                   </Grid>

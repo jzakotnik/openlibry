@@ -83,7 +83,12 @@ export default function BookSummaryCard({
         />
       </CardMedia>
       <CardContent>
-        <Typography variant="h5" color="text.secondary" gutterBottom>
+        <Typography
+          variant="h5"
+          color="text.secondary"
+          data-cy="book_title"
+          gutterBottom
+        >
           {selectedBook.title}
         </Typography>
         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
@@ -92,7 +97,9 @@ export default function BookSummaryCard({
       </CardContent>
       <CardActions>
         <Link href={"/book/" + book.id} passHref>
-          <Button size="small">Editieren</Button>
+          <Button size="small" data-cy="book_card_editbutton">
+            Editieren
+          </Button>
         </Link>
         {book.rentalStatus != "available" ? (
           <Button size="small" onClick={returnBook}>
