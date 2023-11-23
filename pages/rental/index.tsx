@@ -21,6 +21,7 @@ import { getAllUsers } from "@/entities/user";
 import dayjs from "dayjs";
 import { useState } from "react";
 
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import { getBookFromID } from "@/utils/getBookFromID";
 import { Snackbar } from "@mui/material";
 import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
@@ -29,12 +30,12 @@ import useSWR from "swr";
 interface RentalPropsType {
   books: Array<BookType>;
   users: Array<UserType>;
-  rentals: any;
+  rentals: Array<RentalsUserType>;
 }
 
 const prisma = new PrismaClient();
 
-const fetcher = (url: any) => fetch(url).then((r) => r.json());
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function Rental({ books, users, rentals }: RentalPropsType) {
   const router = useRouter();
@@ -258,7 +259,7 @@ export async function getServerSideProps() {
   });
 
   const allRentals = await getRentedBooksWithUsers(prisma);
-  const rentals = allRentals.map((r) => {
+  const rentals = allRentals.map((r: any) => {
     //calculate remaining days for the rental
     const due = dayjs(r.dueDate);
     const today = dayjs();

@@ -1,11 +1,21 @@
+import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import { TextField } from "@mui/material";
+import { Dispatch } from "react";
 
-const BookTextField = (props: any): any => {
-  const fieldType = props.fieldType;
-  const editable = props.editable;
-  const setBookData = props.setBookData;
-  const book = props.book;
+type BookTextFieldProps = {
+  fieldType: string;
+  editable: boolean;
+  setBookData: Dispatch<BookType>;
+  book: BookType;
+};
+
+const BookTextField = ({
+  fieldType,
+  editable,
+  setBookData,
+  book,
+}: BookTextFieldProps) => {
   return (
     <TextField
       id={fieldType}

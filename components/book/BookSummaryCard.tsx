@@ -27,7 +27,7 @@ const bull = (
 
 interface BookSummaryCardPropType {
   book: BookType;
-  returnBook: any;
+  returnBook: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export default function BookSummaryCard({

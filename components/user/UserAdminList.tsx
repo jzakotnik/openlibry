@@ -11,9 +11,20 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import UserDetailsCard from "./UserDetailsCard";
 
-export default function UserAdminList({ users, rentals, searchString }: any) {
+type UserAdminListPropsType = {
+  users: Array<UserType>;
+  rentals: Array<RentalsUserType>;
+  searchString: string;
+};
+
+export default function UserAdminList({
+  users,
+  rentals,
+  searchString,
+}: UserAdminListPropsType) {
   //attach amount of rented books to the user
   const rentalAmount: { [key: number]: number } = {};
 

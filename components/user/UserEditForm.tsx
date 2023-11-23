@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import * as React from "react";
-import { useState } from "react";
+import { Dispatch, useState } from "react";
 
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MoreTimeIcon from "@mui/icons-material/MoreTime";
@@ -38,21 +38,24 @@ const bull = (
   </Box>
 );
 
-interface UserEditFormPropType {
+type UserEditFormPropType = {
   user: UserType;
   books: Array<BookType>;
-  setUserData: any;
-  deleteUser: any;
-  saveUser: any;
-  returnBook: any;
-  extendBook: any;
-}
+  setUserData: Dispatch<UserType>;
+  deleteUser: () => void;
+  saveUser: () => void;
+  returnBook: (bookid: number) => void;
+  extendBook: (bookid: number, book: BookType) => void;
+};
 
 interface ReturnBooksType {
   bookid: number;
   time: Date;
 }
 
+type ReturnedIconPropsType = {
+  id: number;
+};
 export default function UserEditForm({
   user,
   books,
@@ -75,7 +78,7 @@ export default function UserEditForm({
     setEditable(!editable);
   };
 
-  const ReturnedIcon = ({ id }: any) => {
+  const ReturnedIcon = ({ id }: ReturnedIconPropsType) => {
     //console.log("Rendering icon ", id, returnedBooks);
     if (id in returnedBooks) {
       return <CheckCircleIcon color="success" />;
@@ -224,7 +227,7 @@ export default function UserEditForm({
                 <Tooltip title="Zurückgeben">
                   <IconButton
                     onClick={() => {
-                      returnBook(b.id);
+                      returnBook(b.id!);
                       const time = Date.now();
                       const newbook = {};
                       (newbook as any)[b.id!] = time;
@@ -232,12 +235,13 @@ export default function UserEditForm({
                     }}
                     aria-label="zurückgeben"
                   >
-                    <ReturnedIcon key={b.id} />
+                    <ReturnedIcon key={b.id} id={b.id!} />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Verlängern">
                   <IconButton
                     onClick={() => {
+                      if (!b.id) return;
                       extendBook(b.id, b);
                       const newBooks = [...books];
                       newBooks[index].renewalCount++;

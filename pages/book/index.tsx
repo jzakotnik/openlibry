@@ -76,7 +76,7 @@ export default function Books({ books, images }: BookPropsType) {
     setRenderedBooks(foundBooks.data.items);
   }
 
-  const handleCreateNewBook = (e: any) => {
+  const handleCreateNewBook = () => {
     console.log("Creating a new book");
     setBookCreating(true);
     const book: BookType = {

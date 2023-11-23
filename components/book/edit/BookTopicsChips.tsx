@@ -1,21 +1,34 @@
 /* eslint-disable no-use-before-define */
 
+import { BookType } from "@/entities/BookType";
 import ClearIcon from "@mui/icons-material/Clear";
 
 import { Autocomplete, Chip, TextField } from "@mui/material";
+import { Dispatch } from "react";
+
+type BookTopicsChipsProps = {
+  fieldType: string;
+  editable: boolean;
+  setBookData: Dispatch<BookType>;
+  book: BookType;
+  topics: Array<string>;
+};
 
 const parseTopics = (combined: string) => {
   const parsedTopics = combined.split(";").filter((t: string) => t.length > 0);
   return parsedTopics;
 };
 
-export default function BookTopicsChips(props: any) {
-  const fieldType = props.fieldType;
-  const editable = props.editable;
-  const setBookData = props.setBookData;
-  const book = props.book;
-  const topics = props.topics;
+export default function BookTopicsChips({
+  fieldType,
+  editable,
+  setBookData,
+  book,
+  topics,
+}: BookTopicsChipsProps) {
   //const [bookTopics, setBookTopics] = useState(parseTopics(book.topics));
+
+  if (!book.topics) return <span></span>;
 
   const serializeTopics = (topics: string[]): string => {
     return topics.join(";");
@@ -24,6 +37,7 @@ export default function BookTopicsChips(props: any) {
   // test topics
   //console.log("Topics for this book:", book.topics);
   //console.log("All topics", topics);
+
   const valHtml = parseTopics(book.topics).map((option, index) => {
     // This is to handle new options added by the user (allowed by freeSolo prop).
     const label = option;
@@ -35,6 +49,7 @@ export default function BookTopicsChips(props: any) {
         deleteIcon={<ClearIcon />}
         onDelete={() => {
           if (editable) {
+            if (!book.topics) return; //no topics? then you can't delete any
             const newBookTopics = parseTopics(book.topics).filter(
               (entry) => entry !== option
             );
@@ -42,7 +57,6 @@ export default function BookTopicsChips(props: any) {
               ...book,
               [fieldType]: serializeTopics(newBookTopics),
             });
-            //setBookTopics(newBookTopics);
           }
         }}
       />
@@ -59,7 +73,7 @@ export default function BookTopicsChips(props: any) {
         freeSolo
         filterSelectedOptions
         options={topics}
-        onChange={(e, newValue: any) => {
+        onChange={(e, newValue: string[]) => {
           //setBookTopics(newValue);
           setBookData({ ...book, [fieldType]: serializeTopics(newValue) });
         }}
@@ -67,7 +81,7 @@ export default function BookTopicsChips(props: any) {
         renderTags={() => {
           return null;
         }}
-        value={parseTopics(book.topics)}
+        value={book.topics ? parseTopics(book.topics) : undefined}
         renderInput={(params) => (
           <TextField
             {...params}

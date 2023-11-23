@@ -112,7 +112,9 @@ export default function Login({
               autoComplete="user"
               color="secondary"
               autoFocus
-              onChange={(e) => setUser(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setUser(e.target.value)
+              }
             />
             <TextField
               margin="normal"
@@ -123,7 +125,9 @@ export default function Login({
               type="password"
               id="password"
               autoComplete="password"
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPassword(e.target.value)
+              }
             />
 
             <Button

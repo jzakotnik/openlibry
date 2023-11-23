@@ -13,7 +13,7 @@ export default function BookAntolinDialog({
   const handleClose = () => {
     setOpen(false);
   };
-  console.log("Antolin Books for the dialog", antolinBooks);
+  //console.log("Antolin Books for the dialog", antolinBooks);
   return (
     <Dialog
       open={open}

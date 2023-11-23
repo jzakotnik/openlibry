@@ -1,10 +1,27 @@
-import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
+import { BookType } from "@/entities/BookType";
+import {
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
+import { Dispatch } from "react";
 
-const BookNumberField = (props: any): any => {
-  const fieldType = props.fieldType;
-  const editable = props.editable;
-  const setBookData = props.setBookData;
-  const book = props.book;
+type BookNumberFieldProps = {
+  fieldType: string;
+  editable: boolean;
+  setBookData: Dispatch<BookType>;
+  book: BookType;
+};
+
+const BookNumberField = ({
+  fieldType,
+  editable,
+  setBookData,
+  book,
+}: BookNumberFieldProps) => {
   return (
     <Grid item xs={12} sm={6}>
       <FormControl fullWidth>
@@ -16,7 +33,7 @@ const BookNumberField = (props: any): any => {
           disabled={!editable}
           defaultValue={(book as any)[fieldType]}
           label="Verlängerungen"
-          onChange={(event: any) => {
+          onChange={(event: SelectChangeEvent) => {
             setBookData({ ...book, [fieldType]: event.target.value });
           }}
         >

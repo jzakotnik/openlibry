@@ -1,11 +1,28 @@
+import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
-import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
+import { Dispatch } from "react";
 
-const BookStatusDropdown = (props: any): any => {
-  const fieldType = props.fieldType;
-  const editable = props.editable;
-  const setBookData = props.setBookData;
-  const book = props.book;
+type BookTextFieldProps = {
+  fieldType: string;
+  editable: boolean;
+  setBookData: Dispatch<BookType>;
+  book: BookType;
+};
+
+const BookStatusDropdown = ({
+  fieldType,
+  editable,
+  setBookData,
+  book,
+}: BookTextFieldProps) => {
   //use these statusses for the book with according translations
 
   const status = [
@@ -29,7 +46,7 @@ const BookStatusDropdown = (props: any): any => {
           disabled={!editable}
           defaultValue={(book as any)[fieldType]}
           label="Status"
-          onChange={(event: any) => {
+          onChange={(event: SelectChangeEvent<HTMLInputElement>) => {
             setBookData({ ...book, [fieldType]: event.target.value });
           }}
         >

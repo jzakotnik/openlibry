@@ -6,7 +6,7 @@ import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 import InputLabel from "@mui/material/InputLabel";
 import Paper from "@mui/material/Paper";
-import { useState } from "react";
+import { Dispatch, useState } from "react";
 
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -25,19 +25,20 @@ import {
 } from "@mui/material";
 import OverdueIcon from "./OverdueIcon";
 
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 
-interface UserPropsType {
+type UserPropsType = {
   users: Array<UserType>;
   books: Array<BookType>;
-  rentals: any;
-  handleExtendBookButton: any;
-  handleReturnBookButton: any;
-  setUserExpanded: any;
+  rentals: Array<RentalsUserType>;
+  handleExtendBookButton: (id: number, b: BookType) => void;
+  handleReturnBookButton: (bookid: number, userid: number) => void;
+  setUserExpanded: Dispatch<number | false>;
   userExpanded: number | false;
-}
+};
 
 const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
@@ -59,7 +60,7 @@ export default function UserRentalList({
     setUserSearchInput("");
   };
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<any>): void => {
     setUserSearchInput(e.target.value);
   };
 
@@ -69,8 +70,8 @@ export default function UserRentalList({
       console.log("Expanded user", userID);
     };
 
-  const booksForUser = (id: number) => {
-    const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
+  const booksForUser = (id: number): Array<RentalsUserType> => {
+    const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
     //console.log("Filtered rentals", userRentals);
     return userRentals;
   };
@@ -80,7 +81,7 @@ export default function UserRentalList({
     return book[0];
   };
 
-  const ReturnedIcon = ({ id }: any) => {
+  const ReturnedIcon = () => {
     //console.log("Rendering icon ", id, returnedBooks);
     return <ArrowCircleLeftIcon />; /*
     if (id in returnedBooks) {
@@ -90,7 +91,7 @@ export default function UserRentalList({
     }*/
   };
 
-  const ExtendedIcon = ({ id }: any) => {
+  const ExtendedIcon = () => {
     //console.log("Rendering icon ", id, returnedBooks);
     return <UpdateIcon />; /*
     if (id in returnedBooks) {
@@ -275,7 +276,7 @@ export default function UserRentalList({
                 justifyContent="flex-start"
                 sx={{ px: 1, my: 1 }}
               >
-                {rentalsUser.map((r: any) => (
+                {rentalsUser.map((r: RentalsUserType) => (
                   <Paper key={r.id}>
                     <Grid
                       container
@@ -302,7 +303,7 @@ export default function UserRentalList({
                               });
                             }}
                           >
-                            <ExtendedIcon key={r.id} id={r.id} />
+                            <ExtendedIcon key={r.id} />
                           </IconButton>
                         </Tooltip>
                       </Grid>
@@ -310,6 +311,7 @@ export default function UserRentalList({
                         <Tooltip title="Zurückgeben">
                           <IconButton
                             onClick={() => {
+                              if (!userExpanded) return; //something went wrong and no user is available to return the book
                               handleReturnBookButton(r.id, userExpanded);
                               const time = Date.now();
                               const newbook = {};
@@ -321,7 +323,7 @@ export default function UserRentalList({
                             }}
                             aria-label="zurückgeben"
                           >
-                            <ReturnedIcon key={r.id} id={r.id} />
+                            <ReturnedIcon key={r.id} />
                           </IconButton>
                         </Tooltip>
                       </Grid>

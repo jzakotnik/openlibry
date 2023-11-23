@@ -1,7 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { User } from "@prisma/client";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -11,23 +11,24 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
-export function convertDateToDayString(d: Date) {
-  const convertedDate = dayjs(d);
-  return convertedDate.format("YYYY-MM-DD");
+export function convertDateToDayString(
+  d: string | Date | null | undefined
+): string {
+  return d ? dayjs(d).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
 }
 
-export function convertStringToDay(d: string) {
+export function convertStringToDay(d: string | Date | undefined): Dayjs {
   //console.log("Converting string to dayjs", d, dayjs(d, "YYYY-MM-DD"));
-  return dayjs(d, "YYYY-MM-DD");
+  return d ? dayjs(d, "YYYY-MM-DD") : dayjs("YYYY-MM-DD");
 }
 
-export function extendWeeks(d: Date, weeks: number) {
+export function extendWeeks(d: Date, weeks: number): Dayjs {
   console.log("Converting string to dayjs", d, dayjs(d));
   const newDate = dayjs(d).add(weeks, "week");
   return newDate;
 }
 
-export function currentTime() {
+export function currentTime(): Date {
   return dayjs().toDate();
 }
 
@@ -50,7 +51,7 @@ export function replaceUserDateString(user: User): UserType {
   };
 }
 
-export function replaceBookDateString(book: any): BookType {
+export function replaceBookDateString(book: BookType): any {
   return {
     ...book,
     createdAt: convertDateToDayString(book.createdAt),
@@ -60,7 +61,7 @@ export function replaceBookDateString(book: any): BookType {
   };
 }
 
-export function replaceBookStringDate(book: any): BookType {
+export function replaceBookStringDate(book: BookType): BookType {
   return {
     ...book,
     createdAt: convertStringToDay(book.createdAt).toDate(),

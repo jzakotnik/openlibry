@@ -4,28 +4,37 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import "dayjs/locale/de";
 
+import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import {
   convertDateToDayString,
   convertStringToDay,
 } from "@/utils/convertDateToDayString";
+import { Dayjs } from "dayjs";
+import { Dispatch } from "react";
 
-const convertFromDatePicker = (time: any) => {
-  return convertDateToDayString(time);
+type BookDateFieldProps = {
+  fieldType: string;
+  editable: boolean;
+  setBookData: Dispatch<BookType>;
+  book: BookType;
 };
 
-const convertToDatePicker = (time: any) => {
-  //console.log("Converting time to date picker", time, convertStringToDay(time));
+const convertFromDatePicker = (time: Dayjs): string => {
+  return convertDateToDayString(time.toDate());
+};
 
+const convertToDatePicker = (time: string): Dayjs => {
+  //console.log("Converting time to date picker", time, convertStringToDay(time))
   return convertStringToDay(time);
 };
 
-const BookDateField = (props: any): any => {
-  const fieldType = props.fieldType;
-  const editable = props.editable;
-  const setBookData = props.setBookData;
-  const book = props.book;
-  //console.log("Rendering book", book);
+const BookDateField = ({
+  fieldType,
+  editable,
+  setBookData,
+  book,
+}: BookDateFieldProps): React.ReactElement => {
   return (
     <Grid item xs={12} sm={6}>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
@@ -34,12 +43,15 @@ const BookDateField = (props: any): any => {
           defaultValue={convertToDatePicker((book as any)[fieldType])}
           value={convertToDatePicker((book as any)[fieldType])}
           disabled={!editable}
-          onChange={(newValue) => {
-            console.log("new value", convertFromDatePicker(newValue));
-            setBookData({
-              ...book,
-              [fieldType]: convertFromDatePicker(newValue),
-            });
+          onChange={(newValue: Dayjs | null) => {
+            if (newValue == null) {
+              return;
+            } else {
+              setBookData({
+                ...book,
+                [fieldType]: convertFromDatePicker(newValue),
+              });
+            }
           }}
         />
       </LocalizationProvider>

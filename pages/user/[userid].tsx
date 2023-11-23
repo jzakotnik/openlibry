@@ -21,7 +21,14 @@ import { PrismaClient } from "@prisma/client";
 
 import UserEditForm from "@/components/user/UserEditForm";
 import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
+import { GetServerSidePropsContext } from "next/types";
+
+type UserDetailPropsType = {
+  user: UserType;
+  books: Array<BookType>;
+};
 
 const theme = createTheme({
   palette: {
@@ -36,7 +43,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function UserDetail({ user, books }: any) {
+export default function UserDetail({ user, books }: UserDetailPropsType) {
   const router = useRouter();
 
   const [userData, setUserData] = useState(user);
@@ -202,10 +209,14 @@ export default function UserDetail({ user, books }: any) {
   );
 }
 
-export async function getServerSideProps(context: any) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  if (!context.query.userid) return { props: {} };
   const prisma = new PrismaClient();
 
-  const dbuser = await getUser(prisma, parseInt(context.query.userid));
+  const dbuser = await getUser(
+    prisma,
+    parseInt(context.query.userid as string)
+  );
 
   if (!dbuser) {
     return {
@@ -222,7 +233,7 @@ export async function getServerSideProps(context: any) {
   //TODO fix the type for book incl user
 
   console.log("User, Books", user, allBooks);
-  const books = allBooks.map((b: any) => {
+  const books = allBooks.map((b: BookType) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
     newBook.updatedAt = convertDateToDayString(b.updatedAt);

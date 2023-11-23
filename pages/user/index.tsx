@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
 import UserAdminList from "@/components/user/UserAdminList";
@@ -18,6 +18,7 @@ import { convertDateToDayString } from "@/utils/convertDateToDayString";
 
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
 
@@ -32,7 +33,7 @@ const theme = createTheme({
 interface UsersPropsType {
   users: Array<UserType>;
   books: Array<BookType>;
-  rentals: any;
+  rentals: Array<RentalsUserType>;
 }
 
 export default function Users({ users, books, rentals }: UsersPropsType) {
@@ -45,11 +46,11 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
 
   useEffect(() => {}, []);
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
   };
 
-  const handleCreateNewUser = (e: any) => {
+  const handleCreateNewUser = (e: React.MouseEvent<HTMLElement>) => {
     console.log("Creating a new user");
     setUserCreating(true);
     const user: UserType = { firstName: "", lastName: "", active: true };
@@ -80,7 +81,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   };
 
   const booksForUser = (id: number) => {
-    const userRentals = rentals.filter((r: any) => parseInt(r.userid) == id);
+    const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
     //console.log("Filtered rentals", userRentals);
     return userRentals;
   };
@@ -150,8 +151,6 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               users={users}
               rentals={rentals}
               searchString={userSearchInput}
-              selectItem={selectItem}
-              handleEditUser={handleEditUser}
             />
           </Grid>
         </Grid>
