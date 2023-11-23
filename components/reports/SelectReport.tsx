@@ -23,6 +23,7 @@ export default function SelectReport({
           value={reportType}
           label="Report"
           onChange={handleReportType}
+          data-cy="rental_input_selectreports"
         >
           <MenuItem value="users">Nutzerinnen</MenuItem>
           <MenuItem value="books">Bücher</MenuItem>

@@ -119,7 +119,11 @@ export default function BookEditForm({
       >
         <Grid item xs={12} md={4}>
           <Tooltip title={editButtonLabel}>
-            <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
+            <Button
+              onClick={toggleEditButton}
+              data-cy="bookdetails_edit_button"
+              startIcon={<EditIcon />}
+            >
               {editButtonLabel}
             </Button>
           </Tooltip>

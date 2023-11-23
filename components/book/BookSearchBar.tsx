@@ -57,6 +57,7 @@ export default function BookSearchBar({
             onChange={handleInputChange}
             placeholder="Buch suchen.."
             inputProps={{ "aria-label": "search books" }}
+            data-cy="rental_input_searchbook"
           />
           <Tooltip title="Suche">
             <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
