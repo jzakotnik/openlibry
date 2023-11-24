@@ -23,7 +23,7 @@ export function convertStringToDay(d: string | Date | undefined): Dayjs {
 }
 
 export function extendWeeks(d: Date, weeks: number): Dayjs {
-  console.log("Converting string to dayjs", d, dayjs(d));
+  //console.log("Converting string to dayjs", d, dayjs(d));
   const newDate = dayjs(d).add(weeks, "week");
   return newDate;
 }

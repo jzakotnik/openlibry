@@ -12,7 +12,7 @@ interface DashboardType {
 }
 
 export default function Dashboard({ users, books, rentals }: DashboardType) {
-  console.log("Dashboard", users, books, rentals);
+  //console.log("Dashboard", users, books, rentals);
   return (
     <div>
       <Grid

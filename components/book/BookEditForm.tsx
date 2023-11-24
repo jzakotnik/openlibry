@@ -98,10 +98,32 @@ export default function BookEditForm({
       />
     );
   };
-  console.log(
+  /*console.log(
     "This is the antolin results for this book on the edit form",
     antolinResults
-  );
+  );*/
+  const AntolinResult = (foundNumber: any) => {
+    let resultString = "...";
+    if (antolinResults) {
+      if (antolinResults.foundNumber > 1) {
+        resultString = " " + antolinResults.foundNumber + " Bücher";
+      } else if (antolinResults.foundNumber == 0) {
+        resultString = " Kein Buch gefunden";
+      } else if (antolinResults.foundNumber == 1) {
+        resultString = " Ein Buch gefunden";
+      }
+
+      return (
+        <Typography variant="caption">
+          Antolin-Suche:
+          <Link onClick={handleAntolinClick} tabIndex={0} component="button">
+            {resultString}
+          </Link>
+        </Typography>
+      );
+    }
+    return <Typography variant="caption">...</Typography>;
+  };
 
   return (
     <Paper sx={{ mt: 5, px: 4 }}>
@@ -198,30 +220,7 @@ export default function BookEditForm({
               book={book}
               topics={topics}
             />
-            <Typography variant="caption">
-              Antolin-Suche:{" "}
-              {antolinResults ? (
-                antolinResults.foundNumber > 1 ? (
-                  <Link
-                    onClick={handleAntolinClick}
-                    tabIndex={0}
-                    component="button"
-                  >
-                    {antolinResults.foundNumber + " Bücher"}
-                  </Link>
-                ) : (
-                  <Link
-                    onClick={handleAntolinClick}
-                    tabIndex={0}
-                    component="button"
-                  >
-                    1 Buch
-                  </Link>
-                )
-              ) : (
-                "..."
-              )}{" "}
-            </Typography>
+            <AntolinResult foundNumber={antolinResults} />
           </Grid>
           <Grid item xs={12}>
             <BookMultiText

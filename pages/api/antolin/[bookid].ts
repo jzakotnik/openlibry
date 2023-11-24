@@ -1,11 +1,8 @@
 import { BookType } from "@/entities/BookType";
 import { getBook } from "@/entities/book";
+import { createAntolinSearchEngine } from "@/utils/antolinIndex";
 import { PrismaClient } from "@prisma/client";
-import { parse } from "csv-parse/sync";
-import { promises as fs } from "fs";
-import itemsjs from "itemsjs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
 const prisma = new PrismaClient();
 
 const removeDuplicates = (searchResults: any) => {
@@ -24,6 +21,8 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  //test the zustand store
+
   switch (req.method) {
     case "GET":
       try {
@@ -35,38 +34,19 @@ export default async function handle(
         //retrieve the book in our database for this ID
         const book = (await getBook(prisma, bookid)) as BookType;
 
-        const dirRelativeToPublicFolder = "antolin/antolingesamt.csv";
-        const dir = path.resolve("./public", dirRelativeToPublicFolder);
+        await createAntolinSearchEngine();
+        const searchEngine = (global as any).searchEngine;
 
-        const content = await fs.readFile(dir, "latin1");
-
-        //console.log("Content of the csv", content);
-        // Parse the CSV content
-        const records = await parse(content, {
-          bom: true,
-          delimiter: ";",
-          columns: true,
-          skip_empty_lines: true,
-        });
-
-        //figure out if our book is in the antolin DB?
-        console.time("searchEngine init");
-        const searchEngine = itemsjs(records, {
-          searchableFields: ["Titel", "Autor"],
-        });
-        console.timeEnd("searchEngine init");
-        console.time("search");
         const itemsTitles = searchEngine.search({ query: book.title });
         const itemsAuthors = searchEngine.search({ query: book.author });
         const searchResult = itemsTitles.data.items.concat(
           itemsAuthors.data.items
         );
         //remove duplicates
-        console.log("Antolin search with duplicates", searchResult);
+        //console.log("Antolin search with duplicates", searchResult);
         const cleanedResult = removeDuplicates(searchResult);
 
-        console.timeEnd("search");
-        console.log("Antolin items API", cleanedResult);
+        console.log("Antolin items API", cleanedResult, cleanedResult.length);
 
         res.setHeader("Content-Type", "application/json");
         res.status(200).send({

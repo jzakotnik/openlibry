@@ -207,7 +207,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!dbbook) return;
 
   const book = replaceBookDateString(dbbook as any);
-  console.log("Replaced date string", book, dbbook);
+  //console.log("Replaced date string", book, dbbook);
   //const imagesArray = await getImages();
   //console.log("Images", imagesArray);
   //push array to object for performance reasons
