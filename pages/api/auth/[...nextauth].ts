@@ -7,12 +7,9 @@ const prisma = new PrismaClient();
 export default NextAuth({
   session: {
     strategy: "jwt",
+    maxAge: 5 * 60,
   },
-  jwt: {
-    // The maximum age of the NextAuth.js issued JWT in seconds.
-    // Defaults to `session.maxAge`.
-    maxAge: 1,
-  },
+
   providers: [
     CredentialsProvider({
       name: "credentials",
