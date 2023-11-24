@@ -7,7 +7,9 @@ const prisma = new PrismaClient();
 export default NextAuth({
   session: {
     strategy: "jwt",
-    maxAge: 5 * 60,
+    maxAge: process.env.LOGIN_SESSION_TIMEOUT
+      ? parseInt(process.env.LOGIN_SESSION_TIMEOUT)
+      : 300,
   },
 
   providers: [
