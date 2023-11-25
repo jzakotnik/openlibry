@@ -4,6 +4,7 @@ export default function userNameforBook(
   users: Array<UserType>,
   userbookid: number
 ): string {
+  if (!userbookid) return "";
   const foundUser = users.filter((u) => u.id == userbookid);
   //console.log("Filter user", foundUser, userbookid);
   if (foundUser.length == 0) {
