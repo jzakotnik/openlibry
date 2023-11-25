@@ -16,11 +16,14 @@ import Typography from "@mui/material/Typography";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
 import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
+import userNameForBook from "@/utils/userNameForBook";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 
 interface BookPropsType {
   books: Array<BookType>;
+  users: Array<UserType>;
   handleExtendBookButton: (id: number, b: BookType) => void;
   handleReturnBookButton: (bookid: number, userid: number) => void;
   handleRentBookButton: (id: number, userid: number) => void;
@@ -28,6 +31,7 @@ interface BookPropsType {
 }
 export default function BookRentalList({
   books,
+  users,
   handleExtendBookButton,
   handleReturnBookButton,
   handleRentBookButton,
@@ -232,11 +236,14 @@ export default function BookRentalList({
                   {" "}
                   <Typography sx={{ m: 0.5 }} variant="body2">
                     Buch Nr. {b.id}
-                    {!(b.rentalStatus == "available") && (
+                    {!(
+                      b.rentalStatus == "available" || b.rentalStatus == "lost"
+                    ) && (
                       <span>
                         {" "}
                         - ausgeliehen bis{" "}
-                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an {b.userId}
+                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
+                        {userNameForBook(users, b.userId!)}
                       </span>
                     )}
                   </Typography>

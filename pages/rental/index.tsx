@@ -223,6 +223,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
         <Grid item xs={12} md={6}>
           <BookRentalList
             books={books}
+            users={users} //to figure out the name of the user who rented
             handleExtendBookButton={handleExtendBookButton}
             handleReturnBookButton={handleReturnBookButton}
             handleRentBookButton={handleRentBookButton}
