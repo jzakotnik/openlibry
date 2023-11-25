@@ -18,6 +18,7 @@
     "@mui/x-date-pickers": "^6.6.0",
     "@next-auth/prisma-adapter": "^0.4.4-canary.81",
     "@prisma/client": "^5.6.0",
+    "@react-pdf/renderer": "^3.1.14",
     "@types/formidable": "^3.4.4",
     "@types/itemsjs": "^2.1.6",
     "@types/react": "18.0.30",
