@@ -12,7 +12,6 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
-import BarcodeGenerator from "@/components/reports/BarcodeGenerator";
 import Dashboard from "@/components/reports/Dashboard";
 import { convertDateToDayString } from "@/utils/convertDateToDayString";
 import type {} from "@mui/x-data-grid/themeAugmentation";
@@ -139,7 +138,6 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
         ) : (
           <span>
             <Dashboard users={users} rentals={rentals} books={books} />
-            <BarcodeGenerator books={books} />
           </span>
         )}
       </ThemeProvider>
