@@ -46,7 +46,7 @@ export default async function handle(
         //console.log("Antolin search with duplicates", searchResult);
         const cleanedResult = removeDuplicates(searchResult);
 
-        console.log("Antolin items API", cleanedResult, cleanedResult.length);
+        //console.log("Antolin items API", cleanedResult, cleanedResult.length);
 
         res.setHeader("Content-Type", "application/json");
         res.status(200).send({
