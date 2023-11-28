@@ -27,7 +27,13 @@ export async function getAllTopics(client: PrismaClient) {
 
 export async function getAllBooks(client: PrismaClient) {
   try {
-    return await client.book.findMany({});
+    return await client.book.findMany({
+      orderBy: [
+        {
+          id: "asc",
+        },
+      ],
+    });
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||

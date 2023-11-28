@@ -5,8 +5,8 @@ import { translations } from "@/entities/fieldTranslations";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import { deDE as coreDeDE } from "@mui/material/locale";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DataGrid, deDE, GridToolbar } from "@mui/x-data-grid";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { DataGrid, GridToolbar, deDE } from "@mui/x-data-grid";
 import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -136,7 +136,9 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
             />
           </Box>
         ) : (
-          <Dashboard users={users} rentals={rentals} books={books} />
+          <span>
+            <Dashboard users={users} rentals={rentals} books={books} />
+          </span>
         )}
       </ThemeProvider>
     </Layout>
