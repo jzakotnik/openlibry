@@ -28,6 +28,12 @@ export function extendWeeks(d: Date, weeks: number): Dayjs {
   return newDate;
 }
 
+export function extendDays(d: Date, days: number): Dayjs {
+  //console.log("Converting string to dayjs", d, dayjs(d));
+  const newDate = dayjs(d).add(days, "day");
+  return newDate;
+}
+
 export function currentTime(): Date {
   return dayjs().toDate();
 }

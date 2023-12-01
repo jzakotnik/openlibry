@@ -9,10 +9,7 @@ import Snackbar from "@mui/material/Snackbar";
 import { useRouter } from "next/router";
 import { forwardRef } from "react";
 
-import {
-  convertStringToDay,
-  replaceBookDateString,
-} from "@/utils/convertDateToDayString";
+import { convertStringToDay, replaceBookDateString } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 
 import BookEditForm from "@/components/book/BookEditForm";

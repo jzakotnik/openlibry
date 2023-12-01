@@ -13,10 +13,10 @@ import { forwardRef } from "react";
 
 import {
   convertDateToDayString,
-  extendWeeks,
+  extendDays,
   replaceBookStringDate,
   replaceUserDateString,
-} from "@/utils/convertDateToDayString";
+} from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 
 import UserEditForm from "@/components/user/UserEditForm";
@@ -128,7 +128,13 @@ export default function UserDetail({ user, books }: UserDetailPropsType) {
 
     const newbook = replaceBookStringDate(book) as any;
     //extend logic
-    const newDueDate = extendWeeks(book.dueDate as Date, 3);
+
+    const newDueDate = extendDays(
+      book.dueDate as Date,
+      process.env.EXTENSION_DURATION_DAYS
+        ? parseInt(process.env.EXTENSION_DURATION_DAYS)
+        : 14
+    );
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 

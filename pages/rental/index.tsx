@@ -8,9 +8,9 @@ import { forwardRef } from "react";
 
 import {
   convertDateToDayString,
-  extendWeeks,
+  extendDays,
   replaceBookStringDate,
-} from "@/utils/convertDateToDayString";
+} from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 
 import UserRentalList from "@/components/rental/UserRentalList";
@@ -99,7 +99,12 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
     console.log("Extending book ", bookid, book);
     const newbook = replaceBookStringDate(book) as any;
     //extend logic
-    const newDueDate = extendWeeks(book.dueDate as Date, 3);
+    const newDueDate = extendDays(
+      book.dueDate as Date,
+      process.env.EXTENSION_DURATION_DAYS
+        ? parseInt(process.env.EXTENSION_DURATION_DAYS)
+        : 14
+    );
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 

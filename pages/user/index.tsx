@@ -14,7 +14,7 @@ import SearchIcon from "@mui/icons-material/Search";
 
 import dayjs from "dayjs";
 
-import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import { convertDateToDayString } from "@/utils/dateutils";
 
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";

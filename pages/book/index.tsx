@@ -12,10 +12,7 @@ import { PrismaClient } from "@prisma/client";
 
 import List from "@mui/material/List";
 
-import {
-  convertDateToDayString,
-  currentTime,
-} from "@/utils/convertDateToDayString";
+import { convertDateToDayString, currentTime } from "@/utils/dateutils";
 
 import { BookType } from "@/entities/BookType";
 

@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
 import Dashboard from "@/components/reports/Dashboard";
-import { convertDateToDayString } from "@/utils/convertDateToDayString";
+import { convertDateToDayString } from "@/utils/dateutils";
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();

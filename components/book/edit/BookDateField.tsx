@@ -6,10 +6,7 @@ import "dayjs/locale/de";
 
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
-import {
-  convertDateToDayString,
-  convertStringToDay,
-} from "@/utils/convertDateToDayString";
+import { convertDateToDayString, convertStringToDay } from "@/utils/dateutils";
 import { Dayjs } from "dayjs";
 import { Dispatch } from "react";
 

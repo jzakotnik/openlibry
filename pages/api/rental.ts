@@ -6,7 +6,7 @@ import { getAllUsers } from "@/entities/user";
 import {
   convertDateToDayString,
   replaceUsersDateString,
-} from "@/utils/convertDateToDayString";
+} from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";

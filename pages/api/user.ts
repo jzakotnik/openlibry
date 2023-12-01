@@ -1,6 +1,6 @@
 import { UserType } from "@/entities/UserType";
 import { addUser, getAllUsers } from "@/entities/user";
-import { replaceUsersDateString } from "@/utils/convertDateToDayString";
+import { replaceUsersDateString } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
