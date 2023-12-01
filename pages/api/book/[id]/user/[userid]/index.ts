@@ -38,7 +38,7 @@ export default async function handler(
 
   //give the book back
   if (req.method === "DELETE") {
-    if (!req.query.id || !req.query.userid)
+    if (!req.query.id)
       return res
         .status(400)
         .json({ result: "ERROR, rented book or user not specified" });

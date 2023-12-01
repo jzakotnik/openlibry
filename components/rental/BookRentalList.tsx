@@ -184,7 +184,7 @@ export default function BookRentalList({
                               onClick={() => {
                                 const result = handleReturnBookButton(
                                   b.id!,
-                                  b.userId!
+                                  b.userId! //TODO not sure if this is actually needed
                                 );
                                 console.log("Result of the return:", result);
                                 const time = Date.now();
