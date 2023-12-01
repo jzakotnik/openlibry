@@ -15,6 +15,7 @@ export default async function handler(
 ) {
   //rent a book
   if (req.method === "POST") {
+    console.log("Rent book for user and book", req.query);
     if (!req.query.id || !req.query.userid)
       return res
         .status(400)
@@ -22,7 +23,7 @@ export default async function handler(
 
     const book = req.body as BookType;
     try {
-      console.log("Rent book for user and book", req.query);
+      //console.log("Rent book for user and book", req.query);
       const rental = await rentBook(
         prisma,
         parseInt(req.query.userid as string),

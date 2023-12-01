@@ -124,7 +124,7 @@ export default function BookRentalList({
         justifyContent="flex-start"
         sx={{ px: 0.5, my: 0.5 }}
       >
-        {renderedBooks.slice(0, 100).map((b: BookType) => (
+        {renderedBooks.slice(0, 100).map((b: any) => (
           <div key={b.id}>
             <Paper elevation={2} sx={{ my: 0.5 }}>
               <Grid
@@ -207,7 +207,8 @@ export default function BookRentalList({
                           <Tooltip title="Ausleihen">
                             <IconButton
                               onClick={() => {
-                                handleRentBookButton(b.id!, b.userId!);
+                                console.log("Rent click", b);
+                                handleRentBookButton(b.id!, userExpanded!);
                                 const time = Date.now();
                                 const newbook = {};
                                 (newbook as any)[b.id!] = time;

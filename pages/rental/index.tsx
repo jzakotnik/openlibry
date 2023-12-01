@@ -145,7 +145,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
   };
 
   const handleRentBookButton = (bookid: number, userid: number) => {
-    console.log("Renting book ", bookid);
+    console.log("Renting book for ", bookid, userid);
     fetch("/api/book/" + bookid + "/user/" + userid, {
       method: "POST",
       headers: {
