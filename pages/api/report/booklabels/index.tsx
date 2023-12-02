@@ -95,6 +95,7 @@ export default async function handle(
 ) {
   switch (req.method) {
     case "GET":
+      console.log("Printing book labels via api");
       try {
         const books = (await getAllBooks(prisma)) as Array<BookType>;
         //console.log("Search Params", req.query, "end" in req.query);
