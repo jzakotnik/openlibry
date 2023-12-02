@@ -70,7 +70,7 @@ const LabelCard = ({
 
         <TextField
           id="outlined-number"
-          label="Letzte x Etiketten"
+          label="Anzahl Etiketten"
           key="book_report_number_input"
           type="number"
           value={startLabel}
