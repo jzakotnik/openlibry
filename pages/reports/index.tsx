@@ -1,20 +1,28 @@
 import Layout from "@/components/layout/Layout";
-import SelectReport from "@/components/reports/SelectReport";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
-import { translations } from "@/entities/fieldTranslations";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { DataGrid, GridToolbar, deDE } from "@mui/x-data-grid";
+import { deDE } from "@mui/x-data-grid";
 import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
 import Dashboard from "@/components/reports/Dashboard";
+import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 import { convertDateToDayString } from "@/utils/dateutils";
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Grid,
+  TextField,
+  Typography,
+} from "@mui/material";
 import type {} from "@mui/x-data-grid/themeAugmentation";
+import router from "next/router";
+import { useState } from "react";
 
 const prisma = new PrismaClient();
 
@@ -23,123 +31,158 @@ const theme = createTheme(
     palette: {
       primary: { main: "#1976d2" },
     },
+    spacing: 4,
   },
   deDE, // x-data-grid translations
   coreDeDE // core translations
 );
 
 interface ReportPropsType {
-  users: any;
-  books: any;
+  users: Array<UserType>;
+  books: Array<BookType>;
   rentals: any;
 }
 
-interface ReportKeyType {
-  translations: string;
-}
+type ReportCardProps = {
+  title: string;
+  subtitle: string;
+  unit: string;
+  link: string;
+  startLabel?: number;
+  setStartLabel?: any;
+  totalNumber: number;
+};
+
+const LabelCard = ({
+  title,
+  subtitle,
+  link,
+  startLabel,
+  totalNumber,
+  setStartLabel,
+}: ReportCardProps) => {
+  return (
+    <Card variant="outlined" sx={{ minWidth: 275, minHeight: 250 }}>
+      <CardContent>
+        <Typography variant="h5" component="div">
+          {title}
+        </Typography>
+
+        <TextField
+          id="outlined-number"
+          label="Anzahl Etiketten"
+          key="book_report_number_input"
+          type="number"
+          value={startLabel}
+          error={startLabel! > totalNumber}
+          helperText={
+            startLabel! > totalNumber ? "So viele Bücher gibt es nicht?" : ""
+          }
+          onChange={(e: any) => {
+            setStartLabel(parseInt(e.target.value));
+          }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{ mt: 5 }}
+        />
+
+        <Typography variant="body2">{subtitle}</Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          size="small"
+          onClick={() =>
+            router.push(link + "/?start=0" + "&end=" + Math.floor(startLabel!))
+          }
+        >
+          Erzeuge PDF
+        </Button>
+      </CardActions>
+    </Card>
+  );
+};
 
 export default function Reports({ users, books, rentals }: ReportPropsType) {
-  const reportTypes = ["users", "books", "rentals"];
-  const [reportType, setReportType] = useState("");
-  const [dashboardDisplay, setDashboardDisplay] = useState(true);
-  const [reportData, setReportData] = useState({ columns: [], rows: [] });
+  const [startLabel, setStartLabel] = useState(100);
 
-  //TODO find a better way for dynamic layouts
-  function getWidth(columnName: string = "") {
-    switch (columnName) {
-      case "ID":
-        return 40;
-        break;
-      case "title":
-        return 350;
-        break;
-      case "lastName":
-        return 180;
-        break;
-      default:
-        return 100;
-    }
-  }
-
-  function handleReportType(e: any) {
-    //convert the relevant data for the grid
-
-    setReportType(e.target.value);
-    setDashboardDisplay(false);
-  }
-
-  useEffect(() => {
-    if (reportType != "") {
-      let data = [] as any;
-      reportTypes.map((t) => {
-        if (t == reportType) {
-          console.log("Type found", reportType);
-          data = eval(t);
-        }
-      });
-      const colTitles = data[0];
-      const fields = Object.keys(colTitles) as any;
-      const columns = fields.map((f: string) => {
-        const fieldTranslation = (translations as any)[reportType][f];
-        const col = {
-          field: f,
-          headerName: fieldTranslation,
-          width: getWidth(f),
-        };
-        return col;
-      });
-      const rows = data.map((r: any) => {
-        const rowCopy = {
-          id: r.id,
-          ...r,
-          rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
-        };
-        //console.log("Row Copy", rowCopy);
-        return rowCopy;
-      });
-      //console.log("columns", columns);
-      setReportData({ columns: columns, rows: rows });
-    }
-  }, [reportType]);
+  const ReportCard = ({
+    title,
+    subtitle,
+    unit,
+    link,
+    totalNumber,
+  }: ReportCardProps) => {
+    return (
+      <Card variant="outlined" sx={{ minWidth: 275, minHeight: 250 }}>
+        <CardContent>
+          <Typography variant="h5" component="div">
+            {title}
+          </Typography>
+          <Typography sx={{ mb: 1.5 }} color="text.secondary">
+            {totalNumber}
+          </Typography>
+          <Typography variant="body2">{subtitle}</Typography>
+        </CardContent>
+        <CardActions>
+          <Button size="small" onClick={() => router.push(link)}>
+            Erzeuge Tabelle
+          </Button>
+        </CardActions>
+      </Card>
+    );
+  };
 
   return (
     <Layout>
       <ThemeProvider theme={theme}>
+        <Dashboard users={users} rentals={rentals} books={books} />
         <Grid
           container
           direction="row"
-          justifyContent="flex-start"
           alignItems="center"
-          spacing={2}
-          sx={{ mt: 2 }}
+          justifyContent="center"
+          spacing={3}
         >
-          <Grid item xs={6}>
-            <SelectReport
-              reportType={reportType}
-              handleReportType={handleReportType}
+          <Grid item xs={12} md={6} lg={3} sx={{}}>
+            <ReportCard
+              title="Nutzerinnen"
+              subtitle="Liste aller Nutzerinnen"
+              unit="users"
+              totalNumber={users.length}
+              link="reports/users"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <ReportCard
+              title="Bücher"
+              subtitle="Liste aller Bücher"
+              unit="books"
+              totalNumber={books.length}
+              link="reports/books"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <ReportCard
+              title="Leihen"
+              subtitle="Liste aller Leihen"
+              unit="rentals"
+              totalNumber={rentals.length}
+              link="reports/rentals"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <LabelCard
+              title="Etiketten"
+              subtitle="Liste aller Bücher-Etiketten"
+              unit="Etiketten"
+              link="api/report/booklabels"
+              totalNumber={books.length}
+              startLabel={startLabel}
+              setStartLabel={setStartLabel}
             />
           </Grid>
         </Grid>
-        {!dashboardDisplay ? (
-          <Box
-            sx={{
-              backgroundColor: "#CFCFCF",
-              width: "100%",
-              mt: 5,
-            }}
-          >
-            <DataGrid
-              autoHeight
-              columns={reportData.columns}
-              rows={reportData.rows}
-              slots={{ toolbar: GridToolbar }}
-            />
-          </Box>
-        ) : (
-          <span>
-            <Dashboard users={users} rentals={rentals} books={books} />
-          </span>
-        )}
       </ThemeProvider>
     </Layout>
   );
