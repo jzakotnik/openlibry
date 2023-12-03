@@ -37,6 +37,8 @@ const theme = createTheme(
   coreDeDE // core translations
 );
 
+const cardHeight = 210;
+
 interface ReportPropsType {
   users: Array<UserType>;
   books: Array<BookType>;
@@ -62,7 +64,7 @@ const LabelCard = ({
   setStartLabel,
 }: ReportCardProps) => {
   return (
-    <Card variant="outlined" sx={{ minWidth: 275, minHeight: 250 }}>
+    <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
       <CardContent>
         <Typography variant="h5" component="div">
           {title}
@@ -114,7 +116,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
     totalNumber,
   }: ReportCardProps) => {
     return (
-      <Card variant="outlined" sx={{ minWidth: 275, minHeight: 250 }}>
+      <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
         <CardContent>
           <Typography variant="h5" component="div">
             {title}
@@ -144,7 +146,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
           justifyContent="center"
           spacing={3}
         >
-          <Grid item xs={12} md={6} lg={3} sx={{}}>
+          <Grid item xs={12} md={6} lg={4} sx={{}}>
             <ReportCard
               title="Nutzerinnen"
               subtitle="Liste aller Nutzerinnen"
@@ -153,7 +155,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/users"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid item xs={12} md={6} lg={4}>
             <ReportCard
               title="Bücher"
               subtitle="Liste aller Bücher"
@@ -162,7 +164,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/books"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid item xs={12} md={6} lg={4}>
             <ReportCard
               title="Leihen"
               subtitle="Liste aller Leihen"
@@ -171,7 +173,16 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/rentals"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid item xs={12} md={6} lg={4}>
+            <ReportCard
+              title="Historie"
+              subtitle="Aktivitäten Bücher/User"
+              unit="audits"
+              totalNumber={1000}
+              link="reports/audit"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
             <LabelCard
               title="Etiketten"
               subtitle="Liste aller Bücher-Etiketten"

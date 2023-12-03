@@ -53,9 +53,9 @@ export const translations = {
     userid: "Nutzer ID",
   },
   audits: {
-    id: "id",
-    eventType: "Event-Typ",
-    eventContent: "Aktivität",
+    id: "Nr",
+    eventType: "Aktivität",
+    eventContent: "Details",
     bookid: "Mediennummer",
     userid: "Ausweisnummer",
   },
