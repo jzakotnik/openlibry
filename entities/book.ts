@@ -158,7 +158,13 @@ export async function updateBook(
     await addAudit(
       client,
       "Update book",
-      book.id ? book.id.toString() + ", " + book.title : "undefined"
+      book.id
+        ? book.id.toString() +
+            ", " +
+            book.title +
+            ", raw data: " +
+            JSON.stringify(book)
+        : "undefined"
     );
     return await client.book.update({
       where: {
