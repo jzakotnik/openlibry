@@ -157,8 +157,8 @@ export async function updateBook(
   try {
     await addAudit(
       client,
-      "update",
-      book.id ? book.id.toString() : "undefined"
+      "Update book",
+      book.id ? book.id.toString() + ", " + book.title : "undefined"
     );
     return await client.book.update({
       where: {
@@ -179,7 +179,7 @@ export async function updateBook(
 
 export async function deleteBook(client: PrismaClient, id: number) {
   try {
-    await addAudit(client, "delete", id.toString());
+    await addAudit(client, "Delete book", id.toString());
     return await client.book.delete({
       where: {
         id,
@@ -224,7 +224,11 @@ export async function extendBook(
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
     });
-    await addAudit(client, "extend", bookid.toString());
+    await addAudit(
+      client,
+      "Extend book",
+      "book id " + bookid.toString() + ", " + book.title
+    );
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -245,7 +249,11 @@ export async function returnBook(client: PrismaClient, bookid: number) {
       return "ERROR in returning a book, this user does not have a book";
     }
     const userid = book.userId;
-    await addAudit(client, "return book", bookid.toString());
+    await addAudit(
+      client,
+      "Return book",
+      "book id " + bookid.toString() + ", " + book.title
+    );
     const transaction = [];
     transaction.push(
       client.book.update({
@@ -310,8 +318,8 @@ export async function rentBook(
   //put all into one transaction
 
   //if the book is rented already, you cannot rent it
+  const book = await getBook(client, bookid);
   try {
-    const book = await getBook(client, bookid);
     if (book?.rentalStatus == "rented") {
       console.log("ERROR in renting a book: It is rented already");
       return "ERROR, book is rented";
@@ -327,8 +335,13 @@ export async function rentBook(
   }
   await addAudit(
     client,
-    "rent book",
-    "user id " + userid.toString() + ", book id " + bookid.toString()
+    "Rent book",
+    "User id: " +
+      userid.toString() +
+      ", Book id: " +
+      bookid.toString() +
+      ", book title: " +
+      book?.title
   );
   const transaction = [];
 

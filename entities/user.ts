@@ -1,5 +1,6 @@
-import { PrismaClient, Prisma } from "@prisma/client";
 import { UserType } from "@/entities/UserType";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { addAudit } from "./audit";
 
 export async function getUser(client: PrismaClient, id: number) {
   try {
@@ -54,6 +55,13 @@ export async function countUser(client: PrismaClient) {
 
 export async function addUser(client: PrismaClient, user: UserType) {
   try {
+    await addAudit(
+      client,
+      "Add user",
+      user.id
+        ? user.id.toString() + ", " + user.firstName + " " + user.lastName
+        : "undefined"
+    );
     return await client.user.create({
       data: { ...user },
     });
@@ -74,6 +82,13 @@ export async function updateUser(
   user: UserType
 ) {
   try {
+    await addAudit(
+      client,
+      "Update user",
+      user.id
+        ? user.id.toString() + ", " + user.firstName + " " + user.lastName
+        : "undefined"
+    );
     return client.user.update({
       where: {
         id,
@@ -92,6 +107,7 @@ export async function updateUser(
 }
 
 export async function disableUser(client: PrismaClient, id: number) {
+  await addAudit(client, "Disable user", id.toString());
   return await client.user.update({
     where: {
       id,
@@ -101,6 +117,7 @@ export async function disableUser(client: PrismaClient, id: number) {
 }
 
 export async function enableUser(client: PrismaClient, id: number) {
+  await addAudit(client, "Enable user", id.toString());
   return await client.user.update({
     where: {
       id,
@@ -120,6 +137,7 @@ export async function isActive(client: PrismaClient, id: number) {
 }
 
 export async function deleteUser(client: PrismaClient, id: number) {
+  await addAudit(client, "Delete user", id.toString());
   return await client.user.delete({
     where: {
       id,
