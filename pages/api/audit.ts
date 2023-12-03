@@ -1,4 +1,3 @@
-import { AuditType } from "@/entities/AuditType";
 import { getLastAudit } from "@/entities/audit";
 
 import { PrismaClient } from "@prisma/client";
@@ -13,7 +12,7 @@ export default async function handle(
   switch (req.method) {
     case "GET":
       try {
-        const auditItem = (await getLastAudit(prisma)) as AuditType;
+        const auditItem = (await getLastAudit(prisma)) as any;
         if (!auditItem)
           return res.status(400).json({ data: "ERROR: Audit log not found" });
         res.status(200).json(auditItem);
