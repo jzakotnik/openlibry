@@ -134,6 +134,7 @@ export async function countBook(client: PrismaClient) {
 export async function addBook(client: PrismaClient, book: BookType) {
   console.log("Adding book", book);
   try {
+    addAudit(client, "Add book", book.title);
     return await client.book.create({
       data: { ...book },
     });
