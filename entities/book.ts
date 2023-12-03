@@ -134,7 +134,7 @@ export async function countBook(client: PrismaClient) {
 export async function addBook(client: PrismaClient, book: BookType) {
   console.log("Adding book", book);
   try {
-    addAudit(client, "Add book", book.title);
+    addAudit(client, "Add book", book.title, book.id);
     return await client.book.create({
       data: { ...book },
     });
@@ -158,13 +158,8 @@ export async function updateBook(
     await addAudit(
       client,
       "Update book",
-      book.id
-        ? book.id.toString() +
-            ", " +
-            book.title +
-            ", raw data: " +
-            JSON.stringify(book)
-        : "undefined"
+      book.id ? book.id.toString() + ", " + book.title : "undefined",
+      id
     );
     return await client.book.update({
       where: {
@@ -185,7 +180,7 @@ export async function updateBook(
 
 export async function deleteBook(client: PrismaClient, id: number) {
   try {
-    await addAudit(client, "Delete book", id.toString());
+    await addAudit(client, "Delete book", id.toString(), id);
     return await client.book.delete({
       where: {
         id,
@@ -233,7 +228,8 @@ export async function extendBook(
     await addAudit(
       client,
       "Extend book",
-      "book id " + bookid.toString() + ", " + book.title
+      "book id " + bookid.toString() + ", " + book.title,
+      bookid
     );
   } catch (e) {
     if (
@@ -258,7 +254,8 @@ export async function returnBook(client: PrismaClient, bookid: number) {
     await addAudit(
       client,
       "Return book",
-      "book id " + bookid.toString() + ", " + book.title
+      "book id " + bookid.toString() + ", " + book.title,
+      bookid
     );
     const transaction = [];
     transaction.push(
@@ -347,7 +344,9 @@ export async function rentBook(
       ", Book id: " +
       bookid.toString() +
       ", book title: " +
-      book?.title
+      book?.title,
+    bookid,
+    userid
   );
   const transaction = [];
 

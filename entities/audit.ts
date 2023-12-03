@@ -21,11 +21,18 @@ export async function getLastAudit(client: PrismaClient) {
 export async function addAudit(
   client: PrismaClient,
   eventType: string,
-  eventContent: string
+  eventContent: string,
+  bookid: number = 0,
+  userid: number = 0
 ) {
   try {
     return await client.audit.create({
-      data: { eventType: eventType, eventContent: eventContent },
+      data: {
+        eventType: eventType,
+        eventContent: eventContent,
+        bookid: bookid,
+        userid: userid,
+      },
     });
   } catch (e) {
     if (
