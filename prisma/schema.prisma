@@ -40,6 +40,8 @@ model Audit {
   id           Int      @id @default(autoincrement())
   eventType    String
   eventContent String
+  bookid       Int?
+  userid       Int?
 }
 
 model Book {

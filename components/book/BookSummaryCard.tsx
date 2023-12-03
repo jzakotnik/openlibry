@@ -98,7 +98,7 @@ export default function BookSummaryCard({
       <CardActions>
         <Link href={"/book/" + book.id} passHref>
           <Button size="small" data-cy="book_card_editbutton">
-            Editieren
+            Details
           </Button>
         </Link>
         {book.rentalStatus != "available" ? (

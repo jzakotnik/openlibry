@@ -117,3 +117,4 @@ prisma/database/dev.db
 public/antolin/antolingesamt.csv
 cypress/cypress.env.json
 cypress.env.json
+prisma/database/dev.db-journal
