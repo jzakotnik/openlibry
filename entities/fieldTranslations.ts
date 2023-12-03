@@ -52,6 +52,13 @@ export const translations = {
     remainingDays: "Verzug",
     userid: "Nutzer ID",
   },
+  audits: {
+    id: "id",
+    eventType: "Event-Typ",
+    eventContent: "Aktivität",
+    bookid: "Mediennummer",
+    userid: "Ausweisnummer",
+  },
   rentalStatus: {
     available: "Verfügbar",
     rented: "Ausgeliehen",

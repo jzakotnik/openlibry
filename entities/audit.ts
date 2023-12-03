@@ -18,6 +18,28 @@ export async function getLastAudit(client: PrismaClient) {
   }
 }
 
+export async function getAllAudit(
+  client: PrismaClient,
+  take: number = 1000
+): Promise<Array<any>> {
+  try {
+    const lastAudits = await client.audit.findMany({
+      orderBy: { id: "desc" },
+      take: take,
+    });
+
+    return lastAudits;
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in get Audit Log: ", e);
+    }
+    throw e;
+  }
+}
+
 export async function addAudit(
   client: PrismaClient,
   eventType: string,

@@ -17,6 +17,14 @@ export function convertDateToDayString(
   return d ? dayjs(d).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
 }
 
+export function convertDateToTimeString(
+  d: string | Date | null | undefined
+): string {
+  return d
+    ? dayjs(d).format("YYYY-MM-DD HH:mm")
+    : dayjs().format("YYYY-MM-DD HH:mm");
+}
+
 export function convertStringToDay(d: string | Date | undefined): Dayjs {
   //console.log("Converting string to dayjs", d, dayjs(d, "YYYY-MM-DD"));
   return d ? dayjs(d, "YYYY-MM-DD") : dayjs("YYYY-MM-DD");
