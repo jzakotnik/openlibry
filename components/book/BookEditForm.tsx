@@ -22,6 +22,7 @@ import BookDateField from "./edit/BookDateField";
 import BookImageUploadButton from "./edit/BookImageUploadButton";
 import BookMultiText from "./edit/BookMultiText";
 import BookNumberField from "./edit/BookNumberField";
+import BookPagesField from "./edit/BookPagesField";
 import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
@@ -271,7 +272,7 @@ export default function BookEditForm({
             />{" "}
           </Grid>
           <Grid item xs={12} sm={6}>
-            <BookTextField
+            <BookPagesField
               fieldType={"pages"}
               editable={editable}
               setBookData={setBookData}
@@ -383,14 +384,6 @@ export default function BookEditForm({
               setBookData={setBookData}
               book={book}
             />{" "}
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <BookTextField
-              fieldType={"additionalMaterial"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
           </Grid>
         </Grid>
         <Grid

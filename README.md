@@ -70,6 +70,11 @@ Für eine lokale Installation ohne Docker befolge diese Schritte:
 
 Eine Installationsanleitung für die Konfiguration mit dem Webserver nginx auf einer Subdomain findet sich [hier](./doc/WebServerInstall.md)
 
+### Initialisierung mit einem ersten User
+- Setze die Auth Variable in `.env` auf `false` um sich ohne Authentifizierung anzumelden
+- Via `/auth/register` erzeuge einen neuen User
+- Setze die Auth Variable auf `true`
+
 ## REST-API
 
 Die REST-API kennt die Resourcen `book` und `user`. Für beide gibt es jeweils die entsprechenden http-Operationen (GET, PUT, POST, DELETE). Die Ausleihe entsteht durch die Verknüpfung von `user` und `book`, also z.B. `http://localhost:3000/api/book/2001/user/1080`, um ein Buch auszuleihen.

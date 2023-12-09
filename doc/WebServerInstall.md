@@ -60,11 +60,7 @@ server {
 
 - `git clone` ins repository mit den Installationen
 
-- Anpassen der `.env` Datei im Projektverzeichnis:
-```
-NEXT_PUBLIC_API_URL=http://<domain>:<port>
-DATABASE_URL  = file:./database/dev.db
-```
+- Anpassen der `.env` Datei im Projektverzeichnis wie im `env.example` definiert.
 
 - Falls mehrere node Instanzen laufen, am Besten den Port ändern in `package.json`:
 ```json
