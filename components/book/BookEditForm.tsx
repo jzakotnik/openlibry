@@ -8,14 +8,12 @@ import Typography from "@mui/material/Typography";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import EditIcon from "@mui/icons-material/Edit";
 
 import palette from "@/styles/palette";
 import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
-import { UserType } from "@/entities/UserType";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
@@ -36,23 +34,16 @@ const bull = (
   </Box>
 );
 
-interface BookEditFormPropType {
-  user: UserType;
+type BookEditFormPropType = {
   book: BookType;
   setBookData: Dispatch<BookType>;
   deleteBook: React.MouseEventHandler<HTMLButtonElement>;
   saveBook: React.MouseEventHandler<HTMLButtonElement>;
   topics: string[];
   antolinResults: AntolinResultType | null;
-}
-
-interface ReturnBooksType {
-  bookid: number;
-  time: Date;
-}
+};
 
 export default function BookEditForm({
-  user,
   book,
   setBookData,
   deleteBook,
@@ -60,12 +51,11 @@ export default function BookEditForm({
   topics,
   antolinResults,
 }: BookEditFormPropType) {
-  const [editable, setEditable] = useState(false);
+  const [editable, setEditable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
-  const [returnedBooks, setReturnedBooks] = useState({});
 
   const toggleEditButton = () => {
     editable
@@ -141,23 +131,12 @@ export default function BookEditForm({
         spacing={2}
       >
         <Grid item xs={12} md={4}>
-          <Tooltip title={editButtonLabel}>
-            <Button
-              onClick={toggleEditButton}
-              data-cy="bookdetails_edit_button"
-              startIcon={<EditIcon />}
-            >
-              {editButtonLabel}
-            </Button>
-          </Tooltip>
-        </Grid>
-        <Grid item xs={12} md={4}>
           {editable && (
             <Tooltip title="Speichern">
               <Button
                 onClick={(e) => {
                   saveBook(e);
-                  toggleEditButton();
+                  //toggleEditButton();
                 }}
                 startIcon={<SaveAltIcon />}
               >
