@@ -68,6 +68,7 @@ export default function BookSearchBar({
           <Tooltip title="Neues Buch erzeugen">
             <IconButton
               color="primary"
+              data-cy="create_book_button"
               sx={{ p: "10px" }}
               aria-label="new-book"
               onClick={handleNewBook}
