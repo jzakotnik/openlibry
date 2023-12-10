@@ -140,7 +140,6 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
     <Layout>
       <ThemeProvider theme={theme}>
         <BookEditForm
-          user={user}
           book={bookData}
           setBookData={setBookData}
           deleteBook={handleDeleteButton}

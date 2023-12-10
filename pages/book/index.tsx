@@ -38,15 +38,17 @@ const gridItemProps = {
 
 interface BookPropsType {
   books: Array<BookType>;
-  images: Array<string>;
+  numberBooksToShow: number;
 }
 
-export default function Books({ books, images }: BookPropsType) {
+export default function Books({ books, numberBooksToShow }: BookPropsType) {
   const theme = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [renderedBooks, setRenderedBooks] = useState(books.slice(0, 10));
+  const [renderedBooks, setRenderedBooks] = useState(
+    books.slice(0, numberBooksToShow)
+  );
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
   const [bookCreating, setBookCreating] = useState(false);
@@ -217,6 +219,9 @@ export default function Books({ books, images }: BookPropsType) {
 
 export async function getServerSideProps() {
   const allBooks = await getAllBooks(prisma);
+  const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
+    ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
+    : 10;
 
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
@@ -230,5 +235,5 @@ export async function getServerSideProps() {
     return newBook;
   });
 
-  return { props: { books } };
+  return { props: { books, numberBooksToShow } };
 }
