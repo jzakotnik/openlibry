@@ -13,7 +13,7 @@ describe("Navigation", () => {
     cy.get("[data-cy=book_title]").should("be.visible");
     cy.get("[data-cy=book_card_editbutton]").should("be.visible");
     cy.get("[data-cy=book_card_editbutton]").click();
-    cy.get("[data-cy=bookdetails_edit_button]").click();
+
     cy.get("[data-cy=book_rentedDate_datepicker]").should("be.visible");
     //cy.get("[data-cy=book_rentedDate_datepicker]").type("12122023");
 

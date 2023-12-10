@@ -10,7 +10,7 @@ type BookPagesFieldProps = {
   book: BookType;
 };
 
-const BookTextField = ({
+const BookPagesField = ({
   fieldType,
   editable,
   setBookData,
@@ -27,15 +27,16 @@ const BookTextField = ({
       type="number"
       variant="standard"
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+        const pageNumber = parseInt(event.target.value);
+
+        //console.log("Saving ", pageNumber);
         setBookData({
           ...book,
-          [fieldType]: Number.isInteger(event.target.value)
-            ? parseInt(event.target.value)
-            : 0,
+          [fieldType]: pageNumber,
         });
       }}
     />
   );
 };
 
-export default BookTextField;
+export default BookPagesField;
