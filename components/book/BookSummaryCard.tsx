@@ -1,5 +1,5 @@
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Avatar, IconButton } from "@mui/material";
+import { Avatar, IconButton, Tooltip } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -97,9 +97,11 @@ export default function BookSummaryCard({
       </CardContent>
       <CardActions>
         <Link href={"/book/" + book.id} passHref>
-          <Button size="small" data-cy="book_card_editbutton">
-            Details
-          </Button>
+          <Tooltip title="Details für das Buch">
+            <Button size="small" data-cy="book_card_editbutton">
+              Details
+            </Button>
+          </Tooltip>
         </Link>
         {book.rentalStatus != "available" ? (
           <Button size="small" onClick={returnBook}>
