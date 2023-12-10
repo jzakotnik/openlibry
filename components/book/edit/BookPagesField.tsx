@@ -29,7 +29,7 @@ const BookPagesField = ({
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
         const pageNumber = parseInt(event.target.value);
 
-        console.log("Saving ", pageNumber);
+        //console.log("Saving ", pageNumber);
         setBookData({
           ...book,
           [fieldType]: pageNumber,
