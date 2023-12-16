@@ -48,6 +48,9 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "flex-start",
   },
+  booknr: {
+    fontSize: 12,
+  },
 });
 const Label = ({ b }: any) => {
   //console.log(b.id);
@@ -58,9 +61,9 @@ const Label = ({ b }: any) => {
         style={{ width: "1cm", height: "1cm" }}
       />
       <View style={styles.text} wrap={false}>
-        <Text>Buch Nr. {b.id}</Text>
+        <Text style={styles.booknr}>{b.id}</Text>
 
-        <Text>Titel: {b.title}</Text>
+        <Text>{b.title}</Text>
         <Text>Eigentum der Schulbücherei</Text>
       </View>
     </View>
