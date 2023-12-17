@@ -28,7 +28,9 @@ CREATE TABLE "Audit" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "eventType" TEXT NOT NULL,
-    "eventContent" TEXT NOT NULL
+    "eventContent" TEXT NOT NULL,
+    "bookid" INTEGER,
+    "userid" INTEGER
 );
 
 -- CreateTable
