@@ -29,6 +29,7 @@
     "eslint": "8.36.0",
     "eslint-config-next": "^14.0.1",
     "eslint-plugin-cypress": "^2.15.1",
+    "exceljs": "^4.4.0",
     "formidable": "^3.5.1",
     "itemsjs": "^2.1.21",
     "next": "^14.0.1",
