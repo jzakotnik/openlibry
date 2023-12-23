@@ -55,6 +55,31 @@ type ReportCardProps = {
   totalNumber: number;
 };
 
+type LinkCardProps = {
+  title: string;
+  subtitle: string;
+  link: string;
+};
+
+const LinkCard = ({ title, subtitle, link }: LinkCardProps) => {
+  return (
+    <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
+      <CardContent>
+        <Typography variant="h5" component="div">
+          {title}
+        </Typography>
+
+        <Typography variant="body2">{subtitle}</Typography>
+      </CardContent>
+      <CardActions>
+        <Button size="small" onClick={() => router.push(link)}>
+          Download Excel
+        </Button>
+      </CardActions>
+    </Card>
+  );
+};
+
 const LabelCard = ({
   title,
   subtitle,
@@ -171,6 +196,13 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               unit="rentals"
               totalNumber={rentals.length}
               link="reports/rentals"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <LinkCard
+              title="Excel"
+              subtitle="Excel Export der Daten"
+              link="api/excel"
             />
           </Grid>
           <Grid item xs={12} md={6} lg={4}>

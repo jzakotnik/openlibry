@@ -1,10 +1,9 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { getAllBooks } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
 import { convertDateToDayString } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
-import dayjs from "dayjs";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -40,33 +39,41 @@ export default async function handle(
           //temp TODO
           return newBook;
         });
-        const allRentals = await getRentedBooksWithUsers(prisma);
-        const rentals = allRentals.map((r) => {
-          //calculate remaining days for the rental
-          const due = dayjs(r.dueDate);
-          const today = dayjs();
-          const diff = today.diff(due, "days");
-
-          return {
-            id: r.id,
-            title: r.title,
-            lastName: r.user?.lastName,
-            firstName: r.user?.firstName,
-            remainingDays: diff,
-            dueDate: convertDateToDayString(due.toDate()),
-            renewalCount: r.renewalCount,
-            userid: r.user?.id,
-          };
-        });
 
         const workbook = new Excel.Workbook();
         const booksheet = workbook.addWorksheet("Bücherliste");
         const usersheet = workbook.addWorksheet("Userliste");
-        const rentalsheet = workbook.addWorksheet("Leihen");
 
         booksheet.columns = [
           { key: "id", header: "Mediennummer" },
+          { key: "createdAt", header: "Erzeugt am" },
+          { key: "updatedAt", header: "Update am" },
+          { key: "rentalStatus", header: "Ausleihstatus" },
+          { key: "rentedDate", header: "Ausgeliehen am" },
+          { key: "dueDate", header: "Rückgabe am" },
+          { key: "renewalCount", header: "Anzahl Verlängerungen" },
           { key: "title", header: "Titel" },
+          { key: "subtitle", header: "Untertitel" },
+          { key: "author", header: "Autor" },
+          { key: "topics", header: "Schlagworte" },
+          { key: "imageLink", header: "Bild" },
+          { key: "isbn", header: "ISBN" },
+          { key: "editionDescription", header: "Edition" },
+          { key: "publisherLocation", header: "Verlagsort" },
+          { key: "pages", header: "Seiten" },
+          { key: "summary", header: "Zusammenfassung" },
+          { key: "minPlayers", header: "Min Spieler" },
+          { key: "publisherName", header: "Verlag" },
+          { key: "otherPhysicalAttributes", header: "Merkmale" },
+          { key: "supplierComment", header: "Beschaffung" },
+          { key: "publisherDate", header: "Publikationsdatum" },
+          { key: "physicalSize", header: "Abmessungen" },
+          { key: "minAge", header: "Min Alter" },
+          { key: "maxAge", header: "Max Alter" },
+          { key: "additionalMaterial", header: "Material" },
+          { key: "price", header: "Preis" },
+          { key: "externalLinks", header: "Links" },
+          { key: "userId", header: "Ausgeliehen von" },
         ];
 
         books.map((b: BookType) => {
@@ -74,21 +81,19 @@ export default async function handle(
         });
 
         usersheet.columns = [
-          { key: "firstName", header: "Vorname" },
+          { key: "createdAt", header: "Erzeugt am" },
+          { key: "updatedAt", header: "Update am" },
+          { key: "id", header: "Nummer" },
           { key: "lastName", header: "Nachname" },
+          { key: "firstName", header: "Vorname" },
+          { key: "schoolGrade", header: "Klasse" },
+          { key: "schoolTeacherName", header: "Lehrkraft" },
+          { key: "active", header: "Freigeschaltet" },
+          { key: "eMail", header: "eMail" },
         ];
 
         users.map((u: UserType) => {
           usersheet.addRow(u);
-        });
-
-        rentalsheet.columns = [
-          { key: "title", header: "Titel" },
-          { key: "lastName", header: "Nachname" },
-        ];
-
-        rentals.map((r: any) => {
-          rentalsheet.addRow(r);
         });
 
         if (!books)
