@@ -1,9 +1,12 @@
 import { BookType } from "@/entities/BookType";
-import { getAllBooks } from "@/entities/book";
+import { UserType } from "@/entities/UserType";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { getAllUsers } from "@/entities/user";
+import { convertDateToDayString } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
 
 const prisma = new PrismaClient();
 
@@ -15,92 +18,78 @@ export default async function handle(
     case "GET":
       try {
         const fileName = "openlibry_export.xlsx";
-        const books = (await getAllBooks(prisma)) as Array<BookType>;
-        books.map((b: BookType) => {});
 
-        //testing
+        const allUsers = await getAllUsers(prisma);
 
-        type Country = {
-          name: string;
-          countryCode: string;
-          capital: string;
-          phoneIndicator: number;
-        };
-
-        const countries: Country[] = [
-          {
-            name: "Cameroon",
-            capital: "Yaounde",
-            countryCode: "CM",
-            phoneIndicator: 237,
-          },
-          {
-            name: "France",
-            capital: "Paris",
-            countryCode: "FR",
-            phoneIndicator: 33,
-          },
-          {
-            name: "United States",
-            capital: "Washington, D.C.",
-            countryCode: "US",
-            phoneIndicator: 1,
-          },
-          {
-            name: "India",
-            capital: "New Delhi",
-            countryCode: "IN",
-            phoneIndicator: 91,
-          },
-          {
-            name: "Brazil",
-            capital: "Brasília",
-            countryCode: "BR",
-            phoneIndicator: 55,
-          },
-          {
-            name: "Japan",
-            capital: "Tokyo",
-            countryCode: "JP",
-            phoneIndicator: 81,
-          },
-          {
-            name: "Australia",
-            capital: "Canberra",
-            countryCode: "AUS",
-            phoneIndicator: 61,
-          },
-          {
-            name: "Nigeria",
-            capital: "Abuja",
-            countryCode: "NG",
-            phoneIndicator: 234,
-          },
-          {
-            name: "Germany",
-            capital: "Berlin",
-            countryCode: "DE",
-            phoneIndicator: 49,
-          },
-        ];
-
-        const workbook = new Excel.Workbook();
-        const worksheet = workbook.addWorksheet("Countries List");
-
-        worksheet.columns = [
-          { key: "name", header: "Name" },
-          { key: "countryCode", header: "Country Code" },
-          { key: "capital", header: "Capital" },
-          { key: "phoneIndicator", header: "International Direct Dialling" },
-        ];
-
-        countries.forEach((item) => {
-          worksheet.addRow(item);
+        const users = allUsers.map((u) => {
+          const newUser = { ...u } as any; //define a better type there with conversion of Date to string
+          newUser.createdAt = convertDateToDayString(u.createdAt);
+          newUser.updatedAt = convertDateToDayString(u.updatedAt);
+          return newUser;
         });
 
-        const exportPath = path.resolve(__dirname, "countries.xlsx");
+        const allBooks = await getAllBooks(prisma);
+        const books = allBooks.map((b) => {
+          const newBook = { ...b } as any; //define a better type there with conversion of Date to string
+          newBook.createdAt = convertDateToDayString(b.createdAt);
+          newBook.updatedAt = convertDateToDayString(b.updatedAt);
+          newBook.rentedDate = b.rentedDate
+            ? convertDateToDayString(b.rentedDate)
+            : "";
+          newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+          //temp TODO
+          return newBook;
+        });
+        const allRentals = await getRentedBooksWithUsers(prisma);
+        const rentals = allRentals.map((r) => {
+          //calculate remaining days for the rental
+          const due = dayjs(r.dueDate);
+          const today = dayjs();
+          const diff = today.diff(due, "days");
 
-        await workbook.xlsx.writeFile(exportPath);
+          return {
+            id: r.id,
+            title: r.title,
+            lastName: r.user?.lastName,
+            firstName: r.user?.firstName,
+            remainingDays: diff,
+            dueDate: convertDateToDayString(due.toDate()),
+            renewalCount: r.renewalCount,
+            userid: r.user?.id,
+          };
+        });
+
+        const workbook = new Excel.Workbook();
+        const booksheet = workbook.addWorksheet("Bücherliste");
+        const usersheet = workbook.addWorksheet("Userliste");
+        const rentalsheet = workbook.addWorksheet("Leihen");
+
+        booksheet.columns = [
+          { key: "id", header: "Mediennummer" },
+          { key: "title", header: "Titel" },
+        ];
+
+        books.map((b: BookType) => {
+          booksheet.addRow(b);
+        });
+
+        usersheet.columns = [
+          { key: "firstName", header: "Vorname" },
+          { key: "lastName", header: "Nachname" },
+        ];
+
+        users.map((u: UserType) => {
+          usersheet.addRow(u);
+        });
+
+        rentalsheet.columns = [
+          { key: "title", header: "Titel" },
+          { key: "lastName", header: "Nachname" },
+        ];
+
+        rentals.map((r: any) => {
+          rentalsheet.addRow(r);
+        });
 
         if (!books)
           return res.status(400).json({ data: "ERROR: Books not found" });
