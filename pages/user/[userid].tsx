@@ -28,6 +28,7 @@ import { GetServerSidePropsContext } from "next/types";
 type UserDetailPropsType = {
   user: UserType;
   books: Array<BookType>;
+  extensionDays: number;
 };
 
 const theme = createTheme({
@@ -43,7 +44,11 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function UserDetail({ user, books }: UserDetailPropsType) {
+export default function UserDetail({
+  user,
+  books,
+  extensionDays,
+}: UserDetailPropsType) {
   const router = useRouter();
 
   const [userData, setUserData] = useState(user);
@@ -129,12 +134,7 @@ export default function UserDetail({ user, books }: UserDetailPropsType) {
     const newbook = replaceBookStringDate(book) as any;
     //extend logic
 
-    const newDueDate = extendDays(
-      book.dueDate as Date,
-      process.env.EXTENSION_DURATION_DAYS
-        ? parseInt(process.env.EXTENSION_DURATION_DAYS)
-        : 14
-    );
+    const newDueDate = extendDays(new Date(), extensionDays);
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 
@@ -216,6 +216,7 @@ export default function UserDetail({ user, books }: UserDetailPropsType) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const extensionDays = process.env.EXTENSION_DURATION_DAYS || 14;
   if (!context.query.userid) return { props: {} };
   const prisma = new PrismaClient();
 
@@ -253,5 +254,5 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   // Pass data to the page via props
-  return { props: { user, books } };
+  return { props: { user, books, extensionDays } };
 }
