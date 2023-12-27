@@ -249,7 +249,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
     //temp TODO
-    console.log("Book", newBook);
+    //console.log("Book", newBook);
     return newBook;
   });
 
