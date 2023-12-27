@@ -31,13 +31,19 @@ interface RentalPropsType {
   books: Array<BookType>;
   users: Array<UserType>;
   rentals: Array<RentalsUserType>;
+  extensionDays: number;
 }
 
 const prisma = new PrismaClient();
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export default function Rental({ books, users, rentals }: RentalPropsType) {
+export default function Rental({
+  books,
+  users,
+  rentals,
+  extensionDays,
+}: RentalPropsType) {
   const router = useRouter();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -98,13 +104,10 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
   const handleExtendBookButton = (bookid: number, book: BookType) => {
     console.log("Extending book ", bookid, book);
     const newbook = replaceBookStringDate(book) as any;
+
+    console.log("Extension days: ", extensionDays);
     //extend logic
-    const newDueDate = extendDays(
-      book.dueDate as Date,
-      process.env.EXTENSION_DURATION_DAYS
-        ? parseInt(process.env.EXTENSION_DURATION_DAYS)
-        : 14
-    );
+    const newDueDate = extendDays(new Date(), extensionDays);
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 
@@ -255,6 +258,7 @@ export default function Rental({ books, users, rentals }: RentalPropsType) {
 }
 
 export async function getServerSideProps() {
+  const extensionDays = process.env.EXTENSION_DURATION_DAYS || 14;
   const allUsers = await getAllUsers(prisma);
 
   const users = allUsers.map((u) => {
@@ -299,5 +303,5 @@ export async function getServerSideProps() {
   });
   //console.log("Initial fetch of books", books[0]);
 
-  return { props: { books, users, rentals } };
+  return { props: { books, users, rentals, extensionDays } };
 }
