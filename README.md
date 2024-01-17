@@ -55,7 +55,7 @@ Für eine lokale Installation ohne Docker befolge diese Schritte:
  - Kopiere das Beispielfile und passe den API-Endpunkt mit dem entsprechenden Servernamen an: `cp .env_example .env` und ggf. `nano .env`
 - Installiere alle notwendigen node-Pakete: `npm install`
 - Erzeuge eine leere Datenbank (SQLite): `npx prisma db push`
-- Starte OpenLibry mit `npm run start`. Achte darauf, dass der entsprechende Port freigegeben ist und über den Browser zugänglich ist.
+- Starte OpenLibry mit `npm run dev`. Achte darauf, dass der entsprechende Port freigegeben ist und über den Browser zugänglich ist.
 
 ### Docker
 
