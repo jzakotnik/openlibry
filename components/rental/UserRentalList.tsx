@@ -56,7 +56,8 @@ export default function UserRentalList({
   const [returnedBooks, setReturnedBooks] = useState({});
   //console.log("Rendering updated users:", users);
 
-  const handleClear = () => {
+  const handleClear = (e: any) => {
+    e.preventDefault();
     setUserSearchInput("");
   };
 
@@ -202,7 +203,7 @@ export default function UserRentalList({
             userSearchInput && (
               <InputAdornment position="end">
                 <Tooltip title="Suche löschen">
-                  <IconButton edge="end" onClick={handleClear}>
+                  <IconButton edge="end" onMouseDown={handleClear}>
                     <ClearIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>

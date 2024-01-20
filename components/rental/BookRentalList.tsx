@@ -60,7 +60,8 @@ export default function BookRentalList({
     setRenderedBooks(foundBooks.data.items);
   }
 
-  const handleClear = () => {
+  const handleClear = (e: any) => {
+    e.preventDefault();
     setBookSearchInput("");
   };
 
@@ -106,7 +107,7 @@ export default function BookRentalList({
             bookSearchInput && (
               <InputAdornment position="end">
                 <Tooltip title="Suche löschen">
-                  <IconButton edge="end" onClick={handleClear}>
+                  <IconButton edge="end" onMouseDown={handleClear}>
                     <ClearIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
