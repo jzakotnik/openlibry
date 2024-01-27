@@ -66,7 +66,7 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
   async function searchBooks(searchString: string) {
     const resultBooks = [] as Array<BookType>;
     const foundBooks = itemsjs.search({
-      per_page: 20,
+      per_page: 100,
       sort: "name_asc",
       // full text search
       query: searchString,
