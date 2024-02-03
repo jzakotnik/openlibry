@@ -10,8 +10,6 @@ import { useState } from "react";
 import { getAllBooks } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 
-import List from "@mui/material/List";
-
 import { convertDateToDayString, currentTime } from "@/utils/dateutils";
 
 import { BookType } from "@/entities/BookType";
@@ -20,6 +18,7 @@ import BookSummaryCard from "@/components/book/BookSummaryCard";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
+import itemsjs from "itemsjs";
 
 const prisma = new PrismaClient();
 /*
@@ -59,18 +58,19 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
     gridItemProps.lg = 12;
     gridItemProps.xl = 12;
   }
-  const itemsjs = require("itemsjs")(books, {
+  const searchEngine = itemsjs(books, {
     searchableFields: ["title", "author", "subtitle", "topics", "id"],
   });
 
   async function searchBooks(searchString: string) {
-    const resultBooks = [] as Array<BookType>;
-    const foundBooks = itemsjs.search({
-      per_page: 100,
+    const foundBooks = searchEngine.search({
+      per_page: 20,
       sort: "name_asc",
       // full text search
       query: searchString,
     });
+    //console.log("Searched books", books);
+
     //console.log("Found books", foundBooks);
     setRenderedBooks(foundBooks.data.items);
   }
@@ -185,7 +185,13 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
 
   const SummaryRowContainer = ({ renderedBooks }: any) => {
     return (
-      <List sx={{ width: "70%" }} dense={true}>
+      <Grid
+        container
+        sx={{ width: "100%" }}
+        direction="column"
+        justifyContent="center"
+        alignItems="top"
+      >
         {renderedBooks.map((b: BookType) => (
           <BookSummaryRow
             key={b.id}
@@ -193,7 +199,7 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
             handleCopyBook={() => handleCopyBook(b)}
           />
         ))}
-      </List>
+      </Grid>
     );
   };
 
@@ -231,6 +237,7 @@ export async function getServerSideProps() {
       ? convertDateToDayString(b.rentedDate)
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+    //newBook.topics = b.topics?.split(";"); //otherwise the itemsjs search doesn't work
 
     return newBook;
   });

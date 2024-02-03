@@ -1,21 +1,27 @@
-import ListItem from "@mui/material/ListItem";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-
-import QueueIcon from "@mui/icons-material/Queue";
-import { Avatar, IconButton, Tooltip } from "@mui/material";
+import {
+  Avatar,
+  Chip,
+  Grid,
+  IconButton,
+  Paper,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { useRouter } from "next/router";
 
 import { BookType } from "@/entities/BookType";
-
 import palette from "@/styles/palette";
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 interface BookSummaryRowPropType {
   book: BookType;
   handleCopyBook: React.MouseEventHandler<HTMLButtonElement>;
+}
+
+interface BookTopicsPropType {
+  topics: string;
 }
 
 interface BookAvatarIconPropType {
@@ -41,31 +47,59 @@ export default function BookSummaryRow({
     );
   };
 
+  const BookTopics = ({ topics }: BookTopicsPropType) => {
+    const topicsArray = topics.split(";");
+    return (
+      <div>
+        {topicsArray
+          .filter((t) => t.length > 0)
+          .map((t) => (
+            <Chip key={t} label={t} size="small" sx={{ mx: 0.2 }} />
+          ))}{" "}
+      </div>
+    );
+  };
+  const bookTopics = "topics" in book && book.topics != null ? book.topics : "";
+
   return (
-    <ListItem
-      key={book.id}
-      secondaryAction={
-        <Tooltip title="Buch kopieren">
-          <IconButton
-            onClick={handleCopyBook}
-            color="primary"
-            sx={{ p: "10px" }}
-            aria-label="new-copy-book"
-          >
-            <QueueIcon />
-          </IconButton>
-        </Tooltip>
-      }
-    >
-      {" "}
-      <ListItemButton>
-        <ListItemAvatar>
+    <Paper elevation={2} sx={{ mx: 2, my: 0.2, width: "100%" }}>
+      <Grid
+        item
+        container
+        direction="row"
+        justifyContent="flex-start"
+        alignItems="center"
+        key={book.id}
+        width={"100%"}
+      >
+        {" "}
+        <Grid item>
           <Avatar>
             <BookAvatarIcon b={book} />
           </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary={book.title} secondary={book.author} />{" "}
-      </ListItemButton>
-    </ListItem>
+        </Grid>
+        <Grid item>
+          <Tooltip title="Buch kopieren">
+            <IconButton
+              onClick={handleCopyBook}
+              color="primary"
+              sx={{ p: "10px" }}
+              aria-label="new-copy-book"
+            >
+              <FileCopyIcon />
+            </IconButton>
+          </Tooltip>{" "}
+        </Grid>
+        <Grid item sx={{ mx: 1 }}>
+          <Typography>{book.title}</Typography>
+        </Grid>
+        <Grid item sx={{ mx: 1 }}>
+          <Typography variant="caption">{book.author} </Typography>
+        </Grid>
+        <Grid item sx={{ mx: 1 }}>
+          <BookTopics topics={bookTopics} />
+        </Grid>
+      </Grid>{" "}
+    </Paper>
   );
 }
