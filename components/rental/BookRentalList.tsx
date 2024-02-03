@@ -21,6 +21,8 @@ import userNameForBook from "@/utils/userNameForBook";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 
+import itemsjs from "itemsjs";
+
 interface BookPropsType {
   books: Array<BookType>;
   users: Array<UserType>;
@@ -40,8 +42,8 @@ export default function BookRentalList({
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState(books);
   const [returnedBooks, setReturnedBooks] = useState({});
-  const itemsjs = require("itemsjs")(books, {
-    searchableFields: ["title", "author", "subtitle", "topics", "id"],
+  const searchEngine = itemsjs(books, {
+    searchableFields: ["title", "author", "subtitle", "id"],
   });
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function BookRentalList({
 
   async function searchBooks(searchString: string) {
     const resultBooks = [] as Array<BookType>;
-    const foundBooks = itemsjs.search({
+    const foundBooks = searchEngine.search({
       per_page: 20,
       sort: "name_asc",
       // full text search

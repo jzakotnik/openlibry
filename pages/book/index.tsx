@@ -35,8 +35,12 @@ const gridItemProps = {
   xl: 4,
 };
 
+interface SearchableBookType extends BookType {
+  searchableTopics: Array<string>;
+}
+
 interface BookPropsType {
-  books: Array<BookType>;
+  books: Array<SearchableBookType>;
   numberBooksToShow: number;
 }
 
@@ -59,12 +63,12 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
     gridItemProps.xl = 12;
   }
   const searchEngine = itemsjs(books, {
-    searchableFields: ["title", "author", "subtitle", "topics", "id"],
+    searchableFields: ["title", "author", "subtitle", "searchableTopics", "id"],
   });
 
   async function searchBooks(searchString: string) {
     const foundBooks = searchEngine.search({
-      per_page: 20,
+      per_page: 100,
       sort: "name_asc",
       // full text search
       query: searchString,
@@ -237,7 +241,7 @@ export async function getServerSideProps() {
       ? convertDateToDayString(b.rentedDate)
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-    //newBook.topics = b.topics?.split(";"); //otherwise the itemsjs search doesn't work
+    newBook.searchableTopics = b.topics?.split(";"); //otherwise the itemsjs search doesn't work, but not sure if I can override the type?
 
     return newBook;
   });
