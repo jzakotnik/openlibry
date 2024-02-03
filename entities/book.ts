@@ -30,7 +30,7 @@ export async function getAllBooks(client: PrismaClient) {
     return await client.book.findMany({
       orderBy: [
         {
-          id: "asc",
+          id: "desc",
         },
       ],
     });

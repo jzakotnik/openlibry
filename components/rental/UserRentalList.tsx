@@ -52,7 +52,7 @@ export default function UserRentalList({
   userExpanded,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
-  const [displayUserDetail, setDisplayUserDetail] = useState(false);
+
   const [returnedBooks, setReturnedBooks] = useState({});
   //console.log("Rendering updated users:", users);
 
@@ -80,6 +80,11 @@ export default function UserRentalList({
   const getBookFromID = (id: number): BookType => {
     const book = books.filter((b: BookType) => b.id == id);
     return book[0];
+  };
+
+  const getUserFromID = (id: number): UserType => {
+    const user = users.filter((u: UserType) => u.id == id);
+    return user[0];
   };
 
   const ReturnedIcon = () => {
@@ -181,39 +186,55 @@ export default function UserRentalList({
     return filteredUsers;
   };
 
-  return !displayUserDetail ? (
+  return (
     <div>
-      <FormControl variant="standard">
-        <InputLabel
-          htmlFor="user-search-input-label"
-          data-cy="rental_input_searchuser"
-        >
-          Suche NutzerIn
-        </InputLabel>
-        <Input
-          placeholder="Name, ID, klasse:, fällig:"
-          sx={{ my: 0.5 }}
-          id="user-search-input"
-          startAdornment={
-            <InputAdornment position="start">
-              <AccountCircle />
-            </InputAdornment>
-          }
-          endAdornment={
-            userSearchInput && (
-              <InputAdornment position="end">
-                <Tooltip title="Suche löschen">
-                  <IconButton edge="end" onMouseDown={handleClear}>
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            )
-          }
-          value={userSearchInput}
-          onChange={handleInputChange}
-        />
-      </FormControl>
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="space-between"
+        direction="row"
+      >
+        <Grid item>
+          <FormControl variant="standard">
+            <InputLabel
+              htmlFor="user-search-input-label"
+              data-cy="rental_input_searchuser"
+            >
+              Suche NutzerIn{" "}
+            </InputLabel>
+            <Input
+              placeholder="Name, ID, klasse:, fällig:"
+              sx={{ my: 0.5 }}
+              id="user-search-input"
+              startAdornment={
+                <InputAdornment position="start">
+                  <AccountCircle />
+                </InputAdornment>
+              }
+              endAdornment={
+                userSearchInput && (
+                  <InputAdornment position="end">
+                    <Tooltip title="Suche löschen">
+                      <IconButton edge="end" onMouseDown={handleClear}>
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                )
+              }
+              value={userSearchInput}
+              onChange={handleInputChange}
+            />
+          </FormControl>
+        </Grid>
+        <Grid>
+          <Typography variant="caption" color="primary">
+            {userExpanded
+              ? " Ausgewählt: " + getUserFromID(userExpanded).firstName
+              : ""}
+          </Typography>
+        </Grid>
+      </Grid>
 
       {filterUsers(users, userSearchInput).map((u: UserType) => {
         const rentalsUser = booksForUser(u.id!);
@@ -346,8 +367,5 @@ export default function UserRentalList({
         );
       })}
     </div>
-  ) : (
-    //user detail is activated
-    <div></div>
   );
 }
