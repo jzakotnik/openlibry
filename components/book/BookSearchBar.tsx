@@ -1,4 +1,11 @@
-import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
+import {
+  Divider,
+  IconButton,
+  InputBase,
+  Paper,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 
 import GridViewIcon from "@mui/icons-material/GridView";
 import QueueIcon from "@mui/icons-material/Queue";
@@ -15,6 +22,7 @@ interface BookSearchBarPropType {
   bookSearchInput: string;
   toggleView: React.MouseEventHandler<HTMLButtonElement>;
   detailView: boolean;
+  searchResultNumber: number;
 }
 
 export default function BookSearchBar({
@@ -23,6 +31,7 @@ export default function BookSearchBar({
   bookSearchInput,
   toggleView,
   detailView,
+  searchResultNumber,
 }: BookSearchBarPropType) {
   return (
     <Grid
@@ -76,6 +85,8 @@ export default function BookSearchBar({
               <QueueIcon />
             </IconButton>
           </Tooltip>
+          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+          <Typography variant="caption">{searchResultNumber}</Typography>
         </Paper>
       </Grid>
     </Grid>

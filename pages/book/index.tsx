@@ -55,6 +55,7 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
   const [bookCreating, setBookCreating] = useState(false);
+  const [searchResultNumber, setSearchResultNumber] = useState(0);
 
   if (isMobile) {
     gridItemProps.sm = 12;
@@ -75,8 +76,9 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
     });
     //console.log("Searched books", books);
 
-    //console.log("Found books", foundBooks);
+    console.log("Found books", foundBooks);
     setRenderedBooks(foundBooks.data.items);
+    setSearchResultNumber(foundBooks.pagination.total);
   }
 
   const handleCreateNewBook = () => {
@@ -216,6 +218,7 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
           bookSearchInput={bookSearchInput}
           toggleView={toggleView}
           detailView={detailView}
+          searchResultNumber={searchResultNumber}
         />
         {detailView ? (
           <DetailCardContainer renderedBooks={renderedBooks} />
