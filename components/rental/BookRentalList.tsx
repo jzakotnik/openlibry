@@ -250,6 +250,9 @@ export default function BookRentalList({
                         {userNameForBook(users, b.userId!)}
                       </span>
                     )}
+                    {b.rentalStatus == "available" && (
+                      <span> -{" " + b.author}</span>
+                    )}
                   </Typography>
                 </Grid>
               </Grid>
