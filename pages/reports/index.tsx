@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { getAllUsers } from "../../entities/user";
 
 import Dashboard from "@/components/reports/Dashboard";
+import TagCloudDashboard from "@/components/reports/TagCloud";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { convertDateToDayString } from "@/utils/dateutils";
@@ -159,11 +160,23 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
       </Card>
     );
   };
+  const allTags = [] as any;
+  books.map((b: BookType) =>
+    allTags.push(b.topics!.split(";").filter((t: string) => t.length > 0))
+  );
+  //console.log("All Tags", allTags);
+
+  const tagSet = allTags.flat().reduce((acc: any, item: string) => {
+    acc[item!] = (acc[item!] || 0) + 1;
+    return acc;
+  }, {});
+  //console.log("Tag Set", tagSet);
 
   return (
     <Layout>
       <ThemeProvider theme={theme}>
-        <Dashboard users={users} rentals={rentals} books={books} />
+        <TagCloudDashboard tagsSet={tagSet} />
+
         <Grid
           container
           direction="row"
@@ -226,6 +239,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
             />
           </Grid>
         </Grid>
+        <Dashboard users={users} rentals={rentals} books={books} />
       </ThemeProvider>
     </Layout>
   );
