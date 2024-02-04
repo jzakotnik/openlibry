@@ -69,7 +69,7 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
 
   async function searchBooks(searchString: string) {
     const foundBooks = searchEngine.search({
-      per_page: 100,
+      per_page: numberBooksToShow,
       sort: "name_asc",
       // full text search
       query: searchString,
