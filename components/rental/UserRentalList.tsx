@@ -58,6 +58,7 @@ export default function UserRentalList({
 
   const handleClear = (e: any) => {
     e.preventDefault();
+    setUserExpanded(false);
     setUserSearchInput("");
   };
 
