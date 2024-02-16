@@ -21,6 +21,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Divider,
   Tooltip,
 } from "@mui/material";
 import OverdueIcon from "./OverdueIcon";
@@ -303,64 +304,71 @@ export default function UserRentalList({
                 sx={{ px: 1, my: 1 }}
               >
                 {rentalsUser.map((r: RentalsUserType) => (
-                  <Paper key={r.id}>
-                    <Grid
-                      container
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="flex-start"
-                      sx={{ px: 1 }}
-                    >
-                      <Grid item>
-                        <Tooltip title="Verlängern">
-                          <IconButton
-                            aria-label="extend"
-                            onClick={() => {
-                              handleExtendBookButton(
-                                r.id,
-                                getBookFromID(r.id!)
-                              );
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[r.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                          >
-                            <ExtendedIcon key={r.id} />
-                          </IconButton>
-                        </Tooltip>
+                  <span key={"span" + r.id}>
+                    {" "}
+                    <Paper elevation={0} key={r.id} sx={{ my: 1 }}>
+                      <Grid
+                        container
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="flex-start"
+                        sx={{ px: 1 }}
+                      >
+                        {" "}
+                        <Grid item xs={2}>
+                          <Tooltip title="Zurückgeben">
+                            <IconButton
+                              onClick={() => {
+                                if (!userExpanded) return; //something went wrong and no user is available to return the book
+                                handleReturnBookButton(r.id, userExpanded);
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[r.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                              aria-label="zurückgeben"
+                            >
+                              <ReturnedIcon key={r.id} />
+                            </IconButton>
+                          </Tooltip>
+                        </Grid>
+                        <Grid item xs={8}>
+                          <Typography sx={{ m: 1 }}>{r.title},</Typography>
+                          <Typography variant="caption">
+                            bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
+                            {r.renewalCount}x verlängert
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Tooltip title="Verlängern">
+                            <IconButton
+                              aria-label="extend"
+                              onClick={() => {
+                                handleExtendBookButton(
+                                  r.id,
+                                  getBookFromID(r.id!)
+                                );
+                                const time = Date.now();
+                                const newbook = {};
+                                (newbook as any)[r.id!] = time;
+                                setReturnedBooks({
+                                  ...returnedBooks,
+                                  ...newbook,
+                                });
+                              }}
+                            >
+                              <ExtendedIcon key={r.id} />
+                            </IconButton>
+                          </Tooltip>
+                        </Grid>
+                        <Divider />
                       </Grid>
-                      <Grid item>
-                        <Tooltip title="Zurückgeben">
-                          <IconButton
-                            onClick={() => {
-                              if (!userExpanded) return; //something went wrong and no user is available to return the book
-                              handleReturnBookButton(r.id, userExpanded);
-                              const time = Date.now();
-                              const newbook = {};
-                              (newbook as any)[r.id!] = time;
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                ...newbook,
-                              });
-                            }}
-                            aria-label="zurückgeben"
-                          >
-                            <ReturnedIcon key={r.id} />
-                          </IconButton>
-                        </Tooltip>
-                      </Grid>
-                      <Grid item>
-                        <Typography sx={{ m: 1 }} variant="caption">
-                          {r.title}, bis {dayjs(r.dueDate).format("DD.MM.YYYY")}
-                          , {r.renewalCount}x verlängert
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Paper>
+                    </Paper>
+                    <Divider variant="fullWidth" />
+                  </span>
                 ))}
               </Grid>
             </AccordionDetails>
