@@ -2,6 +2,7 @@
 import Box from "@mui/material/Box";
 import { Dispatch, useState } from "react";
 
+import { AlertColor } from "@mui/material";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 
@@ -56,6 +57,8 @@ export default function BookEditForm({
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
+
+  useState<AlertColor>("success");
 
   const toggleEditButton = () => {
     editable
@@ -136,6 +139,7 @@ export default function BookEditForm({
               <Button
                 onClick={(e) => {
                   saveBook(e);
+
                   //toggleEditButton();
                 }}
                 startIcon={<SaveAltIcon />}

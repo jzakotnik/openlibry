@@ -43,6 +43,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
   const [bookData, setBookData] = useState<BookType>(book);
   const [antolinResults, setAntolinResults] = useState(null);
   const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
+  const [saveBookSnackbar, setSaveBookSnackbar] = useState(false);
 
   useEffect(() => {
     setBookData(book);
@@ -84,6 +85,17 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
     setReturnBookSnackbar(false);
   };
 
+  const handleCloseSaveBookSnackbar = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setSaveBookSnackbar(false);
+  };
+
   const handleSaveButton = () => {
     console.log("Saving book ", bookData);
 
@@ -101,7 +113,9 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       body: JSON.stringify({ ...savingBook, rentedDate, dueDate }),
     })
       .then((res) => res.json())
-      .then((data) => {});
+      .then((data) => {
+        setSaveBookSnackbar(true);
+      });
   };
 
   const handleReturnBookButton = (userid: number) => {
@@ -149,7 +163,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
         />
         <Snackbar
           open={returnBookSnackbar}
-          autoHideDuration={8000}
+          autoHideDuration={4000}
           onClose={handleCloseReturnBookSnackbar}
         >
           <Alert
@@ -158,6 +172,19 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
             sx={{ width: "100%" }}
           >
             Buch zurückgegeben, super!
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={saveBookSnackbar}
+          autoHideDuration={4000}
+          onClose={handleCloseSaveBookSnackbar}
+        >
+          <Alert
+            onClose={handleCloseSaveBookSnackbar}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Buch gespeichert, gut gemacht!
           </Alert>
         </Snackbar>
       </ThemeProvider>
