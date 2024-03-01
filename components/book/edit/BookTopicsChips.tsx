@@ -28,7 +28,8 @@ export default function BookTopicsChips({
 }: BookTopicsChipsProps) {
   //const [bookTopics, setBookTopics] = useState(parseTopics(book.topics));
 
-  if (!book.topics) return <span></span>;
+  //why was this there?
+  //if (!book.topics) return <span></span>;
 
   const serializeTopics = (topics: string[]): string => {
     return topics.join(";");
@@ -81,7 +82,7 @@ export default function BookTopicsChips({
         renderTags={() => {
           return null;
         }}
-        value={book.topics ? parseTopics(book.topics) : undefined}
+        value={book.topics ? parseTopics(book.topics) : []}
         renderInput={(params) => (
           <TextField
             {...params}
