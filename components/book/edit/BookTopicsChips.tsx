@@ -39,7 +39,7 @@ export default function BookTopicsChips({
   //console.log("Topics for this book:", book.topics);
   //console.log("All topics", topics);
 
-  const valHtml = parseTopics(book.topics).map((option, index) => {
+  const valHtml = parseTopics(book.topics!).map((option, index) => {
     // This is to handle new options added by the user (allowed by freeSolo prop).
     const label = option;
     return (
