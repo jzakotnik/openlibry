@@ -10,14 +10,14 @@
     "cypress:open": "cypress open"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^1.5.0",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.14.18",
     "@mui/x-data-grid": "^6.1.0",
     "@mui/x-date-pickers": "^6.6.0",
-    "@next-auth/prisma-adapter": "^0.4.4-canary.81",
-    "@prisma/client": "^5.6.0",
+    "@prisma/client": "^5.11.0",
     "@react-pdf/renderer": "^3.1.14",
     "@types/formidable": "^3.4.4",
     "@types/itemsjs": "^2.1.6",
@@ -49,7 +49,7 @@
     "@types/mocha": "^10.0.5",
     "@types/node": "^20.8.10",
     "cypress": "^13.5.1",
-    "prisma": "^4.14.0",
+    "prisma": "^4.16.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   }
