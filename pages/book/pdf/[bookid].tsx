@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import { Paper, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import Barcode from "react-barcode";
-import { Typography, Paper } from "@mui/material";
-import Layout from "@/components/layout/Layout";
 
 export default function Home() {
   const router = useRouter();
