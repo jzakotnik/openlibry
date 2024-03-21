@@ -1,5 +1,5 @@
-import { BookType } from "@/entities/BookType";
-import { getAllBooks } from "@/entities/book";
+import { UserType } from "@/entities/UserType";
+import { getAllUsers } from "@/entities/user";
 import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Document,
@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "flex-start",
   },
-  booknr: {
+  usernr: {
     fontSize: 12,
   },
 });
-const Label = ({ b }: any) => {
+const Label = ({ u }: any) => {
   //console.log(b.id);
   return (
     <View style={styles.section} wrap={false}>
@@ -61,10 +61,10 @@ const Label = ({ b }: any) => {
         style={{ width: "1cm", height: "1cm" }}
       />
       <View style={styles.text} wrap={false}>
-        <Text style={styles.booknr}>{b.id}</Text>
+        <Text style={styles.usernr}>{u.lastName}</Text>
 
-        <Text>{b.title}</Text>
-        <Text>Eigentum der Schulbücherei</Text>
+        <Text>{u.lastName}</Text>
+        <Text>Ausweis</Text>
       </View>
     </View>
   );
@@ -75,18 +75,18 @@ const UserLabels = ({ renderedUsers }: any) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {renderedBooks.map((b: any) => {
+        {renderedUsers.map((u: any) => {
           //console.log(b);
-          return <Label key={b.id} b={b} />;
+          return <Label key={u.id} u={u} />;
         })}
       </Page>
     </Document>
   );
 };
 
-async function createLabelsPDF(books: Array<BookType>) {
+async function createLabelsPDF(users: Array<UserType>) {
   const pdfstream = await ReactPDF.renderToStream(
-    <BookLabels renderedBooks={books} />
+    <UserLabels renderedUsers={users} />
   );
 
   return pdfstream;
@@ -98,28 +98,25 @@ export default async function handle(
 ) {
   switch (req.method) {
     case "GET":
-      console.log("Printing book labels via api");
+      console.log("Printing user labels via api");
       try {
-        const books = (await getAllBooks(prisma)) as Array<BookType>;
+        const users = (await getAllUsers(prisma)) as any;
         //console.log("Search Params", req.query, "end" in req.query);
-        const startBookID = "start" in req.query ? req.query.start : "0";
-        const endBookID = "end" in req.query ? req.query.end : books.length - 1;
-        const printableBooks = books
+        const startUserID = "start" in req.query ? req.query.start : "0";
+        const endUserID = "end" in req.query ? req.query.end : users.length - 1;
+        const printableUsers = users
           .reverse()
           .slice(
-            parseInt(startBookID as string),
-            parseInt(endBookID as string)
+            parseInt(startUserID as string),
+            parseInt(endUserID as string)
           );
 
-        console.log("Printing labels for books", startBookID, endBookID);
+        console.log("Printing labels for users", startUserID, endUserID);
 
-        if (!books)
-          return res.status(400).json({ data: "ERROR: Books  not found" });
+        if (!users)
+          return res.status(400).json({ data: "ERROR: Users  not found" });
 
-        //create a nice label PDF from the books
-        //console.log(books);
-
-        const labels = await createLabelsPDF(printableBooks);
+        const labels = await createLabelsPDF(printableUsers);
         res.writeHead(200, {
           "Content-Type": "application/pdf",
         });
