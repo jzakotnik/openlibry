@@ -14,14 +14,14 @@ const { join } = require("path");
 
 const prisma = new PrismaClient();
 var fs = require("fs");
-var data = fs.readFileSync(
-  join(process.cwd(), "/public/" + process.env.LOGO_LABEL),
+var base64Image = fs.readFileSync(
+  join(process.cwd(), "/public/" + process.env.USERID_LABEL),
   {
     encoding: "base64",
   }
 );
 
-const styles = StyleSheet.create({
+const styles_old = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#FFFFFF",
@@ -52,20 +52,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
+
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: "#E4E4E4",
+  },
+  section: {
+    margin: 10,
+    padding: 10,
+    flexGrow: 1,
+    position: "relative", // To position the text over the image
+  },
+  image: {
+    width: "50%", // Adjust as needed
+    height: "auto", // Adjust based on your requirements
+  },
+  overlayText: {
+    position: "absolute",
+    top: "13%", // Center vertically, adjust as needed
+    left: "5%", // Center horizontally, adjust as needed
+
+    color: "black", // Choose text color that contrasts with your image
+    fontSize: 15, // Adjust font size as needed
+  },
+});
+
 const Label = ({ u }: any) => {
   //console.log(b.id);
   return (
-    <View style={styles.section} wrap={false}>
+    <View style={styles.section}>
       <Image
-        src={"data:image/jpg;base64, " + data}
-        style={{ width: "1cm", height: "1cm" }}
+        style={styles.image}
+        src={"data:image/jpg;base64, " + base64Image}
       />
-      <View style={styles.text} wrap={false}>
-        <Text style={styles.usernr}>{u.lastName}</Text>
-
-        <Text>{u.lastName}</Text>
-        <Text>Ausweis</Text>
-      </View>
+      <Text style={styles.overlayText}>
+        {u.firstName + " " + u.lastName} - {"Klasse " + u.schoolGrade}
+      </Text>
+      <Text style={styles.overlayText}></Text>
     </View>
   );
 };
