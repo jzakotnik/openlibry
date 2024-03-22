@@ -12,6 +12,7 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
+import { useEffect, useState } from "react";
 import UserDetailsCard from "./UserDetailsCard";
 
 type UserAdminListPropsType = {
@@ -26,7 +27,21 @@ export default function UserAdminList({
   searchString,
 }: UserAdminListPropsType) {
   //attach amount of rented books to the user
+
+  const [checked, setChecked] = useState({} as any);
   const rentalAmount: { [key: number]: number } = {};
+
+  //initialise user checked array
+
+  useEffect(() => {
+    const checkSet: { [key: string]: boolean } = users.reduce((acc, obj) => {
+      const userID = obj.id!.toString();
+      acc[userID] = false; // Initialize each key-value pair using the "id" field
+      return acc;
+    }, {} as { [key: string]: boolean });
+    setChecked(checkSet);
+    //console.log("Initialised user checkboxes", checkSet);
+  }, [users]);
 
   rentals.map((r: any) => {
     if (r.userid in rentalAmount) {
@@ -38,19 +53,28 @@ export default function UserAdminList({
     <div>
       {users.map((u: UserType) => {
         const lowerCaseSearch = searchString.toLowerCase();
+        console.log("Checked", checked);
+        const userID = u.id!.toString();
+        const checkBoxValue =
+          userID in checked ? (checked[userID] as boolean) : false;
         if (
           u.lastName.toLowerCase().includes(lowerCaseSearch) ||
           u.firstName.toLowerCase().includes(lowerCaseSearch) ||
           u.id!.toString().includes(lowerCaseSearch)
         )
           return (
-            <Paper sx={{ mt: 0.5 }}>
-              <Grid container direction="row">
+            <Paper key={u.id} sx={{ mt: 0.5 }}>
+              <Grid
+                container
+                direction="row"
+                alignItems="center"
+                justifyContent="flex-start"
+              >
                 <Grid item xs={1} sx={{ width: "100%", height: "100%" }}>
                   <Checkbox
-                    checked={true}
+                    checked={checkBoxValue ? checkBoxValue : false}
                     onChange={() => {
-                      console.log("done");
+                      setChecked({ ...checked, [userID]: !checkBoxValue });
                     }}
                     inputProps={{ "aria-label": "controlled" }}
                   />
