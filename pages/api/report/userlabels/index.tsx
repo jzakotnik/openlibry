@@ -21,60 +21,36 @@ var base64Image = fs.readFileSync(
   }
 );
 
-const styles_old = StyleSheet.create({
+const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#FFFFFF",
   },
   section: {
-    margin: 10,
-    padding: 10,
-    flexGrow: 1,
-    fontSize: 8,
-
-    flexDirection: "row",
-    alignContent: "center",
-    justifyContent: "flex-start",
-  },
-  text: {
-    margin: 3,
-    width: "6cm",
-    height: "4cm",
-
-    flexGrow: 1,
-    fontSize: 8,
-
-    flexDirection: "column",
-    alignContent: "center",
-    justifyContent: "flex-start",
-  },
-  usernr: {
-    fontSize: 12,
-  },
-});
-
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#E4E4E4",
-  },
-  section: {
-    margin: 10,
-    padding: 10,
-    flexGrow: 1,
+    margin: 5,
+    padding: 0,
+    flexGrow: 0,
     position: "relative", // To position the text over the image
   },
   image: {
     width: "50%", // Adjust as needed
     height: "auto", // Adjust based on your requirements
   },
-  overlayText: {
+  overlayName: {
     position: "absolute",
-    top: "13%", // Center vertically, adjust as needed
+    top: "12%", // Center vertically, adjust as needed
     left: "5%", // Center horizontally, adjust as needed
 
     color: "black", // Choose text color that contrasts with your image
     fontSize: 15, // Adjust font size as needed
+  },
+  overlayDetails: {
+    position: "absolute",
+    top: "17%", // Center vertically, adjust as needed
+    left: "5%", // Center horizontally, adjust as needed
+
+    color: "black", // Choose text color that contrasts with your image
+    fontSize: 10, // Adjust font size as needed
   },
 });
 
@@ -86,10 +62,10 @@ const Label = ({ u }: any) => {
         style={styles.image}
         src={"data:image/jpg;base64, " + base64Image}
       />
-      <Text style={styles.overlayText}>
-        {u.firstName + " " + u.lastName} - {"Klasse " + u.schoolGrade}
+      <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
+      <Text style={styles.overlayDetails}>
+        {process.env.SCHOOL_NAME + " - Nr." + u.id}
       </Text>
-      <Text style={styles.overlayText}></Text>
     </View>
   );
 };
