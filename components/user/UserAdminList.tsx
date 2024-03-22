@@ -70,6 +70,9 @@ export default function UserAdminList({
                   </Grid>
                   <Grid>
                     <Typography>{u.lastName + ", " + u.firstName}</Typography>
+                    <Typography variant="caption">
+                      {"Klasse " + u.schoolGrade + " - " + u.schoolTeacherName}
+                    </Typography>
                   </Grid>
                 </Grid>
               </AccordionSummary>

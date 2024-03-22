@@ -121,3 +121,4 @@ prisma/database/dev.db-journal
 
 
 /backups
+database/dev.db

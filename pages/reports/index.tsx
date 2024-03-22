@@ -104,7 +104,7 @@ const LabelCard = ({
           value={startLabel}
           error={startLabel! > totalNumber}
           helperText={
-            startLabel! > totalNumber ? "So viele Bücher gibt es nicht?" : ""
+            startLabel! > totalNumber ? "So viele gibt es nicht?" : ""
           }
           onChange={(e: any) => {
             setStartLabel(parseInt(e.target.value));
@@ -133,6 +133,7 @@ const LabelCard = ({
 
 export default function Reports({ users, books, rentals }: ReportPropsType) {
   const [startLabel, setStartLabel] = useState(100);
+  const [startUserLabel, setStartUserLabel] = useState(10);
 
   const ReportCard = ({
     title,
@@ -236,6 +237,17 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               totalNumber={books.length}
               startLabel={startLabel}
               setStartLabel={setStartLabel}
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <LabelCard
+              title="Ausweise"
+              subtitle="Liste aller Ausweise"
+              unit="Etiketten"
+              link="api/report/userlabels"
+              totalNumber={users.length}
+              startLabel={startUserLabel}
+              setStartLabel={setStartUserLabel}
             />
           </Grid>
         </Grid>

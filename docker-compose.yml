@@ -1,8 +1,9 @@
 version: "2.0"
 services:
   openlibry:
+    container_name: openlibry
     build: .
     ports:
-      - 3010:3010
+      - 3000:3000
     volumes:
       - ./database:/app/prisma/database

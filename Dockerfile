@@ -7,7 +7,7 @@ RUN npx prisma generate
 RUN npx prisma db push
 
 RUN npm run build
-EXPOSE 3010
+EXPOSE 3000
 ENTRYPOINT ["npm", "run", "start"]
 
 
