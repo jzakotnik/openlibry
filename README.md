@@ -61,8 +61,8 @@ Für eine lokale Installation ohne Docker befolge diese Schritte:
 
 - Baue das Image mit `docker build --no-cache -t openlibry .`
 - Führe das Image in Docker aus `docker compose up`
-- Das SQLite-File wird auf einem Volume gemappt. Beim ersten Ausführen logge Dich in den Container ein `docker exec -it openlibry_openlibry_1 /bin/bash` und führe `npx prisma db push` aus, um das DB-File zu erzeugen.
-- Öffne OpenLibry im Browser: `http://localhost:3010`
+- Das SQLite-File wird auf einem Volume gemappt. Beim ersten Ausführen logge Dich in den Container ein `docker exec -it openlibry /bin/sh` und führe `npx prisma db push` aus, um das DB-File zu erzeugen.
+- Öffne OpenLibry im Browser: `http://localhost:3000`
 
 **Achtung**, das ist ein Sandbox-Setup, um schnell damit spielen zu können. Für Production-Use sollte Docker noch automatisiert gestartet werden.
 

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "PORT=3010 next start",
+    "start": "PORT=3000 next start",
     "lint": "next lint",
     "cypress:open": "cypress open"
   },
