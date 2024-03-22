@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
+import SelectionActions from "@/components/user/SelectionActions";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
@@ -40,6 +41,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [displayDetail, setDisplayDetail] = useState(0);
   const [userCreating, setUserCreating] = useState(false);
+  const [checked, setChecked] = useState({} as any);
 
   const router = useRouter();
   const theme = useTheme();
@@ -135,6 +137,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   <QueueIcon />
                 </IconButton>
               </Tooltip>
+              <SelectionActions checked={checked} />
             </Paper>
           </Grid>{" "}
           {displayDetail > 0 ? (
@@ -152,6 +155,8 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               users={users}
               rentals={rentals}
               searchString={userSearchInput}
+              checked={checked}
+              setChecked={setChecked}
             />
           </Grid>
         </Grid>

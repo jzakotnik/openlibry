@@ -12,23 +12,26 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import UserDetailsCard from "./UserDetailsCard";
 
 type UserAdminListPropsType = {
   users: Array<UserType>;
   rentals: Array<RentalsUserType>;
   searchString: string;
+  checked: any;
+  setChecked: any;
 };
 
 export default function UserAdminList({
   users,
   rentals,
   searchString,
+  checked,
+  setChecked,
 }: UserAdminListPropsType) {
   //attach amount of rented books to the user
 
-  const [checked, setChecked] = useState({} as any);
   const rentalAmount: { [key: number]: number } = {};
 
   //initialise user checked array
