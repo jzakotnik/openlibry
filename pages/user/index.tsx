@@ -106,14 +106,14 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     Object.values(checked).some((value) => value === true)
       ? (resultCheck = false)
       : (resultCheck = true);
-    console.log("Selecting or deselecting all users ", users);
+    //console.log("Selecting or deselecting all users ", users);
     const newChecked = users.reduce((acc: any, u: any) => {
       if (u.id !== undefined) {
         acc = { ...acc, [u.id]: resultCheck };
       }
       return acc;
     }, {});
-    console.log("New checked users", newChecked);
+    //console.log("New checked users", newChecked);
     setChecked(newChecked);
   };
 
@@ -123,7 +123,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   };
 
   const handleIncreaseGrade = () => {
-    console.log("Increasing grade for users ", users, checked);
+    //console.log("Increasing grade for users ", users, checked);
     //the user IDs that are checked are marked as true
     const updatedUserIDs = users.reduce((acc: any, u: UserType) => {
       if (checked[u.id!])
