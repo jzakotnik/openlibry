@@ -22,6 +22,7 @@ import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
 import {
   Alert,
   Divider,
@@ -96,6 +97,24 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const handleEditUser = (id: string) => {
     console.log("Editing user ", id);
     router.push("user/" + id);
+  };
+
+  const handleSelectAll = () => {
+    var resultCheck = true;
+
+    //if there is something selected, deselect all
+    Object.values(checked).some((value) => value === true)
+      ? (resultCheck = false)
+      : (resultCheck = true);
+    console.log("Selecting or deselecting all users ", users);
+    const newChecked = users.reduce((acc: any, u: any) => {
+      if (u.id !== undefined) {
+        acc = { ...acc, [u.id]: resultCheck };
+      }
+      return acc;
+    }, {});
+    console.log("New checked users", newChecked);
+    setChecked(newChecked);
   };
 
   const selectItem = (id: string) => {
@@ -193,6 +212,17 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   onClick={handleCreateNewUser}
                 >
                   <QueueIcon />
+                </IconButton>
+              </Tooltip>
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+              <Tooltip title="Alle auswählen">
+                <IconButton
+                  color="primary"
+                  sx={{ p: "10px" }}
+                  aria-label="new-book"
+                  onClick={handleSelectAll}
+                >
+                  <DoneAllIcon />
                 </IconButton>
               </Tooltip>
               <SelectionActions
