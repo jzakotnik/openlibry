@@ -16,11 +16,22 @@ import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
+import SelectionActions from "@/components/user/SelectionActions";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
+import { increaseNumberInString } from "@/utils/increaseNumberInString";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import {
+  Alert,
+  Divider,
+  IconButton,
+  InputBase,
+  Paper,
+  Snackbar,
+  Tooltip,
+} from "@mui/material";
 
 const prisma = new PrismaClient();
 /*
@@ -40,11 +51,24 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [displayDetail, setDisplayDetail] = useState(0);
   const [userCreating, setUserCreating] = useState(false);
+  const [checked, setChecked] = useState({} as any);
+  const [batchEditSnackbar, setBatchEditSnackbar] = useState(false);
 
   const router = useRouter();
   const theme = useTheme();
 
   useEffect(() => {}, []);
+
+  const handleBatchEditSnackbar = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setBatchEditSnackbar(false);
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
@@ -75,9 +99,51 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     router.push("user/" + id);
   };
 
+  const handleSelectAll = () => {
+    var resultCheck = true;
+
+    //if there is something selected, deselect all
+    Object.values(checked).some((value) => value === true)
+      ? (resultCheck = false)
+      : (resultCheck = true);
+    //console.log("Selecting or deselecting all users ", users);
+    const newChecked = users.reduce((acc: any, u: any) => {
+      if (u.id !== undefined) {
+        acc = { ...acc, [u.id]: resultCheck };
+      }
+      return acc;
+    }, {});
+    //console.log("New checked users", newChecked);
+    setChecked(newChecked);
+  };
+
   const selectItem = (id: string) => {
     console.log("selected user", users, rentals);
     setDisplayDetail(parseInt(id));
+  };
+
+  const handleIncreaseGrade = () => {
+    //console.log("Increasing grade for users ", users, checked);
+    //the user IDs that are checked are marked as true
+    const updatedUserIDs = users.reduce((acc: any, u: UserType) => {
+      if (checked[u.id!])
+        acc.push({ id: u.id, grade: increaseNumberInString(u.schoolGrade) });
+      return acc;
+    }, []);
+
+    fetch("/api/batch/grade", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUserIDs),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Users increased", data);
+        setBatchEditSnackbar(true);
+        router.push("user");
+      });
   };
 
   const booksForUser = (id: number) => {
@@ -89,6 +155,19 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
+        <Snackbar
+          open={batchEditSnackbar}
+          autoHideDuration={4000}
+          onClose={handleBatchEditSnackbar}
+        >
+          <Alert
+            onClose={handleBatchEditSnackbar}
+            severity="success"
+            sx={{ width: "100%", background: "teal", color: "white" }}
+          >
+            Selektierte Benutzer angepasst, super!
+          </Alert>
+        </Snackbar>
         <Grid
           container
           direction="column"
@@ -125,6 +204,18 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 </IconButton>
               </Tooltip>
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+              <Tooltip title="Alle auswählen">
+                <IconButton
+                  color="primary"
+                  sx={{ p: "10px" }}
+                  aria-label="new-book"
+                  onClick={handleSelectAll}
+                >
+                  <DoneAllIcon />
+                </IconButton>
+              </Tooltip>
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+
               <Tooltip title="Neue Nutzerin erzeugen">
                 <IconButton
                   color="primary"
@@ -135,6 +226,11 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   <QueueIcon />
                 </IconButton>
               </Tooltip>
+
+              <SelectionActions
+                checked={checked}
+                increaseGrade={handleIncreaseGrade}
+              />
             </Paper>
           </Grid>{" "}
           {displayDetail > 0 ? (
@@ -152,6 +248,8 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               users={users}
               rentals={rentals}
               searchString={userSearchInput}
+              checked={checked}
+              setChecked={setChecked}
             />
           </Grid>
         </Grid>
