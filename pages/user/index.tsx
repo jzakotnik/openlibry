@@ -204,17 +204,6 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 </IconButton>
               </Tooltip>
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <Tooltip title="Neue Nutzerin erzeugen">
-                <IconButton
-                  color="primary"
-                  sx={{ p: "10px" }}
-                  aria-label="new-book"
-                  onClick={handleCreateNewUser}
-                >
-                  <QueueIcon />
-                </IconButton>
-              </Tooltip>
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
               <Tooltip title="Alle auswählen">
                 <IconButton
                   color="primary"
@@ -225,6 +214,19 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   <DoneAllIcon />
                 </IconButton>
               </Tooltip>
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+
+              <Tooltip title="Neue Nutzerin erzeugen">
+                <IconButton
+                  color="primary"
+                  sx={{ p: "10px" }}
+                  aria-label="new-book"
+                  onClick={handleCreateNewUser}
+                >
+                  <QueueIcon />
+                </IconButton>
+              </Tooltip>
+
               <SelectionActions
                 checked={checked}
                 increaseGrade={handleIncreaseGrade}
