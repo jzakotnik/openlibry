@@ -56,7 +56,7 @@ export default function UserAdminList({
     <div>
       {users.map((u: UserType) => {
         const lowerCaseSearch = searchString.toLowerCase();
-        console.log("Checked", checked);
+        //console.log("Checked", checked);
         const userID = u.id!.toString();
         const checkBoxValue =
           userID in checked ? (checked[userID] as boolean) : false;
@@ -76,6 +76,8 @@ export default function UserAdminList({
                 <Grid item xs={1} sx={{ width: "100%", height: "100%" }}>
                   <Checkbox
                     checked={checkBoxValue ? checkBoxValue : false}
+                    id={userID}
+                    key={userID}
                     onChange={() => {
                       setChecked({ ...checked, [userID]: !checkBoxValue });
                     }}

@@ -21,7 +21,16 @@ import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import { Divider, IconButton, InputBase, Paper, Tooltip } from "@mui/material";
+import { increaseNumberInString } from "@/utils/increaseNumberInString";
+import {
+  Alert,
+  Divider,
+  IconButton,
+  InputBase,
+  Paper,
+  Snackbar,
+  Tooltip,
+} from "@mui/material";
 
 const prisma = new PrismaClient();
 /*
@@ -42,11 +51,23 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [displayDetail, setDisplayDetail] = useState(0);
   const [userCreating, setUserCreating] = useState(false);
   const [checked, setChecked] = useState({} as any);
+  const [batchEditSnackbar, setBatchEditSnackbar] = useState(false);
 
   const router = useRouter();
   const theme = useTheme();
 
   useEffect(() => {}, []);
+
+  const handleBatchEditSnackbar = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setBatchEditSnackbar(false);
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
@@ -82,6 +103,30 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     setDisplayDetail(parseInt(id));
   };
 
+  const handleIncreaseGrade = () => {
+    console.log("Increasing grade for users ", users, checked);
+    //the user IDs that are checked are marked as true
+    const updatedUserIDs = users.reduce((acc: any, u: UserType) => {
+      if (checked[u.id!])
+        acc.push({ id: u.id, grade: increaseNumberInString(u.schoolGrade) });
+      return acc;
+    }, []);
+
+    fetch("/api/batch/grade", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUserIDs),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Users increased", data);
+        setBatchEditSnackbar(true);
+        router.push("user");
+      });
+  };
+
   const booksForUser = (id: number) => {
     const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
     //console.log("Filtered rentals", userRentals);
@@ -91,6 +136,19 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
+        <Snackbar
+          open={batchEditSnackbar}
+          autoHideDuration={4000}
+          onClose={handleBatchEditSnackbar}
+        >
+          <Alert
+            onClose={handleBatchEditSnackbar}
+            severity="success"
+            sx={{ width: "100%", background: "teal", color: "white" }}
+          >
+            Selektierte Benutzer angepasst, super!
+          </Alert>
+        </Snackbar>
         <Grid
           container
           direction="column"
@@ -137,7 +195,10 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   <QueueIcon />
                 </IconButton>
               </Tooltip>
-              <SelectionActions checked={checked} />
+              <SelectionActions
+                checked={checked}
+                increaseGrade={handleIncreaseGrade}
+              />
             </Paper>
           </Grid>{" "}
           {displayDetail > 0 ? (

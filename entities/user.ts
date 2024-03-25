@@ -110,6 +110,38 @@ export async function updateUser(
   }
 }
 
+export async function increaseUserGrade(
+  client: PrismaClient,
+  newGrades: Array<{ id: number; grade: string }>
+) {
+  try {
+    //create a transaction otherwise for single API calls, there's a connection pool issue
+    const transaction = [] as Array<any>;
+    newGrades.map((i: { id: number; grade: string }) => {
+      transaction.push(
+        client.user.update({
+          where: {
+            id: i.id,
+          },
+          data: { schoolGrade: i.grade },
+        })
+      );
+    });
+
+    const result = await client.$transaction(transaction);
+    console.log("Batch update database operation succeeded: ", result);
+    return result;
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in updating batch grades for user : ", e);
+    }
+    throw e;
+  }
+}
+
 export async function disableUser(client: PrismaClient, id: number) {
   await addAudit(client, "Disable user", id.toString(), 0, id);
   return await client.user.update({
