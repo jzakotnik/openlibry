@@ -21,12 +21,14 @@ export default withAuth(
 `;
 
     const requestHeaders = new Headers(req.headers);
-    requestHeaders.set("x-nonce", nonce);
-    requestHeaders.set(
-      "Content-Security-Policy",
-      // Replace newline characters and spaces
-      cspHeader.replace(/\s{2,}/g, " ").trim()
-    );
+    if (process.env.SECURITY_HEADERS != "insecure") {
+      requestHeaders.set("x-nonce", nonce);
+      requestHeaders.set(
+        "Content-Security-Policy",
+        // Replace newline characters and spaces
+        cspHeader.replace(/\s{2,}/g, " ").trim()
+      );
+    }
     if (req.nextUrl.pathname == "/admin") {
       ////console.log("Admin page fetched");
 
