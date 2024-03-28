@@ -114,16 +114,36 @@ podman cp ./input/usmarc_tag_dm.frm mysql-server-db:/var/lib/mysql/openbiblio
 
 - Change the ownership of the files to `mysql` instead of `root`: `podman exec -it mysql-server-db /bin/bash` and `chown mysql /var/lib/mysql/openbiblio/*`
 
-- Export the following tables as json, sort them by date `create_dt`: `member`, `biblio_status_hist`, `biblio`, `biblio_field`, `biblio_copy`. Copy them together in `book_all.json` (this is a bit tedious). It is important to sort by date (oldest first), because the history of rentals needs to be in the correct order. 
-
-- Export the `member` table into `member.json`
-
-![book_all.json Structure](./openbiblio_import_structure.png)
+- Export the following tables as json, sort them by date `create_dt`: `member`, `biblio_status_hist`, `biblio`, `biblio_field`, `biblio_copy` into the respective file names e.g. `member.json` etc. It is important to sort by date (oldest first), because the history of rentals needs to be in the correct order.
 
 *IMPORTANT* don't click on export, first do the sorted SQL query and then export the query result as json. For example, the member export has the query `SELECT * FROM member ORDER BY member.create_dt ASC`
 
 
 ![phpMyAdmin Database Export](./openbiblio_sql_export.png)
+
+- All files start with a json array with brackets, e.g. like this
+```
+[
+  {
+    "type": "header",
+    "version": "5.2.1",
+    "comment": "Export to JSON plugin for PHPMyAdmin"
+  },
+  { "type": "database", "name": "openbiblio" },
+  ...
+```
+
+- Copy them together in `book_all.json`. this is a bit tedious and best done in vscode or alike. So each key contains the content for each file, here is an example:
+
+![book_all.json Structure](./openbiblio_import_structure.png)
+
+- You can validate the json as valid e.g. using a [validator](https://jsonformatter.curiousconcept.com/)
+
+- Export the `member` table into `member.json`
+
+
+
+
 
 - In openlibry delete the database file `dev.db` and the `migrations` folder if it exists. Then recreate them with `npx prisma migrate dev --name init`
 
