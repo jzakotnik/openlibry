@@ -1,0 +1,7 @@
+{
+  "biblio_copy": {{biblio_copy}},
+  "users": {{member}},
+  "biblio": {{biblio}},
+  "biblio_hist": {{biblio_status_hist}},
+  "fields": {{biblio_field}}
+}

@@ -122,3 +122,13 @@ prisma/database/dev.db-journal
 
 /backups
 database/dev.db
+importscripts/openbiblio/migrationFile/member.json
+importscripts/openbiblio/migrationFile/biblio.json
+importscripts/openbiblio/migrationFile/biblio_status_hist.json
+importscripts/openbiblio/migrationFile/biblio_field.json
+importscripts/openbiblio/migrationFile/biblio_copy.json
+importscripts/openbiblio/migrationFile/content/biblio
+importscripts/openbiblio/migrationFile/content/biblio_copy
+importscripts/openbiblio/migrationFile/content/biblio_field
+importscripts/openbiblio/migrationFile/content/biblio_status_hist
+importscripts/openbiblio/migrationFile/content/member
