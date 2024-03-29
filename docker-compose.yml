@@ -7,3 +7,4 @@ services:
       - 3000:3000
     volumes:
       - ./database:/app/prisma/database
+      - ./public/coverimages:/app/public/coverimages
