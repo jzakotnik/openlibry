@@ -1,6 +1,3 @@
-
-
-
 # Import aus OpenBiblio
 
 Siehe [Open Biblio](https://openbiblio.de/)
@@ -8,19 +5,20 @@ Siehe [Open Biblio](https://openbiblio.de/)
 If you use an old version of the open source software `OpenBiblio`, there's a possibility to migrate the data over. It's a bit of manual effort, in particular because it uses a very old mySQL version. Follow these steps to run a dockerized mySQL and export the data from the admin interface.
 
 - Start podman with docker compose (see OpenBiblio folder)
+
 ```bash
 podman machine stop
-podman machine rm                                                          
+podman machine rm
 podman machine init --cpus 4 --memory 16384
 podman machine start
 ```
 
 - Create `docker.compose.yaml` with this content:
+
 ```yml
-version: '3.1'
+version: "3.1"
 services:
   db:
-   
     container_name: mysql-server-db
     image: biarms/mysql:5.7
     restart: always
@@ -41,10 +39,11 @@ services:
 ```
 
 - Start compose
-`podman-compose -f docker-compose.yaml up`
+  `podman-compose -f docker-compose.yaml up`
 - Create a database with name `openbiblio` in phpmyadmin running on `http://localhost:8080/`
-![phpMyAdmin Database UI](./openbiblio_phpmyadmin.png)
+  ![phpMyAdmin Database UI](./openbiblio_phpmyadmin.png)
 - Copy the files over the running container, replace the respective path with the OpenBiblio backup.
+
 ```bash
 podman cp ./input/biblio.MYD mysql-server-db:/var/lib/mysql/openbiblio
 podman cp ./input/biblio.MYI mysql-server-db:/var/lib/mysql/openbiblio
@@ -116,12 +115,12 @@ podman cp ./input/usmarc_tag_dm.frm mysql-server-db:/var/lib/mysql/openbiblio
 
 - Export the following tables as json, sort them by date `create_dt`: `member`, `biblio_status_hist`, `biblio`, `biblio_field`, `biblio_copy` into the respective file names e.g. `member.json` etc. It is important to sort by date (oldest first), because the history of rentals needs to be in the correct order.
 
-*IMPORTANT* don't click on export, first do the sorted SQL query and then export the query result as json. For example, the member export has the query `SELECT * FROM member ORDER BY member.create_dt ASC`
-
+_IMPORTANT_ don't click on export, first do the sorted SQL query and then export the query result as json. For example, the member export has the query `SELECT * FROM member ORDER BY member.create_dt ASC`
 
 ![phpMyAdmin Database Export](./openbiblio_sql_export.png)
 
 - All files start with a json array with brackets, e.g. like this
+
 ```
 [
   {
@@ -141,34 +140,33 @@ podman cp ./input/usmarc_tag_dm.frm mysql-server-db:/var/lib/mysql/openbiblio
 
 - Export the `member` table into `member.json`
 
-
-
-
-
 - In openlibry delete the database file `dev.db` and the `migrations` folder if it exists. Then recreate them with `npx prisma migrate dev --name init`
 
 - Run the app using `npm run dev`
 
 - Use API to import members `curl -X POST -H "Content-Type: application/json" -d @member.json http://localhost:3000/api/openbiblioimport/migrateUsers`
 
-
 - Use API to import books `curl -X POST -H "Content-Type: application/json" -d @book_all.json  http://localhost:3000/api/openbiblioimport/migrateBooks`
 
-
-
 These fields are migrated:
-- 20 a isbn	
+
+- 20 a isbn
 - 250 a Ausgabebezeichnung
 - 260 a Erscheinungsort
 - 300 a Umfang
 - 520 a Zusammenfassung
 - 901 a min Spieler
-- 260 b Name des Verlags	
-- 300 b Andere physische Merkmale			
+- 260 b Name des Verlags
+- 300 b Andere physische Merkmale
 - 20 c Beschaffungsangaben
 - 260 c Erscheinungsjahr
 - 300 c Ausmaße
 - 901 c min Alter
 - 300 e Begleitmaterial
-- 541 h Kaufpreis	
+- 541 h Kaufpreis
 
+# Error handling
+
+## Body exceeds xxx limit
+
+The maximum size of the migration is limited to a default of 250mb. If this isn't enough or too big you can configure the value throught an environment variable `MAX_MIGRATION_SIZE`. If you don't know how to set environment variables: here is a [link](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables)
