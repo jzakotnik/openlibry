@@ -223,7 +223,7 @@ function filterForBarcode(data: any, mapping: any) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | BookType>,
+  res: NextApiResponse<Data | BookType>
 ) {
   if (req.method === "POST") {
     //reset database first for fresh migration, this all needs to be done in one transaction
@@ -243,13 +243,13 @@ export default async function handler(
       console.log("Filtered books", books.length);
       const bookStatus = filterForBarcode(
         booklist.biblio_hist[2].data,
-        bookIDMapping,
+        bookIDMapping
       );
       console.log("Filtered book status", bookStatus.length);
 
       const bookExtraFields = filterForBarcode(
         booklist.fields[2].data,
-        bookIDMapping,
+        bookIDMapping
       );
       console.log("Filtered book fields", bookExtraFields.length);
       const users = booklist.users[2].data;
@@ -311,7 +311,7 @@ export default async function handler(
         const rentedTime = dayjs(
           b.status_begin_dt,
           "YYYY-MM-DD HH:mm:ss",
-          true,
+          true
         ).isValid()
           ? dayjs(b.status_begin_dt, "YYYY-MM-DD HH:mm:ss", true).toDate()
           : undefined;
@@ -325,6 +325,7 @@ export default async function handler(
 
         console.log("Connecting user ", b.mbrid);
         if (existingUsers.has(parseInt(b.mbrid)) && b.status_cd == "out") {
+          rentalStatusCount++;
           transaction.push(
             prisma.user.update({
               where: {
@@ -337,7 +338,7 @@ export default async function handler(
                   },
                 },
               },
-            }),
+            })
           );
         }
 
@@ -355,7 +356,7 @@ export default async function handler(
               id: barcodeID,
             },
             data: { ...bookUpdate },
-          }),
+          })
         );
       });
 
@@ -390,7 +391,7 @@ export default async function handler(
               id: barcodeID,
             },
             data: { ...fieldUpdate },
-          }),
+          })
         );
 
         additionalFieldsCount++;

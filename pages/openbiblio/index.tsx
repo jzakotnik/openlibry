@@ -1,5 +1,18 @@
-import { saveAs } from "file-saver";
 import { useState } from "react";
+
+import { Button, Container, Grid, TextField, Typography } from "@mui/material";
+import React, { ChangeEvent, FormEvent } from "react";
+
+interface ActivityLog {
+  map(arg0: (a: any, i: number) => JSX.Element): React.ReactNode;
+}
+
+interface Props {
+  activityLog: ActivityLog;
+  handleFileChange: (id: number, event: ChangeEvent<HTMLInputElement>) => void;
+  handleMigrateUsers: (event: FormEvent<HTMLFormElement>) => void;
+  handleMigrateBooks: (event: FormEvent<HTMLFormElement>) => void;
+}
 
 export default function MergeFiles() {
   // State to store the file contents
@@ -9,7 +22,7 @@ export default function MergeFiles() {
   const [biblio_hist, setBiblio_hist] = useState(null);
   const [fields, setFields] = useState(null);
   const [merged, setMerged] = useState("");
-  const [activityLog, setActivityLog] = useState(["Merge ready to go.."]);
+  const [activityLog, setActivityLog] = useState(["Migration engine ready.."]);
 
   // Handler for file change events
   const handleFileChange = (fileIndex: any, event: any) => {
@@ -57,8 +70,7 @@ export default function MergeFiles() {
     }
   };
 
-  // Handler for form submission
-  const handleSubmit = (event: any) => {
+  const handleMigrateUsers = (event: any) => {
     event.preventDefault();
     /*console.log("File 1 content:", fileContent1);
     console.log("File 2 content:", fileContent2);
@@ -66,6 +78,40 @@ export default function MergeFiles() {
     console.log("File 4 content:", fileContent4);
     */
     // Here you can do further processing with the uploaded JSON content
+
+    /*setActivityLog([...activityLog, "Download gestartet.."]);
+    var blob = new Blob([JSON.stringify(merged)], {
+      type: "text/plain;charset=utf-8",
+    });*/
+    //saveAs(blob, "books_all.json");
+    //executing API to create users
+    console.log("Users to be imported", users);
+    fetch(
+      process.env.NEXT_PUBLIC_API_URL + "/api/openbiblioimport/migrateUsers",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(users),
+      }
+    )
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (json) {
+        console.log(json);
+        setActivityLog([...activityLog, JSON.stringify(json)]);
+        //setLoadingImage(Math.floor(Math.random() * 10000));
+      });
+
+    console.log("Merged", merged);
+  };
+
+  const handleMigrateBooks = (event: any) => {
+    event.preventDefault();
+
     const merged = {
       biblio_copy: biblio_copy,
       users: users,
@@ -73,62 +119,127 @@ export default function MergeFiles() {
       biblio_hist: biblio_hist,
       fields: fields,
     };
-    setActivityLog([...activityLog, "Download gestartet.."]);
+    /*setActivityLog([...activityLog, "Download gestartet.."]);
     var blob = new Blob([JSON.stringify(merged)], {
       type: "text/plain;charset=utf-8",
-    });
-    saveAs(blob, "books_all.json");
+    });*/
+    //saveAs(blob, "books_all.json");
+    //executing API to create users
+    console.log("Users to be imported", merged.users);
+    fetch(
+      process.env.NEXT_PUBLIC_API_URL + "/api/openbiblioimport/migrateBooks",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(merged),
+      }
+    )
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (json) {
+        console.log(json);
+        setActivityLog([...activityLog, JSON.stringify(json)]);
+        //setLoadingImage(Math.floor(Math.random() * 10000));
+      });
 
     console.log("Merged", merged);
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        Biblio Copy<br></br>
-        <input
-          type="file"
-          onChange={(e) => handleFileChange(1, e)}
-          accept="application/json"
-        />
-        <br />
-        Members<br></br>
-        <input
-          type="file"
-          onChange={(e) => handleFileChange(2, e)}
-          accept="application/json"
-        />
-        <br />
-        Biblio<br></br>
-        <input
-          type="file"
-          onChange={(e) => handleFileChange(3, e)}
-          accept="application/json"
-        />
-        <br />
-        Biblio History<br></br>
-        <input
-          type="file"
-          onChange={(e) => handleFileChange(4, e)}
-          accept="application/json"
-        />
-        <br />
-        Fields<br></br>
-        <input
-          type="file"
-          onChange={(e) => handleFileChange(5, e)}
-          accept="application/json"
-        />
-        <br />
-        <button type="submit">Merge starten..</button>
-      </form>
-      {activityLog.map((a: any, i: number) => {
-        return (
+    <Container maxWidth="sm">
+      <Typography variant="h5" color={"black"} gutterBottom>
+        Biblio Copy
+      </Typography>
+      <TextField
+        type="file"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(1, e)}
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        variant="outlined"
+      />
+      <Typography variant="h5" color={"black"} gutterBottom>
+        Members
+      </Typography>
+      <TextField
+        type="file"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(2, e)}
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        variant="outlined"
+      />
+      <Typography variant="h5" color={"black"} gutterBottom>
+        Biblio
+      </Typography>
+      <TextField
+        type="file"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(3, e)}
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        variant="outlined"
+      />
+      <Typography variant="h5" color={"black"} gutterBottom>
+        Biblio History
+      </Typography>
+      <TextField
+        type="file"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(4, e)}
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        variant="outlined"
+      />
+      <Typography variant="h5" color={"black"} gutterBottom>
+        Fields
+      </Typography>
+      <TextField
+        type="file"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(5, e)}
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        variant="outlined"
+      />
+      <Grid container spacing={2} sx={{ marginTop: 2 }}>
+        <Grid item xs={12}>
+          <Button
+            onClick={handleMigrateUsers}
+            fullWidth
+            variant="contained"
+            color="primary"
+          >
+            User importieren
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Button
+            onClick={handleMigrateBooks}
+            fullWidth
+            variant="contained"
+            color="primary"
+          >
+            Bücher importieren
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid>
+        {activityLog.reverse().map((a: string, i: number) => (
           <div key={i}>
-            <pre>{a}</pre>
+            <Typography color={"black"}>{a.substring(0, 200)}</Typography>
           </div>
-        );
-      })}
-    </div>
+        ))}
+      </Grid>
+    </Container>
   );
 }
