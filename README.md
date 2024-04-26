@@ -91,9 +91,40 @@ Im Edit-Screen der Bücher kann man dann sehen ob ähnliche Bücher in der Antol
 ![Antolin Screenshot](./doc/antolin.png). OpenLibry durchsucht dabei die Datenbank nach Datensätzen bei denen der Autor und Titel vorkommmen, insbesondere wenn es keinen direkten Link via ISBN gibt. 
 
 
-## Import aus OpenBiblio
+## Import aus OpenBiblio und anderen Tools
 
 Siehe [Open Biblio](https://openbiblio.de/), die [Import-Schritte](./doc/OpenBiblioImport.md)
+
+Das Datenmodell für Bücher beinhaltet aktuell folgende Felder (alle optional bis auf Titel und Autor). Die anderen Felder sind im [Schema](./prisma/schema.prisma) einsehbar:
+| Feld-Name  | Funktion  |
+|---|---|
+|id| Mediennummer|        
+|rentalStatus |Ausleihstatus (available, rented, lost)|
+|rentedDate  |Ausleihdatum|
+|dueDate      |Rückgabedatum|
+|renewalCount |Anzahl Verlängerungen|
+|title        |Titel|
+|subtitle   |Untertitel|
+|author    |Autor(en)|
+|topics    |Schlagwörter mit Semikolon getrennt|
+|imageLink  |Cover Bild|
+|isbn         |ISBN Nummer|           
+|editionDescription|Edition / Band|
+|publisherLocation|Verlagsort|
+|pages              |Anzahl Seiten|    
+|summary             |Zusammenfassung|
+|minPlayers          |Anzahl Spieler (bei Brettspielen)|
+|publisherName   |Verlag|
+|otherPhysicalAttributes|Andere physische Eigenschaften (bei Brettspielen)| 
+|supplierComment       |Quelle, z.B. Spende|
+|publisherDate           |Publikationsdatum|
+|physicalSize            |Abmessungen|
+|minAge                  |Mindestalter|
+|maxAge                  |Höchstalter|
+|additionalMaterial    |Zusätzliches Material, z.B. CD oder DVD|
+|price                   |Preis|
+|externalLinks   |Externe Verknüpfungen|
+
 
 Falls Cover importiert werden:
 ISBN-Service für ISBN-10 und ISBN-13: 
