@@ -18,6 +18,7 @@ import BookSummaryCard from "@/components/book/BookSummaryCard";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
+import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
 
 const prisma = new PrismaClient();
@@ -42,20 +43,24 @@ interface SearchableBookType extends BookType {
 interface BookPropsType {
   books: Array<SearchableBookType>;
   numberBooksToShow: number;
+  maxBooks: number;
 }
 
-export default function Books({ books, numberBooksToShow }: BookPropsType) {
+export default function Books({
+  books,
+  numberBooksToShow,
+  maxBooks,
+}: BookPropsType) {
   const theme = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [renderedBooks, setRenderedBooks] = useState(
-    books.slice(0, numberBooksToShow)
-  );
+  const [renderedBooks, setRenderedBooks] = useState(books);
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
   const [bookCreating, setBookCreating] = useState(false);
   const [searchResultNumber, setSearchResultNumber] = useState(0);
+  const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
   if (isMobile) {
     gridItemProps.sm = 12;
@@ -69,14 +74,15 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
 
   async function searchBooks(searchString: string) {
     const foundBooks = searchEngine.search({
-      per_page: numberBooksToShow,
       sort: "name_asc",
+      per_page: maxBooks,
       // full text search
       query: searchString,
     });
     //console.log("Searched books", books);
 
     console.log("Found books", foundBooks);
+    setPageIndex(numberBooksToShow);
     setRenderedBooks(foundBooks.data.items);
     setSearchResultNumber(foundBooks.pagination.total);
   }
@@ -164,6 +170,7 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const searchString = e.target.value;
+    setPageIndex(numberBooksToShow);
     const result = searchBooks(searchString);
     setBookSearchInput(searchString);
   };
@@ -171,20 +178,27 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
   const toggleView = () => {
     const newView = !detailView;
     setDetailView(newView);
+    setPageIndex(numberBooksToShow);
     console.log("Detail view render toggled", newView);
   };
 
   const DetailCardContainer = ({ renderedBooks }: any) => {
     return (
       <Grid container spacing={2} alignItems="stretch">
-        {renderedBooks.map((b: BookType) => (
+        {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
               book={b}
               returnBook={() => handleReturnBook(b.id!, b.userId!)}
             />
           </Grid>
-        ))}
+        ))}{" "}
+        {renderedBooks.length - pageIndex > 0 && (
+          <Button onClick={() => setPageIndex(pageIndex + numberBooksToShow)}>
+            {"Weitere Bücher..." +
+              Math.max(0, renderedBooks.length - pageIndex).toString()}
+          </Button>
+        )}
       </Grid>
     );
   };
@@ -198,13 +212,19 @@ export default function Books({ books, numberBooksToShow }: BookPropsType) {
         justifyContent="center"
         alignItems="top"
       >
-        {renderedBooks.map((b: BookType) => (
+        {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
           <BookSummaryRow
             key={b.id}
             book={b}
             handleCopyBook={() => handleCopyBook(b)}
           />
         ))}
+        {renderedBooks.length - pageIndex > 0 && (
+          <Button onClick={() => setPageIndex(pageIndex + numberBooksToShow)}>
+            {"Weitere Bücher..." +
+              Math.max(0, renderedBooks.length - pageIndex).toString()}
+          </Button>
+        )}
       </Grid>
     );
   };
@@ -236,6 +256,10 @@ export async function getServerSideProps() {
     ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
     : 10;
 
+  const maxBooks = process.env.NUMBER_BOOKS_MAX
+    ? parseInt(process.env.NUMBER_BOOKS_MAX)
+    : 1000000;
+
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
@@ -249,5 +273,5 @@ export async function getServerSideProps() {
     return newBook;
   });
 
-  return { props: { books, numberBooksToShow } };
+  return { props: { books, numberBooksToShow, maxBooks } };
 }
