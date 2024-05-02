@@ -6,7 +6,6 @@ import { convertDateToDayString } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
-
 const prisma = new PrismaClient();
 
 export default async function handle(
