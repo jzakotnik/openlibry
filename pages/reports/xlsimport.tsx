@@ -15,6 +15,7 @@ import React, { useState } from "react";
 
 export default function XLSImport() {
   const [bookData, setBookData] = useState<any[]>([]);
+  const [excelLoaded, setExcelLoaded] = useState(false);
 
   const [userData, setUserData] = useState<any[]>([]);
 
@@ -88,6 +89,24 @@ export default function XLSImport() {
     setUserData(usersJson);
 
     console.log("Imported Excel as JSON", booksJson, usersJson);
+    setExcelLoaded(true);
+  };
+
+  const handleImportButton = async () => {
+    console.log("Importing data into the db");
+    const payload = { bookData: bookData, userData: userData };
+    const endpoint = process.env.NEXT_PUBLIC_API_URL + "/api/excel";
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    console.log(
+      "API Call to database done, response is",
+      await response.json()
+    );
   };
 
   return (
@@ -101,6 +120,7 @@ export default function XLSImport() {
           onChange={handleFileUpload}
         />
       </Button>
+
       <Typography color="black">
         Bücher: Zellen eingelesen: {bookData?.length}
       </Typography>
@@ -116,6 +136,15 @@ export default function XLSImport() {
         {" "}
         User: Spalten eingelesen: {userData[0]?.length}
       </Typography>
+      {excelLoaded && (
+        <Button
+          variant="contained"
+          component="label"
+          onClick={handleImportButton}
+        >
+          In die Datenbank importieren
+        </Button>
+      )}
       <Divider></Divider>
       <Typography variant="caption" color="gray">
         Erste Zeilen der Bücher

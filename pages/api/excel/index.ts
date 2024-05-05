@@ -3,6 +3,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
 import { convertDateToDayString } from "@/utils/dateutils";
+import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
 import { PrismaClient } from "@prisma/client";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -43,53 +44,13 @@ export default async function handle(
         const booksheet = workbook.addWorksheet("Bücherliste");
         const usersheet = workbook.addWorksheet("Userliste");
 
-        booksheet.columns = [
-          { key: "id", header: "Mediennummer" },
-          { key: "createdAt", header: "Erzeugt am" },
-          { key: "updatedAt", header: "Update am" },
-          { key: "rentalStatus", header: "Ausleihstatus" },
-          { key: "rentedDate", header: "Ausgeliehen am" },
-          { key: "dueDate", header: "Rückgabe am" },
-          { key: "renewalCount", header: "Anzahl Verlängerungen" },
-          { key: "title", header: "Titel" },
-          { key: "subtitle", header: "Untertitel" },
-          { key: "author", header: "Autor" },
-          { key: "topics", header: "Schlagworte" },
-          { key: "imageLink", header: "Bild" },
-          { key: "isbn", header: "ISBN" },
-          { key: "editionDescription", header: "Edition" },
-          { key: "publisherLocation", header: "Verlagsort" },
-          { key: "pages", header: "Seiten" },
-          { key: "summary", header: "Zusammenfassung" },
-          { key: "minPlayers", header: "Min Spieler" },
-          { key: "publisherName", header: "Verlag" },
-          { key: "otherPhysicalAttributes", header: "Merkmale" },
-          { key: "supplierComment", header: "Beschaffung" },
-          { key: "publisherDate", header: "Publikationsdatum" },
-          { key: "physicalSize", header: "Abmessungen" },
-          { key: "minAge", header: "Min Alter" },
-          { key: "maxAge", header: "Max Alter" },
-          { key: "additionalMaterial", header: "Material" },
-          { key: "price", header: "Preis" },
-          { key: "externalLinks", header: "Links" },
-          { key: "userId", header: "Ausgeliehen von" },
-        ];
+        booksheet.columns = xlsbookcolumns;
 
         books.map((b: BookType) => {
           booksheet.addRow(b);
         });
 
-        usersheet.columns = [
-          { key: "createdAt", header: "Erzeugt am" },
-          { key: "updatedAt", header: "Update am" },
-          { key: "id", header: "Nummer" },
-          { key: "lastName", header: "Nachname" },
-          { key: "firstName", header: "Vorname" },
-          { key: "schoolGrade", header: "Klasse" },
-          { key: "schoolTeacherName", header: "Lehrkraft" },
-          { key: "active", header: "Freigeschaltet" },
-          { key: "eMail", header: "eMail" },
-        ];
+        usersheet.columns = xlsusercolumns;
 
         users.map((u: UserType) => {
           usersheet.addRow(u);
@@ -109,7 +70,24 @@ export default async function handle(
         res.status(400).json({ data: "ERROR: " + error });
       }
       break;
+    case "POST":
+      try {
+        const bookData = req.body.bookData.slice(1); //remove top header row of excel
+        const userData = req.body.userData.slice(1);
 
+        console.log(
+          "Received import xls, it contains so many books and users: ",
+          bookData.length,
+          userData.length
+        );
+        console.log("Example: ", bookData.slice(0, 5), userData.slice(0, 5));
+
+        res.status(200).json({ result: "Imported dataset" });
+      } catch (error) {
+        console.log(error);
+        res.status(400).json({ data: "ERROR: " + error });
+      }
+      break;
     default:
       res.status(405).end(`${req.method} Not Allowed`);
       break;
