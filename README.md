@@ -90,6 +90,64 @@ Um Bücher einfacher mit dem Schlagwort der Antolin Leseförderung versehen zu k
 Im Edit-Screen der Bücher kann man dann sehen ob ähnliche Bücher in der Antolin Datenbank vorhanden sind.
 ![Antolin Screenshot](./doc/antolin.png). OpenLibry durchsucht dabei die Datenbank nach Datensätzen bei denen der Autor und Titel vorkommmen, insbesondere wenn es keinen direkten Link via ISBN gibt. 
 
+## Import und Export aus Excel
+
+Um bestehende Daten zu importieren bzw. Daten aus OpenLibry zu exportieren gibt es eine Excel Funktion. Diese kann auch verwendet werden, um Backups zu erzeugen und bei Bedarf wieder zu importieren.
+
+### Excel Export
+
+Für das Erzeugen einer Excel Datei kann auf der Reports Seite die Kachen *Excel Export* angeklickt werden. Dadurch downloadet der Browser ein Excel mit 2 Blättern: Bücher und User. 
+
+Das Worksheet *Userliste* enthält folgende Spalten:
+- Erzeugt am
+- Update am
+- Nummer
+- Nachname
+- Vorname
+- Klasse
+- Lehrkraft
+- Freigeschaltet
+- eMail
+
+Das Worksheet *Bücherliste* enthält folgende Spalten:
+- Mediennummer
+- Erzeugt am
+- Update am
+- Ausleihstatus
+- Ausgeliehen am
+- Rückgabe am
+- Anzahl Verlängerungen
+- Titel
+- Untertitel
+- Autor
+- Schlagworte
+- Bild
+- ISBN
+- Edition
+- Verlagsort
+- Seiten
+- Zusammenfassung
+- Min Spieler
+- Verlag
+- Merkmale
+- Beschaffung
+- Publikationsdatum
+- Abmessungen
+- Min Alter
+- Max Alter
+- Material
+- Preis
+- Links
+- Ausgeliehen von
+
+### Exel import
+
+Für den Import einer Excel Datei kann auf der Reports Seite die Kachel Excel Import angeklickt werden. Diese führt zu einer Import-Seite.
+
+Für den Import von Daten gibt es zwei Stufen:
+1. Zunächst kann das Excel hochgeladen werden. Eine Vorschau zeigt an, wieviele User und Bücher importiert werdne und die jeweiligen ersten Zeilen werden dargestellt. Die Spalten des Excel Files müssen denen entsprechen, die auch beim export erzeugt werden. Ein Beispiel-Excel File findet sich [hier](./doc/sample_export.xlsx). Nach dem Upload sieht der Bildschirm so aus: ![Import creen](./doc/excel_import_screen1.png)
+
+2. Wenn die Vorschau wie erwartet aussieht, kann mit dem Button *In die Datenbank importieren* importiert werden. Dabei muss eine leere Datenbank bereits existieren, wie in der Anleitung beschrieben.
 
 ## Import aus OpenBiblio und anderen Tools
 
