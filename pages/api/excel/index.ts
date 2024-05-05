@@ -108,6 +108,7 @@ export default async function handle(
         bookData.map((b: any) => {
           transaction.push(
             prisma.book.create({
+              //TODO this needs a more configurable mapping
               data: {
                 id: b["Mediennummer"],
                 rentalStatus: b["Ausleihstatus"],
