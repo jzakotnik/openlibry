@@ -59,10 +59,11 @@ type ReportCardProps = {
 type LinkCardProps = {
   title: string;
   subtitle: string;
+  buttonTitle: string;
   link: string;
 };
 
-const LinkCard = ({ title, subtitle, link }: LinkCardProps) => {
+const LinkCard = ({ title, subtitle, buttonTitle, link }: LinkCardProps) => {
   return (
     <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
       <CardContent>
@@ -74,7 +75,7 @@ const LinkCard = ({ title, subtitle, link }: LinkCardProps) => {
       </CardContent>
       <CardActions>
         <Button size="small" onClick={() => router.push(link)}>
-          Download Excel
+          {buttonTitle}
         </Button>
       </CardActions>
     </Card>
@@ -214,9 +215,18 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
             <LinkCard
-              title="Excel"
+              title="Excel Export"
               subtitle="Excel Export der Daten"
+              buttonTitle="Download Excel"
               link="api/excel"
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <LinkCard
+              title="Excel Import"
+              subtitle="Excel Import der Daten"
+              buttonTitle="Upload Excel"
+              link="reports/xlsimport"
             />
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
