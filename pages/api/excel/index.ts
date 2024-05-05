@@ -2,7 +2,10 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
-import { convertDateToDayString } from "@/utils/dateutils";
+import {
+  convertDateToDayString,
+  convertDayToISOString,
+} from "@/utils/dateutils";
 import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
 import { PrismaClient } from "@prisma/client";
 import Excel from "exceljs";
@@ -81,6 +84,66 @@ export default async function handle(
           userData.length
         );
         console.log("Example: ", bookData.slice(0, 5), userData.slice(0, 5));
+
+        //create a big transaction to import all users and books (or do nothing if something fails)
+        const transaction = [] as any;
+        var userImportedCount = 0;
+        //transaction.push(prisma.user.deleteMany({})); //start with empty table
+        userData.map((u: any) => {
+          transaction.push(
+            prisma.user.create({
+              data: {
+                id: u["Nummer"], //TODO refactoring to re-use the mapping from utils xls mapping
+                lastName: u["Nachname"],
+                firstName: u["Vorname"],
+                schoolGrade: u["Klasse"],
+                schoolTeacherName: u["Lehrkraft"],
+                active: u["Freigeschaltet"],
+              },
+            })
+          );
+          userImportedCount++;
+        });
+        var bookImportedCount = 0;
+        bookData.map((b: any) => {
+          transaction.push(
+            prisma.book.create({
+              data: {
+                id: b["Mediennummer"],
+                rentalStatus: b["Ausleihstatus"],
+                rentedDate: convertDayToISOString(b["Ausgeliehen am"]),
+                dueDate: convertDayToISOString(b["Rückgabe am"]),
+                renewalCount: b["Anzahl Verlängerungen"],
+                title: b["Titel"],
+                subtitle: b["Untertitel"],
+                author: b["Autor"],
+                topics: b["Schlagworte"],
+                imageLink: b["Bild"],
+                isbn: b["ISBN"],
+                editionDescription: b["Edition"],
+                publisherLocation: b["Verlagsort"],
+                pages: b["Seiten"],
+                summary: b["Zusammenfassung"],
+                minPlayers: b["Min Spieler"],
+                publisherName: b["Verlag"],
+                otherPhysicalAttributes: b["Merkmale"],
+                supplierComment: b["Beschaffung"],
+                publisherDate: b["Publikationsdatum"],
+                physicalSize: b["Abmessungen"],
+                minAge: b["Min Alter"],
+                maxAge: b["Max Alter"],
+                additionalMaterial: b["Material"],
+                price: b["Preis"],
+                externalLinks: b["Links"],
+                userId: b["Ausgeliehen von"],
+              },
+            })
+          );
+          bookImportedCount++;
+        });
+        await prisma.$transaction(transaction);
+        console.log("Importing " + userImportedCount + " users");
+        console.log("Importing " + bookImportedCount + " books");
 
         res.status(200).json({ result: "Imported dataset" });
       } catch (error) {

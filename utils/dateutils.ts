@@ -17,6 +17,10 @@ export function convertDateToDayString(
   return d ? dayjs(d).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
 }
 
+export function convertDayToISOString(d: string): string {
+  return dayjs(d).toISOString();
+}
+
 export function convertDateToTimeString(
   d: string | Date | null | undefined
 ): string {
