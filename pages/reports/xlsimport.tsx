@@ -1,3 +1,4 @@
+import Layout from "@/components/layout/Layout";
 import {
   Divider,
   Paper,
@@ -7,11 +8,20 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  ThemeProvider,
   Typography,
+  createTheme,
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import * as ExcelJS from "exceljs";
 import React, { useState } from "react";
+
+const theme = createTheme({
+  palette: {
+    primary: { main: "#1976d2" },
+  },
+  spacing: 4,
+});
 
 export default function XLSImport() {
   const [bookData, setBookData] = useState<any[]>([]);
@@ -110,59 +120,61 @@ export default function XLSImport() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <Button variant="contained" component="label">
-        Excel importieren
-        <input
-          type="file"
-          hidden
-          accept=".xlsx, .xls"
-          onChange={handleFileUpload}
-        />
-      </Button>
-
-      <Typography color="black">
-        Bücher: Zellen eingelesen: {bookData?.length}
-      </Typography>
-
-      <Typography color="black">
-        {" "}
-        Bücher: Spalten eingelesen: {bookData[0]?.length}
-      </Typography>
-      <Typography color="black">
-        User: Zellen eingelesen: {userData?.length}
-      </Typography>
-      <Typography color="black">
-        {" "}
-        User: Spalten eingelesen: {userData[0]?.length}
-      </Typography>
-      {excelLoaded && (
-        <Button
-          variant="contained"
-          component="label"
-          onClick={handleImportButton}
-        >
-          In die Datenbank importieren
+    <Layout>
+      <ThemeProvider theme={theme}>
+        <Button variant="contained" component="label">
+          Excel importieren
+          <input
+            type="file"
+            hidden
+            accept=".xlsx, .xls"
+            onChange={handleFileUpload}
+          />
         </Button>
-      )}
-      <Divider></Divider>
-      <Typography variant="caption" color="gray">
-        Erste Zeilen der Bücher
-      </Typography>
-      {bookData.length > 0 ? (
-        <DenseTable data={bookData} />
-      ) : (
-        "Keine Daten verfügbar"
-      )}
-      <Divider></Divider>
-      <Typography variant="caption" color="gray">
-        Erste Zeilen der User
-      </Typography>
-      {userData.length > 0 ? (
-        <DenseTable data={userData} />
-      ) : (
-        "Keine Daten verfügbar"
-      )}
-    </div>
+
+        <Typography color="black">
+          Bücher: Zellen eingelesen: {bookData?.length}
+        </Typography>
+
+        <Typography color="black">
+          {" "}
+          Bücher: Spalten eingelesen: {bookData[0]?.length}
+        </Typography>
+        <Typography color="black">
+          User: Zellen eingelesen: {userData?.length}
+        </Typography>
+        <Typography color="black">
+          {" "}
+          User: Spalten eingelesen: {userData[0]?.length}
+        </Typography>
+        {excelLoaded && (
+          <Button
+            variant="contained"
+            component="label"
+            onClick={handleImportButton}
+          >
+            In die Datenbank importieren
+          </Button>
+        )}
+        <Divider></Divider>
+        <Typography variant="caption" color="gray">
+          Erste Zeilen der Bücher
+        </Typography>
+        {bookData.length > 0 ? (
+          <DenseTable data={bookData} />
+        ) : (
+          "Keine Daten verfügbar"
+        )}
+        <Divider></Divider>
+        <Typography variant="caption" color="gray">
+          Erste Zeilen der User
+        </Typography>
+        {userData.length > 0 ? (
+          <DenseTable data={userData} />
+        ) : (
+          "Keine Daten verfügbar"
+        )}
+      </ThemeProvider>
+    </Layout>
   );
 }
