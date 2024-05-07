@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import {
   Divider,
+  Grid,
   Paper,
   Table,
   TableBody,
@@ -28,6 +29,7 @@ export default function XLSImport() {
   const [excelLoaded, setExcelLoaded] = useState(false);
 
   const [userData, setUserData] = useState<any[]>([]);
+  const [importLog, setImportLog] = useState<string[]>(["Los gehts..."]);
 
   const DenseTable = ({ data }: any) => {
     console.log("Rendering table", data);
@@ -82,24 +84,47 @@ export default function XLSImport() {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    console.log("Uploading file", event.target.files);
-    if (!file) return;
+    try {
+      const logs = [] as string[];
+      const file = event.target.files ? event.target.files[0] : null;
+      console.log("Uploading file", event.target.files);
+      logs.push("Datei wird geladen: " + file);
+      if (!file) return;
 
-    const workbook = new ExcelJS.Workbook();
-    const arrayBuffer = await file.arrayBuffer();
-    await workbook.xlsx.load(arrayBuffer);
+      const workbook = new ExcelJS.Workbook();
+      const arrayBuffer = await file.arrayBuffer();
+      logs.push("Excel wird konvertiert");
+      await workbook.xlsx.load(arrayBuffer);
+      logs.push("Excel erfolgreich konvertiert");
 
-    const worksheetBooks = workbook.worksheets[0];
-    const worksheetUsers = workbook.worksheets[1];
-    console.log("Worksheet", worksheetBooks, worksheetUsers);
-    const booksJson: any[] = convertSheetToJson(worksheetBooks);
-    setBookData(booksJson);
-    const usersJson: any[] = convertSheetToJson(worksheetUsers);
-    setUserData(usersJson);
+      const worksheetBooks = workbook.worksheets[0];
+      logs.push("Excel Blatt für Bücher gefunden");
+      const worksheetUsers = workbook.worksheets[1];
+      logs.push("Excel Blatt für Nutzer gefunden");
 
-    console.log("Imported Excel as JSON", booksJson, usersJson);
-    setExcelLoaded(true);
+      logs.push("Excel Bücher werden in JSON konvertiert");
+      const booksJson: any[] = convertSheetToJson(worksheetBooks);
+      logs.push(
+        "Excel Bücher erfolgreich in JSON konvertiert: " +
+          booksJson.length +
+          " Bücher gefunden"
+      );
+      setBookData(booksJson);
+      logs.push("Excel User werden in JSON konvertiert");
+      const usersJson: any[] = convertSheetToJson(worksheetUsers);
+      logs.push(
+        "Excel User erfolgreich in JSON konvertiert: " +
+          usersJson.length +
+          " User gefunden"
+      );
+      setUserData(usersJson);
+
+      setExcelLoaded(true);
+      setImportLog(logs);
+      logs.push("Excel Import erledigt");
+    } catch (e: any) {
+      console.log("Datei Import hat nicht funktioniert");
+    }
   };
 
   const handleImportButton = async () => {
@@ -122,58 +147,75 @@ export default function XLSImport() {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
-        <Button variant="contained" component="label">
-          Excel importieren
-          <input
-            type="file"
-            hidden
-            accept=".xlsx, .xls"
-            onChange={handleFileUpload}
-          />
-        </Button>
-
-        <Typography color="black">
-          Bücher: Zellen eingelesen: {bookData?.length}
-        </Typography>
-
-        <Typography color="black">
+        <Grid
+          container
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+          spacing={2}
+          sx={{ m: 2 }}
+        >
           {" "}
-          Bücher: Spalten eingelesen: {bookData[0]?.length}
-        </Typography>
-        <Typography color="black">
-          User: Zellen eingelesen: {userData?.length}
-        </Typography>
-        <Typography color="black">
-          {" "}
-          User: Spalten eingelesen: {userData[0]?.length}
-        </Typography>
-        {excelLoaded && (
-          <Button
-            variant="contained"
-            component="label"
-            onClick={handleImportButton}
+          <Grid
+            item
+            container
+            xs={2}
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            spacing={2}
+            sx={{ m: 2 }}
           >
-            In die Datenbank importieren
-          </Button>
-        )}
-        <Divider></Divider>
-        <Typography variant="caption" color="gray">
-          Erste Zeilen der Bücher
-        </Typography>
-        {bookData.length > 0 ? (
-          <DenseTable data={bookData} />
-        ) : (
-          "Keine Daten verfügbar"
-        )}
-        <Divider></Divider>
-        <Typography variant="caption" color="gray">
-          Erste Zeilen der User
-        </Typography>
-        {userData.length > 0 ? (
-          <DenseTable data={userData} />
-        ) : (
-          "Keine Daten verfügbar"
-        )}
+            <Button variant="contained" component="label">
+              Excel importieren
+              <input
+                type="file"
+                hidden
+                accept=".xlsx, .xls"
+                onChange={handleFileUpload}
+              />
+            </Button>{" "}
+            {excelLoaded && (
+              <Button
+                variant="contained"
+                component="label"
+                onClick={handleImportButton}
+              >
+                In die Datenbank importieren
+              </Button>
+            )}
+          </Grid>
+          <Grid item xs={10} sx={{ width: "100%" }}>
+            {" "}
+            <Paper>
+              {importLog.map((i: string, idx: number) => (
+                <Typography key={idx}>{i}</Typography>
+              ))}
+            </Paper>
+          </Grid>
+          {excelLoaded && (
+            <Grid container item>
+              <Divider></Divider>
+              <Typography variant="caption" color="gray">
+                Erste Zeilen der Bücher
+              </Typography>
+              {bookData.length > 0 ? (
+                <DenseTable data={bookData} />
+              ) : (
+                "Keine Daten verfügbar"
+              )}
+              <Divider></Divider>
+              <Typography variant="caption" color="gray">
+                Erste Zeilen der User
+              </Typography>
+              {userData.length > 0 ? (
+                <DenseTable data={userData} />
+              ) : (
+                "Keine Daten verfügbar"
+              )}
+            </Grid>
+          )}
+        </Grid>
       </ThemeProvider>
     </Layout>
   );
