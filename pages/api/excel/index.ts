@@ -74,9 +74,17 @@ export default async function handle(
       }
       break;
     case "POST":
+      const importLog = ["Starte den Transfer in die Datenbank"];
       try {
         const bookData = req.body.bookData.slice(1); //remove top header row of excel
         const userData = req.body.userData.slice(1);
+        importLog.push(
+          "Header Zeilen aus Excel entfernt, damit bleiben " +
+            bookData.length +
+            " Bücher und " +
+            userData.length +
+            " User"
+        );
 
         console.log(
           "Received import xls, it contains so many books and users: ",
@@ -142,14 +150,21 @@ export default async function handle(
           );
           bookImportedCount++;
         });
+        importLog.push("Transaction für alle Daten erzeugt, importiere jetzt");
         await prisma.$transaction(transaction);
+        importLog.push("Daten importiert");
+
         console.log("Importing " + userImportedCount + " users");
         console.log("Importing " + bookImportedCount + " books");
 
-        res.status(200).json({ result: "Imported dataset" });
+        res.status(200).json({
+          result: "Imported dataset",
+          logs: importLog,
+        });
       } catch (error) {
         console.log(error);
-        res.status(400).json({ data: "ERROR: " + error });
+        importLog.push("Fehler beim Import: " + (error as string).toString());
+        res.status(400).json({ data: "ERROR: " + error, logs: importLog });
       }
       break;
     default:

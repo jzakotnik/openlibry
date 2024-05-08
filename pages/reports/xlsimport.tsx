@@ -121,7 +121,9 @@ export default function XLSImport() {
 
       setExcelLoaded(true);
       setImportLog(logs);
-      logs.push("Excel Import erledigt");
+      logs.push(
+        "Excel Import erledigt, Daten können in die Datenbank importiert werden."
+      );
     } catch (e: any) {
       console.log("Datei Import hat nicht funktioniert");
     }
@@ -138,10 +140,15 @@ export default function XLSImport() {
       },
       body: JSON.stringify(payload),
     });
-    console.log(
-      "API Call to database done, response is",
-      await response.json()
-    );
+    const result = await response.json();
+    console.log("API Call to database done, response is", result);
+    try {
+      //take the log content of the api call and add it to the log
+      const logs = result.logs as string[];
+      setImportLog(importLog.concat(logs));
+    } catch (e: any) {
+      console.log("Kein Ergebnis der API", result);
+    }
   };
 
   return (
