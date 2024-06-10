@@ -16,6 +16,7 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { updatedAt, createdAt, ...user } = req.body;
+    console.log("Creating a new user", user);
 
     try {
       const result = await addUser(prisma, user);

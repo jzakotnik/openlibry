@@ -165,7 +165,8 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       <ThemeProvider theme={theme}>
         <NewUserDialog
           open={newUserDialogVisible}
-          onClose={(idAuto, idValue) => {
+          setOpen={setNewUserDialogVisible}
+          onCreate={(idAuto, idValue) => {
             console.log("Creating user", idAuto, idValue);
             handleCreateNewUser(idValue, idAuto);
             setNewUserDialogVisible(false);
