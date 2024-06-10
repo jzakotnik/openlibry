@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
+import NewUserDialog from "@/components/user/NewUserDialog";
 import SelectionActions from "@/components/user/SelectionActions";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
@@ -51,6 +52,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [displayDetail, setDisplayDetail] = useState(0);
   const [userCreating, setUserCreating] = useState(false);
+  const [newUserDialogVisible, setNewUserDialogVisible] = useState(false);
   const [checked, setChecked] = useState({} as any);
   const [batchEditSnackbar, setBatchEditSnackbar] = useState(false);
 
@@ -74,10 +76,16 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     setUserSearchInput(e.target.value);
   };
 
-  const handleCreateNewUser = (e: React.MouseEvent<HTMLElement>) => {
-    console.log("Creating a new user");
+  const handleCreateNewUser = (autoID: boolean, proposedID: number) => {
+    console.log("Creating a new user with", autoID, proposedID);
     setUserCreating(true);
-    const user: UserType = { firstName: "", lastName: "", active: true };
+
+    const user: UserType = {
+      firstName: "",
+      lastName: "",
+      active: true,
+    };
+    if (!autoID) user.id = proposedID;
 
     fetch("/api/user", {
       method: "POST",
@@ -155,6 +163,14 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
+        <NewUserDialog
+          open={newUserDialogVisible}
+          onClose={(idAuto, idValue) => {
+            console.log("Creating user", idAuto, idValue);
+            handleCreateNewUser(idValue, idAuto);
+            setNewUserDialogVisible(false);
+          }}
+        />
         <Snackbar
           open={batchEditSnackbar}
           autoHideDuration={4000}
@@ -221,7 +237,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   color="primary"
                   sx={{ p: "10px" }}
                   aria-label="new-book"
-                  onClick={handleCreateNewUser}
+                  onClick={() => setNewUserDialogVisible(true)}
                 >
                   <QueueIcon />
                 </IconButton>
