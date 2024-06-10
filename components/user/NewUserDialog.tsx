@@ -12,13 +12,14 @@ import * as React from "react";
 export interface NewUserDialogProps {
   open: boolean;
   setOpen: any;
+  maxUserID: number;
   onCreate: (idValue: number, idAuto: boolean) => void;
   //onCreate: (autoID: boolean, value: string) => void;
 }
 
 export default function NewUserDialog(props: NewUserDialogProps) {
-  const { onCreate, open, setOpen } = props;
-  const [idValue, setIdValue] = React.useState(0);
+  const { onCreate, open, maxUserID, setOpen } = props;
+  const [idValue, setIdValue] = React.useState(maxUserID);
   const [idAuto, setIdAuto] = React.useState(true);
 
   const checkBoxLabel = { inputProps: { "aria-label": "Eigene ID verwenden" } };

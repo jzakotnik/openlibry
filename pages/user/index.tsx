@@ -22,6 +22,7 @@ import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
+import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import {
@@ -166,6 +167,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
         <NewUserDialog
           open={newUserDialogVisible}
           setOpen={setNewUserDialogVisible}
+          maxUserID={getMaxId(users) + 1}
           onCreate={(idAuto, idValue) => {
             console.log("Creating user", idAuto, idValue);
             handleCreateNewUser(idValue, idAuto);
