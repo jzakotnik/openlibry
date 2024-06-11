@@ -16,11 +16,13 @@ import dayjs from "dayjs";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
+import NewUserDialog from "@/components/user/NewUserDialog";
 import SelectionActions from "@/components/user/SelectionActions";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
+import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import {
@@ -51,8 +53,10 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [displayDetail, setDisplayDetail] = useState(0);
   const [userCreating, setUserCreating] = useState(false);
+  const [newUserDialogVisible, setNewUserDialogVisible] = useState(false);
   const [checked, setChecked] = useState({} as any);
   const [batchEditSnackbar, setBatchEditSnackbar] = useState(false);
+  const [newUserSnackbarError, setNewUserSnackbarError] = useState(false);
 
   const router = useRouter();
   const theme = useTheme();
@@ -69,15 +73,31 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
 
     setBatchEditSnackbar(false);
   };
+  const handleNewUserSnackbarError = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setNewUserSnackbarError(false);
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
   };
 
-  const handleCreateNewUser = (e: React.MouseEvent<HTMLElement>) => {
-    console.log("Creating a new user");
+  const handleCreateNewUser = (autoID: boolean, proposedID: number) => {
+    console.log("Creating a new user with", autoID, proposedID);
     setUserCreating(true);
-    const user: UserType = { firstName: "", lastName: "", active: true };
+
+    const user: UserType = {
+      firstName: "",
+      lastName: "",
+      active: true,
+    };
+    if (!autoID) user.id = proposedID;
 
     fetch("/api/user", {
       method: "POST",
@@ -86,11 +106,22 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       },
       body: JSON.stringify(user),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         setUserCreating(false);
         router.push("user/" + data.id);
         console.log("User created", data);
+      })
+      .catch((error) => {
+        console.error("Error updating user IDs:", error);
+        setUserCreating(false);
+        setNewUserSnackbarError(true);
+        // Stop further execution if there is an error
       });
   };
 
@@ -155,6 +186,16 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
+        <NewUserDialog
+          open={newUserDialogVisible}
+          setOpen={setNewUserDialogVisible}
+          maxUserID={getMaxId(users) + 1}
+          onCreate={(idAuto, idValue) => {
+            console.log("Creating user", idAuto, idValue);
+            handleCreateNewUser(idValue, idAuto);
+            setNewUserDialogVisible(false);
+          }}
+        />
         <Snackbar
           open={batchEditSnackbar}
           autoHideDuration={4000}
@@ -166,6 +207,20 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             sx={{ width: "100%", background: "teal", color: "white" }}
           >
             Selektierte Benutzer angepasst, super!
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={newUserSnackbarError}
+          autoHideDuration={4000}
+          onClose={handleNewUserSnackbarError}
+        >
+          <Alert
+            onClose={handleNewUserSnackbarError}
+            severity="error"
+            sx={{ width: "100%", background: "teal", color: "white" }}
+          >
+            Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon
+            vorhanden?
           </Alert>
         </Snackbar>
         <Grid
@@ -221,7 +276,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   color="primary"
                   sx={{ p: "10px" }}
                   aria-label="new-book"
-                  onClick={handleCreateNewUser}
+                  onClick={() => setNewUserDialogVisible(true)}
                 >
                   <QueueIcon />
                 </IconButton>
