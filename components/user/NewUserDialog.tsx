@@ -1,3 +1,4 @@
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import {
   Button,
   Checkbox,
@@ -24,7 +25,13 @@ export default function NewUserDialog(props: NewUserDialogProps) {
 
   const checkBoxLabel = { inputProps: { "aria-label": "Eigene ID verwenden" } };
   return (
-    <Dialog onClose={() => setOpen(false)} open={open} sx={{ m: 2 }}>
+    <Dialog
+      onClose={() => setOpen(false)}
+      open={open}
+      sx={{ m: 2 }}
+      fullWidth
+      maxWidth="sm"
+    >
       <DialogContent sx={{ display: "flex", flexDirection: "column", m: 2 }}>
         <TextField
           id="item-name"
@@ -52,6 +59,7 @@ export default function NewUserDialog(props: NewUserDialogProps) {
       </DialogContent>
       <DialogActions>
         <Button
+          startIcon={<AddCircleIcon />}
           variant="text"
           onClick={() => {
             //console.log("Create new user", idAuto, idValue);

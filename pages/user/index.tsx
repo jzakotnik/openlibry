@@ -56,6 +56,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [newUserDialogVisible, setNewUserDialogVisible] = useState(false);
   const [checked, setChecked] = useState({} as any);
   const [batchEditSnackbar, setBatchEditSnackbar] = useState(false);
+  const [newUserSnackbarError, setNewUserSnackbarError] = useState(false);
 
   const router = useRouter();
   const theme = useTheme();
@@ -71,6 +72,16 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     }
 
     setBatchEditSnackbar(false);
+  };
+  const handleNewUserSnackbarError = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setNewUserSnackbarError(false);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -95,11 +106,22 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       },
       body: JSON.stringify(user),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         setUserCreating(false);
         router.push("user/" + data.id);
         console.log("User created", data);
+      })
+      .catch((error) => {
+        console.error("Error updating user IDs:", error);
+        setUserCreating(false);
+        setNewUserSnackbarError(true);
+        // Stop further execution if there is an error
       });
   };
 
@@ -185,6 +207,20 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             sx={{ width: "100%", background: "teal", color: "white" }}
           >
             Selektierte Benutzer angepasst, super!
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={newUserSnackbarError}
+          autoHideDuration={4000}
+          onClose={handleNewUserSnackbarError}
+        >
+          <Alert
+            onClose={handleNewUserSnackbarError}
+            severity="error"
+            sx={{ width: "100%", background: "teal", color: "white" }}
+          >
+            Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon
+            vorhanden?
           </Alert>
         </Snackbar>
         <Grid
