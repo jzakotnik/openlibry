@@ -180,3 +180,22 @@ export async function deleteUser(client: PrismaClient, id: number) {
     },
   });
 }
+
+export async function deleteManyUsers(
+  client: PrismaClient,
+  ids: Array<number>
+) {
+  const transaction = [] as Array<any>;
+  ids.map((i: number) => {
+    transaction.push(
+      client.user.delete({
+        where: {
+          id: i,
+        },
+      })
+    );
+  });
+
+  const result = await client.$transaction(transaction);
+  console.log("Batch delete user database operation succeeded: ", result);
+}
