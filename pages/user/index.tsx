@@ -1,14 +1,16 @@
-import Grid from "@mui/material/Grid";
-import { ThemeProvider, useTheme } from "@mui/material/styles";
-import { useRouter } from "next/router";
-
 import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import PlusOneRoundedIcon from "@mui/icons-material/PlusOneRounded";
+import { IconButton, Tooltip } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import { PrismaClient } from "@prisma/client";
+import { useRouter } from "next/router";
 import { ChangeEvent, useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
 import UserAdminList from "@/components/user/UserAdminList";
+import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import QueueIcon from "@mui/icons-material/Queue";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -25,15 +27,7 @@ import { UserType } from "@/entities/UserType";
 import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
-import {
-  Alert,
-  Divider,
-  IconButton,
-  InputBase,
-  Paper,
-  Snackbar,
-  Tooltip,
-} from "@mui/material";
+import { Alert, Divider, InputBase, Paper, Snackbar } from "@mui/material";
 
 const prisma = new PrismaClient();
 /*
@@ -177,6 +171,29 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       });
   };
 
+  const handleDeleteUsers = () => {
+    //console.log("Increasing grade for users ", users, checked);
+    //the user IDs that are checked are marked as true
+    const updatedUserIDs = users.reduce((acc: any, u: UserType) => {
+      if (checked[u.id!]) acc.push(u.id);
+      return acc;
+    }, []);
+
+    fetch("/api/batch/user", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUserIDs),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Users deleted", data);
+        setBatchEditSnackbar(true);
+        router.push("user");
+      });
+  };
+
   const booksForUser = (id: number) => {
     const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
     //console.log("Filtered rentals", userRentals);
@@ -206,7 +223,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             severity="success"
             sx={{ width: "100%", background: "teal", color: "white" }}
           >
-            Selektierte Benutzer angepasst, super!
+            Selektierte Benutzer geändert, super!
           </Alert>
         </Snackbar>
         <Snackbar
@@ -284,7 +301,13 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
 
               <SelectionActions
                 checked={checked}
+                icon={<PlusOneRoundedIcon />}
                 increaseGrade={handleIncreaseGrade}
+              />
+              <SelectionActions
+                checked={checked}
+                icon={<DeleteForeverRoundedIcon />}
+                increaseGrade={handleDeleteUsers}
               />
             </Paper>
           </Grid>{" "}

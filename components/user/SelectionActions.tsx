@@ -1,13 +1,14 @@
-import PlusOneIcon from "@mui/icons-material/PlusOne";
 import { IconButton, Tooltip } from "@mui/material";
 
 type SelectionActionsPropsType = {
   checked: any;
   increaseGrade: any;
+  icon: any;
 };
 
 export default function SelectionActions({
   checked,
+  icon,
   increaseGrade,
 }: SelectionActionsPropsType) {
   const checkedItems = Object.values(checked).filter((item) => item != false);
@@ -21,7 +22,7 @@ export default function SelectionActions({
           aria-label="klasse erhöhen"
           onClick={increaseGrade}
         >
-          <PlusOneIcon />
+          {icon}{" "}
         </IconButton>
       </Tooltip>
     );
