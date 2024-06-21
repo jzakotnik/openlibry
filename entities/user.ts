@@ -198,4 +198,5 @@ export async function deleteManyUsers(
 
   const result = await client.$transaction(transaction);
   console.log("Batch delete user database operation succeeded: ", result);
+  return result;
 }

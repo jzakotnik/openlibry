@@ -175,13 +175,12 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     //console.log("Increasing grade for users ", users, checked);
     //the user IDs that are checked are marked as true
     const updatedUserIDs = users.reduce((acc: any, u: UserType) => {
-      if (checked[u.id!])
-        acc.push({ id: u.id, grade: increaseNumberInString(u.schoolGrade) });
+      if (checked[u.id!]) acc.push(u.id);
       return acc;
     }, []);
 
-    fetch("/api/batch/grade", {
-      method: "POST",
+    fetch("/api/batch/user", {
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
@@ -189,7 +188,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Users increased", data);
+        console.log("Users deleted", data);
         setBatchEditSnackbar(true);
         router.push("user");
       });
@@ -224,7 +223,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             severity="success"
             sx={{ width: "100%", background: "teal", color: "white" }}
           >
-            Selektierte Benutzer angepasst, super!
+            Selektierte Benutzer geändert, super!
           </Alert>
         </Snackbar>
         <Snackbar
