@@ -38,19 +38,19 @@ const styles = StyleSheet.create({
   },
   overlayName: {
     position: "absolute",
-    top: "12%", // Center vertically, adjust as needed
-    left: "5%", // Center horizontally, adjust as needed
+    top: "72%", // Center vertically, adjust as needed
+    left: "20%", // Center horizontally, adjust as needed
 
     color: "black", // Choose text color that contrasts with your image
-    fontSize: 15, // Adjust font size as needed
+    fontSize: 12, // Adjust font size as needed
   },
   overlayDetails: {
     position: "absolute",
-    top: "17%", // Center vertically, adjust as needed
-    left: "5%", // Center horizontally, adjust as needed
+    top: "77%", // Center vertically, adjust as needed
+    left: "20%", // Center horizontally, adjust as needed
 
     color: "black", // Choose text color that contrasts with your image
-    fontSize: 10, // Adjust font size as needed
+    fontSize: 8, // Adjust font size as needed
   },
 });
 
@@ -61,11 +61,13 @@ const Label = ({ u }: any) => {
       <Image
         style={styles.image}
         src={"data:image/jpg;base64, " + base64Image}
-      />
-      <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
-      <Text style={styles.overlayDetails}>
-        {process.env.SCHOOL_NAME + " - Nr." + u.id}
-      </Text>
+      />{" "}
+      <View style={{ width: 360, height: 360 }} debug>
+        <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
+        <Text style={styles.overlayDetails}>
+          {process.env.SCHOOL_NAME + " - Nr." + u.id}
+        </Text>
+      </View>
     </View>
   );
 };
