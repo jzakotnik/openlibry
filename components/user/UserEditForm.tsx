@@ -46,6 +46,7 @@ type UserEditFormPropType = {
   saveUser: () => void;
   returnBook: (bookid: number) => void;
   extendBook: (bookid: number, book: BookType) => void;
+  initiallyEditable?: boolean;
 };
 
 interface ReturnBooksType {
@@ -64,11 +65,16 @@ export default function UserEditForm({
   saveUser,
   returnBook,
   extendBook,
+  initiallyEditable = false,
 }: UserEditFormPropType) {
-  const [editable, setEditable] = useState(false);
+  const [editable, setEditable] = useState(
+    initiallyEditable ? initiallyEditable : false
+  );
   const [userBooks, setUserBooks] = useState(books);
 
-  const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
+  const [editButtonLabel, setEditButtonLabel] = useState(
+    initiallyEditable ? "Abbrechen" : "Editieren"
+  );
   const [returnedBooks, setReturnedBooks] = useState({});
 
   const toggleEditButton = () => {

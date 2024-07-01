@@ -109,6 +109,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .then((data) => {
         setUserCreating(false);
         router.push("user/" + data.id);
+        //router.push("user/" + data.id + "?edit=true");
         console.log("User created", data);
       })
       .catch((error) => {

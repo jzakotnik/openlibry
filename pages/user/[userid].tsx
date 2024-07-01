@@ -183,6 +183,7 @@ export default function UserDetail({
           saveUser={handleSaveButton}
           returnBook={handleReturnBookButton}
           extendBook={handleExtendBookButton}
+          initiallyEditable={true}
         />
         <Snackbar
           open={returnBookSnackbar}
