@@ -11,7 +11,6 @@ import ReactPDF, {
 } from "@react-pdf/renderer";
 import type { NextApiRequest, NextApiResponse } from "next";
 import sharp from "sharp";
-import { Readable } from "stream";
 const { join } = require("path");
 
 const prisma = new PrismaClient();
@@ -23,7 +22,7 @@ var data = fs.readFileSync(
   }
 );
 
-function textToBase64Barcode() {
+async function textToBase64Barcode() {
   //this must be a joke
   var JsBarcode = require("jsbarcode");
   const { DOMImplementation, XMLSerializer } = require("xmldom");
@@ -40,35 +39,15 @@ function textToBase64Barcode() {
   });
   //console.log(xmlSerializer.serializeToString(svgNode));
   const svgBuffer = xmlSerializer.serializeToString(svgNode);
-  console.log("rendering png from svg");
-  /*const resizedSVG = sharp(Buffer.from(svgBuffer))
+  //console.log("rendering png from svg");
+  const resizedSVG = await sharp(Buffer.from(svgBuffer))
     .resize(200, 200)
-    .jpeg()
+    .png()
     .toBuffer();
 
-  console.log(resizedSVG);
-  return resizedSVG;*/
-  const svgToPng = (svgString: string) => {
-    return new Promise((resolve, reject) => {
-      const svgStream = new Readable();
-      svgStream.push(svgString);
-      svgStream.push(null);
-      svgStream.pipe(
-        sharp()
-          .png()
-          .toBuffer((err, buffer) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(buffer);
-            }
-          })
-      );
-    });
-  };
-  const test = svgToPng(svgBuffer) as any;
-  console.log("Test", test.toString("base64"));
-  return test.toString("base64");
+  //console.log("sharped png", resizedSVG);
+  console.log(`data:image/png;base64,${resizedSVG.toString("base64")}`);
+  return resizedSVG;
 }
 
 const styles = StyleSheet.create({
@@ -103,9 +82,9 @@ const styles = StyleSheet.create({
   },
 });
 
-const Label = ({ b }: any) => {
+const Label = async ({ b }: any) => {
   //console.log(b.id);
-  const barcode = textToBase64Barcode();
+  const barcode = (await textToBase64Barcode()).toString("base64");
 
   console.log("Rendering barcode on pdf", barcode);
   return (
@@ -129,22 +108,29 @@ const Label = ({ b }: any) => {
 };
 
 // Create Document Component
-const BookLabels = ({ renderedBooks }: any) => {
+const BookLabels = async ({ renderedBooks }: any) => {
+  const barcode = await textToBase64Barcode();
+  console.log("Final barcode", barcode);
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {renderedBooks.map((b: any) => {
-          //console.log(b);
-          return <Label key={b.id} b={b} />;
-        })}
+        hallo
       </Page>
     </Document>
   );
 };
 
 async function createLabelsPDF(books: Array<BookType>) {
+  const barcode = (await textToBase64Barcode()).toString("base64");
+  console.log("FINAL", barcode);
   const pdfstream = await ReactPDF.renderToStream(
-    <BookLabels renderedBooks={books} />
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.text} wrap={false}>
+          <Image src={"data:image/png;base64, " + barcode} />
+        </View>
+      </Page>
+    </Document>
   );
 
   return pdfstream;
