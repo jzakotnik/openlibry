@@ -121,11 +121,15 @@ const generateBarcode = async (books: Array<BookType>) => {
       });
 
       return (
-        <Image
-          key={b.id}
-          src={"data:image/png;base64, " + (await png.toString("base64"))}
-          style={{ width: "5cm", height: "2cm" }}
-        />
+        <div key={b.id!}>
+          <Text>{b.title}</Text>
+          <Text>Eigentum der Schulbücherei</Text>
+          <Image
+            key={b.id}
+            src={"data:image/png;base64, " + (await png.toString("base64"))}
+            style={{ width: "3cm", height: "1cm" }}
+          />
+        </div>
       );
     })
   );
