@@ -9,6 +9,7 @@ import ReactPDF, {
   Text,
   View,
 } from "@react-pdf/renderer";
+import bwipjs from "bwip-js";
 import type { NextApiRequest, NextApiResponse } from "next";
 import sharp from "sharp";
 const { join } = require("path");
@@ -21,34 +22,6 @@ var data = fs.readFileSync(
     encoding: "base64",
   }
 );
-
-async function textToBase64Barcode() {
-  //this must be a joke
-  var JsBarcode = require("jsbarcode");
-  const { DOMImplementation, XMLSerializer } = require("xmldom");
-  const xmlSerializer = new XMLSerializer();
-  const document = new DOMImplementation().createDocument(
-    "http://www.w3.org/1999/xhtml",
-    "html",
-    null
-  );
-  const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-
-  JsBarcode(svgNode, "1234", {
-    xmlDocument: document,
-  });
-  //console.log(xmlSerializer.serializeToString(svgNode));
-  const svgBuffer = xmlSerializer.serializeToString(svgNode);
-  //console.log("rendering png from svg");
-  const resizedSVG = await sharp(Buffer.from(svgBuffer))
-    .resize(200, 200)
-    .png()
-    .toBuffer();
-
-  //console.log("sharped png", resizedSVG);
-  console.log(`data:image/png;base64,${resizedSVG.toString("base64")}`);
-  return resizedSVG;
-}
 
 const styles = StyleSheet.create({
   page: {
@@ -82,11 +55,38 @@ const styles = StyleSheet.create({
   },
 });
 
+async function textToBase64Barcode(id: string) {
+  //this must be a joke
+  var JsBarcode = require("jsbarcode");
+  const { DOMImplementation, XMLSerializer } = require("xmldom");
+  const xmlSerializer = new XMLSerializer();
+  const document = new DOMImplementation().createDocument(
+    "http://www.w3.org/1999/xhtml",
+    "html",
+    null
+  );
+  const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+  JsBarcode(svgNode, "1234", {
+    xmlDocument: document,
+  });
+  //console.log(xmlSerializer.serializeToString(svgNode));
+  const svgBuffer = xmlSerializer.serializeToString(svgNode);
+  //console.log("rendering png from svg");
+  const resizedSVG = await sharp(Buffer.from(svgBuffer))
+    .resize(200, 200)
+    .png()
+    .toBuffer();
+
+  //console.log("sharped png", resizedSVG);
+  console.log(`data:image/png;base64,${resizedSVG.toString("base64")}`);
+  return resizedSVG;
+}
+
 const Label = async ({ b }: any) => {
   //console.log(b.id);
-  const barcode = (await textToBase64Barcode()).toString("base64");
 
-  console.log("Rendering barcode on pdf", barcode);
+  //console.log("Rendering barcode on pdf", barcode);
   return (
     <View style={styles.section} wrap={false}>
       <Image
@@ -107,27 +107,42 @@ const Label = async ({ b }: any) => {
   );
 };
 
-// Create Document Component
-const BookLabels = async ({ renderedBooks }: any) => {
-  const barcode = await textToBase64Barcode();
-  console.log("Final barcode", barcode);
-  return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        hallo
-      </Page>
-    </Document>
+const generateBarcode = async (books: Array<BookType>) => {
+  const result = "";
+  let allcodes = await Promise.all(
+    books.map(async (b) => {
+      const png = await bwipjs.toBuffer({
+        bcid: "code128",
+        text: b.id!.toString(),
+        scale: 3,
+        height: 10,
+        includetext: true,
+        textxalign: "center",
+      });
+
+      return (
+        <Image
+          key={b.id}
+          src={"data:image/png;base64, " + (await png.toString("base64"))}
+          style={{ width: "5cm", height: "2cm" }}
+        />
+      );
+    })
   );
+  console.log("All barcodes", allcodes);
+  return allcodes;
 };
 
 async function createLabelsPDF(books: Array<BookType>) {
-  const barcode = (await textToBase64Barcode()).toString("base64");
-  console.log("FINAL", barcode);
-  const pdfstream = await ReactPDF.renderToStream(
+  var pdfstream;
+  const barcodes = await generateBarcode(books);
+  console.log("barcodes", barcodes);
+
+  pdfstream = ReactPDF.renderToStream(
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.text} wrap={false}>
-          <Image src={"data:image/png;base64, " + barcode} />
+          {barcodes}
         </View>
       </Page>
     </Document>
