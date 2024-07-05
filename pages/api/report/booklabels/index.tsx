@@ -74,7 +74,7 @@ const generateBarcode = async (books: Array<BookType>) => {
           <Image
             key={b.id}
             src={"data:image/png;base64, " + (await png.toString("base64"))}
-            style={{ width: "4cm", height: "1cm" }}
+            style={{ width: "2cm", height: "1cm" }}
           />
           <Text>Eigentum der Schulbücherei</Text>
         </div>
