@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
 
     flexDirection: "column",
     alignContent: "center",
+
     justifyContent: "flex-start",
   },
   booknr: {
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
 const generateBarcode = async (books: Array<BookType>) => {
   const result = "";
   let allcodes = await Promise.all(
-    books.map(async (b) => {
+    books.map(async (b, i: number) => {
       const png = await bwipjs.toBuffer({
         bcid: "code128",
         text: b.id!.toString(),
@@ -67,16 +68,22 @@ const generateBarcode = async (books: Array<BookType>) => {
         includetext: true,
         textxalign: "center",
       });
-
+      const pos = {
+        left: 1 + (i <= 4 ? 1 : 10) + "cm",
+        top: 2 + 5.5 * (i % 5) + "cm",
+      };
+      console.log("Position", pos);
       return (
         <div key={b.id!}>
-          <Text style={styles.booknr}>{b.title}</Text>
-          <Image
-            key={b.id}
-            src={"data:image/png;base64, " + (await png.toString("base64"))}
-            style={{ width: "2cm", height: "1cm" }}
-          />
-          <Text>Eigentum der Schulbücherei</Text>
+          <View style={{ position: "absolute", left: pos.left, top: pos.top }}>
+            <Text style={styles.booknr}>{b.title}</Text>
+            <Image
+              key={b.id}
+              src={"data:image/png;base64, " + (await png.toString("base64"))}
+              style={{ width: "3cm", height: "1.6cm" }}
+            />
+            <Text>Eigentum der Schulbücherei</Text>
+          </View>
         </div>
       );
     })
