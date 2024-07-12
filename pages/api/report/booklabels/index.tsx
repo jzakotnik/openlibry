@@ -35,22 +35,24 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   pageContainer: {
-    margin: 3,
-    width: "6cm",
-    height: "4cm",
-    flexGrow: 1,
-    fontSize: 8,
     flexDirection: "column",
-    alignContent: "center",
+    alignContent: "flex-start",
     justifyContent: "flex-start",
   },
-  authorContainer: {
+  labelRowContainer: {
     flexDirection: "row",
     alignContent: "flex-start",
+    justifyContent: "flex-start",
   },
-  booknr: {
-    padding: 0,
-    fontSize: 11,
+  labelContainer: {
+    flexDirection: "row",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
+  },
+  barCodeContainer: {
+    flexDirection: "column",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
   },
 });
 
@@ -77,25 +79,51 @@ const generateBarcode = async (books: Array<BookType>) => {
       console.log("Position", pos, i);
       return (
         <div key={b.id!}>
-          <View style={{ position: "absolute", left: pos.left, top: pos.top }}>
-            <Text
+          <View
+            style={{
+              position: "absolute",
+              flexDirection: "column",
+
+              left: pos.left,
+              top: pos.top,
+              width: "5cm",
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            <View
               style={{
-                transform: "rotate(-90deg)",
-                position: "relative",
-                left: "-3cm",
-                top: "0cm",
+                flexDirection: "column",
               }}
             >
               {" "}
-              {b.author}
-            </Text>
-            <Text style={styles.booknr}>{b.title}</Text>
-            <Image
-              key={b.id}
-              src={"data:image/png;base64, " + (await png.toString("base64"))}
-              style={{ width: "3cm", height: "1.6cm" }}
-            />
-            <Text>Eigentum der Schulbücherei</Text>
+              <Text
+                style={{
+                  transform: "rotate(-90deg)",
+                  fontSize: 9,
+                  left: "-3.2cm",
+                }}
+              >
+                {" "}
+                {b.author.length > 15
+                  ? b.author.substring(0, 15) + "..."
+                  : b.author}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  width: "5cm",
+                }}
+              >
+                {b.title}
+              </Text>
+              <Image
+                key={b.id}
+                src={"data:image/png;base64, " + (await png.toString("base64"))}
+                style={{ width: "3cm", height: "1.6cm" }}
+              />
+              <Text style={{ fontSize: 8 }}>Eigentum der Schulbücherei</Text>
+            </View>
           </View>
         </div>
       );
