@@ -96,7 +96,6 @@ const generateBarcode = async (books: Array<BookType>) => {
                 flexDirection: "column",
               }}
             >
-              {" "}
               <Text
                 style={{
                   transform: "rotate(-90deg)",
@@ -104,7 +103,6 @@ const generateBarcode = async (books: Array<BookType>) => {
                   left: "-3.2cm",
                 }}
               >
-                {" "}
                 {b.author.length > 15
                   ? b.author.substring(0, 15) + "..."
                   : b.author}
