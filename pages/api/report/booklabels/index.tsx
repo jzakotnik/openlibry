@@ -14,6 +14,10 @@ import bwipjs from "bwip-js";
 import { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
 
+const SCHOOL_NAME = process.env.SCHOOL_NAME
+  ? process.env.SCHOOL_NAME
+  : "Eigentum Schule";
+
 const prisma = new PrismaClient();
 var fs = require("fs");
 var data = fs.readFileSync(
@@ -120,7 +124,7 @@ const generateBarcode = async (books: Array<BookType>) => {
                 src={"data:image/png;base64, " + (await png.toString("base64"))}
                 style={{ width: "3cm", height: "1.6cm" }}
               />
-              <Text style={{ fontSize: 8 }}>Eigentum der Schulbücherei</Text>
+              <Text style={{ fontSize: 8 }}>{SCHOOL_NAME}</Text>
             </View>
           </View>
         </div>
