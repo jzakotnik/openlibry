@@ -24,10 +24,6 @@ var data = fs.readFileSync(
 );
 
 const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#FFFFFF",
-  },
   section: {
     margin: 10,
     padding: 10,
@@ -38,21 +34,22 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "flex-start",
   },
-  text: {
+  pageContainer: {
     margin: 3,
     width: "6cm",
     height: "4cm",
-
     flexGrow: 1,
     fontSize: 8,
-
     flexDirection: "column",
     alignContent: "center",
-
     justifyContent: "flex-start",
   },
+  authorContainer: {
+    flexDirection: "row",
+    alignContent: "flex-start",
+  },
   booknr: {
-    padding: 2,
+    padding: 0,
     fontSize: 11,
   },
 });
@@ -73,10 +70,25 @@ const generateBarcode = async (books: Array<BookType>) => {
         left: 1 + (i % 10 <= 4 ? 1 : 10) + "cm",
         top: 2 + 5.5 * (i % 5) + "cm",
       };
+      const posAuthor = {
+        left: 1 + (i % 10 <= 4 ? 1 : 10) + "cm",
+        top: 2 + 5.5 * (i % 5) + "cm",
+      };
       console.log("Position", pos, i);
       return (
         <div key={b.id!}>
           <View style={{ position: "absolute", left: pos.left, top: pos.top }}>
+            <Text
+              style={{
+                transform: "rotate(-90deg)",
+                position: "relative",
+                left: "-3cm",
+                top: "0cm",
+              }}
+            >
+              {" "}
+              {b.author}
+            </Text>
             <Text style={styles.booknr}>{b.title}</Text>
             <Image
               key={b.id}
@@ -101,9 +113,19 @@ async function createLabelsPDF(books: Array<BookType>) {
 
   pdfstream = ReactPDF.renderToStream(
     <Document>
-      {barcodesSections.map((chunk) => (
-        <Page wrap size="A4" style={styles.page}>
-          <View style={styles.text}>{chunk}</View>
+      {barcodesSections.map((chunk, i) => (
+        <Page
+          wrap
+          key={i}
+          size="A4"
+          style={{
+            flexDirection: "column",
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <View key={i} style={styles.pageContainer}>
+            {chunk}
+          </View>
         </Page>
       ))}
     </Document>
