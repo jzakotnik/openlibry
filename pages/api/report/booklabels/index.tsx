@@ -1,5 +1,6 @@
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
+import { chunkArray } from "@/utils/chunkArray";
 import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Document,
@@ -10,7 +11,7 @@ import ReactPDF, {
   View,
 } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
 
 const prisma = new PrismaClient();
@@ -52,14 +53,14 @@ const styles = StyleSheet.create({
   },
   booknr: {
     padding: 2,
-    fontSize: 12,
+    fontSize: 11,
   },
 });
 
 const generateBarcode = async (books: Array<BookType>) => {
   const result = "";
   let allcodes = await Promise.all(
-    books.map(async (b, i: number) => {
+    books.map(async (b: BookType, i: number) => {
       const png = await bwipjs.toBuffer({
         bcid: "code128",
         text: b.id!.toString(),
@@ -69,10 +70,10 @@ const generateBarcode = async (books: Array<BookType>) => {
         textxalign: "center",
       });
       const pos = {
-        left: 1 + (i <= 4 ? 1 : 10) + "cm",
+        left: 1 + (i % 10 <= 4 ? 1 : 10) + "cm",
         top: 2 + 5.5 * (i % 5) + "cm",
       };
-      console.log("Position", pos);
+      console.log("Position", pos, i);
       return (
         <div key={b.id!}>
           <View style={{ position: "absolute", left: pos.left, top: pos.top }}>
@@ -88,22 +89,23 @@ const generateBarcode = async (books: Array<BookType>) => {
       );
     })
   );
-  console.log("All barcodes", allcodes);
+  //console.log("All barcodes", allcodes);
   return allcodes;
 };
 
 async function createLabelsPDF(books: Array<BookType>) {
   var pdfstream;
   const barcodes = await generateBarcode(books);
-  console.log("barcodes", barcodes);
+  //console.log("barcodes", barcodes);
+  const barcodesSections = chunkArray(barcodes, 10);
 
   pdfstream = ReactPDF.renderToStream(
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.text} wrap={false}>
-          {barcodes}
-        </View>
-      </Page>
+      {barcodesSections.map((chunk) => (
+        <Page wrap size="A4" style={styles.page}>
+          <View style={styles.text}>{chunk}</View>
+        </Page>
+      ))}
     </Document>
   );
 
