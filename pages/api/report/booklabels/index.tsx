@@ -43,13 +43,14 @@ const BOOKLABEL_BARCODE_VERSION = process.env.BOOKLABEL_BARCODE_VERSION
   ? process.env.BOOKLABEL_BARCODE_VERSION
   : "code128";
 
+const BOOKLABEL_BARCODE_PLACEHOLDER = process.env.BOOKLABEL_BARCODE_PLACEHOLDER
+  ? process.env.BOOKLABEL_BARCODE_PLACEHOLDER
+  : "barcode";
+
 const prisma = new PrismaClient();
 var fs = require("fs");
-var data = fs.readFileSync(
-  join(process.cwd(), "/public/" + process.env.LOGO_LABEL),
-  {
-    encoding: "base64",
-  }
+var schoollogo = fs.readFileSync(
+  join(process.cwd(), "/public/" + process.env.BOOKLABEL_LOGO)
 );
 
 const styles = StyleSheet.create({
@@ -89,14 +90,17 @@ const generateBarcode = async (books: Array<BookType>) => {
   const result = "";
   let allcodes = await Promise.all(
     books.map(async (b: BookType, i: number) => {
-      const png = await bwipjs.toBuffer({
-        bcid: BOOKLABEL_BARCODE_VERSION,
-        text: b.id!.toString(),
-        scale: 3,
-        height: 10,
-        includetext: true,
-        textxalign: "center",
-      });
+      const png =
+        BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
+          ? await bwipjs.toBuffer({
+              bcid: BOOKLABEL_BARCODE_VERSION,
+              text: b.id!.toString(),
+              scale: 3,
+              height: 10,
+              includetext: true,
+              textxalign: "center",
+            })
+          : schoollogo;
       const pos = {
         left: BOOKLABEL_MARGIN_LEFT + (i % 10 <= 4 ? 1 : 10) + "cm",
         top: BOOKLABEL_MARGIN_TOP + BOOKLABEL_SPACING * (i % 5) + "cm",
@@ -149,7 +153,11 @@ const generateBarcode = async (books: Array<BookType>) => {
                   height: BOOKLABEL_BARCODE_HEIGHT,
                 }}
               />
-              <Text style={{ fontSize: 8 }}>{SCHOOL_NAME}</Text>
+              <Text style={{ fontSize: 10 }}>
+                {BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
+                  ? SCHOOL_NAME
+                  : b.id}
+              </Text>
             </View>
           </View>
         </div>
