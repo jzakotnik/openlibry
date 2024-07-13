@@ -19,14 +19,14 @@ const SCHOOL_NAME = process.env.SCHOOL_NAME
   : "Eigentum Schule";
 
 const BOOKLABEL_MARGIN_LEFT = process.env.BOOKLABEL_MARGIN_LEFT
-  ? process.env.BOOKLABEL_MARGIN_LEFT
-  : "1";
+  ? parseInt(process.env.BOOKLABEL_MARGIN_LEFT)
+  : 1;
 const BOOKLABEL_MARGIN_TOP = process.env.BOOKLABEL_MARGIN_TOP
-  ? process.env.BOOKLABEL_MARGIN_TOP
-  : "2";
+  ? parseInt(process.env.BOOKLABEL_MARGIN_TOP)
+  : 2;
 const BOOKLABEL_SPACING = process.env.BOOKLABEL_SPACING
-  ? process.env.BOOKLABEL_SPACING
-  : "5.5";
+  ? parseFloat(process.env.BOOKLABEL_SPACING)
+  : 5.5;
 const BOOKLABEL_ROWSONPAGE = process.env.BOOKLABEL_ROWSONPAGE
   ? process.env.BOOKLABEL_ROWSONPAGE
   : 5;
@@ -99,7 +99,7 @@ const generateBarcode = async (books: Array<BookType>) => {
       });
       const pos = {
         left: BOOKLABEL_MARGIN_LEFT + (i % 10 <= 4 ? 1 : 10) + "cm",
-        top: BOOKLABEL_MARGIN_TOP + 5.5 * (i % 5) + "cm",
+        top: BOOKLABEL_MARGIN_TOP + BOOKLABEL_SPACING * (i % 5) + "cm",
       };
 
       console.log("Position", pos, i);
