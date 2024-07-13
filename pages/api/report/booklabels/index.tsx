@@ -18,6 +18,31 @@ const SCHOOL_NAME = process.env.SCHOOL_NAME
   ? process.env.SCHOOL_NAME
   : "Eigentum Schule";
 
+const BOOKLABEL_MARGIN_LEFT = process.env.BOOKLABEL_MARGIN_LEFT
+  ? process.env.BOOKLABEL_MARGIN_LEFT
+  : "1";
+const BOOKLABEL_MARGIN_TOP = process.env.BOOKLABEL_MARGIN_TOP
+  ? process.env.BOOKLABEL_MARGIN_TOP
+  : "2";
+const BOOKLABEL_SPACING = process.env.BOOKLABEL_SPACING
+  ? process.env.BOOKLABEL_SPACING
+  : "5.5";
+const BOOKLABEL_ROWSONPAGE = process.env.BOOKLABEL_ROWSONPAGE
+  ? process.env.BOOKLABEL_ROWSONPAGE
+  : 5;
+const BOOKLABEL_COLUMNSONPAGE = process.env.BOOKLABEL_COLUMNSONPAGE
+  ? process.env.BOOKLABEL_COLUMNSONPAGE
+  : 2;
+const BOOKLABEL_BARCODE_WIDTH = process.env.BOOKLABEL_BARCODE_WIDTH
+  ? process.env.BOOKLABEL_BARCODE_WIDTH
+  : "3cm";
+const BOOKLABEL_BARCODE_HEIGHT = process.env.BOOKLABEL_BARCODE_HEIGHT
+  ? process.env.BOOKLABEL_BARCODE_HEIGHT
+  : "1.6cm";
+const BOOKLABEL_BARCODE_VERSION = process.env.BOOKLABEL_BARCODE_VERSION
+  ? process.env.BOOKLABEL_BARCODE_VERSION
+  : "code128";
+
 const prisma = new PrismaClient();
 var fs = require("fs");
 var data = fs.readFileSync(
@@ -65,7 +90,7 @@ const generateBarcode = async (books: Array<BookType>) => {
   let allcodes = await Promise.all(
     books.map(async (b: BookType, i: number) => {
       const png = await bwipjs.toBuffer({
-        bcid: "code128",
+        bcid: BOOKLABEL_BARCODE_VERSION,
         text: b.id!.toString(),
         scale: 3,
         height: 10,
@@ -73,13 +98,10 @@ const generateBarcode = async (books: Array<BookType>) => {
         textxalign: "center",
       });
       const pos = {
-        left: 1 + (i % 10 <= 4 ? 1 : 10) + "cm",
-        top: 2 + 5.5 * (i % 5) + "cm",
+        left: BOOKLABEL_MARGIN_LEFT + (i % 10 <= 4 ? 1 : 10) + "cm",
+        top: BOOKLABEL_MARGIN_TOP + 5.5 * (i % 5) + "cm",
       };
-      const posAuthor = {
-        left: 1 + (i % 10 <= 4 ? 1 : 10) + "cm",
-        top: 2 + 5.5 * (i % 5) + "cm",
-      };
+
       console.log("Position", pos, i);
       return (
         <div key={b.id!}>
@@ -122,7 +144,10 @@ const generateBarcode = async (books: Array<BookType>) => {
               <Image
                 key={b.id}
                 src={"data:image/png;base64, " + (await png.toString("base64"))}
-                style={{ width: "3cm", height: "1.6cm" }}
+                style={{
+                  width: BOOKLABEL_BARCODE_WIDTH,
+                  height: BOOKLABEL_BARCODE_HEIGHT,
+                }}
               />
               <Text style={{ fontSize: 8 }}>{SCHOOL_NAME}</Text>
             </View>
