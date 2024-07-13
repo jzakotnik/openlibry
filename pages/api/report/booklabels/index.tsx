@@ -1,5 +1,6 @@
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
+import { chunkArray } from "@/utils/chunkArray";
 import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Document,
@@ -9,8 +10,38 @@ import ReactPDF, {
   Text,
   View,
 } from "@react-pdf/renderer";
-import type { NextApiRequest, NextApiResponse } from "next";
+import bwipjs from "bwip-js";
+import { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
+
+const SCHOOL_NAME = process.env.SCHOOL_NAME
+  ? process.env.SCHOOL_NAME
+  : "Eigentum Schule";
+
+const BOOKLABEL_MARGIN_LEFT = process.env.BOOKLABEL_MARGIN_LEFT
+  ? parseInt(process.env.BOOKLABEL_MARGIN_LEFT)
+  : 1;
+const BOOKLABEL_MARGIN_TOP = process.env.BOOKLABEL_MARGIN_TOP
+  ? parseInt(process.env.BOOKLABEL_MARGIN_TOP)
+  : 2;
+const BOOKLABEL_SPACING = process.env.BOOKLABEL_SPACING
+  ? parseFloat(process.env.BOOKLABEL_SPACING)
+  : 5.5;
+const BOOKLABEL_ROWSONPAGE = process.env.BOOKLABEL_ROWSONPAGE
+  ? process.env.BOOKLABEL_ROWSONPAGE
+  : 5;
+const BOOKLABEL_COLUMNSONPAGE = process.env.BOOKLABEL_COLUMNSONPAGE
+  ? process.env.BOOKLABEL_COLUMNSONPAGE
+  : 2;
+const BOOKLABEL_BARCODE_WIDTH = process.env.BOOKLABEL_BARCODE_WIDTH
+  ? process.env.BOOKLABEL_BARCODE_WIDTH
+  : "3cm";
+const BOOKLABEL_BARCODE_HEIGHT = process.env.BOOKLABEL_BARCODE_HEIGHT
+  ? process.env.BOOKLABEL_BARCODE_HEIGHT
+  : "1.6cm";
+const BOOKLABEL_BARCODE_VERSION = process.env.BOOKLABEL_BARCODE_VERSION
+  ? process.env.BOOKLABEL_BARCODE_VERSION
+  : "code128";
 
 const prisma = new PrismaClient();
 var fs = require("fs");
@@ -22,10 +53,6 @@ var data = fs.readFileSync(
 );
 
 const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#FFFFFF",
-  },
   section: {
     margin: 10,
     padding: 10,
@@ -36,57 +63,127 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "flex-start",
   },
-  text: {
-    margin: 3,
-    width: "6cm",
-    height: "4cm",
-
-    flexGrow: 1,
-    fontSize: 8,
-
+  pageContainer: {
     flexDirection: "column",
-    alignContent: "center",
+    alignContent: "flex-start",
     justifyContent: "flex-start",
   },
-  booknr: {
-    fontSize: 12,
+  labelRowContainer: {
+    flexDirection: "row",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
+  },
+  labelContainer: {
+    flexDirection: "row",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
+  },
+  barCodeContainer: {
+    flexDirection: "column",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
   },
 });
-const Label = ({ b }: any) => {
-  //console.log(b.id);
-  return (
-    <View style={styles.section} wrap={false}>
-      <Image
-        src={"data:image/jpg;base64, " + data}
-        style={{ width: "1cm", height: "1cm" }}
-      />
-      <View style={styles.text} wrap={false}>
-        <Text style={styles.booknr}>{b.id}</Text>
 
-        <Text>{b.title}</Text>
-        <Text>Eigentum der Schulbücherei</Text>
-      </View>
-    </View>
-  );
-};
+const generateBarcode = async (books: Array<BookType>) => {
+  const result = "";
+  let allcodes = await Promise.all(
+    books.map(async (b: BookType, i: number) => {
+      const png = await bwipjs.toBuffer({
+        bcid: BOOKLABEL_BARCODE_VERSION,
+        text: b.id!.toString(),
+        scale: 3,
+        height: 10,
+        includetext: true,
+        textxalign: "center",
+      });
+      const pos = {
+        left: BOOKLABEL_MARGIN_LEFT + (i % 10 <= 4 ? 1 : 10) + "cm",
+        top: BOOKLABEL_MARGIN_TOP + BOOKLABEL_SPACING * (i % 5) + "cm",
+      };
 
-// Create Document Component
-const BookLabels = ({ renderedBooks }: any) => {
-  return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        {renderedBooks.map((b: any) => {
-          //console.log(b);
-          return <Label key={b.id} b={b} />;
-        })}
-      </Page>
-    </Document>
+      console.log("Position", pos, i);
+      return (
+        <div key={b.id!}>
+          <View
+            style={{
+              position: "absolute",
+              flexDirection: "column",
+
+              left: pos.left,
+              top: pos.top,
+              width: "5cm",
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "column",
+              }}
+            >
+              <Text
+                style={{
+                  transform: "rotate(-90deg)",
+                  fontSize: 9,
+                  left: "-3.2cm",
+                }}
+              >
+                {b.author.length > 15
+                  ? b.author.substring(0, 15) + "..."
+                  : b.author}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  width: "5cm",
+                }}
+              >
+                {b.title}
+              </Text>
+              <Image
+                key={b.id}
+                src={"data:image/png;base64, " + (await png.toString("base64"))}
+                style={{
+                  width: BOOKLABEL_BARCODE_WIDTH,
+                  height: BOOKLABEL_BARCODE_HEIGHT,
+                }}
+              />
+              <Text style={{ fontSize: 8 }}>{SCHOOL_NAME}</Text>
+            </View>
+          </View>
+        </div>
+      );
+    })
   );
+  //console.log("All barcodes", allcodes);
+  return allcodes;
 };
 
 async function createLabelsPDF(books: Array<BookType>) {
-  const pdfstream = await ReactPDF.renderToStream(
-    <BookLabels renderedBooks={books} />
+  var pdfstream;
+  const barcodes = await generateBarcode(books);
+  //console.log("barcodes", barcodes);
+  const barcodesSections = chunkArray(barcodes, 10);
+
+  pdfstream = ReactPDF.renderToStream(
+    <Document>
+      {barcodesSections.map((chunk, i) => (
+        <Page
+          wrap
+          key={i}
+          size="A4"
+          style={{
+            flexDirection: "column",
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <View key={i} style={styles.pageContainer}>
+            {chunk}
+          </View>
+        </Page>
+      ))}
+    </Document>
   );
 
   return pdfstream;

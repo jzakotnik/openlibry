@@ -33,24 +33,26 @@ const styles = StyleSheet.create({
     position: "relative", // To position the text over the image
   },
   image: {
-    width: "50%", // Adjust as needed
+    width: "50vw", // Adjust as needed
     height: "auto", // Adjust based on your requirements
   },
   overlayName: {
     position: "absolute",
-    top: "72%", // Center vertically, adjust as needed
-    left: "20%", // Center horizontally, adjust as needed
+    top: "75%", // Center vertically, adjust as needed
+    left: "1%", // Center horizontally, adjust as needed
 
+    width: "50vw",
+    margin: "2pt",
     color: "black", // Choose text color that contrasts with your image
-    fontSize: 12, // Adjust font size as needed
+    fontSize: 14, // Adjust font size as needed
   },
   overlayDetails: {
     position: "absolute",
-    top: "77%", // Center vertically, adjust as needed
-    left: "20%", // Center horizontally, adjust as needed
+    top: "85%", // Center vertically, adjust as needed
+    left: "1%", // Center horizontally, adjust as needed
 
     color: "black", // Choose text color that contrasts with your image
-    fontSize: 8, // Adjust font size as needed
+    fontSize: 12, // Adjust font size as needed
   },
 });
 
@@ -62,12 +64,10 @@ const Label = ({ u }: any) => {
         style={styles.image}
         src={"data:image/jpg;base64, " + base64Image}
       />{" "}
-      <View style={{ width: 360, height: 360 }} debug>
-        <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
-        <Text style={styles.overlayDetails}>
-          {process.env.SCHOOL_NAME + " - Nr." + u.id}
-        </Text>
-      </View>
+      <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
+      <Text style={styles.overlayDetails}>
+        {process.env.SCHOOL_NAME + " - Nr." + u.id}
+      </Text>
     </View>
   );
 };
