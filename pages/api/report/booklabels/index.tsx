@@ -47,6 +47,10 @@ const BOOKLABEL_BARCODE_PLACEHOLDER = process.env.BOOKLABEL_BARCODE_PLACEHOLDER
   ? process.env.BOOKLABEL_BARCODE_PLACEHOLDER
   : "barcode";
 
+const BOOKLABEL_AUTHOR_SPACING = process.env.BOOKLABEL_AUTHOR_SPACING
+  ? process.env.BOOKLABEL_AUTHOR_SPACING
+  : "4.2cm";
+
 const prisma = new PrismaClient();
 var fs = require("fs");
 var schoollogo = fs.readFileSync(
@@ -130,7 +134,7 @@ const generateBarcode = async (books: Array<BookType>) => {
                 style={{
                   transform: "rotate(-90deg)",
                   fontSize: 9,
-                  left: "-3.2cm",
+                  left: "-" + BOOKLABEL_AUTHOR_SPACING,
                 }}
               >
                 {b.author.length > 15
