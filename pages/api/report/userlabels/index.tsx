@@ -63,7 +63,7 @@ const Label = ({ u }: any) => {
       <Image
         style={styles.image}
         src={"data:image/jpg;base64, " + base64Image}
-      />{" "}
+      />
       <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
       <Text style={styles.overlayDetails}>
         {process.env.SCHOOL_NAME + " - Nr." + u.id}

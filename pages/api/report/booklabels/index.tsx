@@ -213,12 +213,10 @@ export default async function handle(
         //console.log("Search Params", req.query, "end" in req.query);
         const startBookID = "start" in req.query ? req.query.start : "0";
         const endBookID = "end" in req.query ? req.query.end : books.length - 1;
-        const printableBooks = books
-          .reverse()
-          .slice(
-            parseInt(startBookID as string),
-            parseInt(endBookID as string)
-          );
+        const printableBooks = books.slice(
+          parseInt(startBookID as string),
+          parseInt(endBookID as string)
+        );
 
         console.log("Printing labels for books", startBookID, endBookID);
 
