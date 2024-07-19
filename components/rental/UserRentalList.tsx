@@ -1,6 +1,7 @@
 import Grid from "@mui/material/Grid";
 
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import FormControl from "@mui/material/FormControl";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -30,6 +31,7 @@ import { RentalsUserType } from "@/entities/RentalsUserType";
 import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
+import RentSearchParams from "./RentSearchParams";
 
 type UserPropsType = {
   users: Array<UserType>;
@@ -43,6 +45,8 @@ type UserPropsType = {
 
 const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
+const defaultSearchParams = { overdue: false, grade: "" };
+
 export default function UserRentalList({
   users,
   books,
@@ -55,6 +59,8 @@ export default function UserRentalList({
   const [userSearchInput, setUserSearchInput] = useState("");
 
   const [returnedBooks, setReturnedBooks] = useState({});
+  const [showDetailSearch, setShowDetailSearch] = useState(false);
+  const [searchParams, setSearchParams] = useState(defaultSearchParams);
   //console.log("Rendering updated users:", users);
 
   const handleClear = (e: any) => {
@@ -109,9 +115,22 @@ export default function UserRentalList({
     }*/
   };
 
+  const getUniqueGrades = () => {
+    const uniqueGrades = users.reduce(
+      (unique: Array<string>, user: UserType) => {
+        if (!unique.includes(user.schoolGrade!)) {
+          unique.push(user.schoolGrade!);
+        }
+        return unique;
+      },
+      []
+    );
+    return uniqueGrades;
+  };
+
   function searchAndRemoveKlasse(inputString: string) {
-    // Create a regex pattern to find "klasse:" followed by a number
-    const regex = /klasse:\s?(\d+)/gi;
+    // Create a regex pattern to find "klasse?" followed by a number
+    const regex = /klasse\?\s?(\d+)/gi;
 
     // Initialize variables to store whether the string is found and the number
     let foundKlasse = false;
@@ -140,14 +159,14 @@ export default function UserRentalList({
     const searchTokens = lowerCaseSearch.split(" ");
     //console.log("Search tokens", searchTokens);
     const searchPattern = { klasse: 0, overdue: false };
-    // Create a regex pattern to find "klasse:" followed by a number
+    // Create a regex pattern to find "klasse?" followed by a number
     const { foundKlasse, klasseNumber, updatedString } =
       searchAndRemoveKlasse(lowerCaseSearch);
     foundKlasse ? (searchPattern.klasse = klasseNumber) : 0;
     let finalString = updatedString;
-    if (updatedString.indexOf("fällig:") > -1) {
+    if (updatedString.indexOf("fällig?") > -1) {
       searchPattern.overdue = true;
-      finalString = updatedString.replace("fällig:", "").trim();
+      finalString = updatedString.replace("fällig?", "").trim();
     }
 
     //console.log("Search check:", searchPattern, finalString);
@@ -190,6 +209,7 @@ export default function UserRentalList({
 
   return (
     <div>
+      {" "}
       <Grid
         container
         alignItems="center"
@@ -205,7 +225,7 @@ export default function UserRentalList({
               Suche NutzerIn{" "}
             </InputLabel>
             <Input
-              placeholder="Name, ID, klasse:, fällig:"
+              placeholder="Name, ID, klasse?, fällig?"
               sx={{ my: 0.5 }}
               id="user-search-input"
               startAdornment={
@@ -226,18 +246,35 @@ export default function UserRentalList({
               }
               value={userSearchInput}
               onChange={handleInputChange}
-            />
+            />{" "}
           </FormControl>
         </Grid>
-        <Grid>
+        <Grid item>
           <Typography variant="caption" color="primary">
             {userExpanded
               ? " Ausgewählt: " + getUserFromID(userExpanded).firstName
               : ""}
           </Typography>
         </Grid>
+        <Grid item>
+          {" "}
+          <IconButton
+            aria-label="search-settings"
+            color="primary"
+            onClick={() => setShowDetailSearch(!showDetailSearch)}
+          >
+            {" "}
+            <SettingsSuggestIcon />
+          </IconButton>
+        </Grid>
       </Grid>
-
+      {showDetailSearch && (
+        <RentSearchParams
+          overdue={searchParams.overdue}
+          grade={getUniqueGrades()}
+          setUserSearchInput={setUserSearchInput}
+        />
+      )}
       {filterUsers(users, userSearchInput).map((u: UserType) => {
         const rentalsUser = booksForUser(u.id!);
 
