@@ -118,8 +118,8 @@ export default function UserRentalList({
   const getUniqueGrades = () => {
     const uniqueGrades = users.reduce(
       (unique: Array<string>, user: UserType) => {
-        if (!unique.includes(user.schoolGrade!)) {
-          unique.push(user.schoolGrade!);
+        if (user.schoolGrade && !unique.includes(user.schoolGrade)) {
+          unique.push(user.schoolGrade);
         }
         return unique;
       },
