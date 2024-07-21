@@ -268,7 +268,7 @@ export async function getServerSideProps() {
       ? convertDateToDayString(b.rentedDate)
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-    newBook.searchableTopics = b.topics?.split(";"); //otherwise the itemsjs search doesn't work, but not sure if I can override the type?
+    newBook.searchableTopics = b.topics ? b.topics.split(";") : ""; //otherwise the itemsjs search doesn't work, but not sure if I can override the type?
 
     return newBook;
   });
