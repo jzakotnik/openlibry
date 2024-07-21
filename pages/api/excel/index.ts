@@ -12,6 +12,15 @@ import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
 const prisma = new PrismaClient();
 
+const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: MAX_MIGRATION_SIZE, // Set desired value here
+    },
+  },
+};
+
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
@@ -131,7 +140,7 @@ export default async function handle(
                 isbn: b["ISBN"],
                 editionDescription: b["Edition"],
                 publisherLocation: b["Verlagsort"],
-                pages: b["Seiten"],
+                pages: parseInt(b["Seiten"]),
                 summary: b["Zusammenfassung"],
                 minPlayers: b["Min Spieler"],
                 publisherName: b["Verlag"],
