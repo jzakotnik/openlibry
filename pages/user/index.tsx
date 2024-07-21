@@ -303,12 +303,14 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               <SelectionActions
                 checked={checked}
                 icon={<PlusOneRoundedIcon />}
-                increaseGrade={handleIncreaseGrade}
+                action={handleIncreaseGrade}
+                actionTitle="Klasse erhöhen"
               />
               <SelectionActions
                 checked={checked}
                 icon={<DeleteForeverRoundedIcon />}
-                increaseGrade={handleDeleteUsers}
+                action={handleDeleteUsers}
+                actionTitle={"User löschen"}
               />
             </Paper>
           </Grid>{" "}

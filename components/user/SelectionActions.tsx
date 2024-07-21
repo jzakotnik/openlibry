@@ -2,25 +2,27 @@ import { IconButton, Tooltip } from "@mui/material";
 
 type SelectionActionsPropsType = {
   checked: any;
-  increaseGrade: any;
+  action: any;
+  actionTitle: string;
   icon: any;
 };
 
 export default function SelectionActions({
   checked,
   icon,
-  increaseGrade,
+  action,
+  actionTitle,
 }: SelectionActionsPropsType) {
   const checkedItems = Object.values(checked).filter((item) => item != false);
   if (checkedItems.length > 0) {
     //console.log("Checked Items", checkedItems);
     return (
-      <Tooltip title="Klasse erhöhen">
+      <Tooltip title={actionTitle}>
         <IconButton
           type="button"
           sx={{ p: "10px" }}
-          aria-label="klasse erhöhen"
-          onClick={increaseGrade}
+          aria-label={actionTitle}
+          onClick={action}
         >
           {icon}{" "}
         </IconButton>
