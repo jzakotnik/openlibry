@@ -62,22 +62,25 @@ export default function XLSImport() {
 
   const convertSheetToJson = (worksheet: any) => {
     const json: any[] = [];
-    worksheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: number) => {
-      //console.log("Reading row", row);
-      const rowValues = row.values as ExcelJS.CellValue[];
-      if (rowNumber === 1) {
-        // Assuming the first row contains headers
-        json.push(rowValues); // Capturing headers
-      } else {
-        const rowData: any = {};
-        rowValues.forEach((value, index) => {
-          if (json[0] && json[0][index]) {
-            rowData[json[0][index] as string] = value;
-          }
-        });
-        json.push(rowData);
+    worksheet.eachRow(
+      { includeEmpty: false },
+      (row: any, rowNumber: number) => {
+        //console.log("Reading row", row);
+        const rowValues = row.values as ExcelJS.CellValue[];
+        if (rowNumber === 1) {
+          // Assuming the first row contains headers
+          json.push(rowValues); // Capturing headers
+        } else {
+          const rowData: any = {};
+          rowValues.forEach((value, index) => {
+            if (json[0] && json[0][index]) {
+              rowData[json[0][index] as string] = value;
+            }
+          });
+          json.push(rowData);
+        }
       }
-    });
+    );
     return json;
   };
 
