@@ -11,9 +11,17 @@ export async function createAntolinSearchEngine(refresh: boolean = false) {
   const dirRelativeToPublicFolder = "antolin/antolingesamt.csv";
   const dir = path.resolve("./public", dirRelativeToPublicFolder);
 
-  const content = await fs.readFile(dir, "latin1");
+  const defaultContent =
+    '"Autor";"Titel";"Verlag";"ISBN";"in Antolin seit";"Klasse";"wie oft gelesen";"ISBN13";"ISBN-10";"ISBN-13";"book_id"';
 
-  //console.log("Content of the csv", content);
+  var content = "";
+  try {
+    content = await fs.readFile(dir, "latin1");
+  } catch (err) {
+    content = defaultContent;
+  }
+
+  //console.log("Content of the csv", content[0]);
   // Parse the CSV content
   const records = await parse(content, {
     bom: true,
