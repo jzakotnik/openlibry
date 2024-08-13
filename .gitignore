@@ -46,6 +46,7 @@ prisma/dev_clean.db
 
 public/coverimages/*
 !public/coverimages/default.png
+!public/coverimages/default.jpg
 prisma/dev_original.db
 prisma/dev_anonymised.db
 importscripts/openbiblio/input/biblio_copy.frm
