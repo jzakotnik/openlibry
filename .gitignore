@@ -134,3 +134,4 @@ importscripts/openbiblio/migrationFile/content/biblio_field
 importscripts/openbiblio/migrationFile/content/biblio_status_hist
 importscripts/openbiblio/migrationFile/content/member
 prisma/database/dev_backup.db
+prisma/database/dev-mammolshain.db

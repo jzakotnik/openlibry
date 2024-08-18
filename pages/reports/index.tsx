@@ -163,9 +163,12 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
     );
   };
   const allTags = [] as any;
-  books.map((b: BookType) =>
-    allTags.push(b.topics!.split(";").filter((t: string) => t.length > 0))
-  );
+  books.map((b: BookType) => {
+    console.log("Importing topics", b.topics);
+    b.topics
+      ? allTags.push(b.topics!.split(";").filter((t: string) => t.length > 0))
+      : null;
+  });
   //console.log("All Tags", allTags);
 
   const tagSet = allTags.flat().reduce((acc: any, item: string) => {
