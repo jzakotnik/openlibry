@@ -135,7 +135,7 @@ export default async function handle(
                 title: b["Titel"],
                 subtitle: b["Untertitel"],
                 author: b["Autor"],
-                topics: b["Schlagworte"],
+                topics: b["Schlagworte"] ? b["Schlagworte"] : "",
                 imageLink: b["Bild"],
                 isbn: b["ISBN"],
                 editionDescription: b["Edition"],
