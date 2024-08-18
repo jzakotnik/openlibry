@@ -269,15 +269,17 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
 
 export async function getServerSideProps() {
   const allUsers = await getAllUsers(prisma);
-
+  console.log("Reports page - loaded Users");
   const users = allUsers.map((u) => {
     const newUser = { ...u } as any; //define a better type there with conversion of Date to string
     newUser.createdAt = convertDateToDayString(u.createdAt);
     newUser.updatedAt = convertDateToDayString(u.updatedAt);
     return newUser;
   });
+  console.log("Reports page - converted Users");
 
   const allBooks = await getAllBooks(prisma);
+  console.log("Reports page - loaded Books");
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
@@ -289,7 +291,9 @@ export async function getServerSideProps() {
     //temp TODO
     return newBook;
   });
+  console.log("Reports page - converted Books");
   const allRentals = await getRentedBooksWithUsers(prisma);
+  console.log("Reports page - Rentals calculated");
   const rentals = allRentals.map((r) => {
     //calculate remaining days for the rental
     const due = dayjs(r.dueDate);
