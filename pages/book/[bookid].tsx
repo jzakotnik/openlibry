@@ -16,6 +16,7 @@ import BookEditForm from "@/components/book/BookEditForm";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
+import Head from "next/head";
 import { GetServerSidePropsContext } from "next/types";
 
 const theme = createTheme({
@@ -151,44 +152,50 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
   };
 
   return (
-    <Layout>
-      <ThemeProvider theme={theme}>
-        <BookEditForm
-          book={bookData}
-          setBookData={setBookData}
-          deleteBook={handleDeleteButton}
-          saveBook={handleSaveButton}
-          topics={topics}
-          antolinResults={antolinResults}
-        />
-        <Snackbar
-          open={returnBookSnackbar}
-          autoHideDuration={4000}
-          onClose={handleCloseReturnBookSnackbar}
-        >
-          <Alert
+    <div>
+      <Head>
+        {" "}
+        <title>{book.title}</title>
+      </Head>
+      <Layout>
+        <ThemeProvider theme={theme}>
+          <BookEditForm
+            book={bookData}
+            setBookData={setBookData}
+            deleteBook={handleDeleteButton}
+            saveBook={handleSaveButton}
+            topics={topics}
+            antolinResults={antolinResults}
+          />
+          <Snackbar
+            open={returnBookSnackbar}
+            autoHideDuration={4000}
             onClose={handleCloseReturnBookSnackbar}
-            severity="success"
-            sx={{ width: "100%" }}
           >
-            Buch zurückgegeben, super!
-          </Alert>
-        </Snackbar>
-        <Snackbar
-          open={saveBookSnackbar}
-          autoHideDuration={4000}
-          onClose={handleCloseSaveBookSnackbar}
-        >
-          <Alert
+            <Alert
+              onClose={handleCloseReturnBookSnackbar}
+              severity="success"
+              sx={{ width: "100%" }}
+            >
+              Buch zurückgegeben, super!
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            open={saveBookSnackbar}
+            autoHideDuration={4000}
             onClose={handleCloseSaveBookSnackbar}
-            severity="success"
-            sx={{ width: "100%" }}
           >
-            Buch gespeichert, gut gemacht!
-          </Alert>
-        </Snackbar>
-      </ThemeProvider>
-    </Layout>
+            <Alert
+              onClose={handleCloseSaveBookSnackbar}
+              severity="success"
+              sx={{ width: "100%" }}
+            >
+              Buch gespeichert, gut gemacht!
+            </Alert>
+          </Snackbar>
+        </ThemeProvider>
+      </Layout>
+    </div>
   );
 }
 
