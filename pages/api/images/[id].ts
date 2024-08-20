@@ -36,17 +36,20 @@ export default async function handle(
           "/",
           fileName
         );
+        const defaultFilePath = path.join(
+          process.env.COVERIMAGE_FILESTORAGE_PATH!,
+          "/",
+          "default.jpg"
+        );
         if (existsSync(filePath)) {
           //console.log("Reading cover file");
           const imageFile = await fs.readFile(filePath);
           //console.log("Read image file", imageFile);
           res.setHeader("Content-Type", "image/jpg");
           res.status(200).send(imageFile);
-        } else {
-          const imageBuffer = await fs.readFile(
-            path.join(process.env.COVERIMAGE_FILESTORAGE_PATH!, "/default.jpg")
-          );
-          console.log("Read default image file");
+        } else if (existsSync(defaultFilePath)) {
+          const imageBuffer = await fs.readFile(defaultFilePath);
+          //console.log("Read default image file");
           res.setHeader("Content-Type", "image/jpg");
           res.status(200).send(imageBuffer);
         }
