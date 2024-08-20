@@ -34,7 +34,7 @@ export default function BookSummaryCard({
   book,
   returnBook,
 }: BookSummaryCardPropType) {
-  const [src, setSrc] = useState("/coverimages/default.png");
+  const [src, setSrc] = useState("/coverimages/default.jpg");
 
   const selectedBook = book;
 
