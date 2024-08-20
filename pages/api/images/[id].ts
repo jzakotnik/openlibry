@@ -39,7 +39,9 @@ export default async function handle(
         if (fs.existsSync(filePath)) {
           const imageBuffer = fs.readFileSync(filePath);
           if (!imageBuffer) {
-            return res.status(400).json({ data: "ERROR: User not found" });
+            return res.status(400).json({
+              data: "ERROR: Book Cover not found, although the file seems to exist. Is the path variable in the environment configuration correct?",
+            });
           }
           res.setHeader("Content-Type", "image/jpg");
           res.status(200).send(imageBuffer);
