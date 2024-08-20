@@ -1,4 +1,4 @@
-import fs from "fs";
+import { existsSync, promises as fs } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 
@@ -36,24 +36,25 @@ export default async function handle(
           "/",
           fileName
         );
-        if (fs.existsSync(filePath)) {
-          const imageBuffer = fs.readFileSync(filePath);
-          if (!imageBuffer) {
-            return res.status(400).json({
-              data: "ERROR: Book Cover not found, although the file seems to exist. Is the path variable in the environment configuration correct?",
-            });
-          }
+        if (existsSync(filePath)) {
+          //console.log("Reading cover file");
+          const imageFile = await fs.readFile(filePath);
+          //console.log("Read image file", imageFile);
           res.setHeader("Content-Type", "image/jpg");
-          res.status(200).send(imageBuffer);
+          res.status(200).send(imageFile);
         } else {
-          const imageBuffer = fs.readFileSync(
+          const imageBuffer = await fs.readFile(
             path.join(process.env.COVERIMAGE_FILESTORAGE_PATH!, "/default.jpg")
           );
+          console.log("Read default image file");
           res.setHeader("Content-Type", "image/jpg");
           res.status(200).send(imageBuffer);
         }
       } catch (error) {
         console.log(error);
+        res.status(400).json({
+          data: "ERROR: Book Cover error",
+        });
       }
       break;
 
