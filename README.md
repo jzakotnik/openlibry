@@ -58,13 +58,55 @@ Für eine lokale Installation ohne Docker befolge diese Schritte:
 - Starte OpenLibry mit `npm run dev`. Achte darauf, dass der entsprechende Port freigegeben ist und über den Browser zugänglich ist.
 
 ### Docker
+#### Testbetrieb oder dauerhafte Installation mit Docker (Getestet mit Linux Mint 21.3)
 
-- Baue das Image mit `docker build --no-cache -t openlibry .`
-- Führe das Image in Docker aus `docker compose up`
-- Das SQLite-File wird auf einem Volume gemappt. Beim ersten Ausführen logge Dich in den Container ein `docker exec -it openlibry /bin/sh` und führe `npx prisma db push` aus, um das DB-File zu erzeugen.
+Erledige zunächst folgende Vorarbeiten:
+
+Update der Distribution: `sudo apt-get update` und `sudo apt-get upgrade`
+Falls curl nicht installiert ist: `sudo apt install curl`
+Installiere den node version manager NVM: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash` 
+Installiere den node server: `nvm install --lts`
+Falls noch kein git installiert ist: `sudo apt-get install git-all`
+
+Installiere, falls noch nicht vorhanden, Docker an sich:
+
+```
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update 
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker ${USER}
+sudo systemctl is-active docker
+```
+
+Anschließend kannst du OpenLibry installieren. Dabei bieten sich zwei Modi an: Entweder ein Sandbox-Modus zum Ausprobieren, bei dem nach Beendigung der Ausführung alles wieder entfernt wird. Oder die dauerhafte Installation, die auch automatisch mit Rechnerstart, bei Abstürzen etc. wieder mit startet.
+Folgende Schritte sind so oder so zu erledigen (Zum Beispiel im Home-Verzeichnis):
+
+- Kopiere das Repository aus github: `git clone https://github.com/jzakotnik/openlibry.git`
+- Wechsle in das dabei dabei entstandene Verzeichnis: `cd openlibry`
+- Anschließend musst du die Konfiguration/individuelle Anpassung von OpenLibry vornehmen: Zum einen müssen Bilddateien mit den Logos deiner Institution hinterlegt werden. Diese befinden sich im "public" Unterordner, du kannst dich dabei an den vorhandenen Beispielbildern orientieren. Weiterhin muss eine ".env"-Datei angelegt werden. (Hinweis: Dateien mit führenden Punkt sind in der grafischen Oberfläche standardmäßig "unsichtbar". Die Tastenkombination "Strg-h" macht sie sichtbar.) Kopiere dazu die vorhandene ".env_example" Datei nochmal in den Ordner und benenne sie dabei um in ".env":
+ `cp .env_example .env`
+- Bearbeite die entstandene ".env" Datei mit einem Texteditor und passe die Werte entsprechend an.
+- Anschließend kannst du Docker alle notwendigen Schritte automatisch übernehmen lassen: `docker build --no-cache -t openlibry .`
+
+Das weitere Vorgehen unterscheidet sich je nach Absicht:
+
+**a) Sandbox-Modus zum rückstandsfreien Ausprobieren:** 
+
+- Docker Container starten: `docker run -i --rm -p 3000:3000 -t openlibry`
+- Öffne OpenLibry im Browser und probiere es aus: `http://localhost:3000`
+- Zum Beenden den Prozess in der Konsole abrechen mit der Tastenkombination "Strg-c". 
+- Optional das Docker-Image löschen: `docker image rm openlibry `
+
+
+**b) Dauerhafte Installation**
+
+- Docker Container dauerhaft starten, er wird dabei auch nach jedem Neustart, Absturz etc. automatisch neu gestartet: `docker compose up` (Hierbei wird Docker gestartet mit Parametern, die in der Datei docker-compose.yml hinterlegt sind. Unter anderem sind hier Volumes angelegt, in welchen die User-Daten deiner Installation liegen. Nach einem Update deines Docker-Containers sind diese dann weiterhin vorhanden.)
 - Öffne OpenLibry im Browser: `http://localhost:3000`
+- Bei Bedarf kannst du die Ausführung dieses Containers manuell stoppen, dann startet er auch nicht sofort automatisch wieder neu: `docker stop openlibry`
+- Bei Bedarf kannst du nach dieser Variante alles zu OpenLibry in Docker wieder löschen:  Du kannst den Container und das Image in Docker wieder entfernen mit: `docker rm openlibry` und `docker image rm openlibry`
 
-**Achtung**, das ist ein Sandbox-Setup, um schnell damit spielen zu können. Für Production-Use sollte Docker noch automatisiert gestartet werden.
+
 
 ### Installation mit nginx als reverse proxy und pm2 als Package Manager
 
