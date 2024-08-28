@@ -63,10 +63,15 @@ Für eine lokale Installation ohne Docker befolge diese Schritte:
 Erledige zunächst folgende Vorarbeiten:
 
 Update der Distribution: `sudo apt-get update` und `sudo apt-get upgrade`
+
 Falls curl nicht installiert ist: `sudo apt install curl`
+
 Installiere den node version manager NVM: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash` 
-Installiere den node server: `nvm install --lts`
+
+Installiere den node server (Vorher Neustart des Terminals notwendig.): `nvm install --lts`
+
 Falls noch kein git installiert ist: `sudo apt-get install git-all`
+
 
 Installiere, falls noch nicht vorhanden, Docker an sich:
 
