@@ -84,6 +84,8 @@ sudo usermod -aG docker ${USER}
 sudo systemctl is-active docker
 ```
 
+Danach ist eine Neuanmeldung/Neustart nötig, damit die Änderungen an den Nutzergruppen (usermod) aktiv werden. 
+
 Anschließend kannst du OpenLibry installieren. Dabei bieten sich zwei Modi an: Entweder ein Sandbox-Modus zum Ausprobieren, bei dem nach Beendigung der Ausführung alles wieder entfernt wird. Oder die dauerhafte Installation, die auch automatisch mit Rechnerstart, bei Abstürzen etc. wieder mit startet.
 Folgende Schritte sind so oder so zu erledigen (Zum Beispiel im Home-Verzeichnis):
 
