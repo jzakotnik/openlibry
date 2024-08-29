@@ -63,10 +63,15 @@ Für eine lokale Installation ohne Docker befolge diese Schritte:
 Erledige zunächst folgende Vorarbeiten:
 
 Update der Distribution: `sudo apt-get update` und `sudo apt-get upgrade`
+
 Falls curl nicht installiert ist: `sudo apt install curl`
+
 Installiere den node version manager NVM: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash` 
-Installiere den node server: `nvm install --lts`
+
+Installiere den node server (Vorher Neustart des Terminals notwendig.): `nvm install --lts`
+
 Falls noch kein git installiert ist: `sudo apt-get install git-all`
+
 
 Installiere, falls noch nicht vorhanden, Docker an sich:
 
@@ -78,6 +83,8 @@ sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin dock
 sudo usermod -aG docker ${USER}
 sudo systemctl is-active docker
 ```
+
+Danach ist eine Neuanmeldung/Neustart nötig, damit die Änderungen an den Nutzergruppen (usermod) aktiv werden. 
 
 Anschließend kannst du OpenLibry installieren. Dabei bieten sich zwei Modi an: Entweder ein Sandbox-Modus zum Ausprobieren, bei dem nach Beendigung der Ausführung alles wieder entfernt wird. Oder die dauerhafte Installation, die auch automatisch mit Rechnerstart, bei Abstürzen etc. wieder mit startet.
 Folgende Schritte sind so oder so zu erledigen (Zum Beispiel im Home-Verzeichnis):
