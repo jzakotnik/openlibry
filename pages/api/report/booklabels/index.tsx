@@ -209,7 +209,26 @@ export default async function handle(
     case "GET":
       console.log("Printing book labels via api");
       try {
-        const books = (await getAllBooks(prisma)) as Array<BookType>;
+        const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
+
+        const filterString =
+          "filter" in req.query
+            ? (req.query.filter! as string).toLocaleLowerCase()
+            : null;
+        console.log("Filter string", filterString);
+        const books = filterString
+          ? allbooks.filter((b: BookType) => {
+              /*console.log(
+                "Filtering topics",
+                b.topics?.toLocaleLowerCase(),
+                b.topics!.toLocaleLowerCase().indexOf(filterString) > -1,
+                filterString
+              );*/
+
+              return b.topics!.toLocaleLowerCase().indexOf(filterString) > -1;
+            })
+          : allbooks;
+        //console.log("Filtered books", books);
         //console.log("Search Params", req.query, "end" in req.query);
         const startBookID = "start" in req.query ? req.query.start : "0";
         const endBookID = "end" in req.query ? req.query.end : books.length - 1;
