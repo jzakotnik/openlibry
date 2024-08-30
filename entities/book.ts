@@ -3,6 +3,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { addAudit } from "./audit";
 
+const extensionDays = parseInt(process.env.EXTENSION_DURATION_DAYS!) || 21;
 export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
 }
@@ -315,7 +316,7 @@ export async function rentBook(
   client: PrismaClient,
   userid: number,
   bookid: number,
-  duration: number = 21
+  duration: number = extensionDays
 ) {
   //change due date, connect to user
   //put all into one transaction
