@@ -113,8 +113,8 @@ const generateBarcode = async (books: Array<BookType>) => {
       console.log("Position", pos, i);
       
       //Find first topic of book
-      var topics = b.topics!;
-      var firstTopicEndIndex = topics.indexOf(";");
+      const topics = b.topics!;
+      const firstTopicEndIndex = topics.indexOf(";");
       var firstTopic = b.topics!.substring(0, firstTopicEndIndex);
       if (firstTopic == "") firstTopic = b.topics!;
       
