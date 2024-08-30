@@ -211,23 +211,22 @@ export default async function handle(
       try {
         const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
 
-        const filterString =
-          "filter" in req.query
-            ? (req.query.filter! as string).toLocaleLowerCase()
+        const topicFilter =
+          "topic" in req.query
+            ? (req.query.topic! as string).toLocaleLowerCase()
             : null;
-        console.log("Filter string", filterString);
-        const books = filterString
-          ? allbooks.filter((b: BookType) => {
-              /*console.log(
-                "Filtering topics",
-                b.topics?.toLocaleLowerCase(),
-                b.topics!.toLocaleLowerCase().indexOf(filterString) > -1,
-                filterString
-              );*/
-
-              return b.topics!.toLocaleLowerCase().indexOf(filterString) > -1;
-            })
-          : allbooks;
+        const idFilter =
+          "id" in req.query ? parseInt(req.query.id! as string) : null;
+        console.log("Filter string", topicFilter, idFilter);
+        const books = allbooks
+          .filter((b: BookType) => {
+            return topicFilter
+              ? b.topics!.toLocaleLowerCase().indexOf(topicFilter) > -1
+              : true;
+          })
+          .filter((b: BookType) => {
+            return idFilter ? b.id == idFilter : true;
+          });
         //console.log("Filtered books", books);
         //console.log("Search Params", req.query, "end" in req.query);
         const startBookID = "start" in req.query ? req.query.start : "0";
