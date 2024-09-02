@@ -111,6 +111,10 @@ const generateBarcode = async (books: Array<BookType>) => {
       };
 
       console.log("Position", pos, i);
+      
+      //Find first topic of book
+      const firstTopic = b.topics ? b.topics!.split(";")[0] : ""
+      
       return (
         <div key={b.id!}>
           <View
@@ -157,6 +161,13 @@ const generateBarcode = async (books: Array<BookType>) => {
                   height: BOOKLABEL_BARCODE_HEIGHT,
                 }}
               />
+              <Text style={{ fontSize: 10 }}>
+                {
+               
+                firstTopic.length > 30
+                  ? firstTopic.substring(0, 30) + "..."
+                  : firstTopic}
+              </Text>
               <Text style={{ fontSize: 10 }}>
                 {BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
                   ? SCHOOL_NAME
