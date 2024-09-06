@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     position: "relative", // To position the text over the image
   },
   image: {
-    width: "40vw", // Adjust as needed
+    width: "47vw", // Adjust as needed
     height: "auto", // Adjust based on your requirements
   },
   overlayName: {
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     top: "75%", // Center vertically, adjust as needed
     left: "3%", // Center horizontally, adjust as needed
 
-    width: "48vw",
+    width: "50vw",
     margin: "2pt",
     color: "black", // Choose text color that contrasts with your image
     fontSize: 14, // Adjust font size as needed
