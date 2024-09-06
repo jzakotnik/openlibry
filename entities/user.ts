@@ -24,7 +24,7 @@ export async function getAllUsers(client: PrismaClient) {
           schoolGrade: "asc",
         },
         {
-          firstName: "asc",
+          lastName: "asc",
         },
       ],
     });
