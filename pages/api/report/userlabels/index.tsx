@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     top: "75%", // Center vertically, adjust as needed
     left: "3%", // Center horizontally, adjust as needed
 
-    width: "45vw",
+    width: "48vw",
     margin: "2pt",
     color: "black", // Choose text color that contrasts with your image
     fontSize: 14, // Adjust font size as needed
