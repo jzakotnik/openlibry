@@ -218,6 +218,7 @@ export default async function handle(
         const idFilter =
           "id" in req.query ? parseInt(req.query.id! as string) : null;
         console.log("Filter string", topicFilter, idFilter);
+        //TODO this should be able to do more than one topic!
         const books = allbooks
           .filter((b: BookType) => {
             return topicFilter

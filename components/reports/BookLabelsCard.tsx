@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Button,
   Card,
   CardActions,
@@ -18,8 +19,9 @@ type BookLabelCardProps = {
   totalNumber: number;
   idFilter: number;
   setIdFilter: any;
-  topicsFilter: Array<string>;
+  topicsFilter: string;
   setTopicsFilter: any;
+  allTopics: Array<string>;
 };
 
 export default function BookLabelCard({
@@ -33,6 +35,7 @@ export default function BookLabelCard({
   setIdFilter,
   topicsFilter,
   setTopicsFilter,
+  allTopics,
 }: BookLabelCardProps) {
   const cardHeight = 210;
 
@@ -76,13 +79,37 @@ export default function BookLabelCard({
           sx={{ mt: 5 }}
         />
 
+        <Autocomplete
+          freeSolo
+          id="controlled-demo"
+          value={topicsFilter}
+          options={allTopics}
+          onChange={(event: any, newValue: string | null) => {
+            setTopicsFilter(newValue);
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Schlagwort Filter"
+              variant="standard"
+            />
+          )}
+        />
+
         <Typography variant="body2">{subtitle}</Typography>
       </CardContent>
       <CardActions>
         <Button
           size="small"
           onClick={() =>
-            router.push(link + "/?start=0" + "&end=" + Math.floor(startLabel!))
+            router.push(
+              link +
+                "/?start=0" +
+                "&end=" +
+                Math.floor(startLabel!) +
+                (idFilter ? "&id=" + idFilter : "") +
+                (topicsFilter ? "&topic=" + topicsFilter : "")
+            )
           }
         >
           Erzeuge PDF
