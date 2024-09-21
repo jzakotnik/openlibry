@@ -220,7 +220,26 @@ export default async function handle(
     case "GET":
       console.log("Printing book labels via api");
       try {
-        const books = (await getAllBooks(prisma)) as Array<BookType>;
+        const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
+
+        const topicFilter =
+          "topic" in req.query
+            ? (req.query.topic! as string).toLocaleLowerCase()
+            : null;
+        const idFilter =
+          "id" in req.query ? parseInt(req.query.id! as string) : null;
+        console.log("Filter string", topicFilter, idFilter);
+        //TODO this should be able to do more than one topic!
+        const books = allbooks
+          .filter((b: BookType) => {
+            return topicFilter
+              ? b.topics!.toLocaleLowerCase().indexOf(topicFilter) > -1
+              : true;
+          })
+          .filter((b: BookType) => {
+            return idFilter ? b.id == idFilter : true;
+          });
+        //console.log("Filtered books", books);
         //console.log("Search Params", req.query, "end" in req.query);
         const startBookID = "start" in req.query ? req.query.start : "0";
         const endBookID = "end" in req.query ? req.query.end : books.length - 1;
