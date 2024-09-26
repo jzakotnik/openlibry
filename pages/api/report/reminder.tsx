@@ -18,7 +18,7 @@ const testReplacement = {
 };
 
 const template = fs.readFileSync(
-  join(process.cwd(), "/public/mahnung-template.docx")
+  join(process.cwd(), "/public/" + process.env.REMINDER_TEMPLATE_DOC)
 );
 //console.log("Template", template);
 
