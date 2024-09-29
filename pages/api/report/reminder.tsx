@@ -1,5 +1,5 @@
 import { BookType } from "@/entities/BookType";
-import { getAllBooks } from "@/entities/book";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 
 import Docxtemplater from "docxtemplater";
@@ -7,15 +7,24 @@ import fs from "fs";
 import { join } from "path";
 import PizZip from "pizzip";
 
+import { convertDateToDayString } from "@/utils/dateutils";
+import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 
-const testReplacement = {
-  school_name: "Testschool",
-  responsible_name: "Mickey",
-  responsible_contract: "test@test.de",
+const SCHOOL_NAME = process.env.SCHOOL_NAME || "Schule";
+const REMINDER_RESPONSIBLE_NAME =
+  process.env.REMINDER_RESPONSIBLE_NAME || "Schulbücherei";
+const REMINDER_RESPONSIBLE_EMAIL =
+  process.env.REMINDER_RESPONSIBLE_EMAIL || "email";
+
+const replacemenetVariables = {
+  school_name: SCHOOL_NAME,
+  responsible_name: REMINDER_RESPONSIBLE_NAME,
+  responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
 };
+console.log("Template replacement", replacemenetVariables);
 
 const template = fs.readFileSync(
   join(process.cwd(), "/public/" + process.env.REMINDER_TEMPLATE_DOC)
@@ -31,6 +40,26 @@ export default async function handle(
       console.log("Printing reminder letters via API");
       try {
         const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
+        //calculate the rental information
+        const allRentals = await getRentedBooksWithUsers(prisma);
+        const rentals = allRentals.map((r: any) => {
+          //calculate remaining days for the rental
+          const due = dayjs(r.dueDate);
+          const today = dayjs();
+          const diff = today.diff(due, "days");
+          //console.log("Fetching rental", r);
+          return {
+            id: r.id,
+            title: r.title,
+            lastName: r.user?.lastName,
+            firstName: r.user?.firstName,
+            remainingDays: diff,
+            dueDate: convertDateToDayString(due.toDate()),
+            renewalCount: r.renewalCount,
+            userid: r.user?.id,
+          };
+        });
+        console.log("Rentals", rentals);
 
         try {
           //let data = await template.arrayBuffer();
@@ -40,7 +69,7 @@ export default async function handle(
             linebreaks: true,
           });
 
-          templateDoc.render(testReplacement);
+          templateDoc.render(replacemenetVariables);
           const generatedDoc = templateDoc.getZip().generate({
             type: "nodebuffer",
             mimeType:
