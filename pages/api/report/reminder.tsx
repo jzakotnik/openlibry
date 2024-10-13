@@ -19,6 +19,8 @@ const REMINDER_RESPONSIBLE_EMAIL =
   process.env.REMINDER_RESPONSIBLE_EMAIL || "email";
 const REMINDER_RENEWAL_COUNT = process.env.REMINDER_RENEWAL_COUNT || 5;
 
+//example structure
+/*
 const replacemenetVariables = {
   alleMahnungen: [
     {
@@ -33,6 +35,11 @@ const replacemenetVariables = {
     },
   ],
 };
+*/
+const replacemenetVariables = {
+  alleMahnungen: [] as any,
+};
+
 console.log("Template replacement", replacemenetVariables);
 
 const template = fs.readFileSync(
@@ -73,6 +80,16 @@ export default async function handle(
           (r) => r.renewalCount >= 5 && r.remainingDays > 0
         );
         console.log("Rentals", overdueRentals);
+
+        //map overdueRentals to the docxtemplater template
+        overdueRentals.map((r) => {
+          replacemenetVariables.alleMahnungen.push({
+            school_name: SCHOOL_NAME,
+            responsible_name: REMINDER_RESPONSIBLE_NAME,
+            responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
+            overdue_username: r.firstName + " " + r.lastName,
+          });
+        });
 
         try {
           //let data = await template.arrayBuffer();
