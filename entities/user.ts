@@ -21,10 +21,10 @@ export async function getAllUsers(client: PrismaClient) {
     return await client.user.findMany({
       orderBy: [
         {
-          lastName: "asc",
+          schoolGrade: "asc",
         },
         {
-          firstName: "asc",
+          lastName: "asc",
         },
       ],
     });

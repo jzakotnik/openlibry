@@ -27,13 +27,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   section: {
-    margin: 5,
+    margin: 15,
+
     padding: 0,
     flexGrow: 0,
     position: "relative", // To position the text over the image
   },
   image: {
-    width: "50vw", // Adjust as needed
+    width: "47vw", // Adjust as needed
     height: "auto", // Adjust based on your requirements
   },
   overlayName: {

@@ -19,9 +19,9 @@ type BookLabelCardProps = {
   totalNumber: number;
   idFilter: number;
   setIdFilter: any;
-  topicsFilter: string;
+  topicsFilter: any;
   setTopicsFilter: any;
-  allTopics: Array<string>;
+  allTopics: any;
 };
 
 export default function BookLabelCard({
@@ -82,11 +82,13 @@ export default function BookLabelCard({
         <Autocomplete
           freeSolo
           id="controlled-demo"
-          value={topicsFilter}
+          getOptionLabel={(option: any) => `${option.topic} (${option.count})`} // Display topic and count concatenated
           options={allTopics}
           onChange={(event: any, newValue: string | null) => {
             setTopicsFilter(newValue);
           }}
+          value={topicsFilter} // Set the selected value based on the topic
+          isOptionEqualToValue={(option, value) => option === value} // Compare by topic
           renderInput={(params) => (
             <TextField
               {...params}
@@ -101,16 +103,17 @@ export default function BookLabelCard({
       <CardActions>
         <Button
           size="small"
-          onClick={() =>
+          onClick={() => {
+            //console.log("Rendering API pdf", topicsFilter);
             router.push(
               link +
                 "/?start=0" +
                 "&end=" +
                 Math.floor(startLabel!) +
                 (idFilter ? "&id=" + idFilter : "") +
-                (topicsFilter ? "&topic=" + topicsFilter : "")
-            )
-          }
+                (topicsFilter ? "&topic=" + topicsFilter.topic : "")
+            );
+          }}
         >
           Erzeuge PDF
         </Button>
