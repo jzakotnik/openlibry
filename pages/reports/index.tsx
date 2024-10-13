@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { getAllUsers } from "../../entities/user";
 
+import BookLabelsCard from "@/components/reports/BookLabelsCard";
 import Dashboard from "@/components/reports/Dashboard";
 import TagCloudDashboard from "@/components/reports/TagCloud";
 import { BookType } from "@/entities/BookType";
@@ -135,6 +136,8 @@ const LabelCard = ({
 export default function Reports({ users, books, rentals }: ReportPropsType) {
   const [startLabel, setStartLabel] = useState(100);
   const [startUserLabel, setStartUserLabel] = useState(10);
+  const [topicsFilter, setTopicsFilter] = useState(null);
+  const [idFilter, setIdFilter] = useState(0);
 
   const ReportCard = ({
     title,
@@ -164,18 +167,34 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
   };
   const allTags = [] as any;
   books.map((b: BookType) => {
-    console.log("Importing topics", b.topics);
+    //console.log("Importing topics", b.topics);
     b.topics
       ? allTags.push(b.topics!.split(";").filter((t: string) => t.length > 0))
       : null;
   });
   //console.log("All Tags", allTags);
 
-  const tagSet = allTags.flat().reduce((acc: any, item: string) => {
-    acc[item!] = (acc[item!] || 0) + 1;
-    return acc;
-  }, {});
+  const tagSet = convertToTopicCount(allTags);
   //console.log("Tag Set", tagSet);
+
+  function convertToTopicCount(
+    arr: string[][]
+  ): { topic: string; count: number }[] {
+    // Flatten the array of arrays into a single array of strings
+    const flattenedArray = arr.flat();
+
+    // Use reduce to create the topicCountMap
+    const topicCountMap = flattenedArray.reduce((acc, topic) => {
+      acc[topic] = (acc[topic] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    // Convert the map to an array of objects with "topic" and "count"
+    return Object.keys(topicCountMap).map((topic) => ({
+      topic,
+      count: topicCountMap[topic],
+    }));
+  }
 
   return (
     <Layout>
@@ -242,14 +261,19 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
             />
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
-            <LabelCard
-              title="Etiketten"
-              subtitle="Liste aller Bücher-Etiketten"
+            <BookLabelsCard
+              title="Buch Etiketten"
+              subtitle=""
               unit="Etiketten"
               link="api/report/booklabels"
               totalNumber={books.length}
               startLabel={startLabel}
               setStartLabel={setStartLabel}
+              idFilter={idFilter}
+              setIdFilter={setIdFilter}
+              topicsFilter={topicsFilter}
+              setTopicsFilter={setTopicsFilter}
+              allTopics={tagSet}
             />
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
