@@ -1,5 +1,4 @@
-import { BookType } from "@/entities/BookType";
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { getRentedBooksWithUsers } from "@/entities/book";
 import { PrismaClient } from "@prisma/client";
 
 import Docxtemplater from "docxtemplater";
@@ -18,6 +17,7 @@ const REMINDER_RESPONSIBLE_NAME =
   process.env.REMINDER_RESPONSIBLE_NAME || "Schulbücherei";
 const REMINDER_RESPONSIBLE_EMAIL =
   process.env.REMINDER_RESPONSIBLE_EMAIL || "email";
+const REMINDER_RENEWAL_COUNT = process.env.REMINDER_RENEWAL_COUNT || 5;
 
 const replacemenetVariables = {
   school_name: SCHOOL_NAME,
@@ -39,7 +39,7 @@ export default async function handle(
     case "GET":
       console.log("Printing reminder letters via API");
       try {
-        const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
+        //const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
         //calculate the rental information
         const allRentals = await getRentedBooksWithUsers(prisma);
         const rentals = allRentals.map((r: any) => {
@@ -59,7 +59,11 @@ export default async function handle(
             userid: r.user?.id,
           };
         });
-        console.log("Rentals", rentals);
+        //TODO this can be optimized to one step with the retrieval of all rentals, but it's easier to read for now
+        const overdueRentals = rentals.filter(
+          (r) => r.renewalCount >= 5 && r.remainingDays > 0
+        );
+        console.log("Rentals", overdueRentals);
 
         try {
           //let data = await template.arrayBuffer();
@@ -86,7 +90,7 @@ export default async function handle(
           console.log("Error: " + error);
         }
 
-        if (!allbooks)
+        if (!allRentals)
           return res.status(400).json({ data: "ERROR: Books  not found" });
       } catch (error) {
         console.log(error);
