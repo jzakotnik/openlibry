@@ -20,9 +20,18 @@ const REMINDER_RESPONSIBLE_EMAIL =
 const REMINDER_RENEWAL_COUNT = process.env.REMINDER_RENEWAL_COUNT || 5;
 
 const replacemenetVariables = {
-  school_name: SCHOOL_NAME,
-  responsible_name: REMINDER_RESPONSIBLE_NAME,
-  responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
+  alleMahnungen: [
+    {
+      school_name: SCHOOL_NAME,
+      responsible_name: REMINDER_RESPONSIBLE_NAME,
+      responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
+    },
+    {
+      school_name: SCHOOL_NAME,
+      responsible_name: REMINDER_RESPONSIBLE_NAME,
+      responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
+    },
+  ],
 };
 console.log("Template replacement", replacemenetVariables);
 
