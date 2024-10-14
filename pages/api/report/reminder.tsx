@@ -89,12 +89,18 @@ export default async function handle(
         console.log("Rentals", overDueRentalsByUser);
 
         //map overdueRentals to the docxtemplater template
-        overdueRentals.map((r) => {
+        Object.keys(overDueRentalsByUser).map((userID) => {
           replacemenetVariables.alleMahnungen.push({
             school_name: SCHOOL_NAME,
             responsible_name: REMINDER_RESPONSIBLE_NAME,
             responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
-            overdue_username: r.firstName + " " + r.lastName,
+            overdue_username:
+              overDueRentalsByUser[userID][0].firstName +
+              " " +
+              overDueRentalsByUser[userID][0].lastName,
+            book_list: overDueRentalsByUser[userID]
+              .map((b) => b.title)
+              .join(", "),
           });
         });
 
