@@ -79,7 +79,14 @@ export default async function handle(
         const overdueRentals = rentals.filter(
           (r) => r.renewalCount >= 5 && r.remainingDays > 0
         );
-        console.log("Rentals", overdueRentals);
+        //cluster overdue books by the user for the overdue notices
+        const overDueRentalsByUser = overdueRentals.reduce((acc: any, curr) => {
+          const { userid, ...rest } = curr; // Extract id and keep the rest
+          acc[userid] ? acc[userid].push(rest) : (acc[userid] = [rest]);
+          return acc;
+        }, {});
+
+        console.log("Rentals", overDueRentalsByUser);
 
         //map overdueRentals to the docxtemplater template
         overdueRentals.map((r) => {
