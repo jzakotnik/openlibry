@@ -90,6 +90,10 @@ export default async function handle(
 
         //map overdueRentals to the docxtemplater template
         Object.keys(overDueRentalsByUser).map((userID) => {
+          /*console.log(
+            "Overdue books: ",
+            overDueRentalsByUser[userID].map((b: any) => b.title)
+          );*/
           replacemenetVariables.alleMahnungen.push({
             school_name: SCHOOL_NAME,
             responsible_name: REMINDER_RESPONSIBLE_NAME,
@@ -98,11 +102,10 @@ export default async function handle(
               overDueRentalsByUser[userID][0].firstName +
               " " +
               overDueRentalsByUser[userID][0].lastName,
-            book_list: overDueRentalsByUser[userID]
-              .map((b) => b.title)
-              .join(", "),
+            book_list: overDueRentalsByUser[userID].map((b: any) => b.title),
           });
         });
+        console.log("Variables for docxtemplater", replacemenetVariables);
 
         try {
           //let data = await template.arrayBuffer();
