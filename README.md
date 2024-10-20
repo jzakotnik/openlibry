@@ -141,9 +141,8 @@ Im Edit-Screen der Bücher kann man dann sehen ob ähnliche Bücher in der Antol
 
 ## Konfiguration von Mahnschreiben / Templates
 
-Um automatisierte Mahnschreiben zu erzeugen, stelle folgende Parameter ein:
-- Im `.env` File: ..
-- Im Template ..
+Um automatisierte Mahnschreiben zu erzeugen, verwendet OpenLibry eine Template Bibliothek, welche eine Word Datei als Muster verwendet und dann entsprechende Platzhalter einsetzen kann. Die Platzhalter können im `.env` File konfiguriert. Ein Beispiel ist in folgendem [Template](./public/mahnung-template.docx) zu finden.
+
 
 ## Import und Export aus Excel
 
