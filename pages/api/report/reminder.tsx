@@ -16,7 +16,7 @@ const SCHOOL_NAME = process.env.SCHOOL_NAME || "Schule";
 const REMINDER_RESPONSIBLE_NAME =
   process.env.REMINDER_RESPONSIBLE_NAME || "Schulbücherei";
 const REMINDER_RESPONSIBLE_EMAIL =
-  process.env.REMINDER_RESPONSIBLE_EMAIL || "email";
+  process.env.REMINDER_RESPONSIBLE_EMAIL || "info@email.de";
 const REMINDER_RENEWAL_COUNT = process.env.REMINDER_RENEWAL_COUNT || 5;
 
 //example structure
@@ -77,7 +77,7 @@ export default async function handle(
         });
         //TODO this can be optimized to one step with the retrieval of all rentals, but it's easier to read for now
         const overdueRentals = rentals.filter(
-          (r) => r.renewalCount >= 5 && r.remainingDays > 0
+          (r) => r.renewalCount >= REMINDER_RENEWAL_COUNT && r.remainingDays > 0
         );
         //cluster overdue books by the user for the overdue notices
         const overDueRentalsByUser = overdueRentals.reduce((acc: any, curr) => {
