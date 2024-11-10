@@ -287,6 +287,14 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               setStartLabel={setStartUserLabel}
             />
           </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <LinkCard
+              title="Mahnungen"
+              subtitle="Ausdruck aller Mahnungen"
+              buttonTitle="Erzeuge Word"
+              link="/api/report/reminder"
+            />
+          </Grid>
         </Grid>
         <Dashboard users={users} rentals={rentals} books={books} />
       </ThemeProvider>

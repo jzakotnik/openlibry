@@ -14,9 +14,7 @@ import bwipjs from "bwip-js";
 import { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
 
-const SCHOOL_NAME = process.env.SCHOOL_NAME
-  ? process.env.SCHOOL_NAME
-  : "Eigentum Schule";
+const SCHOOL_NAME = process.env.SCHOOL_NAME || "Eigentum Schule";
 
 const BOOKLABEL_MARGIN_LEFT = process.env.BOOKLABEL_MARGIN_LEFT
   ? parseInt(process.env.BOOKLABEL_MARGIN_LEFT)

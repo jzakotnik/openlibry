@@ -139,6 +139,11 @@ Um Bücher einfacher mit dem Schlagwort der Antolin Leseförderung versehen zu k
 Im Edit-Screen der Bücher kann man dann sehen ob ähnliche Bücher in der Antolin Datenbank vorhanden sind.
 ![Antolin Screenshot](./doc/antolin.png). OpenLibry durchsucht dabei die Datenbank nach Datensätzen bei denen der Autor und Titel vorkommmen, insbesondere wenn es keinen direkten Link via ISBN gibt. 
 
+## Konfiguration von Mahnschreiben / Templates
+
+Um automatisierte Mahnschreiben zu erzeugen, verwendet OpenLibry eine Template Bibliothek, welche eine Word Datei als Muster verwendet und dann entsprechende Platzhalter einsetzen kann. Die Platzhalter können im `.env` File konfiguriert. Ein Beispiel ist in folgendem [Template](./public/mahnung-template.docx) zu finden.
+
+
 ## Import und Export aus Excel
 
 Um bestehende Daten zu importieren bzw. Daten aus OpenLibry zu exportieren gibt es eine Excel Funktion. Diese kann auch verwendet werden, um Backups zu erzeugen und bei Bedarf wieder zu importieren.
@@ -189,7 +194,7 @@ Das Worksheet *Bücherliste* enthält folgende Spalten:
 - Links
 - Ausgeliehen von
 
-### Exel import
+### Excel import
 
 Für den Import einer Excel Datei kann auf der Reports Seite die Kachel Excel Import angeklickt werden. Diese führt zu einer Import-Seite.
 
