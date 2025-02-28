@@ -32,7 +32,7 @@ const DELETE_SAFETY_SECONDS = (process.env.DELETE_SAFETY_SECONDS ||
 const bull = (
   <Box
     component="span"
-    sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}
+    sx={{ display: "inline-block", mx: "1px", transform: "scale(0.8)" }}
   >
     •
   </Box>
