@@ -123,7 +123,7 @@ const LabelCard = ({
         <Button
           size="small"
           onClick={() =>
-            router.push(link + "/?start=0" + "&end=" + Math.floor(startLabel!))
+            window.open(link + "/?start=0" + "&end=" + Math.floor(startLabel!), "_blank")
           }
         >
           Erzeuge PDF
