@@ -8,13 +8,12 @@ import Typography from "@mui/material/Typography";
 
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-
 import palette from "@/styles/palette";
 import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import HoldButton from "../layout/HoldButton";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
@@ -27,7 +26,7 @@ import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
 
 const DELETE_SAFETY_SECONDS = (process.env.DELETE_SAFETY_SECONDS ||
-  5) as number;
+  3) as number;
 
 const bull = (
   <Box
@@ -58,15 +57,11 @@ export default function BookEditForm({
   const [editable, setEditable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
-  const [deleteSafetyCounter, setDeleteSafetyCounter] = useState(
-    DELETE_SAFETY_SECONDS
-  );
-  const [deleteSafetyCounterIsRunning, setDeleteSafetyCounterIsRunning] =
-    useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   useState<AlertColor>("success");
+  //console.log("DELETE config", process.env.DELETE_SAFETY_SECONDS);
 
   const toggleEditButton = () => {
     editable
@@ -76,10 +71,6 @@ export default function BookEditForm({
   };
   const handleAntolinClick = () => {
     setAntolinDetailsDialog(true);
-  };
-
-  const startSafetyTimer = () => {
-    console.log("Starting timer to delete the book", deleteSafetyCounter);
   };
 
   const CoverImage = () => {
@@ -164,13 +155,11 @@ export default function BookEditForm({
         <Grid item xs={12} md={4}>
           {editable && (
             <Tooltip title="Löschen">
-              <Button
-                color="error"
-                onClick={startSafetyTimer}
-                startIcon={<DeleteForeverIcon />}
-              >
-                Löschen
-              </Button>
+              <HoldButton
+                duration={DELETE_SAFETY_SECONDS * 1000}
+                buttonLabel="Löschen"
+                onClick={deleteBook}
+              />
             </Tooltip>
           )}
         </Grid>{" "}
