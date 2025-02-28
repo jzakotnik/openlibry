@@ -23,7 +23,8 @@ var base64Image = fs.readFileSync(
 
 const styles = StyleSheet.create({
   page: {
-    flexDirection: "column",
+    flexDirection: "row",
+    flexWrap: "wrap",
     backgroundColor: "#FFFFFF",
   },
   section: {
