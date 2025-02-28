@@ -26,6 +26,9 @@ import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
 
+const DELETE_SAFETY_SECONDS = (process.env.DELETE_SAFETY_SECONDS ||
+  5) as number;
+
 const bull = (
   <Box
     component="span"
@@ -55,6 +58,11 @@ export default function BookEditForm({
   const [editable, setEditable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
+  const [deleteSafetyCounter, setDeleteSafetyCounter] = useState(
+    DELETE_SAFETY_SECONDS
+  );
+  const [deleteSafetyCounterIsRunning, setDeleteSafetyCounterIsRunning] =
+    useState(false);
 
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
@@ -68,6 +76,10 @@ export default function BookEditForm({
   };
   const handleAntolinClick = () => {
     setAntolinDetailsDialog(true);
+  };
+
+  const startSafetyTimer = () => {
+    console.log("Starting timer to delete the book", deleteSafetyCounter);
   };
 
   const CoverImage = () => {
@@ -154,7 +166,7 @@ export default function BookEditForm({
             <Tooltip title="Löschen">
               <Button
                 color="error"
-                onClick={deleteBook}
+                onClick={startSafetyTimer}
                 startIcon={<DeleteForeverIcon />}
               >
                 Löschen
