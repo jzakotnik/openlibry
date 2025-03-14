@@ -31,6 +31,11 @@ export default async function handle(
 */
     case "GET":
       try {
+        if (!existsSync(process.env.COVERIMAGE_FILESTORAGE_PATH!)) {
+          res.status(400).json({
+            data: "ERROR: Book cover path does not exist?",
+          });
+        }
         const filePath = path.join(
           process.env.COVERIMAGE_FILESTORAGE_PATH!,
           "/",
@@ -42,7 +47,7 @@ export default async function handle(
           "default.jpg"
         );
         if (existsSync(filePath)) {
-          //console.log("Reading cover file");
+          console.log("Reading cover file");
           const imageFile = await fs.readFile(filePath);
           //console.log("Read image file", imageFile);
           res.setHeader("Content-Type", "image/jpg");
