@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 import { convertDateToDayString } from "@/utils/dateutils";
+import { Typography } from "@mui/material";
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();
@@ -34,6 +35,7 @@ interface ReportKeyType {
 
 export default function Rentals({ rentals }: RentalsPropsType) {
   const [reportData, setReportData] = useState({ columns: [], rows: [] });
+  const [reportDataAvailable, setReportDataAvailable] = useState(false);
 
   //TODO find a better way for dynamic layouts
   function getWidth(columnName: string = "") {
@@ -53,28 +55,31 @@ export default function Rentals({ rentals }: RentalsPropsType) {
   }
 
   useEffect(() => {
-    const colTitles = rentals[0];
-    const fields = Object.keys(colTitles) as any;
-    const columns = fields.map((f: string) => {
-      const fieldTranslation = (translations as any)["rentals"][f];
-      const col = {
-        field: f,
-        headerName: fieldTranslation,
-        width: getWidth(f),
-      };
-      return col;
-    });
-    const rows = rentals.map((r: any) => {
-      const rowCopy = {
-        id: r.id,
-        ...r,
-        rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
-      };
-      //console.log("Row Copy", rowCopy);
-      return rowCopy;
-    });
-    //console.log("columns", columns);
-    setReportData({ columns: columns, rows: rows });
+    setReportDataAvailable(rentals.length > 0);
+    if (rentals && rentals.length > 0) {
+      const colTitles = rentals[0];
+      const fields = Object.keys(colTitles) as any;
+      const columns = fields.map((f: string) => {
+        const fieldTranslation = (translations as any)["rentals"][f];
+        const col = {
+          field: f,
+          headerName: fieldTranslation,
+          width: getWidth(f),
+        };
+        return col;
+      });
+      const rows = rentals.map((r: any) => {
+        const rowCopy = {
+          id: r.id,
+          ...r,
+          rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
+        };
+        //console.log("Row Copy", rowCopy);
+        return rowCopy;
+      });
+      //console.log("columns", columns);
+      setReportData({ columns: columns, rows: rows });
+    }
   }, []);
 
   return (
@@ -87,12 +92,17 @@ export default function Rentals({ rentals }: RentalsPropsType) {
             mt: 5,
           }}
         >
-          <DataGrid
-            autoHeight
-            columns={reportData.columns}
-            rows={reportData.rows}
-            slots={{ toolbar: GridToolbar }}
-          />
+          {" "}
+          {reportDataAvailable ? (
+            <DataGrid
+              autoHeight
+              columns={reportData.columns}
+              rows={reportData.rows}
+              slots={{ toolbar: GridToolbar }}
+            />
+          ) : (
+            <Typography>Keine Daten verfügbar</Typography>
+          )}
         </Box>
       </ThemeProvider>
     </Layout>
