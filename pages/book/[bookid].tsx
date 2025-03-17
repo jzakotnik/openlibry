@@ -115,6 +115,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       .then((res) => res.json())
       .then((data) => {
         setSaveBookSnackbar(true);
+        router.push("/book");
       });
   };
 

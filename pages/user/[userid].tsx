@@ -107,7 +107,7 @@ export default function UserDetail({
       body: JSON.stringify(savingUser),
     })
       .then((res) => res.json())
-      .then((data) => {});
+      .then((data) => { router.push("/user"); });
   };
 
   const handleReturnBookButton = (bookid: number) => {
