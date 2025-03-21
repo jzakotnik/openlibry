@@ -8,13 +8,12 @@ import Typography from "@mui/material/Typography";
 
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-
 import palette from "@/styles/palette";
 import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import HoldButton from "../layout/HoldButton";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
@@ -26,10 +25,13 @@ import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
 
+const DELETE_SAFETY_SECONDS = (process.env.DELETE_SAFETY_SECONDS ||
+  3) as number;
+
 const bull = (
   <Box
     component="span"
-    sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}
+    sx={{ display: "inline-block", mx: "1px", transform: "scale(0.8)" }}
   >
     •
   </Box>
@@ -59,6 +61,7 @@ export default function BookEditForm({
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   useState<AlertColor>("success");
+  //console.log("DELETE config", process.env.DELETE_SAFETY_SECONDS);
 
   const toggleEditButton = () => {
     editable
@@ -152,13 +155,11 @@ export default function BookEditForm({
         <Grid item xs={12} md={4}>
           {editable && (
             <Tooltip title="Löschen">
-              <Button
-                color="error"
+              <HoldButton
+                duration={DELETE_SAFETY_SECONDS * 1000}
+                buttonLabel="Löschen"
                 onClick={deleteBook}
-                startIcon={<DeleteForeverIcon />}
-              >
-                Löschen
-              </Button>
+              />
             </Tooltip>
           )}
         </Grid>{" "}
