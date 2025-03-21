@@ -23,9 +23,10 @@ var base64Image = fs.readFileSync(
     encoding: "base64",
   }
 );
-const BOOKLABEL_BARCODE_VERSION = process.env.BOOKLABEL_BARCODE_VERSION
-  ? process.env.BOOKLABEL_BARCODE_VERSION
-  : "code128";
+
+// top, left, width, height, barcode version
+const BARCODE_SETTINGS = process.env.USERLABEL_BARCODE != null ? JSON.parse(process.env.USERLABEL_BARCODE) : null;
+
 
 const labelsPerPage = process.env.USERLABEL_PER_PAGE != null ? Number(process.env.USERLABEL_PER_PAGE) : 6
 const styles = StyleSheet.create({
@@ -42,13 +43,10 @@ const styles = StyleSheet.create({
 });
 
 const generateInfolines = (user: UserType) => {
-  // console.log("2 user", user);
   const chunk = Object.entries(process.env).map(([key, value]) => {
 
     if (key.startsWith("USERLABEL_LINE_") && value != null) {
       let valueArr = JSON.parse(value)
-      // console.log("Valuearr: ", key, valueArr);
-      // console.log("3 user", user);
       const replacement = replacePlaceholder(valueArr[0], user);
       const top = valueArr[1];
       const left = valueArr[2];
@@ -61,7 +59,6 @@ const generateInfolines = (user: UserType) => {
         color: valueArr[5],
         fontSize: valueArr[6]
       }
-      // console.log("STyle", style)
       return (
         <Text style={style}>{replacement}</Text>
       )
@@ -75,19 +72,11 @@ const generateInfolines = (user: UserType) => {
 }
 
 const replacePlaceholder = (text: String, user: UserType) => {
-  // first try, hardcode the fields
-
-  if (text.includes("User.firstName")) {
-    text = text.replaceAll("User.firstName", user.firstName);
+  while (text.includes("User.")) {
+    const nextReplace = String(text.split(" ").find((item: any) => item.includes("User.")));
+    let propertyName = nextReplace.split(".")[1];
+    text = text.replaceAll(nextReplace, user[propertyName]);
   }
-  if (text.includes("User.lastName")) {
-    text = text.replaceAll("User.lastName", user.lastName);
-  }
-
-  if (text.includes("User.schoolGrade")) {
-    text = text.replaceAll("User.schoolGrade", user.schoolGrade != null ? user.schoolGrade : "");
-  }
-
   return text;
 }
 
@@ -95,9 +84,7 @@ const colorbar = ({ id }: any) => {
   const colorbar = process.env.USERLABEL_SEPARATE_COLORBAR != null ?
     (JSON.parse(process.env.USERLABEL_SEPARATE_COLORBAR)) : null;
   if (colorbar != null) {
-
     return (<Canvas key={id}
-
       paint={
         (painterObject) =>
           painterObject
@@ -110,20 +97,39 @@ const colorbar = ({ id }: any) => {
   return null;
 
 }
-const generateBarcode = async (users: Array<UserType>) => {
+
+const generateBarcode = async (id: String) => {
+
+  if (BARCODE_SETTINGS == null) return null;
+  const png =
+    await bwipjs.toBuffer({
+      bcid: BARCODE_SETTINGS[4],
+      text: id!.toString(),
+      scale: 3,
+      height: 10,
+      includetext: true,
+      textxalign: "center",
+    });
+  ;
+
+  return (<Image
+    // key={id}
+    src={"data:image/png;base64, " + await (png.toString("base64"))}
+    style={{
+      position: "absolute",
+      width: BARCODE_SETTINGS[2],
+      height: BARCODE_SETTINGS[3],
+      top: BARCODE_SETTINGS[0],
+      left: BARCODE_SETTINGS[1],
+    }}
+  />)
+}
+
+const generateLabels = async (users: Array<UserType>) => {
   const result = "";
   let allcodes = await Promise.all(
     users.map(async (u: UserType, i: number) => {
-      const png =
-        await bwipjs.toBuffer({
-          bcid: BOOKLABEL_BARCODE_VERSION,
-          text: u.id!.toString(),
-          scale: 3,
-          height: 10,
-          includetext: true,
-          textxalign: "center",
-        })
-        ;
+
       const pos = {
         left: (i % labelsPerPage <= (labelsPerPage / 2) - 1 ? 1 : 11) + "cm",
         top: ((29 / (labelsPerPage / 2)) + 0.5) * (i % (labelsPerPage / 2)) + "cm",
@@ -131,7 +137,7 @@ const generateBarcode = async (users: Array<UserType>) => {
 
       const infolines = generateInfolines(u);
       //console.log("Position", pos, i, u.id);
-
+      const barcode = await generateBarcode(u.id!);
       return (
         <div key={u.id!}>
           <View
@@ -158,17 +164,7 @@ const generateBarcode = async (users: Array<UserType>) => {
 
               {colorbar(u.id)}
               {infolines}
-              <Image
-                key={u.id}
-                src={"data:image/png;base64, " + await (png.toString("base64"))}
-                style={{
-                  position: "absolute",
-                  width: "2.5cm",
-                  height: "1.6cm",
-                  top: "80%", // Center vertically, adjust as needed
-                  left: "63%", // Center horizontally, adjust as needed
-                }}
-              />
+              {barcode}
 
             </View>
           </View>
@@ -185,7 +181,7 @@ const generateBarcode = async (users: Array<UserType>) => {
 
 async function createUserPDF(books: Array<UserType>) {
   var pdfstream;
-  const barcodes = await generateBarcode(books);
+  const barcodes = await generateLabels(books);
   console.log("split", labelsPerPage);
   const barcodesSections = chunkArray(barcodes, labelsPerPage);
 
@@ -242,7 +238,6 @@ export default async function handle(
 
 
         const labels = await createUserPDF(printableUsers);
-        // const labels = await createLabelsPDF(printableUsers);
         res.writeHead(200, {
           "Content-Type": "application/pdf",
         });
