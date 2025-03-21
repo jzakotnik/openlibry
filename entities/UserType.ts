@@ -8,4 +8,5 @@ export interface UserType {
   schoolTeacherName?: string | null;
   active: boolean;
   eMail?: string | null;
+  [key: string]: any;
 }
