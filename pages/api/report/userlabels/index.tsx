@@ -9,7 +9,7 @@ import ReactPDF, {
   Page,
   StyleSheet,
   Text,
-  View
+  View,
 } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -25,13 +25,18 @@ var base64Image = fs.readFileSync(
 );
 
 // top, left, width, height, barcode version
-const BARCODE_SETTINGS = process.env.USERLABEL_BARCODE != null ? JSON.parse(process.env.USERLABEL_BARCODE) : null;
+const BARCODE_SETTINGS =
+  process.env.USERLABEL_BARCODE != null
+    ? JSON.parse(process.env.USERLABEL_BARCODE)
+    : null;
 
-
-const labelsPerPage = process.env.USERLABEL_PER_PAGE != null ? Number(process.env.USERLABEL_PER_PAGE) : 6
+const labelsPerPage =
+  process.env.USERLABEL_PER_PAGE != null
+    ? Number(process.env.USERLABEL_PER_PAGE)
+    : 6;
 const styles = StyleSheet.create({
   image: {
-    width: (process.env.USERLABEL_WIDTH ? process.env.USERLABEL_WIDTH : "42vw"), // Adjust as needed
+    width: process.env.USERLABEL_WIDTH ? process.env.USERLABEL_WIDTH : "42vw", // Adjust as needed
     height: "auto", // Adjust based on your requirements
   },
 
@@ -39,14 +44,13 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignContent: "flex-start",
     justifyContent: "flex-start",
-  }
+  },
 });
 
 const generateInfolines = (user: UserType) => {
   const chunk = Object.entries(process.env).map(([key, value]) => {
-
     if (key.startsWith("USERLABEL_LINE_") && value != null) {
-      let valueArr = JSON.parse(value)
+      const valueArr = JSON.parse(value);
       const replacement = replacePlaceholder(valueArr[0], user);
       const top = valueArr[1];
       const left = valueArr[2];
@@ -57,87 +61,94 @@ const generateInfolines = (user: UserType) => {
         width: valueArr[3],
         margin: valueArr[4],
         color: valueArr[5],
-        fontSize: valueArr[6]
-      }
+        fontSize: valueArr[6],
+      } as any;
       return (
-        <Text style={style}>{replacement}</Text>
-      )
+        <Text key={replacement.toString()} style={style}>
+          {replacement}
+        </Text>
+      );
     }
-  })
-  return (
+  });
+  return chunk;
+};
 
-    chunk
+const replacePlaceholder = (text: String, user: any) => {
+  try {
+    while (text.includes("User.")) {
+      const nextReplace = String(
+        text.split(" ").find((item: any) => item.includes("User."))
+      );
+      const propertyName = nextReplace.split(".")[1];
+      //let's for the moment assume that the property name is there from the env file
 
-  )
-}
-
-const replacePlaceholder = (text: String, user: UserType) => {
-  while (text.includes("User.")) {
-    const nextReplace = String(text.split(" ").find((item: any) => item.includes("User.")));
-    let propertyName = nextReplace.split(".")[1];
-    text = text.replaceAll(nextReplace, user[propertyName]);
+      text = text.replaceAll(nextReplace, user[propertyName]);
+    }
+    return text;
+  } catch (error) {
+    return "Configuration error in environment";
   }
-  return text;
-}
+};
 
 const colorbar = ({ id }: any) => {
-  const colorbar = process.env.USERLABEL_SEPARATE_COLORBAR != null ?
-    (JSON.parse(process.env.USERLABEL_SEPARATE_COLORBAR)) : null;
+  const colorbar =
+    process.env.USERLABEL_SEPARATE_COLORBAR != null
+      ? JSON.parse(process.env.USERLABEL_SEPARATE_COLORBAR)
+      : null;
   if (colorbar != null) {
-    return (<Canvas key={id}
-      paint={
-        (painterObject) =>
+    return (
+      <Canvas
+        key={id}
+        paint={(painterObject) =>
           painterObject
             .save()
             .rect(0, 0, colorbar[0], colorbar[1])
             .fill(colorbar[2])
-      }
-    />)
+        }
+      />
+    );
   }
   return null;
-
-}
+};
 
 const generateBarcode = async (id: String) => {
-
   if (BARCODE_SETTINGS == null) return null;
-  const png =
-    await bwipjs.toBuffer({
-      bcid: BARCODE_SETTINGS[4],
-      text: id!.toString(),
-      scale: 3,
-      height: 10,
-      includetext: true,
-      textxalign: "center",
-    });
-  ;
-
-  return (<Image
-    // key={id}
-    src={"data:image/png;base64, " + await (png.toString("base64"))}
-    style={{
-      position: "absolute",
-      width: BARCODE_SETTINGS[2],
-      height: BARCODE_SETTINGS[3],
-      top: BARCODE_SETTINGS[0],
-      left: BARCODE_SETTINGS[1],
-    }}
-  />)
-}
+  const png = await bwipjs.toBuffer({
+    bcid: BARCODE_SETTINGS[4],
+    text: id!.toString(),
+    scale: 3,
+    height: 10,
+    includetext: true,
+    textxalign: "center",
+  });
+  return (
+    <Image
+      // key={id}
+      src={"data:image/png;base64, " + (await png.toString("base64"))}
+      style={{
+        position: "absolute",
+        width: BARCODE_SETTINGS[2],
+        height: BARCODE_SETTINGS[3],
+        top: BARCODE_SETTINGS[0],
+        left: BARCODE_SETTINGS[1],
+      }}
+    />
+  );
+};
 
 const generateLabels = async (users: Array<UserType>) => {
   const result = "";
-  let allcodes = await Promise.all(
+  const allcodes = await Promise.all(
     users.map(async (u: UserType, i: number) => {
-
       const pos = {
-        left: (i % labelsPerPage <= (labelsPerPage / 2) - 1 ? 1 : 11) + "cm",
-        top: ((29 / (labelsPerPage / 2)) + 0.5) * (i % (labelsPerPage / 2)) + "cm",
+        left: (i % labelsPerPage <= labelsPerPage / 2 - 1 ? 1 : 11) + "cm",
+        top:
+          (29 / (labelsPerPage / 2) + 0.5) * (i % (labelsPerPage / 2)) + "cm",
       };
 
       const infolines = generateInfolines(u);
       //console.log("Position", pos, i, u.id);
-      const barcode = await generateBarcode(u.id!);
+      const barcode = await generateBarcode(u.id!.toString());
       return (
         <div key={u.id!}>
           <View
@@ -153,7 +164,7 @@ const generateLabels = async (users: Array<UserType>) => {
           >
             <View
               style={{
-                flexDirection: "column"
+                flexDirection: "column",
               }}
             >
               <Image
@@ -165,19 +176,14 @@ const generateLabels = async (users: Array<UserType>) => {
               {colorbar(u.id)}
               {infolines}
               {barcode}
-
             </View>
           </View>
-
         </div>
       );
-
-
     })
   );
   return allcodes;
-}
-
+};
 
 async function createUserPDF(books: Array<UserType>) {
   var pdfstream;
@@ -221,7 +227,6 @@ export default async function handle(
         const startUserID = "start" in req.query ? req.query.start : "0";
         const endUserID = "end" in req.query ? req.query.end : users.length - 1;
 
-
         const printableUsers = users
           .reverse()
           .slice(
@@ -229,13 +234,10 @@ export default async function handle(
             parseInt(endUserID as string)
           );
 
-
         console.log("Printing labels for users", startUserID, endUserID);
 
         if (!users)
           return res.status(400).json({ data: "ERROR: Users  not found" });
-
-
 
         const labels = await createUserPDF(printableUsers);
         res.writeHead(200, {
