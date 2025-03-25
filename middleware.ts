@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
+
 export default withAuth(
   function middleware(req: NextRequest) {
     //console.log("Middleware triggered with ", req);
@@ -57,6 +58,7 @@ export default withAuth(
           process.env.AUTH_ENABLED
         );*/
         //I think we don't need the endpoint since everything is handled in the ..nextAuth.ts
+        if (req.nextUrl.pathname == "/publicbookview") return true;
         if (
           token === null &&
           req.nextUrl.pathname != "/auth/login" &&
