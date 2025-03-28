@@ -19,7 +19,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { getBookFromID } from "@/utils/getBookFromID";
@@ -51,6 +51,11 @@ export default function Rental({
   const [snackBarSeverity, setSnackBarSeverity] =
     useState<AlertColor>("success");
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
+
+  const bookFocusRef = useRef<HTMLInputElement>();
+  const handleBookSearchSetFocus = () => {
+    bookFocusRef.current!.focus();
+  }
 
   const { data, error } = useSWR(
     process.env.NEXT_PUBLIC_API_URL + "/api/rental",
@@ -226,6 +231,7 @@ export default function Rental({
             handleReturnBookButton={handleReturnBookButton}
             setUserExpanded={setUserExpanded}
             userExpanded={userExpanded}
+            handleBookSearchSetFocus={handleBookSearchSetFocus}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -236,6 +242,7 @@ export default function Rental({
             handleReturnBookButton={handleReturnBookButton}
             handleRentBookButton={handleRentBookButton}
             userExpanded={userExpanded}
+            searchFieldRef={bookFocusRef}
           />
         </Grid>
       </Grid>

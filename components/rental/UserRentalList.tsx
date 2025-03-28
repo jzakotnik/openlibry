@@ -41,6 +41,7 @@ type UserPropsType = {
   handleReturnBookButton: (bookid: number, userid: number) => void;
   setUserExpanded: Dispatch<number | false>;
   userExpanded: number | false;
+  handleBookSearchSetFocus: () => void;
 };
 
 const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
@@ -55,6 +56,7 @@ export default function UserRentalList({
   handleReturnBookButton,
   setUserExpanded,
   userExpanded,
+  handleBookSearchSetFocus,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
 
@@ -69,9 +71,19 @@ export default function UserRentalList({
     setUserSearchInput("");
   };
 
+  let selectedSingleUser: number = -1;
   const handleInputChange = (e: React.ChangeEvent<any>): void => {
     setUserSearchInput(e.target.value);
   };
+
+  const handleKeyUp = (e: React.KeyboardEvent): void => {
+    if (e.key == 'Enter') {
+      if (selectedSingleUser > -1) {
+        setUserExpanded(selectedSingleUser);
+      }
+      handleBookSearchSetFocus();
+    }
+  }
 
   const handleExpandedUser =
     (userID: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -154,6 +166,7 @@ export default function UserRentalList({
   }
 
   const filterUsers = (users: Array<UserType>, searchString: string) => {
+    selectedSingleUser = -1;
     if (searchString.length == 0) return users; //nothing to do
     const lowerCaseSearch = searchString.toLowerCase();
     const searchTokens = lowerCaseSearch.split(" ");
@@ -203,7 +216,9 @@ export default function UserRentalList({
       //console.log("Found: ", foundString, foundClass, foundOverdue);
       if (foundString && foundClass && foundOverdue) return u;
     });
-
+    if (filteredUsers.length == 1) {
+      selectedSingleUser = filteredUsers[0].id!;
+    }
     return filteredUsers;
   };
 
@@ -246,6 +261,7 @@ export default function UserRentalList({
               }
               value={userSearchInput}
               onChange={handleInputChange}
+              onKeyUp={handleKeyUp}
             />{" "}
           </FormControl>
         </Grid>
@@ -309,8 +325,8 @@ export default function UserRentalList({
                       u.lastName +
                       (rentalsUser.length > 0
                         ? ", " +
-                          rentalsUser.length +
-                          (rentalsUser.length > 1 ? " Bücher" : " Buch")
+                        rentalsUser.length +
+                        (rentalsUser.length > 1 ? " Bücher" : " Buch")
                         : "")}
                   </Typography>
                 </Grid>
