@@ -58,7 +58,12 @@ export default withAuth(
           process.env.AUTH_ENABLED
         );*/
         //I think we don't need the endpoint since everything is handled in the ..nextAuth.ts
-        if (req.nextUrl.pathname == "/publicbookview") return true;
+        //exclude the public page and the images API from authentication
+        if (
+          req.nextUrl.pathname == "/publicbookview" ||
+          req.nextUrl.pathname.includes("/api/images")
+        )
+          return true;
         if (
           token === null &&
           req.nextUrl.pathname != "/auth/login" &&

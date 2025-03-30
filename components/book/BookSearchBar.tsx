@@ -23,6 +23,7 @@ interface BookSearchBarPropType {
   toggleView: React.MouseEventHandler<HTMLButtonElement>;
   detailView: boolean;
   searchResultNumber: number;
+  showNewBookControl?: boolean;
 }
 
 export default function BookSearchBar({
@@ -32,6 +33,7 @@ export default function BookSearchBar({
   toggleView,
   detailView,
   searchResultNumber,
+  showNewBookControl = true,
 }: BookSearchBarPropType) {
   return (
     <Grid
@@ -74,17 +76,19 @@ export default function BookSearchBar({
             </IconButton>
           </Tooltip>
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          <Tooltip title="Neues Buch erzeugen">
-            <IconButton
-              color="primary"
-              data-cy="create_book_button"
-              sx={{ p: "10px" }}
-              aria-label="new-book"
-              onClick={handleNewBook}
-            >
-              <QueueIcon />
-            </IconButton>
-          </Tooltip>
+          {showNewBookControl ? (
+            <Tooltip title="Neues Buch erzeugen">
+              <IconButton
+                color="primary"
+                data-cy="create_book_button"
+                sx={{ p: "10px" }}
+                aria-label="new-book"
+                onClick={handleNewBook}
+              >
+                <QueueIcon />
+              </IconButton>
+            </Tooltip>
+          ) : null}
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
           <Typography variant="caption">{searchResultNumber}</Typography>
         </Paper>
