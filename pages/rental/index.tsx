@@ -57,6 +57,11 @@ export default function Rental({
     bookFocusRef.current!.focus();
   }
 
+  const userFocusRef = useRef<HTMLInputElement>();
+  const handleUserSearchSetFocus = () => {
+    userFocusRef.current!.focus();
+  }
+
   const { data, error } = useSWR(
     process.env.NEXT_PUBLIC_API_URL + "/api/rental",
     fetcher,
@@ -211,7 +216,6 @@ export default function Rental({
   ) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
-
   return (
     <Layout>
       <Grid
@@ -231,6 +235,7 @@ export default function Rental({
             handleReturnBookButton={handleReturnBookButton}
             setUserExpanded={setUserExpanded}
             userExpanded={userExpanded}
+            searchFieldRef={userFocusRef}
             handleBookSearchSetFocus={handleBookSearchSetFocus}
           />
         </Grid>
@@ -243,6 +248,7 @@ export default function Rental({
             handleRentBookButton={handleRentBookButton}
             userExpanded={userExpanded}
             searchFieldRef={bookFocusRef}
+            handleUserSearchSetFocus={handleUserSearchSetFocus}
           />
         </Grid>
       </Grid>

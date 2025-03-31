@@ -31,6 +31,7 @@ interface BookPropsType {
   handleRentBookButton: (id: number, userid: number) => void;
   userExpanded: number | false;
   searchFieldRef: any;
+  handleUserSearchSetFocus: () => void;
 }
 
 
@@ -42,6 +43,7 @@ export default function BookRentalList({
   handleRentBookButton,
   userExpanded,
   searchFieldRef,
+  handleUserSearchSetFocus,
 }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState(books);
@@ -79,6 +81,17 @@ export default function BookRentalList({
     //set rendered books
     searchBooks(e.target.value);
   };
+
+
+  const handleKeyUp = (e: React.KeyboardEvent): void => {
+    if (e.key == 'Escape') {
+      if (bookSearchInput == "") {
+        handleUserSearchSetFocus();
+      } else {
+        setBookSearchInput("");
+      }
+    }
+  }
 
   const ReturnedIcon = () => {
     //console.log("Rendering icon ", id, returnedBooks);
@@ -124,6 +137,7 @@ export default function BookRentalList({
           }
           value={bookSearchInput}
           onChange={handleInputChange}
+          onKeyUp={handleKeyUp}
         />
       </FormControl>
       <Grid
