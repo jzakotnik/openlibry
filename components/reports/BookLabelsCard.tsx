@@ -7,7 +7,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import router from "next/router";
 
 type BookLabelCardProps = {
   title: string;
@@ -105,14 +104,14 @@ export default function BookLabelCard({
           size="small"
           onClick={() => {
             //console.log("Rendering API pdf", topicsFilter);
-            router.push(
+            window.open(
               link +
-                "/?start=0" +
-                "&end=" +
-                Math.floor(startLabel!) +
-                (idFilter ? "&id=" + idFilter : "") +
-                (topicsFilter ? "&topic=" + topicsFilter.topic : "")
-            );
+              "/?start=0" +
+              "&end=" +
+              Math.floor(startLabel!) +
+              (idFilter ? "&id=" + idFilter : "") +
+              (topicsFilter ? "&topic=" + topicsFilter.topic : "")
+              , "_blank");
           }}
         >
           Erzeuge PDF

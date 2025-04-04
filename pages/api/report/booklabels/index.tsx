@@ -92,16 +92,17 @@ const generateBarcode = async (books: Array<BookType>) => {
   const result = "";
   let allcodes = await Promise.all(
     books.map(async (b: BookType, i: number) => {
+      const barId = process.env.BARCODE_MINCODELENGTH != null ? b.id!.toString().padStart(parseInt(process.env.BARCODE_MINCODELENGTH)) : b.id!.toString();
       const png =
         BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
           ? await bwipjs.toBuffer({
-              bcid: BOOKLABEL_BARCODE_VERSION,
-              text: b.id!.toString(),
-              scale: 3,
-              height: 10,
-              includetext: true,
-              textxalign: "center",
-            })
+            bcid: BOOKLABEL_BARCODE_VERSION,
+            text: barId,
+            scale: 3,
+            height: 10,
+            includetext: true,
+            textxalign: "center",
+          })
           : schoollogo;
       const pos = {
         left: BOOKLABEL_MARGIN_LEFT + (i % 10 <= 4 ? 1 : 10) + "cm",
@@ -109,10 +110,10 @@ const generateBarcode = async (books: Array<BookType>) => {
       };
 
       console.log("Position", pos, i);
-      
+
       //Find first topic of book
       const firstTopic = b.topics ? b.topics!.split(";")[0] : ""
-      
+
       return (
         <div key={b.id!}>
           <View
@@ -161,10 +162,10 @@ const generateBarcode = async (books: Array<BookType>) => {
               />
               <Text style={{ fontSize: 10 }}>
                 {
-               
-                firstTopic.length > 30
-                  ? firstTopic.substring(0, 30) + "..."
-                  : firstTopic}
+
+                  firstTopic.length > 30
+                    ? firstTopic.substring(0, 30) + "..."
+                    : firstTopic}
               </Text>
               <Text style={{ fontSize: 10 }}>
                 {BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
