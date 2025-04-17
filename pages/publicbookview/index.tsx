@@ -2,7 +2,6 @@ import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Grid from "@mui/material/Grid";
-import { useRouter } from "next/router";
 
 import Layout from "@/components/layout/Layout";
 import { useState } from "react";
@@ -14,10 +13,9 @@ import { convertDateToDayString } from "@/utils/dateutils";
 
 import { BookType } from "@/entities/BookType";
 
-import BookSummaryCard from "@/components/book/BookSummaryCard";
-
-import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
+import PublicBookSearchBar from "@/components/book/PublicBookSearchBar";
+import PublicBookSummaryCard from "@/components/book/PublicBookSummaryCard";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
 
@@ -47,13 +45,12 @@ export default function PublicBooks({
   maxBooks,
 }: BookPropsType) {
   const theme = useTheme();
-  const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [renderedBooks, setRenderedBooks] = useState(books);
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
-  const [bookCreating, setBookCreating] = useState(false);
+
   const [searchResultNumber, setSearchResultNumber] = useState(0);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
@@ -91,23 +88,12 @@ export default function PublicBooks({
     setBookSearchInput(searchString);
   };
 
-  const toggleView = () => {
-    const newView = !detailView;
-    setDetailView(newView);
-    setPageIndex(numberBooksToShow);
-    console.log("Detail view render toggled", newView);
-  };
-
   const DetailCardContainer = ({ renderedBooks }: any) => {
     return (
       <Grid container spacing={2} alignItems="stretch">
         {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
           <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
-            <BookSummaryCard
-              showDetailsControl={false}
-              book={b}
-              returnBook={() => null}
-            />
+            <PublicBookSummaryCard book={b} />
           </Grid>
         ))}{" "}
         {renderedBooks.length - pageIndex > 0 && (
@@ -143,24 +129,15 @@ export default function PublicBooks({
   };
 
   return (
-    <Layout>
+    <Layout publicView={true}>
       <ThemeProvider theme={theme}>
-        <BookSearchBar
+        <PublicBookSearchBar
           handleInputChange={handleInputChange}
-          handleNewBook={() => {
-            console.log("Read only");
-          }}
           bookSearchInput={bookSearchInput}
-          toggleView={toggleView}
-          detailView={detailView}
           searchResultNumber={searchResultNumber}
-          showNewBookControl={false}
         />
-        {detailView ? (
-          <DetailCardContainer renderedBooks={renderedBooks} />
-        ) : (
-          <SummaryRowContainer renderedBooks={renderedBooks} />
-        )}
+
+        <DetailCardContainer renderedBooks={renderedBooks} />
       </ThemeProvider>
     </Layout>
   );

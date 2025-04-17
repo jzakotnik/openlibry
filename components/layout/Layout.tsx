@@ -1,16 +1,17 @@
 import Container from "@mui/material/Container";
 
-import TopBar from "./TopBar";
 import Footer from "./Footer";
+import TopBar from "./TopBar";
 
 interface LayoutProps {
+  publicView: boolean;
   children: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ publicView = false, children }: LayoutProps) {
   return (
     <div>
-      <TopBar />
+      {publicView ? "" : <TopBar />}
       <Container maxWidth="lg">{children}</Container>
       <Footer />
     </div>
