@@ -113,9 +113,10 @@ const colorbar = ({ id }: any) => {
 
 const generateBarcode = async (id: String) => {
   if (BARCODE_SETTINGS == null) return null;
+  const barId = process.env.BARCODE_MINCODELENGTH != null ? id!.toString().padStart(parseInt(process.env.BARCODE_MINCODELENGTH)) : id!.toString();
   const png = await bwipjs.toBuffer({
     bcid: BARCODE_SETTINGS[4],
-    text: id!.toString(),
+    text: barId,
     scale: 3,
     height: 10,
     includetext: true,
