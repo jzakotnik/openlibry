@@ -18,6 +18,12 @@ import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next/types";
 
+const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
+  ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
+  : 3;
+
+console.log("Delete seconds", process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS);
+
 const theme = createTheme({
   palette: {
     primary: { main: "#1976d2" },
@@ -158,6 +164,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
           book={bookData}
           setBookData={setBookData}
           deleteBook={handleDeleteButton}
+          deleteSafetySeconds={deleteSafetySeconds}
           saveBook={handleSaveButton}
           topics={topics}
           antolinResults={antolinResults}
