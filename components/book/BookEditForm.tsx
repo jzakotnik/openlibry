@@ -25,9 +25,6 @@ import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
 
-const DELETE_SAFETY_SECONDS = (process.env.DELETE_SAFETY_SECONDS ||
-  3) as number;
-
 const bull = (
   <Box
     component="span"
@@ -41,6 +38,7 @@ type BookEditFormPropType = {
   book: BookType;
   setBookData: Dispatch<BookType>;
   deleteBook: React.MouseEventHandler<HTMLButtonElement>;
+  deleteSafetySeconds: number;
   saveBook: React.MouseEventHandler<HTMLButtonElement>;
   topics: string[];
   antolinResults: AntolinResultType | null;
@@ -50,6 +48,7 @@ export default function BookEditForm({
   book,
   setBookData,
   deleteBook,
+  deleteSafetySeconds = 3,
   saveBook,
   topics,
   antolinResults,
@@ -61,7 +60,7 @@ export default function BookEditForm({
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   useState<AlertColor>("success");
-  //console.log("DELETE config", process.env.DELETE_SAFETY_SECONDS);
+  console.log("DELETE config", deleteSafetySeconds);
 
   const toggleEditButton = () => {
     editable
@@ -156,7 +155,7 @@ export default function BookEditForm({
           {editable && (
             <Tooltip title="Löschen">
               <HoldButton
-                duration={DELETE_SAFETY_SECONDS * 1000}
+                duration={deleteSafetySeconds * 1000}
                 buttonLabel="Löschen"
                 onClick={deleteBook}
               />
