@@ -15,7 +15,7 @@ type BookTopicsChipsProps = {
 };
 
 const parseTopics = (combined: string) => {
-  const parsedTopics = combined.split(";").filter((t: string) => t.length > 0);
+  const parsedTopics = (combined != null ? combined : ";").split(";").filter((t: string) => t.length > 0);
   return parsedTopics;
 };
 

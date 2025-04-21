@@ -1,7 +1,9 @@
 import { UserType } from "@/entities/UserType";
 import { getAllUsers } from "@/entities/user";
+import { chunkArray } from "@/utils/chunkArray";
 import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
+  Canvas,
   Document,
   Image,
   Page,
@@ -9,94 +11,205 @@ import ReactPDF, {
   Text,
   View,
 } from "@react-pdf/renderer";
+import bwipjs from "bwip-js";
 import type { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
 
 const prisma = new PrismaClient();
 var fs = require("fs");
 var base64Image = fs.readFileSync(
-  join(process.cwd(), "/public/" + process.env.USERID_LABEL),
+  join(process.cwd(), "/public/" + process.env.USERID_LABEL_IMAGE),
   {
     encoding: "base64",
   }
 );
 
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#FFFFFF",
-  },
-  section: {
-    margin: 15,
+// top, left, width, height, barcode version
+const BARCODE_SETTINGS =
+  process.env.USERLABEL_BARCODE != null
+    ? JSON.parse(process.env.USERLABEL_BARCODE)
+    : null;
 
-    padding: 0,
-    flexGrow: 0,
-    position: "relative", // To position the text over the image
-  },
+const labelsPerPage =
+  process.env.USERLABEL_PER_PAGE != null
+    ? Number(process.env.USERLABEL_PER_PAGE)
+    : 6;
+const styles = StyleSheet.create({
   image: {
-    width: "47vw", // Adjust as needed
+    width: process.env.USERLABEL_WIDTH ? process.env.USERLABEL_WIDTH : "42vw", // Adjust as needed
     height: "auto", // Adjust based on your requirements
   },
-  overlayName: {
-    position: "absolute",
-    top: "75%", // Center vertically, adjust as needed
-    left: "3%", // Center horizontally, adjust as needed
 
-    width: "50vw",
-    margin: "2pt",
-    color: "black", // Choose text color that contrasts with your image
-    fontSize: 14, // Adjust font size as needed
-  },
-  overlayDetails: {
-    position: "absolute",
-    top: "85%", // Center vertically, adjust as needed
-    left: "3%", // Center horizontally, adjust as needed
-
-    color: "black", // Choose text color that contrasts with your image
-    fontSize: 10, // Adjust font size as needed
-  },
-  overlayID: {
-    position: "absolute",
-    top: "90%", // Center vertically, adjust as needed
-    left: "3%", // Center horizontally, adjust as needed
-
-    color: "black", // Choose text color that contrasts with your image
-    fontSize: 12, // Adjust font size as needed
+  pageContainer: {
+    flexDirection: "column",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
   },
 });
 
-const Label = ({ u }: any) => {
-  //console.log(b.id);
-  return (
-    <View style={styles.section}>
-      <Image
-        style={styles.image}
-        src={"data:image/jpg;base64, " + base64Image}
+const generateInfolines = (user: UserType) => {
+  const chunk = Object.entries(process.env).map(([key, value]) => {
+    if (key.startsWith("USERLABEL_LINE_") && value != null) {
+      const valueArr = JSON.parse(value);
+      const replacement = replacePlaceholder(valueArr[0], user);
+      const top = valueArr[1];
+      const left = valueArr[2];
+      const style = {
+        position: "absolute",
+        top: valueArr[1],
+        left: valueArr[2],
+        width: valueArr[3],
+        margin: valueArr[4],
+        color: valueArr[5],
+        fontSize: valueArr[6],
+      } as any;
+      return (
+        <Text key={replacement.toString()} style={style}>
+          {replacement}
+        </Text>
+      );
+    }
+  });
+  return chunk;
+};
+
+const replacePlaceholder = (text: String, user: any) => {
+  try {
+    while (text.includes("User.")) {
+      const nextReplace = String(
+        text.split(" ").find((item: any) => item.includes("User."))
+      );
+      const propertyName = nextReplace.split(".")[1];
+      //let's for the moment assume that the property name is there from the env file
+
+      text = text.replaceAll(nextReplace, user[propertyName]);
+    }
+    return text;
+  } catch (error) {
+    return "Configuration error in environment";
+  }
+};
+
+const colorbar = ({ id }: any) => {
+  const colorbar =
+    process.env.USERLABEL_SEPARATE_COLORBAR != null
+      ? JSON.parse(process.env.USERLABEL_SEPARATE_COLORBAR)
+      : null;
+  if (colorbar != null) {
+    return (
+      <Canvas
+        key={id}
+        paint={(painterObject) =>
+          painterObject
+            .save()
+            .rect(0, 0, colorbar[0], colorbar[1])
+            .fill(colorbar[2])
+        }
       />
-      <Text style={styles.overlayName}>{u.firstName + " " + u.lastName}</Text>
-      <Text style={styles.overlayDetails}>{process.env.SCHOOL_NAME}</Text>
-      <Text style={styles.overlayID}>{"Nr." + u.id}</Text>
-    </View>
-  );
+    );
+  }
+  return null;
 };
 
-// Create Document Component
-const UserLabels = ({ renderedUsers }: any) => {
+const generateBarcode = async (id: String) => {
+  if (BARCODE_SETTINGS == null) return null;
+  const barId = process.env.BARCODE_MINCODELENGTH != null ? id!.toString().padStart(parseInt(process.env.BARCODE_MINCODELENGTH)) : id!.toString();
+  const png = await bwipjs.toBuffer({
+    bcid: BARCODE_SETTINGS[4],
+    text: barId,
+    scale: 3,
+    height: 10,
+    includetext: true,
+    textxalign: "center",
+  });
   return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        {renderedUsers.map((u: any) => {
-          //console.log(b);
-          return <Label key={u.id} u={u} />;
-        })}
-      </Page>
-    </Document>
+    <Image
+      // key={id}
+      src={"data:image/png;base64, " + (await png.toString("base64"))}
+      style={{
+        position: "absolute",
+        width: BARCODE_SETTINGS[2],
+        height: BARCODE_SETTINGS[3],
+        top: BARCODE_SETTINGS[0],
+        left: BARCODE_SETTINGS[1],
+      }}
+    />
   );
 };
 
-async function createLabelsPDF(users: Array<UserType>) {
-  const pdfstream = await ReactPDF.renderToStream(
-    <UserLabels renderedUsers={users} />
+const generateLabels = async (users: Array<UserType>) => {
+  const result = "";
+  const allcodes = await Promise.all(
+    users.map(async (u: UserType, i: number) => {
+      const pos = {
+        left: (i % labelsPerPage <= labelsPerPage / 2 - 1 ? 1 : 11) + "cm",
+        top:
+          (29 / (labelsPerPage / 2) + 0.5) * (i % (labelsPerPage / 2)) + "cm",
+      };
+
+      const infolines = generateInfolines(u);
+      //console.log("Position", pos, i, u.id);
+      const barcode = await generateBarcode(u.id!.toString());
+      return (
+        <div key={u.id!}>
+          <View
+            style={{
+              position: "absolute",
+              flexDirection: "column",
+              left: pos.left,
+              top: pos.top,
+              width: "42vw",
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "column",
+              }}
+            >
+              <Image
+                key={u.id}
+                style={styles.image}
+                src={"data:image/jpg;base64, " + base64Image}
+              />
+
+              {colorbar(u.id)}
+              {infolines}
+              {barcode}
+            </View>
+          </View>
+        </div>
+      );
+    })
+  );
+  return allcodes;
+};
+
+async function createUserPDF(books: Array<UserType>) {
+  var pdfstream;
+  const barcodes = await generateLabels(books);
+  console.log("split", labelsPerPage);
+  const barcodesSections = chunkArray(barcodes, labelsPerPage);
+
+  pdfstream = await ReactPDF.renderToStream(
+    <Document>
+      {barcodesSections.map((chunk, i) => (
+        <Page
+          wrap
+          key={i}
+          size="A4"
+          style={{
+            flexDirection: "column",
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <View key={i} style={styles.pageContainer}>
+            {chunk}
+          </View>
+        </Page>
+      ))}
+    </Document>
   );
 
   return pdfstream;
@@ -114,6 +227,7 @@ export default async function handle(
         //console.log("Search Params", req.query, "end" in req.query);
         const startUserID = "start" in req.query ? req.query.start : "0";
         const endUserID = "end" in req.query ? req.query.end : users.length - 1;
+
         const printableUsers = users
           .reverse()
           .slice(
@@ -126,7 +240,7 @@ export default async function handle(
         if (!users)
           return res.status(400).json({ data: "ERROR: Users  not found" });
 
-        const labels = await createLabelsPDF(printableUsers);
+        const labels = await createUserPDF(printableUsers);
         res.writeHead(200, {
           "Content-Type": "application/pdf",
         });

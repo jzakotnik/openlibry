@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { convertDateToDayString } from "@/utils/dateutils";
+import { Typography } from "@mui/material";
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();
@@ -34,6 +35,7 @@ interface ReportKeyType {
 
 export default function Books({ books }: BookPropsType) {
   const [reportData, setReportData] = useState({ columns: [], rows: [] });
+  const [reportDataAvailable, setReportDataAvailable] = useState(false);
 
   //TODO find a better way for dynamic layouts
   function getWidth(columnName: string = "") {
@@ -53,19 +55,20 @@ export default function Books({ books }: BookPropsType) {
   }
 
   useEffect(() => {
-    const colTitles = books[0];
-    const fields = Object.keys(colTitles) as any;
-    const columns = fields.map((f: string) => {
-      const fieldTranslation = (translations as any)["books"][f];
-      const col = {
-        field: f,
-        headerName: fieldTranslation,
-        width: getWidth(f),
-      };
-      return col;
-    });
-
+    setReportDataAvailable(books.length > 0);
     if (books && books.length > 0) {
+      const colTitles = books[0];
+      const fields = Object.keys(colTitles) as any;
+      const columns = fields.map((f: string) => {
+        const fieldTranslation = (translations as any)["books"][f];
+        const col = {
+          field: f,
+          headerName: fieldTranslation,
+          width: getWidth(f),
+        };
+        return col;
+      });
+
       const rows = books.map((r: any) => {
         const rowCopy = {
           id: r.id,
@@ -91,12 +94,17 @@ export default function Books({ books }: BookPropsType) {
             mt: 5,
           }}
         >
-          <DataGrid
-            autoHeight
-            columns={reportData.columns}
-            rows={reportData.rows}
-            slots={{ toolbar: GridToolbar }}
-          />
+          {" "}
+          {reportDataAvailable ? (
+            <DataGrid
+              autoHeight
+              columns={reportData.columns}
+              rows={reportData.rows}
+              slots={{ toolbar: GridToolbar }}
+            />
+          ) : (
+            <Typography>Keine Daten verfügbar</Typography>
+          )}
         </Box>
       </ThemeProvider>
     </Layout>
