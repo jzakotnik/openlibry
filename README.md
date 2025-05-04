@@ -93,7 +93,7 @@ Folgende Schritte sind so oder so zu erledigen (Zum Beispiel im Home-Verzeichnis
 - Wechsle in das dabei dabei entstandene Verzeichnis: `cd openlibry`
 - Anschließend musst du die Konfiguration/individuelle Anpassung von OpenLibry vornehmen: Zum einen müssen Bilddateien mit den Logos deiner Institution hinterlegt werden. Diese befinden sich im "public" Unterordner, du kannst dich dabei an den vorhandenen Beispielbildern orientieren. Weiterhin muss eine ".env"-Datei angelegt werden. (Hinweis: Dateien mit führenden Punkt sind in der grafischen Oberfläche standardmäßig "unsichtbar". Die Tastenkombination "Strg-h" macht sie sichtbar.) Kopiere dazu die vorhandene ".env_example" Datei nochmal in den Ordner und benenne sie dabei um in ".env":
  `cp .env_example .env`
-- Bearbeite die entstandene ".env" Datei mit einem Texteditor und passe die Werte entsprechend an.
+- Bearbeite die entstandene ".env" Datei mit einem Texteditor und passe die dort beschriebenen Werte entsprechend an, das sind zum Beispiel die Ausleihdauer usw. (Technische Werte, die du aktuell noch nicht verstehst, kannst du auf den voreingestellten Werten belassen.). Dazu gehört u.a. auch, Logos (entsprechende Bilddateien) sowie einen Standard-Mahnungstext (.docx-Datei) im OpenLibry-Unterordner "public" zu hinterlegen. Dabei kann man sich an den schon hinterlegten Beispieldateien orientieren, das gilt insbesondere auch für die Datei mit dem Standard-Mahnungstext "mahnung-template.docx", die du einfach anpassen kannst.
 - Anschließend kannst du Docker alle notwendigen Schritte automatisch übernehmen lassen: `docker build --no-cache -t openlibry .`
 
 Das weitere Vorgehen unterscheidet sich je nach Absicht:
@@ -101,18 +101,21 @@ Das weitere Vorgehen unterscheidet sich je nach Absicht:
 **a) Sandbox-Modus zum rückstandsfreien Ausprobieren:** 
 
 - Docker Container starten: `docker run -i --rm -p 3000:3000 -t openlibry`
-- Öffne OpenLibry im Browser und probiere es aus: `http://localhost:3000`
+- Öffne OpenLibry im Browser und probiere es aus: `http://localhost:3000` (voreingestellter Standard-Wert oder sonst entsprechend deiner Einstellung in der .env-Datei)
 - Zum Beenden den Prozess in der Konsole abrechen mit der Tastenkombination "Strg-c". 
 - Optional das Docker-Image löschen: `docker image rm openlibry `
+
 
 
 **b) Dauerhafte Installation**
 
 - Docker Container dauerhaft starten, er wird dabei auch nach jedem Neustart, Absturz etc. automatisch neu gestartet: `docker compose up` (Hierbei wird Docker gestartet mit Parametern, die in der Datei docker-compose.yml hinterlegt sind. Unter anderem sind hier Volumes angelegt, in welchen die User-Daten deiner Installation liegen. Nach einem Update deines Docker-Containers sind diese dann weiterhin vorhanden.)
-- Öffne OpenLibry im Browser: `http://localhost:3000`
+- Öffne OpenLibry im Browser: `http://localhost:3000` (voreingestellter Standard-Wert oder sonst entsprechend deiner Einstellung in der .env-Datei)
 - Bei Bedarf kannst du die Ausführung dieses Containers manuell stoppen, dann startet er auch nicht sofort automatisch wieder neu: `docker stop openlibry`
 - Bei Bedarf kannst du nach dieser Variante alles zu OpenLibry in Docker wieder löschen:  Du kannst den Container und das Image in Docker wieder entfernen mit: `docker rm openlibry` und `docker image rm openlibry`
 
+**Docker allgemeiner Hinweis zu Speicherplatz**
+- Du experimentierst viel rum und eventuell läuft dein Speicher voll? Docker könnte die Ursache sein, alte Images und build-Dateien kannst du löschen. Bitte bei Bedarf selbstständig mit den folgenden Hinweisen die Details recherchieren, um ALLE (!) builder-Dateien zu löschen folgende Anweisung ausführen: `docker builder prune` , um ALLE (!!!) Images zu löschen funktioniert `docker image prune -a`
 
 
 ### Installation mit nginx als reverse proxy und pm2 als Package Manager
