@@ -47,7 +47,7 @@ export default function BookLabelCard({
 
         <TextField
           id="outlined-number"
-          label="Anzahl Etiketten"
+          label="Anzahl (neueste) Etiketten"
           key="book_report_number_input"
           type="number"
           value={startLabel}
@@ -65,7 +65,7 @@ export default function BookLabelCard({
         />
         <TextField
           id="outlined-number"
-          label="Mediennummer"
+          label="Etikett für MedienID:"
           key="book_report_id_input"
           type="number"
           value={idFilter}
