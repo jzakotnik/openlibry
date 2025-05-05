@@ -67,9 +67,13 @@ export default function BookSummaryCard({
       <CardHeader
         avatar={getAvatarIcon(selectedBook)}
         action={
-          <IconButton aria-label="settings">
-            <MoreVertIcon />
-          </IconButton>
+          <Link href={"/book/" + book.id} passHref>
+            <Tooltip title="Details für das Buch">
+              <IconButton aria-label="settings">
+                <MoreVertIcon />
+              </IconButton>
+            </Tooltip>
+          </Link>
         }
         title={"Buch id " + selectedBook.id}
       />
