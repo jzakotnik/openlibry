@@ -1,5 +1,4 @@
 import {
-  Divider,
   IconButton,
   InputBase,
   Paper,
@@ -7,10 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import GridViewIcon from "@mui/icons-material/GridView";
-import QueueIcon from "@mui/icons-material/Queue";
 import SearchIcon from "@mui/icons-material/Search";
-import ViewListIcon from "@mui/icons-material/ViewList";
 
 import Grid from "@mui/material/Grid";
 
@@ -18,22 +14,14 @@ interface BookSearchBarPropType {
   handleInputChange: React.ChangeEventHandler<
     HTMLTextAreaElement | HTMLInputElement
   >;
-  handleNewBook: React.MouseEventHandler<HTMLButtonElement>;
   bookSearchInput: string;
-  toggleView: React.MouseEventHandler<HTMLButtonElement>;
-  detailView: boolean;
   searchResultNumber: number;
-  showNewBookControl?: boolean;
 }
 
-export default function BookSearchBar({
+export default function PublicBookSearchBar({
   handleInputChange,
-  handleNewBook,
   bookSearchInput,
-  toggleView,
-  detailView,
   searchResultNumber,
-  showNewBookControl = true,
 }: BookSearchBarPropType) {
   return (
     <Grid
@@ -53,15 +41,6 @@ export default function BookSearchBar({
             width: 400,
           }}
         >
-          <Tooltip title="Ansicht wechseln">
-            <IconButton
-              sx={{ p: "10px" }}
-              aria-label="menu"
-              onClick={toggleView}
-            >
-              {detailView ? <GridViewIcon /> : <ViewListIcon />}
-            </IconButton>
-          </Tooltip>
           <InputBase
             sx={{ ml: 1, flex: 1 }}
             value={bookSearchInput}
@@ -75,21 +54,7 @@ export default function BookSearchBar({
               <SearchIcon />
             </IconButton>
           </Tooltip>
-          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          {showNewBookControl ? (
-            <Tooltip title="Neues Buch erzeugen">
-              <IconButton
-                color="primary"
-                data-cy="create_book_button"
-                sx={{ p: "10px" }}
-                aria-label="new-book"
-                onClick={handleNewBook}
-              >
-                <QueueIcon />
-              </IconButton>
-            </Tooltip>
-          ) : null}
-          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+
           <Typography variant="caption">{searchResultNumber}</Typography>
         </Paper>
       </Grid>
