@@ -28,10 +28,16 @@ import {
 import OverdueIcon from "./OverdueIcon";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
+import {
+  extendDays,
+  sameDay,
+} from "@/utils/dateutils";
 import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 import RentSearchParams from "./RentSearchParams";
+
+
 
 type UserPropsType = {
   users: Array<UserType>;
@@ -48,6 +54,7 @@ type UserPropsType = {
 const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
 const defaultSearchParams = { overdue: false, grade: "" };
+
 
 export default function UserRentalList({
   users,
@@ -73,17 +80,16 @@ export default function UserRentalList({
     setUserSearchInput("");
   };
 
-  let selectedSingleUserId: number = -1;
+  let exactMatchUserId: number = -1;
   const handleInputChange = (e: React.ChangeEvent<any>): void => {
     setUserSearchInput(e.target.value);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {
     if (e.key == 'Enter') {
-      if (selectedSingleUserId > -1) {
-        setUserExpanded(selectedSingleUserId);
+      if (exactMatchUserId > -1) {
+        setUserExpanded(exactMatchUserId);
       }
-      console.log("user func: ", handleBookSearchSetFocus);
       handleBookSearchSetFocus();
     } else if (e.key == 'Escape') {
       setUserExpanded(false);
@@ -171,8 +177,8 @@ export default function UserRentalList({
     };
   }
 
-  const filterUsers = (users: Array<UserType>, searchString: string) => {
-    selectedSingleUserId = -1;
+  const filterUsers = (users: Array<UserType>, searchString: string, exactMatch: boolean = false) => {
+    exactMatchUserId = -1;
     if (searchString.length == 0) return users; //nothing to do
     const lowerCaseSearch = searchString.toLowerCase();
     const searchTokens = lowerCaseSearch.split(" ");
@@ -222,11 +228,30 @@ export default function UserRentalList({
       //console.log("Found: ", foundString, foundClass, foundOverdue);
       if (foundString && foundClass && foundOverdue) return u;
     });
+    const idMatchedUser = users.filter((u: UserType) => {
+      // ok again. This time we go for exact match on id only for barcode scanning
+      let foundString = false;
+
+
+      //check if the string is at all there
+      if (
+
+        u.id!.toString() == finalString
+      ) {
+        return u;
+      }
+
+
+    });
     if (filteredUsers.length == 1) {
-      selectedSingleUserId = filteredUsers[0].id!;
+      exactMatchUserId = filteredUsers[0].id!;
+    } else if (idMatchedUser.length == 1) {
+      exactMatchUserId = idMatchedUser[0].id!;
     }
     return filteredUsers;
   };
+
+  const extensionDays = process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14;
 
   return (
     <div>
@@ -249,6 +274,7 @@ export default function UserRentalList({
               placeholder="Name, ID, klasse?, fällig?"
               sx={{ my: 0.5 }}
               id="user-search-input"
+              autoFocus={true}
               inputRef={searchFieldRef}
               startAdornment={
                 <InputAdornment position="start">
@@ -403,26 +429,28 @@ export default function UserRentalList({
                           </Typography>
                         </Grid>
                         <Grid item xs={2}>
-                          <Tooltip title="Verlängern">
-                            <IconButton
-                              aria-label="extend"
-                              onClick={() => {
-                                handleExtendBookButton(
-                                  r.id,
-                                  getBookFromID(r.id!)
-                                );
-                                const time = Date.now();
-                                const newbook = {};
-                                (newbook as any)[r.id!] = time;
-                                setReturnedBooks({
-                                  ...returnedBooks,
-                                  ...newbook,
-                                });
-                              }}
-                            >
-                              <ExtendedIcon key={r.id} />
-                            </IconButton>
-                          </Tooltip>
+                          {(!sameDay(new Date(r.dueDate), extendDays(new Date(), extensionDays))) && (
+                            <Tooltip title="Verlängern">
+                              <IconButton
+                                aria-label="extend"
+                                onClick={() => {
+                                  handleExtendBookButton(
+                                    r.id,
+                                    getBookFromID(r.id!)
+                                  );
+                                  const time = Date.now();
+                                  const newbook = {};
+                                  (newbook as any)[r.id!] = time;
+                                  setReturnedBooks({
+                                    ...returnedBooks,
+                                    ...newbook,
+                                  });
+                                }}
+                              >
+                                <ExtendedIcon key={r.id} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Grid>
                         <Divider />
                       </Grid>
