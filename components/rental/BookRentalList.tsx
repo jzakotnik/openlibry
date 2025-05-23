@@ -17,6 +17,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { extendDays } from "@/utils/dateutils";
 import userNameForBook from "@/utils/userNameForBook";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -68,7 +69,7 @@ export default function BookRentalList({
     setRenderedBooks(foundBooks.data.items);
   }
 
-
+  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
   const handleClear = (e: any) => {
     e.preventDefault();
     setBookSearchInput("");
@@ -176,7 +177,7 @@ export default function BookRentalList({
                       sx={{ px: 0.5 }}
                     >
                       <Grid item>
-                        {!(b.rentalStatus == "available") && (
+                        {!(b.rentalStatus == "available") && ((extensionDays.isAfter(b.dueDate, "day"))) && (
                           <Tooltip title="Verlängern">
                             <IconButton
                               aria-label="extend"

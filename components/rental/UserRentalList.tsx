@@ -28,10 +28,7 @@ import {
 import OverdueIcon from "./OverdueIcon";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
-import {
-  extendDays,
-  sameDay,
-} from "@/utils/dateutils";
+import { extendDays } from "@/utils/dateutils";
 import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -251,7 +248,7 @@ export default function UserRentalList({
     return filteredUsers;
   };
 
-  const extensionDays = process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14;
+  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
 
   return (
     <div>
@@ -429,7 +426,7 @@ export default function UserRentalList({
                           </Typography>
                         </Grid>
                         <Grid item xs={2}>
-                          {(!sameDay(new Date(r.dueDate), extendDays(new Date(), extensionDays))) && (
+                          {userExpanded && (extensionDays.isAfter(r.dueDate, "day")) && (
                             <Tooltip title="Verlängern">
                               <IconButton
                                 aria-label="extend"

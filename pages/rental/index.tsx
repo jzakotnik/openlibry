@@ -25,7 +25,7 @@ import { useRef, useState } from "react";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { getBookFromID } from "@/utils/getBookFromID";
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
-import { enqueueSnackbar, SnackbarProvider } from "notistack";
+import { useSnackbar } from "notistack";
 import useSWR from "swr";
 
 interface RentalPropsType {
@@ -46,7 +46,7 @@ export default function Rental({
   extensionDays,
 }: RentalPropsType) {
   const router = useRouter();
-
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const bookFocusRef = useRef<HTMLInputElement>();
@@ -239,8 +239,7 @@ export default function Rental({
           />
         </Grid>
       </Grid>
-      <SnackbarProvider maxSnack={3} variant="success">
-      </SnackbarProvider>
+
     </Layout>
   );
 }

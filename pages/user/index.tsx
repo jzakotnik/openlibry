@@ -13,8 +13,8 @@ import UserAdminList from "@/components/user/UserAdminList";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import QueueIcon from "@mui/icons-material/Queue";
 import SearchIcon from "@mui/icons-material/Search";
-
 import dayjs from "dayjs";
+import { useSnackbar } from 'notistack';
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
@@ -27,7 +27,7 @@ import { UserType } from "@/entities/UserType";
 import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
-import { Alert, Divider, InputBase, Paper, Snackbar } from "@mui/material";
+import { Divider, InputBase, Paper } from "@mui/material";
 
 const prisma = new PrismaClient();
 /*
@@ -49,34 +49,12 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userCreating, setUserCreating] = useState(false);
   const [newUserDialogVisible, setNewUserDialogVisible] = useState(false);
   const [checked, setChecked] = useState({} as any);
-  const [batchEditSnackbar, setBatchEditSnackbar] = useState(false);
-  const [newUserSnackbarError, setNewUserSnackbarError] = useState(false);
 
+  const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const theme = useTheme();
 
-  useEffect(() => {}, []);
-
-  const handleBatchEditSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setBatchEditSnackbar(false);
-  };
-  const handleNewUserSnackbarError = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setNewUserSnackbarError(false);
-  };
+  useEffect(() => { }, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
@@ -115,7 +93,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .catch((error) => {
         console.error("Error updating user IDs:", error);
         setUserCreating(false);
-        setNewUserSnackbarError(true);
+        enqueueSnackbar("Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?", { variant: "error" });
         // Stop further execution if there is an error
       });
   };
@@ -167,7 +145,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Users increased", data);
-        setBatchEditSnackbar(true);
+        enqueueSnackbar("Klassenstufe für Schüler erhöht")
         router.push("user");
       });
   };
@@ -190,7 +168,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Users deleted", data);
-        setBatchEditSnackbar(true);
+        enqueueSnackbar("Schüler erfolgreich gelöscht")
         router.push("user");
       });
   };
@@ -214,33 +192,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             setNewUserDialogVisible(false);
           }}
         />
-        <Snackbar
-          open={batchEditSnackbar}
-          autoHideDuration={4000}
-          onClose={handleBatchEditSnackbar}
-        >
-          <Alert
-            onClose={handleBatchEditSnackbar}
-            severity="success"
-            sx={{ width: "100%", background: "teal", color: "white" }}
-          >
-            Selektierte Benutzer geändert, super!
-          </Alert>
-        </Snackbar>
-        <Snackbar
-          open={newUserSnackbarError}
-          autoHideDuration={4000}
-          onClose={handleNewUserSnackbarError}
-        >
-          <Alert
-            onClose={handleNewUserSnackbarError}
-            severity="error"
-            sx={{ width: "100%", background: "teal", color: "white" }}
-          >
-            Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon
-            vorhanden?
-          </Alert>
-        </Snackbar>
+
         <Grid
           container
           direction="column"
