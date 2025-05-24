@@ -28,11 +28,13 @@ const bull = (
 interface BookSummaryCardPropType {
   book: BookType;
   returnBook: React.MouseEventHandler<HTMLButtonElement>;
+  showDetailsControl?: boolean;
 }
 
 export default function BookSummaryCard({
   book,
   returnBook,
+  showDetailsControl = true,
 }: BookSummaryCardPropType) {
   const [src, setSrc] = useState("/coverimages/default.jpg");
 
@@ -99,20 +101,22 @@ export default function BookSummaryCard({
           {selectedBook.author}
         </Typography>
       </CardContent>
-      <CardActions>
-        <Link href={"/book/" + book.id} passHref>
-          <Tooltip title="Details für das Buch">
-            <Button size="small" data-cy="book_card_editbutton">
-              Details
+      {showDetailsControl ? (
+        <CardActions>
+          <Link href={"/book/" + book.id} passHref>
+            <Tooltip title="Details für das Buch">
+              <Button size="small" data-cy="book_card_editbutton">
+                Details
+              </Button>
+            </Tooltip>
+          </Link>
+          {book.rentalStatus != "available" ? (
+            <Button size="small" onClick={returnBook}>
+              Abgeben
             </Button>
-          </Tooltip>
-        </Link>
-        {book.rentalStatus != "available" ? (
-          <Button size="small" onClick={returnBook}>
-            Abgeben
-          </Button>
-        ) : null}
-      </CardActions>
+          ) : null}
+        </CardActions>
+      ) : null}
     </Card>
   );
 }
