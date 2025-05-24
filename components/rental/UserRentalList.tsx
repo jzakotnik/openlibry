@@ -29,9 +29,10 @@ import OverdueIcon from "./OverdueIcon";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { extendDays } from "@/utils/dateutils";
-import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
+
 import dayjs from "dayjs";
 import "dayjs/locale/de";
+import { booksForUser, filterUsers } from "../../utils/searchUtils";
 import RentSearchParams from "./RentSearchParams";
 
 
@@ -71,6 +72,16 @@ export default function UserRentalList({
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
   //console.log("Rendering updated users:", users);
 
+
+  const filterUserSub = (users: Array<UserType>, searchString: string, rentals: Array<RentalsUserType>, exactMatch: boolean = false) => {
+    let [filteredUsers, exactMatchRes] =
+      filterUsers(users, searchString, rentals, exactMatch);
+    exactMatchUserId = exactMatchRes;
+    return filteredUsers;
+  }
+
+
+
   const handleClear = (e: any) => {
     e.preventDefault();
     setUserExpanded(false);
@@ -100,11 +111,7 @@ export default function UserRentalList({
       console.log("Expanded user", userID);
     };
 
-  const booksForUser = (id: number): Array<RentalsUserType> => {
-    const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
-    //console.log("Filtered rentals", userRentals);
-    return userRentals;
-  };
+
 
   const getBookFromID = (id: number): BookType => {
     const book = books.filter((b: BookType) => b.id == id);
@@ -149,104 +156,8 @@ export default function UserRentalList({
     return uniqueGrades;
   };
 
-  function searchAndRemoveKlasse(inputString: string) {
-    // Create a regex pattern to find "klasse?" followed by a number
-    const regex = /klasse\?\s?(\d+)/gi;
-
-    // Initialize variables to store whether the string is found and the number
-    let foundKlasse = false;
-    let klasseNumber = 0;
-
-    // Search for the string using the regex pattern and capture the number
-    const match = regex.exec(inputString);
-    if (match) {
-      foundKlasse = true;
-      klasseNumber = parseInt(match[1], 10); // Convert the captured string to an integer
-    }
-
-    // Remove the found string from the original string
-    const updatedString = inputString.replace(regex, "").trim();
-
-    return {
-      foundKlasse,
-      klasseNumber,
-      updatedString,
-    };
-  }
-
-  const filterUsers = (users: Array<UserType>, searchString: string, exactMatch: boolean = false) => {
-    exactMatchUserId = -1;
-    if (searchString.length == 0) return users; //nothing to do
-    const lowerCaseSearch = searchString.toLowerCase();
-    const searchTokens = lowerCaseSearch.split(" ");
-    //console.log("Search tokens", searchTokens);
-    const searchPattern = { klasse: 0, overdue: false };
-    // Create a regex pattern to find "klasse?" followed by a number
-    const { foundKlasse, klasseNumber, updatedString } =
-      searchAndRemoveKlasse(lowerCaseSearch);
-    foundKlasse ? (searchPattern.klasse = klasseNumber) : 0;
-    let finalString = updatedString;
-    if (updatedString.indexOf("fällig?") > -1) {
-      searchPattern.overdue = true;
-      finalString = updatedString.replace("fällig?", "").trim();
-    }
-
-    //console.log("Search check:", searchPattern, finalString);
-
-    const filteredUsers = users.filter((u: UserType) => {
-      //this can be done shorter, but like this is easier to understand, ah well, what a mess
-      let foundString = false;
-      let foundClass = true;
-      let foundOverdue = true;
-      const filterForClass = foundKlasse;
-      const filterForOverdue = searchPattern.overdue;
-
-      //check if the string is at all there
-      if (
-        u.lastName.toLowerCase().includes(finalString) ||
-        u.firstName.toLowerCase().includes(finalString) ||
-        u.id!.toString().includes(finalString)
-      ) {
-        foundString = true;
-      }
-      if (
-        filterForClass &&
-        !(searchPattern.klasse == parseInt(u.schoolGrade!))
-      ) {
-        foundClass = false;
-      }
-      if (
-        filterForOverdue &&
-        !(searchPattern.overdue == hasOverdueBooks(booksForUser(u.id!)))
-      ) {
-        foundOverdue = false;
-      }
-
-      //console.log("Found: ", foundString, foundClass, foundOverdue);
-      if (foundString && foundClass && foundOverdue) return u;
-    });
-    const idMatchedUser = users.filter((u: UserType) => {
-      // ok again. This time we go for exact match on id only for barcode scanning
-      let foundString = false;
 
 
-      //check if the string is at all there
-      if (
-
-        u.id!.toString() == finalString
-      ) {
-        return u;
-      }
-
-
-    });
-    if (filteredUsers.length == 1) {
-      exactMatchUserId = filteredUsers[0].id!;
-    } else if (idMatchedUser.length == 1) {
-      exactMatchUserId = idMatchedUser[0].id!;
-    }
-    return filteredUsers;
-  };
 
   const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
 
@@ -321,8 +232,8 @@ export default function UserRentalList({
           setUserSearchInput={setUserSearchInput}
         />
       )}
-      {filterUsers(users, userSearchInput).map((u: UserType) => {
-        const rentalsUser = booksForUser(u.id!);
+      {filterUserSub(users, userSearchInput, rentals).map((u: UserType) => {
+        const rentalsUser = booksForUser(u.id!, rentals);
 
         return (
           //display the whole list to select one

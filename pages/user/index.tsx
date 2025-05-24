@@ -215,7 +215,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 sx={{ ml: 1, flex: 1 }}
                 value={userSearchInput}
                 onChange={handleInputChange}
-                placeholder="NutzerIn suchen.."
+                placeholder="Name, ID, klasse?, fällig?"
                 inputProps={{ "aria-label": "search users" }}
                 data-cy="rental_input_searchuser"
               />
