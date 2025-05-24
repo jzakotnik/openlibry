@@ -4,7 +4,7 @@ import Footer from "./Footer";
 import TopBar from "./TopBar";
 
 interface LayoutProps {
-  publicView: boolean;
+  publicView?: boolean;
   children: React.ReactNode;
 }
 
