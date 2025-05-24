@@ -65,16 +65,21 @@ export default function XLSImport() {
     worksheet.eachRow(
       { includeEmpty: false },
       (row: any, rowNumber: number) => {
-        //console.log("Reading row", row);
+        console.log("Reading row", row);
         const rowValues = row.values as ExcelJS.CellValue[];
         if (rowNumber === 1) {
           // Assuming the first row contains headers
           json.push(rowValues); // Capturing headers
         } else {
           const rowData: any = {};
-          rowValues.forEach((value, index) => {
+          rowValues.forEach((value: any, index: number) => {
             if (json[0] && json[0][index]) {
-              rowData[json[0][index] as string] = value;
+              const cell = row.getCell(index);
+              const actualValue =
+                cell.type === ExcelJS.ValueType.Formula
+                  ? cell.result
+                  : cell.value;
+              rowData[json[0][index] as string] = actualValue;
             }
           });
           json.push(rowData);
