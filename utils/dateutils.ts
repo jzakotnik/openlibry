@@ -40,9 +40,12 @@ export function extendWeeks(d: Date, weeks: number): Dayjs {
   return newDate;
 }
 
+export function sameDay(d: Date, o: Dayjs): boolean {
+  return o.isSame(d, "day");
+}
+
 export function extendDays(d: Date, days: number): Dayjs {
-  //console.log("Converting string to dayjs", d, dayjs(d));
-  console.log("Extending book by ", days, d);
+
   const newDate = dayjs(d).add(days, "day");
   return newDate;
 }
