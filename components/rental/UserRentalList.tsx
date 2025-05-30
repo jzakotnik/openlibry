@@ -28,10 +28,14 @@ import {
 import OverdueIcon from "./OverdueIcon";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
-import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
+import { extendDays } from "@/utils/dateutils";
+
 import dayjs from "dayjs";
 import "dayjs/locale/de";
+import { booksForUser, filterUsers } from "../../utils/searchUtils";
 import RentSearchParams from "./RentSearchParams";
+
+
 
 type UserPropsType = {
   users: Array<UserType>;
@@ -49,6 +53,7 @@ const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
 const defaultSearchParams = { overdue: false, grade: "" };
 
+
 export default function UserRentalList({
   users,
   books,
@@ -65,7 +70,15 @@ export default function UserRentalList({
   const [returnedBooks, setReturnedBooks] = useState({});
   const [showDetailSearch, setShowDetailSearch] = useState(false);
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
-  //console.log("Rendering updated users:", users);
+
+  const filterUserSub = (users: Array<UserType>, searchString: string, rentals: Array<RentalsUserType>, exactMatch: boolean = false) => {
+    let [filteredUsers, exactMatchRes] =
+      filterUsers(users, searchString, rentals, exactMatch);
+    exactMatchUserId = exactMatchRes;
+    return filteredUsers;
+  }
+
+
 
   const handleClear = (e: any) => {
     e.preventDefault();
@@ -73,17 +86,16 @@ export default function UserRentalList({
     setUserSearchInput("");
   };
 
-  let selectedSingleUserId: number = -1;
+  let exactMatchUserId: number = -1;
   const handleInputChange = (e: React.ChangeEvent<any>): void => {
     setUserSearchInput(e.target.value);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {
     if (e.key == 'Enter') {
-      if (selectedSingleUserId > -1) {
-        setUserExpanded(selectedSingleUserId);
+      if (exactMatchUserId > -1) {
+        setUserExpanded(exactMatchUserId);
       }
-      console.log("user func: ", handleBookSearchSetFocus);
       handleBookSearchSetFocus();
     } else if (e.key == 'Escape') {
       setUserExpanded(false);
@@ -97,11 +109,7 @@ export default function UserRentalList({
       console.log("Expanded user", userID);
     };
 
-  const booksForUser = (id: number): Array<RentalsUserType> => {
-    const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
-    //console.log("Filtered rentals", userRentals);
-    return userRentals;
-  };
+
 
   const getBookFromID = (id: number): BookType => {
     const book = books.filter((b: BookType) => b.id == id);
@@ -146,87 +154,10 @@ export default function UserRentalList({
     return uniqueGrades;
   };
 
-  function searchAndRemoveKlasse(inputString: string) {
-    // Create a regex pattern to find "klasse?" followed by a number
-    const regex = /klasse\?\s?(\d+)/gi;
 
-    // Initialize variables to store whether the string is found and the number
-    let foundKlasse = false;
-    let klasseNumber = 0;
 
-    // Search for the string using the regex pattern and capture the number
-    const match = regex.exec(inputString);
-    if (match) {
-      foundKlasse = true;
-      klasseNumber = parseInt(match[1], 10); // Convert the captured string to an integer
-    }
 
-    // Remove the found string from the original string
-    const updatedString = inputString.replace(regex, "").trim();
-
-    return {
-      foundKlasse,
-      klasseNumber,
-      updatedString,
-    };
-  }
-
-  const filterUsers = (users: Array<UserType>, searchString: string) => {
-    selectedSingleUserId = -1;
-    if (searchString.length == 0) return users; //nothing to do
-    const lowerCaseSearch = searchString.toLowerCase();
-    const searchTokens = lowerCaseSearch.split(" ");
-    //console.log("Search tokens", searchTokens);
-    const searchPattern = { klasse: 0, overdue: false };
-    // Create a regex pattern to find "klasse?" followed by a number
-    const { foundKlasse, klasseNumber, updatedString } =
-      searchAndRemoveKlasse(lowerCaseSearch);
-    foundKlasse ? (searchPattern.klasse = klasseNumber) : 0;
-    let finalString = updatedString;
-    if (updatedString.indexOf("fällig?") > -1) {
-      searchPattern.overdue = true;
-      finalString = updatedString.replace("fällig?", "").trim();
-    }
-
-    //console.log("Search check:", searchPattern, finalString);
-
-    const filteredUsers = users.filter((u: UserType) => {
-      //this can be done shorter, but like this is easier to understand, ah well, what a mess
-      let foundString = false;
-      let foundClass = true;
-      let foundOverdue = true;
-      const filterForClass = foundKlasse;
-      const filterForOverdue = searchPattern.overdue;
-
-      //check if the string is at all there
-      if (
-        u.lastName.toLowerCase().includes(finalString) ||
-        u.firstName.toLowerCase().includes(finalString) ||
-        u.id!.toString().includes(finalString)
-      ) {
-        foundString = true;
-      }
-      if (
-        filterForClass &&
-        !(searchPattern.klasse == parseInt(u.schoolGrade!))
-      ) {
-        foundClass = false;
-      }
-      if (
-        filterForOverdue &&
-        !(searchPattern.overdue == hasOverdueBooks(booksForUser(u.id!)))
-      ) {
-        foundOverdue = false;
-      }
-
-      //console.log("Found: ", foundString, foundClass, foundOverdue);
-      if (foundString && foundClass && foundOverdue) return u;
-    });
-    if (filteredUsers.length == 1) {
-      selectedSingleUserId = filteredUsers[0].id!;
-    }
-    return filteredUsers;
-  };
+  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
 
   return (
     <div>
@@ -249,6 +180,7 @@ export default function UserRentalList({
               placeholder="Name, ID, klasse?, fällig?"
               sx={{ my: 0.5 }}
               id="user-search-input"
+              autoFocus={true}
               inputRef={searchFieldRef}
               startAdornment={
                 <InputAdornment position="start">
@@ -298,9 +230,8 @@ export default function UserRentalList({
           setUserSearchInput={setUserSearchInput}
         />
       )}
-      {filterUsers(users, userSearchInput).map((u: UserType) => {
-        const rentalsUser = booksForUser(u.id!);
-
+      {filterUserSub(users, userSearchInput, rentals).map((u: UserType) => {
+        const rentalsUser = booksForUser(u.id!, rentals);
         return (
           //display the whole list to select one
           <Accordion
@@ -363,73 +294,82 @@ export default function UserRentalList({
                 justifyContent="flex-start"
                 sx={{ px: 1, my: 1 }}
               >
-                {rentalsUser.map((r: RentalsUserType) => (
-                  <span key={"span" + r.id}>
-                    {" "}
-                    <Paper elevation={0} key={r.id} sx={{ my: 1 }}>
-                      <Grid
-                        container
-                        direction="row"
-                        alignItems="center"
-                        justifyContent="flex-start"
-                        sx={{ px: 1 }}
-                      >
-                        {" "}
-                        <Grid item xs={2}>
-                          <Tooltip title="Zurückgeben">
-                            <IconButton
-                              onClick={() => {
-                                if (!userExpanded) return; //something went wrong and no user is available to return the book
-                                handleReturnBookButton(r.id, userExpanded);
-                                const time = Date.now();
-                                const newbook = {};
-                                (newbook as any)[r.id!] = time;
-                                setReturnedBooks({
-                                  ...returnedBooks,
-                                  ...newbook,
-                                });
-                              }}
-                              aria-label="zurückgeben"
-                            >
-                              <ReturnedIcon key={r.id} />
-                            </IconButton>
-                          </Tooltip>
+                {rentalsUser.map((r: RentalsUserType) => {
+                  let allowExtendBookRent = extensionDays.isAfter(r.dueDate, "day");
+                  let tooltip = allowExtendBookRent ? "Verlängern" : "Maximale Ausleihzeit erreicht";
+                  return (
+                    <span key={"span" + r.id}>
+                      {" "}
+                      <Paper elevation={0} key={r.id} sx={{ my: 1 }}>
+                        <Grid
+                          container
+                          direction="row"
+                          alignItems="center"
+                          justifyContent="flex-start"
+                          sx={{ px: 1 }}
+                        >
+                          {" "}
+                          <Grid item xs={2}>
+                            <Tooltip title="Zurückgeben">
+                              <IconButton
+                                onClick={() => {
+                                  if (!userExpanded) return; //something went wrong and no user is available to return the book
+                                  handleReturnBookButton(r.id, userExpanded);
+                                  const time = Date.now();
+                                  const newbook = {};
+                                  (newbook as any)[r.id!] = time;
+                                  setReturnedBooks({
+                                    ...returnedBooks,
+                                    ...newbook,
+                                  });
+                                }}
+                                aria-label="zurückgeben"
+                              >
+                                <ReturnedIcon key={r.id} />
+                              </IconButton>
+                            </Tooltip>
+                          </Grid>
+                          <Grid item xs={8}>
+                            <Typography sx={{ m: 1 }}>{r.title},</Typography>
+                            <Typography variant="caption">
+                              bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
+                              {r.renewalCount}x verlängert
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={2}>
+                            {userExpanded && (
+                              <Tooltip title={tooltip} >
+                                <span>
+                                  <IconButton
+                                    aria-label="extend"
+                                    disabled={!allowExtendBookRent}
+                                    onClick={() => {
+                                      handleExtendBookButton(
+                                        r.id,
+                                        getBookFromID(r.id!)
+                                      );
+                                      const time = Date.now();
+                                      const newbook = {};
+                                      (newbook as any)[r.id!] = time;
+                                      setReturnedBooks({
+                                        ...returnedBooks,
+                                        ...newbook,
+                                      });
+                                    }}
+                                  >
+                                    <ExtendedIcon key={r.id} />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                          </Grid>
+                          <Divider />
                         </Grid>
-                        <Grid item xs={8}>
-                          <Typography sx={{ m: 1 }}>{r.title},</Typography>
-                          <Typography variant="caption">
-                            bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
-                            {r.renewalCount}x verlängert
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Tooltip title="Verlängern">
-                            <IconButton
-                              aria-label="extend"
-                              onClick={() => {
-                                handleExtendBookButton(
-                                  r.id,
-                                  getBookFromID(r.id!)
-                                );
-                                const time = Date.now();
-                                const newbook = {};
-                                (newbook as any)[r.id!] = time;
-                                setReturnedBooks({
-                                  ...returnedBooks,
-                                  ...newbook,
-                                });
-                              }}
-                            >
-                              <ExtendedIcon key={r.id} />
-                            </IconButton>
-                          </Tooltip>
-                        </Grid>
-                        <Divider />
-                      </Grid>
-                    </Paper>
-                    <Divider variant="fullWidth" />
-                  </span>
-                ))}
+                      </Paper>
+                      <Divider variant="fullWidth" />
+                    </span>
+                  )
+                })}
               </Grid>
             </AccordionDetails>
           </Accordion>

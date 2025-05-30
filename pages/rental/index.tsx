@@ -10,6 +10,7 @@ import {
   convertDateToDayString,
   extendDays,
   replaceBookStringDate,
+  sameDay,
 } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 
@@ -23,8 +24,8 @@ import { useRef, useState } from "react";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { getBookFromID } from "@/utils/getBookFromID";
-import { Snackbar } from "@mui/material";
-import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
+import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import { useSnackbar } from "notistack";
 import useSWR from "swr";
 
 interface RentalPropsType {
@@ -45,21 +46,19 @@ export default function Rental({
   extensionDays,
 }: RentalPropsType) {
   const router = useRouter();
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-
-  const [snackBarMessage, setSnackBarMessage] = useState("");
-  const [snackBarSeverity, setSnackBarSeverity] =
-    useState<AlertColor>("success");
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const bookFocusRef = useRef<HTMLInputElement>();
   const handleBookSearchSetFocus = () => {
     bookFocusRef.current!.focus();
+    bookFocusRef.current!.select();
   }
 
   const userFocusRef = useRef<HTMLInputElement>();
   const handleUserSearchSetFocus = () => {
     userFocusRef.current!.focus();
+    userFocusRef.current!.select();
   }
 
   const { data, error } = useSWR(
@@ -87,43 +86,45 @@ export default function Rental({
             "ERROR while calling API for returning the book",
             res.statusText
           );
-          setSnackBarMessage(
+          enqueueSnackbar(
             "Leider hat es nicht geklappt, der Server ist aber erreichbar"
-          );
-          setSnackBarSeverity("error");
-          setSnackbarOpen(true);
+            , { variant: "error" });
+
         }
         return res.json();
       })
       .then((data) => {
         console.log(data);
-        setSnackBarMessage(
+        enqueueSnackbar(
           "Buch - " + getBookFromID(bookid, books).title + " - zurückgegeben"
         );
-        setSnackbarOpen(true);
       })
       .catch((error) => {
-        setSnackBarMessage(
+        enqueueSnackbar(
           "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
-        );
-        setSnackBarSeverity("error");
-        setSnackbarOpen(true);
+          , { variant: "error" });
       });
+    handleBookSearchSetFocus();
   };
 
   const handleExtendBookButton = (bookid: number, book: BookType) => {
-    console.log("Extending book ", bookid, book);
+    // console.log("Extending book ", bookid, book);
     const newbook = replaceBookStringDate(book) as any;
 
-    console.log("Extension days: ", extensionDays);
+    // console.log("Extension days: ", extensionDays);
     //extend logic
     const newDueDate = extendDays(new Date(), extensionDays);
-    newbook.dueDate = newDueDate.toDate();
+
+    if (sameDay(newbook.dueDate, newDueDate)) {
+      enqueueSnackbar("Buch - " + book.title + " - ist bereits bis zum maximalen Ende ausgeliehen", { variant: "warning" });
+      return;
+    }
     newbook.renewalCount = newbook.renewalCount + 1;
+    newbook.dueDate = newDueDate.toDate();
 
     delete newbook.user; //don't need the user here
     delete newbook._id; // I think this is an id introduced by SWR, no  idea why, but we don't need it in the update call
-    console.log("Extending book, json body", JSON.stringify(newbook));
+    // console.log("Extending book, json body", JSON.stringify(newbook));
 
     fetch("/api/book/" + bookid, {
       method: "PUT",
@@ -138,28 +139,24 @@ export default function Rental({
             "ERROR while calling API for extending the book",
             res.statusText
           );
-          setSnackBarMessage(
+          enqueueSnackbar(
             "Leider hat es nicht geklappt, der Server ist aber erreichbar"
-          );
-          setSnackBarSeverity("error");
-          setSnackbarOpen(true);
+            , { variant: "error" });
         }
 
         return res.json();
       })
       .then((data) => {
-        console.log(data);
-        setSnackBarMessage("Buch - " + book.title + " - verlängert");
-        setSnackbarOpen(true);
+        // console.log(data);
+        enqueueSnackbar("Buch - " + book.title + " - verlängert");
+
       })
       .catch((error) => {
-        setSnackBarMessage(
+        enqueueSnackbar(
           "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
-        );
-        setSnackBarSeverity("error");
-        setSnackbarOpen(true);
+          , { variant: "error" });
       });
-    //TODO create negative snackbar if something went wrong
+    handleBookSearchSetFocus();
   };
 
   const handleRentBookButton = (bookid: number, userid: number) => {
@@ -176,39 +173,29 @@ export default function Rental({
             "ERROR while calling API for renting the book",
             res.statusText
           );
-          setSnackBarMessage(
+          enqueueSnackbar(
             "Leider hat es nicht geklappt, der Server ist aber erreichbar"
-          );
-          setSnackBarSeverity("error");
-          setSnackbarOpen(true);
+            , { variant: "error" });
+
         }
         return res.json();
       })
       .then((data) => {
         console.log(data);
-        setSnackBarMessage(
+        enqueueSnackbar(
           "Buch " + getBookFromID(bookid, books).title + " ausgeliehen"
         );
-        setSnackbarOpen(true);
+
       })
       .catch((error) => {
-        setSnackBarMessage(
+        enqueueSnackbar(
           "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
-        );
-        setSnackBarSeverity("error");
-        setSnackbarOpen(true);
+          , { variant: "error" });
+
       });
+    handleBookSearchSetFocus();
   };
 
-  const handleCloseSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
@@ -252,20 +239,7 @@ export default function Rental({
           />
         </Grid>
       </Grid>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={5000}
-        onClose={handleCloseSnackbar}
-        sx={{ width: "50%" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackBarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackBarMessage}
-        </Alert>
-      </Snackbar>
+
     </Layout>
   );
 }

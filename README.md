@@ -33,6 +33,19 @@ Edit-Screen
 
 ![Bücher Edit Screenshot](./doc/buchedit1.jpg)
 
+## Benutzung
+### Ausleihe
+Der Ausleih-Screen ist auf vereinfachte Benutzung mit einem Barcodelesegerät ausgerichtet. Initial liegt der Fokus auf dem Benutzersuchfeld. Durch scannen des Benutzerbarcodes wird der Nutzer ausgewählt (Der Barcodeleser muss dazu einen Enter-Befehl senden. Dies ist für die meisten Lesegeräte die Standardeinstellung oder lässt sich konfigurieren). Der Nutzer wird ausgeklappt, es können manuell Bücher zurück gegeben werden.
+
+Der Fokus springt automatisch auf die Büchersuche. Hier kann das zu leihende Buch gescannt werden und manuell ausgeliehen werden. Nach dem Leih- oder Rückgabevorgang wird automatisch der Inhalt des Buchsuchfeldes markiert, so dass direkt nach dem nächsten Buch gesucht werden kann. Alternativ löscht Esc den Inhalt, und ein erneutes Esc springt zurück zur Nutzersuche.
+
+Bücher können auch per Klick verlängert werden. Die Option zur Verlängerung wird nicht angezeigt, wenn bereits die aktuell maximale Ausleihzeit erreicht ist.
+
+### Benutzerverwaltung
+In der Nutzerverwaltung können sämtliche Nutzer / Leiher angepasst und neue erstellt werden. Mehrere Nutzer können markiert und im Paket gelöscht werden. 
+
+Ebenso kann die Klasse im neuen Schuljahr hier einfach erhöht werden. Dazu erst die Nutzer auswählen / markieren, und dann auf `+1` klicken. Im Klassennamen wird der Zahlenanteil dabei um eins erhöht.
+![Nutzerverwaltung - Klasse erhöhen](./doc/NutzerScreen.png)
 
 ## Installation und Konfiguration
 
@@ -40,6 +53,36 @@ Edit-Screen
 - Konfiguriere den Servernamen in einer `.env`-Datei im Hauptordner entsprechend der Werte im `.env_example`, z.B. `NEXT_PUBLIC_API_URL="http://localhost:3000"
 `
 - Der Wert `AUTH_ENABLED` sollte zunächst auf `false` gesetzt werden, so dass man sich beim ersten Login ohne Authentifizierung einloggen kann. Via `https://<domain>/auth/register` kann man dann den ersten User anlegen und danach `AUTH_ENABLED` auf `true` setzen.
+
+
+### Konfiguration der Bücherlabels
+Die Bücherlabels sind zum ausdrucken auf A4 Labelpapier gedacht. Sowohl die Größe als auch der Inhalt lässt sich in der .env Datei anpassen.
+Ränder oben, links sowie horizontale und vertikale Abstände zwischen den Labels lassen sich in cm angeben. Zur genaueren Positionierung kann mit `BOOKLABEL_PRINT_LABEL_FRAME` ein Ramen um die einzelnen Labels erstellt werden. Dieser kann nach dem Ausrichten wieder deaktiviert werden, oder zum ausschneiden benutz werden.
+
+Das Label erlaubt bis zu vier separate Datenblöcke zusätzlich zu einem Barcode Label. Ein Block (`BOOKLABEL_AUTHORLINE`) ist links am Rand und um 90° gedreht. Ein Block (`BOOKLABEL_LINE_ABOVE`) ist oberhalb des Barcodes, bis zu zwei (`BOOKLABEL_LINE_BELOW_1` und `BOOKLABEL_LINE_BELOW_2`) unterhalb. Diese können auch leer gelassen werden. Unterhalb des Barcodes wird die Buch-ID ausgegeben.
+
+In den Datenblöcken können - ähnlich wie beim Benutzerausweis - alle Felder aus dem Buch sowie Freitext abgebildet werden. `["Titel: Book.title",10,"left"]` würde z.B. den Text "Titel: " gefolgt vom Titel des Buches in Schriftgröße 10 und linksbündig ausgeben.
+
+Beispiel:
+![Beispiel Bücherlabel](./doc/boocklabelSpacings.png)
+
+### Konfiguration der Benutzerausweise
+Wie die Bücherlabel sind auch die Benutzerausweise zum ausdruck auf DinA4 Papier gedacht, dass danach zugeschnitten und z.B. laminiert werden kann. 
+
+Der Benutzerausweis besteht aus einem Bild und darauf oder da drunter den Datenblöcken. Im Gegensatz zum Bücherlabel können jedoch beliebig viele Datenblöcke eingefügt werden.
+
+`USERLABEL_WIDTH` gibt die Breite des Bildes an. Es kann eine beliebige CSS Einheit angegeben werden, z.B.
+- `cm` für Angaben in cm
+- `px` für Angaben in Pixel
+- `vw` für Angaben in Prozent relativ zur Größe
+
+Mit `USERLABEL_SEPARATE_COLORBAR` kann unterhalb des Bildes ein zusätzlicher farbiger Balken eingebracht werden, um z.B. einen Kontrast für die Datenblöcke zu liefern. Die Größe ist hier in Pixeln.
+
+Beispiel für einen Datenblock:
+`USERLABEL_LINE_1= ["User.firstName User.lastName","75%","3%","35vw","2pt","black",14]`
+Dies erzeugt einen Block mit 75% Abstand zum oberen Ausweisrand und 3% zum linken Rand über 35% der relativen Größe. 2 Punkte Rand innerhalb des Blockes, Schritfgröße 14 und Schriftfarbe Schwarz. Als Text wird Vor- und Nachname des benutzers ausgegeben.
+
+`BARCODE_MINCODELENGTH` setzt die minimale Barcodelänge sowohl für Bücher- als auch Nutzerausweis fest. Dies kann notwendig sein für einen Barcodescanner, der eine bestimmte minimale Barcodelänge benötigt. Die Codes werden mit Leerzeichen ausgefüllt, was in den Suchmasken ignoriert wird.
 
 ### Bare Metal am Beispiel Raspberry Pi
 

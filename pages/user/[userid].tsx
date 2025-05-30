@@ -7,7 +7,6 @@ import { getUser } from "../../entities/user";
 import { getRentedBooksForUser } from "@/entities/book";
 
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
 import { useRouter } from "next/router";
 import { forwardRef } from "react";
 
@@ -24,6 +23,7 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next/types";
+import { useSnackbar } from 'notistack';
 
 type UserDetailPropsType = {
   user: UserType;
@@ -52,10 +52,7 @@ export default function UserDetail({
   const router = useRouter();
 
   const [userData, setUserData] = useState(user);
-  const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
-
-  const [extendBookSnackbar, setExtendBookSnackbar] = useState(false);
-
+  const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     setUserData(user);
   }, []);
@@ -72,26 +69,6 @@ export default function UserDetail({
   //console.log("User Page", userid);
   //console.log("User, Books", user, books);
 
-  const handleCloseReturnBookSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setReturnBookSnackbar(false);
-  };
-
-  const handleCloseExtendBookSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setExtendBookSnackbar(false);
-  };
 
   const handleSaveButton = () => {
     console.log("Saving user ", userData);
@@ -107,7 +84,12 @@ export default function UserDetail({
       body: JSON.stringify(savingUser),
     })
       .then((res) => res.json())
-      .then((data) => { router.push("/user"); });
+      .then((data) => {
+        enqueueSnackbar(
+          "Nutzer " + userData.firstName + " " + userData.lastName + " gespeichert"
+        );
+        router.push("/user");
+      });
   };
 
   const handleReturnBookButton = (bookid: number) => {
@@ -122,7 +104,9 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setReturnBookSnackbar(true);
+        enqueueSnackbar(
+          "Buch zurückgegeben, super!"
+        );
       });
   };
 
@@ -151,7 +135,9 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setExtendBookSnackbar(true);
+        enqueueSnackbar(
+          "Buch verlängert, super!"
+        );
       });
     //T
   };
@@ -168,6 +154,9 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", userid, data);
+        enqueueSnackbar(
+          "Nutzer gelöscht!"
+        );
         router.push("/user");
       });
   };
@@ -185,32 +174,7 @@ export default function UserDetail({
           extendBook={handleExtendBookButton}
           initiallyEditable={true}
         />
-        <Snackbar
-          open={returnBookSnackbar}
-          autoHideDuration={8000}
-          onClose={handleCloseReturnBookSnackbar}
-        >
-          <Alert
-            onClose={handleCloseReturnBookSnackbar}
-            severity="success"
-            sx={{ width: "100%" }}
-          >
-            Buch zurückgegeben, super!
-          </Alert>
-        </Snackbar>
-        <Snackbar
-          open={extendBookSnackbar}
-          autoHideDuration={8000}
-          onClose={handleCloseExtendBookSnackbar}
-        >
-          <Alert
-            onClose={handleCloseExtendBookSnackbar}
-            severity="success"
-            sx={{ width: "100%" }}
-          >
-            Buch verlängert, ist ein U-Boot, taucht wieder auf!
-          </Alert>
-        </Snackbar>
+
       </ThemeProvider>
     </Layout>
   );

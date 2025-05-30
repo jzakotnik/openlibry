@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { getAllTopics, getBook } from "../../entities/book";
 
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
 import { useRouter } from "next/router";
 import { forwardRef } from "react";
 
@@ -17,6 +16,8 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next/types";
+import { useSnackbar } from 'notistack';
+
 
 const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
   ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
@@ -48,9 +49,8 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
 
   const [bookData, setBookData] = useState<BookType>(book);
   const [antolinResults, setAntolinResults] = useState(null);
-  const [returnBookSnackbar, setReturnBookSnackbar] = useState(false);
-  const [saveBookSnackbar, setSaveBookSnackbar] = useState(false);
 
+  const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     setBookData(book);
     fetch("/api/antolin/" + book.id, {
@@ -80,28 +80,6 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       : router.query.bookid
   );
 
-  const handleCloseReturnBookSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setReturnBookSnackbar(false);
-  };
-
-  const handleCloseSaveBookSnackbar = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setSaveBookSnackbar(false);
-  };
-
   const handleSaveButton = () => {
     console.log("Saving book ", bookData);
 
@@ -120,7 +98,10 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
     })
       .then((res) => res.json())
       .then((data) => {
-        setSaveBookSnackbar(true);
+        enqueueSnackbar(
+          "Buch " + bookData.title + " gespeichert, gut gemacht!"
+        );
+
         router.push("/book");
       });
   };
@@ -137,7 +118,9 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        setReturnBookSnackbar(true);
+        enqueueSnackbar(
+          "Buch zurückgegeben, super!"
+        );
       });
   };
 
@@ -153,6 +136,9 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", bookid, data);
+        enqueueSnackbar(
+          "Buch gelöscht"
+        );
         router.push("/book");
       });
   };
@@ -169,32 +155,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
           topics={topics}
           antolinResults={antolinResults}
         />
-        <Snackbar
-          open={returnBookSnackbar}
-          autoHideDuration={4000}
-          onClose={handleCloseReturnBookSnackbar}
-        >
-          <Alert
-            onClose={handleCloseReturnBookSnackbar}
-            severity="success"
-            sx={{ width: "100%" }}
-          >
-            Buch zurückgegeben, super!
-          </Alert>
-        </Snackbar>
-        <Snackbar
-          open={saveBookSnackbar}
-          autoHideDuration={4000}
-          onClose={handleCloseSaveBookSnackbar}
-        >
-          <Alert
-            onClose={handleCloseSaveBookSnackbar}
-            severity="success"
-            sx={{ width: "100%" }}
-          >
-            Buch gespeichert, gut gemacht!
-          </Alert>
-        </Snackbar>
+
       </ThemeProvider>
     </Layout>
   );

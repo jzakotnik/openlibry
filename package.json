@@ -40,6 +40,7 @@
     "jsbarcode": "^3.11.6",
     "next": "^14.0.1",
     "next-auth": "^4.24.4",
+    "notistack": "^3.0.2",
     "pizzip": "^3.1.7",
     "react": "^18.2.0",
     "react-barcode": "^1.4.6",
