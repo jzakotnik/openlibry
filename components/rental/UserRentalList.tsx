@@ -70,8 +70,6 @@ export default function UserRentalList({
   const [returnedBooks, setReturnedBooks] = useState({});
   const [showDetailSearch, setShowDetailSearch] = useState(false);
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
-  //console.log("Rendering updated users:", users);
-
 
   const filterUserSub = (users: Array<UserType>, searchString: string, rentals: Array<RentalsUserType>, exactMatch: boolean = false) => {
     let [filteredUsers, exactMatchRes] =
@@ -234,7 +232,6 @@ export default function UserRentalList({
       )}
       {filterUserSub(users, userSearchInput, rentals).map((u: UserType) => {
         const rentalsUser = booksForUser(u.id!, rentals);
-
         return (
           //display the whole list to select one
           <Accordion
@@ -297,55 +294,27 @@ export default function UserRentalList({
                 justifyContent="flex-start"
                 sx={{ px: 1, my: 1 }}
               >
-                {rentalsUser.map((r: RentalsUserType) => (
-                  <span key={"span" + r.id}>
-                    {" "}
-                    <Paper elevation={0} key={r.id} sx={{ my: 1 }}>
-                      <Grid
-                        container
-                        direction="row"
-                        alignItems="center"
-                        justifyContent="flex-start"
-                        sx={{ px: 1 }}
-                      >
-                        {" "}
-                        <Grid item xs={2}>
-                          <Tooltip title="Zurückgeben">
-                            <IconButton
-                              onClick={() => {
-                                if (!userExpanded) return; //something went wrong and no user is available to return the book
-                                handleReturnBookButton(r.id, userExpanded);
-                                const time = Date.now();
-                                const newbook = {};
-                                (newbook as any)[r.id!] = time;
-                                setReturnedBooks({
-                                  ...returnedBooks,
-                                  ...newbook,
-                                });
-                              }}
-                              aria-label="zurückgeben"
-                            >
-                              <ReturnedIcon key={r.id} />
-                            </IconButton>
-                          </Tooltip>
-                        </Grid>
-                        <Grid item xs={8}>
-                          <Typography sx={{ m: 1 }}>{r.title},</Typography>
-                          <Typography variant="caption">
-                            bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
-                            {r.renewalCount}x verlängert
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={2}>
-                          {userExpanded && (extensionDays.isAfter(r.dueDate, "day")) && (
-                            <Tooltip title="Verlängern">
+                {rentalsUser.map((r: RentalsUserType) => {
+                  let allowExtendBookRent = extensionDays.isAfter(r.dueDate, "day");
+                  let tooltip = allowExtendBookRent ? "Verlängern" : "Maximale Ausleihzeit erreicht";
+                  return (
+                    <span key={"span" + r.id}>
+                      {" "}
+                      <Paper elevation={0} key={r.id} sx={{ my: 1 }}>
+                        <Grid
+                          container
+                          direction="row"
+                          alignItems="center"
+                          justifyContent="flex-start"
+                          sx={{ px: 1 }}
+                        >
+                          {" "}
+                          <Grid item xs={2}>
+                            <Tooltip title="Zurückgeben">
                               <IconButton
-                                aria-label="extend"
                                 onClick={() => {
-                                  handleExtendBookButton(
-                                    r.id,
-                                    getBookFromID(r.id!)
-                                  );
+                                  if (!userExpanded) return; //something went wrong and no user is available to return the book
+                                  handleReturnBookButton(r.id, userExpanded);
                                   const time = Date.now();
                                   const newbook = {};
                                   (newbook as any)[r.id!] = time;
@@ -354,18 +323,53 @@ export default function UserRentalList({
                                     ...newbook,
                                   });
                                 }}
+                                aria-label="zurückgeben"
                               >
-                                <ExtendedIcon key={r.id} />
+                                <ReturnedIcon key={r.id} />
                               </IconButton>
                             </Tooltip>
-                          )}
+                          </Grid>
+                          <Grid item xs={8}>
+                            <Typography sx={{ m: 1 }}>{r.title},</Typography>
+                            <Typography variant="caption">
+                              bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
+                              {r.renewalCount}x verlängert
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={2}>
+                            {userExpanded && (
+                              <Tooltip title={tooltip} >
+                                <span>
+                                  <IconButton
+                                    aria-label="extend"
+                                    disabled={!allowExtendBookRent}
+                                    onClick={() => {
+                                      handleExtendBookButton(
+                                        r.id,
+                                        getBookFromID(r.id!)
+                                      );
+                                      const time = Date.now();
+                                      const newbook = {};
+                                      (newbook as any)[r.id!] = time;
+                                      setReturnedBooks({
+                                        ...returnedBooks,
+                                        ...newbook,
+                                      });
+                                    }}
+                                  >
+                                    <ExtendedIcon key={r.id} />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                          </Grid>
+                          <Divider />
                         </Grid>
-                        <Divider />
-                      </Grid>
-                    </Paper>
-                    <Divider variant="fullWidth" />
-                  </span>
-                ))}
+                      </Paper>
+                      <Divider variant="fullWidth" />
+                    </span>
+                  )
+                })}
               </Grid>
             </AccordionDetails>
           </Accordion>
