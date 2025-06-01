@@ -35,7 +35,6 @@ interface BookPropsType {
   handleUserSearchSetFocus: () => void;
 }
 
-
 export default function BookRentalList({
   books,
   users,
@@ -69,7 +68,12 @@ export default function BookRentalList({
     setRenderedBooks(foundBooks.data.items);
   }
 
-  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
+  const extensionDays = extendDays(
+    new Date(),
+    process.env.EXTENSION_DURATION_DAYS
+      ? parseInt(process.env.EXTENSION_DURATION_DAYS)
+      : 14
+  );
   const handleClear = (e: any) => {
     e.preventDefault();
     setBookSearchInput("");
@@ -83,16 +87,15 @@ export default function BookRentalList({
     searchBooks(e.target.value);
   };
 
-
   const handleKeyUp = (e: React.KeyboardEvent): void => {
-    if (e.key == 'Escape') {
+    if (e.key == "Escape") {
       if (bookSearchInput == "") {
         handleUserSearchSetFocus();
       } else {
         setBookSearchInput("");
       }
     }
-  }
+  };
 
   const ReturnedIcon = () => {
     //console.log("Rendering icon ", id, returnedBooks);
@@ -149,8 +152,10 @@ export default function BookRentalList({
         sx={{ px: 0.5, my: 0.5 }}
       >
         {renderedBooks.slice(0, 100).map((b: any) => {
-          let allowExtendBookRent = extensionDays.isAfter(b.dueDate, "day");
-          let tooltip = allowExtendBookRent ? "Verlängern" : "Maximale Ausleihzeit erreicht";
+          const allowExtendBookRent = extensionDays.isAfter(b.dueDate, "day");
+          const tooltip = allowExtendBookRent
+            ? "Verlängern"
+            : "Maximale Ausleihzeit erreicht";
           return (
             <div key={b.id}>
               <Paper elevation={2} sx={{ my: 0.5 }}>
@@ -268,15 +273,16 @@ export default function BookRentalList({
                     <Typography sx={{ m: 0.5 }} variant="body2">
                       Buch Nr. {b.id}
                       {!(
-                        b.rentalStatus == "available" || b.rentalStatus == "lost"
+                        b.rentalStatus == "available" ||
+                        b.rentalStatus == "lost"
                       ) && (
-                          <span>
-                            {" "}
-                            - ausgeliehen bis{" "}
-                            {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
-                            {userNameForBook(users, b.userId!)}
-                          </span>
-                        )}
+                        <span>
+                          {" "}
+                          - ausgeliehen bis{" "}
+                          {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
+                          {userNameForBook(users, b.userId!)}
+                        </span>
+                      )}
                       {b.rentalStatus == "available" && (
                         <span> -{" " + b.author}</span>
                       )}
@@ -285,7 +291,7 @@ export default function BookRentalList({
                 </Grid>
               </Paper>
             </div>
-          )
+          );
         })}
       </Grid>
     </div>

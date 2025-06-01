@@ -7,7 +7,7 @@ import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 import InputLabel from "@mui/material/InputLabel";
 import Paper from "@mui/material/Paper";
-import { Dispatch, useState } from "react";
+import { Dispatch, useMemo, useState } from "react";
 
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -35,8 +35,6 @@ import "dayjs/locale/de";
 import { booksForUser, filterUsers } from "../../utils/searchUtils";
 import RentSearchParams from "./RentSearchParams";
 
-
-
 type UserPropsType = {
   users: Array<UserType>;
   books: Array<BookType>;
@@ -52,7 +50,6 @@ type UserPropsType = {
 const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
 const defaultSearchParams = { overdue: false, grade: "" };
-
 
 export default function UserRentalList({
   users,
@@ -70,15 +67,34 @@ export default function UserRentalList({
   const [returnedBooks, setReturnedBooks] = useState({});
   const [showDetailSearch, setShowDetailSearch] = useState(false);
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
+  const [exactMatchUserId, setExactMatchUserId] = useState<number | null>(null);
 
-  const filterUserSub = (users: Array<UserType>, searchString: string, rentals: Array<RentalsUserType>, exactMatch: boolean = false) => {
-    let [filteredUsers, exactMatchRes] =
-      filterUsers(users, searchString, rentals, exactMatch);
-    exactMatchUserId = exactMatchRes;
+  const filterUserSub = (
+    users: Array<UserType>,
+    searchString: string,
+    rentals: Array<RentalsUserType>,
+    exactMatch: boolean = false
+  ) => {
+    const [filteredUsers, exactMatchRes] = filterUsers(
+      users,
+      searchString,
+      rentals,
+      exactMatch
+    );
+    setExactMatchUserId(exactMatchRes);
     return filteredUsers;
-  }
+  };
 
-
+  const filteredUsers = useMemo(() => {
+    const [usersFiltered, exactMatchId] = filterUsers(
+      users,
+      userSearchInput,
+      rentals,
+      true // assuming exactMatch should be true during search
+    );
+    setExactMatchUserId(exactMatchId);
+    return usersFiltered;
+  }, [userSearchInput, users, rentals]);
 
   const handleClear = (e: any) => {
     e.preventDefault();
@@ -86,30 +102,27 @@ export default function UserRentalList({
     setUserSearchInput("");
   };
 
-  let exactMatchUserId: number = -1;
   const handleInputChange = (e: React.ChangeEvent<any>): void => {
     setUserSearchInput(e.target.value);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {
-    if (e.key == 'Enter') {
-      if (exactMatchUserId > -1) {
+    if (e.key == "Enter") {
+      if (exactMatchUserId !== null && exactMatchUserId > -1) {
         setUserExpanded(exactMatchUserId);
       }
       handleBookSearchSetFocus();
-    } else if (e.key == 'Escape') {
+    } else if (e.key == "Escape") {
       setUserExpanded(false);
       setUserSearchInput("");
     }
-  }
+  };
 
   const handleExpandedUser =
     (userID: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setUserExpanded(isExpanded ? userID : false);
       console.log("Expanded user", userID);
     };
-
-
 
   const getBookFromID = (id: number): BookType => {
     const book = books.filter((b: BookType) => b.id == id);
@@ -154,10 +167,12 @@ export default function UserRentalList({
     return uniqueGrades;
   };
 
-
-
-
-  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
+  const extensionDays = extendDays(
+    new Date(),
+    process.env.EXTENSION_DURATION_DAYS
+      ? parseInt(process.env.EXTENSION_DURATION_DAYS)
+      : 14
+  );
 
   return (
     <div>
@@ -230,7 +245,7 @@ export default function UserRentalList({
           setUserSearchInput={setUserSearchInput}
         />
       )}
-      {filterUserSub(users, userSearchInput, rentals).map((u: UserType) => {
+      {filteredUsers.map((u: UserType) => {
         const rentalsUser = booksForUser(u.id!, rentals);
         return (
           //display the whole list to select one
@@ -263,8 +278,8 @@ export default function UserRentalList({
                       u.lastName +
                       (rentalsUser.length > 0
                         ? ", " +
-                        rentalsUser.length +
-                        (rentalsUser.length > 1 ? " Bücher" : " Buch")
+                          rentalsUser.length +
+                          (rentalsUser.length > 1 ? " Bücher" : " Buch")
                         : "")}
                   </Typography>
                 </Grid>
@@ -295,8 +310,13 @@ export default function UserRentalList({
                 sx={{ px: 1, my: 1 }}
               >
                 {rentalsUser.map((r: RentalsUserType) => {
-                  let allowExtendBookRent = extensionDays.isAfter(r.dueDate, "day");
-                  let tooltip = allowExtendBookRent ? "Verlängern" : "Maximale Ausleihzeit erreicht";
+                  let allowExtendBookRent = extensionDays.isAfter(
+                    r.dueDate,
+                    "day"
+                  );
+                  let tooltip = allowExtendBookRent
+                    ? "Verlängern"
+                    : "Maximale Ausleihzeit erreicht";
                   return (
                     <span key={"span" + r.id}>
                       {" "}
@@ -338,7 +358,7 @@ export default function UserRentalList({
                           </Grid>
                           <Grid item xs={2}>
                             {userExpanded && (
-                              <Tooltip title={tooltip} >
+                              <Tooltip title={tooltip}>
                                 <span>
                                   <IconButton
                                     aria-label="extend"
@@ -368,7 +388,7 @@ export default function UserRentalList({
                       </Paper>
                       <Divider variant="fullWidth" />
                     </span>
-                  )
+                  );
                 })}
               </Grid>
             </AccordionDetails>
