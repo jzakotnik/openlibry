@@ -58,7 +58,9 @@ export async function getRentedBooksWithUsers(client: PrismaClient) {
         id: true,
         title: true,
         dueDate: true,
+        author: true,
         renewalCount: true,
+        rentedDate: true,
         user: {
           select: {
             lastName: true,
@@ -341,11 +343,11 @@ export async function rentBook(
     client,
     "Rent book",
     "User id: " +
-      userid.toString() +
-      ", Book id: " +
-      bookid.toString() +
-      ", book title: " +
-      book?.title,
+    userid.toString() +
+    ", Book id: " +
+    bookid.toString() +
+    ", book title: " +
+    book?.title,
     bookid,
     userid
   );
