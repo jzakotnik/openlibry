@@ -53,6 +53,9 @@ export default async function handle(
 ) {
   switch (req.method) {
     case "GET":
+      // delete last call data
+      //TODO: what happens with calls from multiple clients?
+      replacemenetVariables.alleMahnungen.length = 0;
       console.log("Printing reminder letters via API");
       try {
         //const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
@@ -67,12 +70,15 @@ export default async function handle(
           return {
             id: r.id,
             title: r.title,
+            author: r.author,
+            rentedDate: r.rentedDate,
             lastName: r.user?.lastName,
             firstName: r.user?.firstName,
             remainingDays: diff,
             dueDate: convertDateToDayString(due.toDate()),
             renewalCount: r.renewalCount,
             userid: r.user?.id,
+            schoolGrade: r.user?.schoolGrade,
           };
         });
         //TODO this can be optimized to one step with the retrieval of all rentals, but it's easier to read for now
@@ -94,6 +100,7 @@ export default async function handle(
             "Overdue books: ",
             overDueRentalsByUser[userID].map((b: any) => b.title)
           );*/
+
           replacemenetVariables.alleMahnungen.push({
             school_name: SCHOOL_NAME,
             responsible_name: REMINDER_RESPONSIBLE_NAME,
@@ -102,7 +109,16 @@ export default async function handle(
               overDueRentalsByUser[userID][0].firstName +
               " " +
               overDueRentalsByUser[userID][0].lastName,
-            book_list: overDueRentalsByUser[userID].map((b: any) => b.title),
+            schoolGrade: overDueRentalsByUser[userID][0].schoolGrade,
+            book_list: overDueRentalsByUser[userID].map((b: any) => {
+              return {
+                title: b.title,
+                author: b.author,
+                rentedDate: dayjs(b.rentedDate).format("DD.MM.YYYY"),
+              }
+            }
+            ),
+            reminder_min_count: REMINDER_RENEWAL_COUNT,
           });
         });
         console.log("Variables for docxtemplater", replacemenetVariables);
