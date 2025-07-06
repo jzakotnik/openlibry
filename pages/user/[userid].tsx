@@ -15,6 +15,7 @@ import {
   extendDays,
   replaceBookStringDate,
   replaceUserDateString,
+  sameDay,
 } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 
@@ -37,6 +38,11 @@ const theme = createTheme({
   },
 });
 
+const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
+  ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
+  : 3;
+
+
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
   ref
@@ -52,6 +58,7 @@ export default function UserDetail({
   const router = useRouter();
 
   const [userData, setUserData] = useState(user);
+  const [userBooks, setUserBooks] = useState(books);
   const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     setUserData(user);
@@ -119,6 +126,12 @@ export default function UserDetail({
     //extend logic
 
     const newDueDate = extendDays(new Date(), extensionDays);
+
+    if (sameDay(newbook.dueDate, newDueDate)) {
+      enqueueSnackbar("Buch - " + book.title + " - ist bereits bis zum maximalen Ende ausgeliehen", { variant: "warning" });
+      return;
+    }
+
     newbook.dueDate = newDueDate.toDate();
     newbook.renewalCount = newbook.renewalCount + 1;
 
@@ -139,7 +152,14 @@ export default function UserDetail({
           "Buch verlängert, super!"
         );
       });
-    //T
+    setUserBooks(userBooks =>
+      userBooks.map(b =>
+        b.id === bookid
+          ? { ...b, renewalCount: b.renewalCount + 1, dueDate: newDueDate.toDate() }
+          : b
+      )
+    );
+
   };
 
   const handleDeleteButton = () => {
@@ -166,9 +186,10 @@ export default function UserDetail({
       <ThemeProvider theme={theme}>
         <UserEditForm
           user={userData}
-          books={books}
+          books={userBooks}
           setUserData={setUserData}
           deleteUser={handleDeleteButton}
+          deleteSafetySeconds={deleteSafetySeconds}
           saveUser={handleSaveButton}
           returnBook={handleReturnBookButton}
           extendBook={handleExtendBookButton}

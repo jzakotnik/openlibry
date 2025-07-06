@@ -14,11 +14,14 @@ import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import ListItemText from "@mui/material/ListItemText";
 
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 
 import { BookType } from "@/entities/BookType";
 import palette from "@/styles/palette";
+import dayjs from "dayjs";
+import "dayjs/locale/de";
+import HoldButton from "../layout/HoldButton";
+
 import {
   Checkbox,
   Divider,
@@ -43,6 +46,7 @@ type UserEditFormPropType = {
   books: Array<BookType>;
   setUserData: Dispatch<UserType>;
   deleteUser: () => void;
+  deleteSafetySeconds: number;
   saveUser: () => void;
   returnBook: (bookid: number) => void;
   extendBook: (bookid: number, book: BookType) => void;
@@ -62,6 +66,7 @@ export default function UserEditForm({
   books,
   setUserData,
   deleteUser,
+  deleteSafetySeconds = 3,
   saveUser,
   returnBook,
   extendBook,
@@ -70,7 +75,7 @@ export default function UserEditForm({
   const [editable, setEditable] = useState(
     initiallyEditable ? initiallyEditable : false
   );
-  const [userBooks, setUserBooks] = useState(books);
+  // const [userBooks, setUserBooks] = useState(books);
 
   const [editButtonLabel, setEditButtonLabel] = useState(
     initiallyEditable ? "Abbrechen" : "Editieren"
@@ -227,7 +232,7 @@ export default function UserEditForm({
       >
         <Grid item xs={12}>
           {" "}
-          {userBooks.map((b: BookType, index: number) => {
+          {books.map((b: BookType) => {
             return "id" in b ? (
               <ListItem key={b.id}>
                 <Tooltip title="Zurückgeben">
@@ -249,9 +254,6 @@ export default function UserEditForm({
                     onClick={() => {
                       if (!b.id) return;
                       extendBook(b.id, b);
-                      const newBooks = [...books];
-                      newBooks[index].renewalCount++;
-                      setUserBooks(newBooks);
                     }}
                     aria-label="verlängern"
                   >
@@ -259,7 +261,21 @@ export default function UserEditForm({
                   </IconButton>
                 </Tooltip>
                 <ListItemText>
-                  {b.title + ", " + b.renewalCount + "x verlängert"}
+
+                  {dayjs().diff(b.dueDate, "days") > 13 && (
+                    <Typography color="red">
+                      {b.title + ", " + b.renewalCount + "x verlängert bis " + dayjs(b.dueDate).format("DD.MM.YYYY")}
+                    </Typography >
+                  )}
+                  {dayjs().diff(b.dueDate, "days") > 0 && dayjs().diff(b.dueDate, "days") <= 13 && (
+                    <Typography color="darkorange">
+                      {b.title + ", " + b.renewalCount + "x verlängert bis " + dayjs(b.dueDate).format("DD.MM.YYYY")}
+                    </Typography >
+                  )}
+                  {dayjs().diff(b.dueDate, "days") <= 0 && (
+                    b.title + ", " + b.renewalCount + "x verlängert bis " + dayjs(b.dueDate).format("DD.MM.YYYY")
+                  )}
+
                 </ListItemText>
               </ListItem>
             ) : (
@@ -287,13 +303,11 @@ export default function UserEditForm({
         </Grid>
         <Grid item xs={12} md={4}>
           {editable && (
-            <Button
-              color="error"
+            <HoldButton
+              duration={deleteSafetySeconds * 1000}
               onClick={deleteUser}
-              startIcon={<DeleteForeverIcon />}
-            >
-              Löschen
-            </Button>
+              buttonLabel="Löschen"
+            />
           )}
         </Grid>{" "}
       </Grid>
