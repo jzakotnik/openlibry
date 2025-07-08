@@ -33,6 +33,7 @@ interface RentalPropsType {
   users: Array<UserType>;
   rentals: Array<RentalsUserType>;
   extensionDays: number;
+  bookSortBy: string;
 }
 
 const prisma = new PrismaClient();
@@ -44,6 +45,7 @@ export default function Rental({
   users,
   rentals,
   extensionDays,
+  bookSortBy,
 }: RentalPropsType) {
   const router = useRouter();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -106,6 +108,7 @@ export default function Rental({
       });
     handleBookSearchSetFocus();
   };
+  const newDueDate = extendDays(new Date(), extensionDays);
 
   const handleExtendBookButton = (bookid: number, book: BookType) => {
     // console.log("Extending book ", bookid, book);
@@ -113,7 +116,6 @@ export default function Rental({
 
     // console.log("Extension days: ", extensionDays);
     //extend logic
-    const newDueDate = extendDays(new Date(), extensionDays);
 
     if (sameDay(newbook.dueDate, newDueDate)) {
       enqueueSnackbar("Buch - " + book.title + " - ist bereits bis zum maximalen Ende ausgeliehen", { variant: "warning" });
@@ -236,6 +238,8 @@ export default function Rental({
             userExpanded={userExpanded}
             searchFieldRef={bookFocusRef}
             handleUserSearchSetFocus={handleUserSearchSetFocus}
+            extensionDueDate={newDueDate}
+            sortBy={bookSortBy}
           />
         </Grid>
       </Grid>
@@ -246,6 +250,7 @@ export default function Rental({
 
 export async function getServerSideProps() {
   const extensionDays = process.env.EXTENSION_DURATION_DAYS || 14;
+  const bookSortBy = process.env.RENTAL_SORT_BOOKS || 'title_asc';
   const allUsers = await getAllUsers(prisma);
 
   const users = allUsers.map((u) => {
@@ -290,5 +295,5 @@ export async function getServerSideProps() {
   });
   //console.log("Initial fetch of books", books[0]);
 
-  return { props: { books, users, rentals, extensionDays } };
+  return { props: { books, users, rentals, extensionDays, bookSortBy } };
 }
