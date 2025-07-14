@@ -1,6 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { chunkArray } from "@/utils/chunkArray";
+import { currentTime } from "@/utils/dateutils";
 import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Canvas,
@@ -15,7 +16,6 @@ import bwipjs from "bwip-js";
 import { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
 
-const SCHOOL_NAME = process.env.SCHOOL_NAME || "Eigentum Schule";
 
 const BOOKLABEL_MARGIN_LEFT = process.env.BOOKLABEL_MARGIN_LEFT
   ? parseFloat(process.env.BOOKLABEL_MARGIN_LEFT)
@@ -205,7 +205,7 @@ const replacePlaceholder = (text: String, book: any) => {
 
 
 
-const generateBarcode = async (books: Array<BookType>) => {
+const generateBarcode = async (books: Array<BookType>, ignoreLabelFields: number[]) => {
   const labelsOnPage = BOOKLABEL_ROWSONPAGE * BOOKLABEL_COLUMNSONPAGE;
 
   const barcodeFloatHeight = parseFloat(BOOKLABEL_BARCODE_HEIGHT.split("cm")[0]);
@@ -213,6 +213,10 @@ const generateBarcode = async (books: Array<BookType>) => {
   let allcodes = await Promise.all(
     books.map(async (b: BookType, i: number) => {
 
+      if (b.id == null) {
+        // this is an empty element for a label that is already used - skip it
+        return;
+      }
       const horizontalIndex = i % BOOKLABEL_COLUMNSONPAGE;
       const verticalIndex = Math.floor(i % labelsOnPage / BOOKLABEL_COLUMNSONPAGE);
 
@@ -305,9 +309,9 @@ const generateBarcode = async (books: Array<BookType>) => {
   return allcodes;
 };
 
-async function createLabelsPDF(books: Array<BookType>) {
+async function createLabelsPDF(books: Array<BookType>, ignoreLabelFields: number[]) {
   var pdfstream;
-  const barcodes = await generateBarcode(books);
+  const barcodes = await generateBarcode(books, ignoreLabelFields);
   //console.log("barcodes", barcodes);
   const barcodesSections = chunkArray(barcodes, BOOKLABEL_ROWSONPAGE * BOOKLABEL_COLUMNSONPAGE);
   pdfstream = ReactPDF.renderToStream(
@@ -347,8 +351,15 @@ export default async function handle(
           "topic" in req.query
             ? (req.query.topic! as string).toLocaleLowerCase()
             : null;
-        const idFilter =
-          "id" in req.query ? parseInt(req.query.id! as string) : null;
+        const idFilter: number[] = [];
+        if ("id" in req.query) {
+
+          Array.isArray(req.query.id) ? (req.query.id! as string[]).map((e) => idFilter.push(parseInt(e))) : idFilter.push(parseInt(req.query.id! as string));
+        }
+        const ignoreLabelFields: number[] = [];
+        if ("block" in req.query) {
+          Array.isArray(req.query.block) ? (req.query.block! as string[]).map((e) => ignoreLabelFields.push(parseInt(e))) : ignoreLabelFields.push(parseInt(req.query.block! as string));
+        }
         console.log("Filter string", topicFilter, idFilter);
         //TODO this should be able to do more than one topic!
         const books = allbooks
@@ -358,26 +369,52 @@ export default async function handle(
               : true;
           })
           .filter((b: BookType) => {
-            return idFilter ? b.id == idFilter : true;
+            return idFilter.length > 0 ? b.id && idFilter.indexOf(b.id) > -1 : true;
           });
         //console.log("Filtered books", books);
         //console.log("Search Params", req.query, "end" in req.query);
-        const startBookID = "start" in req.query ? req.query.start : "0";
-        const endBookID = "end" in req.query ? req.query.end : books.length - 1;
-        const printableBooks = books.slice(
-          parseInt(startBookID as string),
-          parseInt(endBookID as string)
-        );
+        let printableBooks = books;
+        if ("start" in req.query || "end" in req.query) {
 
-        console.log("Printing labels for books", startBookID, endBookID);
+          const startIndex = "start" in req.query ? req.query.start : "0";
+          const endIndex = "end" in req.query ? req.query.end : books.length - 1;
+          printableBooks = books.slice(
+            parseInt(startIndex as string),
+            parseInt(endIndex as string)
+          );
+          console.log("Printing labels for books in Indexrange", startIndex, endIndex);
+        } else if ("startId" in req.query && "endId" in req.query) {
+          const startId = "startId" in req.query ? parseInt(req.query.startId as string) : 0;
+          // books are sorted desc, so first book has highest number
+          const endId = "endId" in req.query ? parseInt(req.query.endId as string) : books[0].id;
+          //TODO: This should be done in sql and not filtered later.
+          printableBooks = books.filter((b) => b.id! >= startId && b.id! <= endId!)
+          console.log("Printing labels for books in ID range", startId, endId);
+        }
+        console.log("Printing labels for books");
+
 
         if (!books)
           return res.status(400).json({ data: "ERROR: Books  not found" });
 
         //create a nice label PDF from the books
         //console.log(books);
+        const book: BookType = {
+          title: "",
+          subtitle: "",
+          author: "",
+          renewalCount: 0,
+          rentalStatus: "available",
+          topics: ";",
+          rentedDate: currentTime(),
+          dueDate: currentTime(),
+        };
+        // splice empty books on positions to skip
+        for (var skipindex of ignoreLabelFields) {
+          printableBooks.splice(skipindex, 0, book)
+        }
 
-        const labels = await createLabelsPDF(printableBooks);
+        const labels = await createLabelsPDF(printableBooks, ignoreLabelFields);
         res.writeHead(200, {
           "Content-Type": "application/pdf",
         });

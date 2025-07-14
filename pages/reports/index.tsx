@@ -22,7 +22,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type {} from "@mui/x-data-grid/themeAugmentation";
+import type { } from "@mui/x-data-grid/themeAugmentation";
 import router from "next/router";
 import { useState } from "react";
 
@@ -134,7 +134,9 @@ const LabelCard = ({
 };
 
 export default function Reports({ users, books, rentals }: ReportPropsType) {
-  const [startLabel, setStartLabel] = useState(100);
+  const [startLabel, setStartLabel] = useState(0);
+  const [startId, setStartId] = useState(0);
+  const [endId, setEndId] = useState(0);
   const [startUserLabel, setStartUserLabel] = useState(10);
   const [topicsFilter, setTopicsFilter] = useState(null);
   const [idFilter, setIdFilter] = useState(0);
@@ -269,6 +271,10 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               totalNumber={books.length}
               startLabel={startLabel}
               setStartLabel={setStartLabel}
+              startId={startId}
+              setStartId={setStartId}
+              endId={endId}
+              setEndId={setEndId}
               idFilter={idFilter}
               setIdFilter={setIdFilter}
               topicsFilter={topicsFilter}
