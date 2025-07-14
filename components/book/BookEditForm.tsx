@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Box from "@mui/material/Box";
+import { useRouter } from "next/router";
 import { Dispatch, useState } from "react";
 
 import { AlertColor } from "@mui/material";
@@ -56,7 +57,7 @@ export default function BookEditForm({
   const [editable, setEditable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
-
+  const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   useState<AlertColor>("success");
@@ -161,6 +162,23 @@ export default function BookEditForm({
               />
             </Tooltip>
           )}
+        </Grid>{" "}
+        <Grid item xs={12} md={4}>
+
+
+          {editable && (
+            <Tooltip title="Buchlabel drucken">
+              <Button
+                onClick={(e) => {
+                  router.push("/reports/print?id=" + book.id)
+                }}
+                startIcon={<SaveAltIcon />}
+              >
+                Drucken
+              </Button>
+            </Tooltip>
+          )}
+
         </Grid>{" "}
       </Grid>
       <Divider sx={{ mb: 3 }}>
