@@ -7,6 +7,7 @@ import { AlertColor } from "@mui/material";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 
+import PrintIcon from "@mui/icons-material/Print";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
 import palette from "@/styles/palette";
@@ -172,7 +173,7 @@ export default function BookEditForm({
                 onClick={(e) => {
                   router.push("/reports/print?id=" + book.id)
                 }}
-                startIcon={<SaveAltIcon />}
+                startIcon={<PrintIcon />}
               >
                 Drucken
               </Button>
