@@ -1,0 +1,89 @@
+/* styles/grid.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.idButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.idButton {
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.idButton:hover {
+    background-color: #e0e0e0;
+}
+
+.autoArrangeButton {
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.autoArrangeButton:hover {
+    background-color: #45a049;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7cm, 1fr));
+    /* Dynamically adjust columns */
+    grid-template-rows: repeat(7, 3cm);
+    /* Dynamically adjust rows */
+    gap: 10px;
+}
+
+.rect {
+    background-color: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.rect:hover {
+    background-color: #f0f0f0;
+}
+
+.off {
+    background-color: red;
+    color: white;
+    position: relative;
+}
+
+.off::after {
+    content: '❌';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 20px;
+}
+
+.gridInfo {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}

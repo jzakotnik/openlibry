@@ -17,7 +17,6 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import { extendDays } from "@/utils/dateutils";
 import userNameForBook from "@/utils/userNameForBook";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -33,6 +32,8 @@ interface BookPropsType {
   userExpanded: number | false;
   searchFieldRef: any;
   handleUserSearchSetFocus: () => void;
+  extensionDueDate: dayjs.Dayjs;
+  sortBy: string;
 }
 
 
@@ -45,23 +46,46 @@ export default function BookRentalList({
   userExpanded,
   searchFieldRef,
   handleUserSearchSetFocus,
+  extensionDueDate,
+  sortBy,
 }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState(books);
   const [returnedBooks, setReturnedBooks] = useState({});
+  const sortings: any = {
+    id_asc: {
+      field: 'id',
+      order: 'asc'
+    },
+    id_desc: {
+      field: 'id',
+      order: 'desc'
+    },
+    title_asc: {
+      field: 'title',
+      order: 'asc'
+    },
+    title_desc: {
+      field: 'title',
+      order: 'desc'
+    },
+
+  };
   const searchEngine = itemsjs(books, {
     searchableFields: ["title", "author", "subtitle", "id"],
+    sortings: sortings,
   });
 
   useEffect(() => {
     searchBooks(bookSearchInput);
   }, [books, bookSearchInput]);
 
+
+
   async function searchBooks(searchString: string) {
-    const resultBooks = [] as Array<BookType>;
     const foundBooks = searchEngine.search({
       per_page: 20,
-      sort: "name_asc",
+      sort: sortBy,
       // full text search
       query: searchString,
     });
@@ -69,7 +93,6 @@ export default function BookRentalList({
     setRenderedBooks(foundBooks.data.items);
   }
 
-  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
   const handleClear = (e: any) => {
     e.preventDefault();
     setBookSearchInput("");
@@ -149,7 +172,7 @@ export default function BookRentalList({
         sx={{ px: 0.5, my: 0.5 }}
       >
         {renderedBooks.slice(0, 100).map((b: any) => {
-          let allowExtendBookRent = extensionDays.isAfter(b.dueDate, "day");
+          let allowExtendBookRent = extensionDueDate.isAfter(b.dueDate, "day");
           let tooltip = allowExtendBookRent ? "Verlängern" : "Maximale Ausleihzeit erreicht";
           return (
             <div key={b.id}>
@@ -187,10 +210,6 @@ export default function BookRentalList({
                                   aria-label="extend"
                                   disabled={!allowExtendBookRent}
                                   onClick={() => {
-                                    console.log(
-                                      "Book rental list, extend button",
-                                      b
-                                    );
                                     handleExtendBookButton(b.id!, b);
                                     const time = Date.now();
                                     const newbook = {};

@@ -110,6 +110,13 @@ export default function BookSummaryCard({
               </Button>
             </Tooltip>
           </Link>
+          <Link href={"/reports/print?id=" + book.id} passHref>
+            <Tooltip title="Buchlabel drucken">
+              <Button size="small" data-cy="book_card_editbutton">
+                Drucken
+              </Button>
+            </Tooltip>
+          </Link>
           {book.rentalStatus != "available" ? (
             <Button size="small" onClick={returnBook}>
               Abgeben

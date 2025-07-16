@@ -47,7 +47,24 @@ In der Nutzerverwaltung können sämtliche Nutzer / Leiher angepasst und neue er
 Ebenso kann die Klasse im neuen Schuljahr hier einfach erhöht werden. Dazu erst die Nutzer auswählen / markieren, und dann auf `+1` klicken. Im Klassennamen wird der Zahlenanteil dabei um eins erhöht.
 ![Nutzerverwaltung - Klasse erhöhen](./doc/NutzerScreen.png)
 
-## Installation und Konfiguration
+### Bücherlabel
+Nachdem die Bücherlabel konfiguriert wurden (siehe [Konfiguration der Bücherlabel](#bookLabelConfig)) können unter 'REPORTS' Bücherlabel gedruckt werden. Es gibt mehrere verschiedene Möglichkeiten, die zu druckenden Bücher auszuwählen:
+
+![Reports - Buch Eticketten](./doc/booklabelIdSelect.png)
+
+- Entweder man wählt die Anzahl der neuestens Labels, die gedruckt werden sollen (erster Input). OpenLibry wird dann ausgehend von der neuesten / höchsten ID Nummer rückwärts die ausgewählte Anzahl an Büchern auswählen zum drucken.
+- Oder man bestimmt einen Bereich von ID Nummern, von dem man die Label drucken will. Dazu `Von ID` und `Bis ID` ausfüllen (leere Felder werden zu ID 0 für `Von ID` bzw. letzte vergeben ID für `Bis ID`).
+- Alternativ kann auch explizit ein bestimmtes Buch per ID ausgewählt werden.
+- Wenn Schlagwörter in den Büchern gepflegt sind, so können diese als zusätzlichen Filter ausgewählt werden (Optional).
+
+`Erzeuge PDF` erzeugt dann eine PDF Datei der Label. Alternativ kommt man mit `Überspringe Label` in einen Dialog, bei dem einzelne Label deaktiviert werden könne, wenn diese auf einem Labelbogen bereits benutzt wurden:
+
+![Einzelne Label deaktivieren](./doc/printSkipLabels.png)
+
+Mit Links- oder Rechtsklick können einzelne Label deaktiviert werden. Diese Label werden nur auf der ersten Seite übersprungen.
+
+Alternativ kann in der Bücherverwaltung (`Bücher`) ein einzelnes Buchlabel gedruckt werden. Auch hier besteht direkt die Möglichkeit, einzelne Labels des Bogens zu deaktivieren.
+## Installation und Konfiguration 
 
 - Kopiere das Beispiel-Environment-File: `cp .env_example .env`
 - Konfiguriere den Servernamen in einer `.env`-Datei im Hauptordner entsprechend der Werte im `.env_example`, z.B. `NEXT_PUBLIC_API_URL="http://localhost:3000"
@@ -55,7 +72,7 @@ Ebenso kann die Klasse im neuen Schuljahr hier einfach erhöht werden. Dazu erst
 - Der Wert `AUTH_ENABLED` sollte zunächst auf `false` gesetzt werden, so dass man sich beim ersten Login ohne Authentifizierung einloggen kann. Via `https://<domain>/auth/register` kann man dann den ersten User anlegen und danach `AUTH_ENABLED` auf `true` setzen.
 
 
-### Konfiguration der Bücherlabels
+### Konfiguration der Bücherlabel {#bookLabelConfig}
 Die Bücherlabels sind zum ausdrucken auf A4 Labelpapier gedacht. Sowohl die Größe als auch der Inhalt lässt sich in der .env Datei anpassen.
 Ränder oben, links sowie horizontale und vertikale Abstände zwischen den Labels lassen sich in cm angeben. Zur genaueren Positionierung kann mit `BOOKLABEL_PRINT_LABEL_FRAME` ein Ramen um die einzelnen Labels erstellt werden. Dieser kann nach dem Ausrichten wieder deaktiviert werden, oder zum ausschneiden benutz werden.
 
