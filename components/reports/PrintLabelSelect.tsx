@@ -62,8 +62,8 @@ export default function PrintLabelSelect({
         if (newGrid[index].status === 'off') return; // Can't interact with red boxes
 
         // If a rectangle already has an ID, remove it and move back to the ID box
-        if (newGrid[index].book) {
-            setIdButtons([...idButtons, newGrid[index].book]);
+        if (newGrid[index].book != null) {
+            setIdButtons([...idButtons, newGrid[index].book as BookType]);
             newGrid[index] = { book: null, status: 'empty' };
         } else {
             if (idButtons.length === 0) return; // No IDs to move
@@ -80,8 +80,8 @@ export default function PrintLabelSelect({
         //TODO: element löschen wenn eines da ist
         event.preventDefault();
         const newGrid = [...grid];
-        if (newGrid[index].book) {
-            setIdButtons([...idButtons, newGrid[index].book]);
+        if (newGrid[index].book != null) {
+            setIdButtons([...idButtons, newGrid[index].book as BookType]);
             newGrid[index] = { book: null, status: 'empty' };
         }
 
