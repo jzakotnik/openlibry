@@ -4,26 +4,25 @@ import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
 
 export function searchAndRemoveKlasse(inputString: string) {
     // Create a regex pattern to find "klasse?" followed by a number
-    const regex = /klasse\?\s?(\d+)/gi;
+    const regex = /klasse\?\s?([\d,\w,\u00F0-\u02AF]+)/gi;
 
     // Initialize variables to store whether the string is found and the number
     let foundKlasse = false;
-    let klasseNumber = 0;
+    let klasse = "";
 
     // Search for the string using the regex pattern and capture the number
     const match = regex.exec(inputString);
     console.log("Klassenmatch", inputString, match);
     if (match) {
         foundKlasse = true;
-        klasseNumber = parseInt(match[1], 10); // Convert the captured string to an integer
+        klasse = match[1];
     }
-
     // Remove the found string from the original string
     const updatedString = inputString.replace(regex, "").trim();
 
     return {
         foundKlasse,
-        klasseNumber,
+        klasse,
         updatedString,
     };
 }
@@ -32,13 +31,12 @@ export function filterUsers(users: Array<UserType>, searchString: string, rental
     let exactMatchUserIdRes = -1;
     if (searchString.length == 0) return [users, exactMatchUserIdRes]; //nothing to do
     const lowerCaseSearch = searchString.toLowerCase();
-    const searchTokens = lowerCaseSearch.split(" ");
 
-    const searchPattern = { klasse: 0, overdue: false };
+    const searchPattern = { klasse: "", overdue: false };
     // Create a regex pattern to find "klasse?" followed by a number
-    const { foundKlasse, klasseNumber, updatedString } =
+    const { foundKlasse, klasse, updatedString } =
         searchAndRemoveKlasse(lowerCaseSearch);
-    foundKlasse ? (searchPattern.klasse = klasseNumber) : 0;
+    foundKlasse ? (searchPattern.klasse = klasse.toLowerCase()) : "";
     let finalString = updatedString;
     if (updatedString.indexOf("fällig?") > -1) {
         searchPattern.overdue = true;
@@ -63,10 +61,10 @@ export function filterUsers(users: Array<UserType>, searchString: string, rental
         ) {
             foundString = true;
         }
-        console.log("suche klasse bei user", filterForClass, searchPattern.klasse, parseInt(u.schoolGrade!))
+        console.log("suche klasse bei user", filterForClass, searchPattern.klasse, u.schoolGrade!)
         if (
             filterForClass &&
-            !(searchPattern.klasse == parseInt(u.schoolGrade!))
+            !(u.schoolGrade!.toLowerCase().startsWith(searchPattern.klasse))
         ) {
             foundClass = false;
         }
