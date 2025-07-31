@@ -1,20 +1,20 @@
 import Layout from "@/components/layout/Layout";
+import UserAdminList from "@/components/user/UserAdminList";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import PlusOneRoundedIcon from "@mui/icons-material/PlusOneRounded";
+import QueueIcon from "@mui/icons-material/Queue";
+import SearchIcon from "@mui/icons-material/Search";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import { IconButton, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import { PrismaClient } from "@prisma/client";
+import dayjs from "dayjs";
 import { useRouter } from "next/router";
+import { useSnackbar } from 'notistack';
 import { ChangeEvent, useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
-
-import UserAdminList from "@/components/user/UserAdminList";
-import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
-import QueueIcon from "@mui/icons-material/Queue";
-import SearchIcon from "@mui/icons-material/Search";
-import dayjs from "dayjs";
-import { useSnackbar } from 'notistack';
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
@@ -28,7 +28,7 @@ import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { Divider, InputBase, Paper } from "@mui/material";
-
+import RentSearchParams from "../../components/rental/RentSearchParams";
 const prisma = new PrismaClient();
 /*
 const theme = createTheme({
@@ -49,10 +49,12 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [userCreating, setUserCreating] = useState(false);
   const [newUserDialogVisible, setNewUserDialogVisible] = useState(false);
   const [checked, setChecked] = useState({} as any);
-
+  const [showDetailSearch, setShowDetailSearch] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const theme = useTheme();
+  const defaultSearchParams = { overdue: false, grade: "" };
+  const [searchParams, setSearchParams] = useState(defaultSearchParams);
 
   useEffect(() => { }, []);
 
@@ -125,7 +127,18 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
     console.log("selected user", users, rentals);
     setDisplayDetail(parseInt(id));
   };
-
+  const getUniqueGrades = () => {
+    const uniqueGrades = users.reduce(
+      (unique: Array<string>, user: UserType) => {
+        if (user.schoolGrade && !unique.includes(user.schoolGrade)) {
+          unique.push(user.schoolGrade);
+        }
+        return unique;
+      },
+      []
+    );
+    return uniqueGrades;
+  };
   const handleIncreaseGrade = () => {
     //console.log("Increasing grade for users ", users, checked);
     //the user IDs that are checked are marked as true
@@ -208,7 +221,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 p: "2px 4px",
                 display: "flex",
                 alignItems: "center",
-                width: 400,
+                width: 500,
               }}
             >
               <InputBase
@@ -228,6 +241,16 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                   <SearchIcon />
                 </IconButton>
               </Tooltip>
+              {/* <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" /> */}
+              <Tooltip title="Sucheinstellungen">
+                <IconButton
+                  aria-label="search-settings"
+                  color="primary"
+                  onClick={() => setShowDetailSearch(!showDetailSearch)}
+                >
+                  <SettingsSuggestIcon />
+                </IconButton>
+              </Tooltip>
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
               <Tooltip title="Alle auswählen">
                 <IconButton
@@ -240,7 +263,6 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 </IconButton>
               </Tooltip>
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-
               <Tooltip title="Neue Nutzerin erzeugen">
                 <IconButton
                   color="primary"
@@ -266,6 +288,13 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               />
             </Paper>
           </Grid>{" "}
+          {showDetailSearch && (
+            <RentSearchParams
+              overdue={searchParams.overdue}
+              grade={getUniqueGrades()}
+              setUserSearchInput={setUserSearchInput}
+            />
+          )}
           {displayDetail > 0 ? (
             <Grid size={{ xs: 6 }} >
               <UserDetailsCard
