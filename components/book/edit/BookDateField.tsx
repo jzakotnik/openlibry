@@ -31,7 +31,7 @@ const BookDateField = ({
   editable,
   setBookData,
   book,
-}: BookDateFieldProps): React.ReactElement => {
+}: BookDateFieldProps): React.ReactElement<any> => {
   return (
     <Grid item xs={12} sm={6} data-cy={"book_" + fieldType + "_datepicker"}>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
