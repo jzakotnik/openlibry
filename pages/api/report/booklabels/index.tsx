@@ -10,12 +10,11 @@ import ReactPDF, {
   Page,
   StyleSheet,
   Text,
-  View
+  View,
 } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
 import { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
-
 
 const BOOKLABEL_MARGIN_LEFT = process.env.BOOKLABEL_MARGIN_LEFT
   ? parseFloat(process.env.BOOKLABEL_MARGIN_LEFT)
@@ -47,17 +46,32 @@ const BOOKLABEL_AUTHOR_SPACING = process.env.BOOKLABEL_AUTHOR_SPACING
   ? parseFloat(process.env.BOOKLABEL_AUTHOR_SPACING)
   : 1;
 
-const BOOKLABEL_LABEL_SPACING_HORIZONTAL = process.env.BOOKLABEL_LABEL_SPACING_HORIZONTAL ? parseFloat(process.env.BOOKLABEL_LABEL_SPACING_HORIZONTAL) : 0;
+const BOOKLABEL_LABEL_SPACING_HORIZONTAL = process.env
+  .BOOKLABEL_LABEL_SPACING_HORIZONTAL
+  ? parseFloat(process.env.BOOKLABEL_LABEL_SPACING_HORIZONTAL)
+  : 0;
 
-const BOOKLABEL_LABEL_SPACING_VERTICAL = process.env.BOOKLABEL_LABEL_SPACING_VERTICAL ? parseFloat(process.env.BOOKLABEL_LABEL_SPACING_VERTICAL) : 0;
+const BOOKLABEL_LABEL_SPACING_VERTICAL = process.env
+  .BOOKLABEL_LABEL_SPACING_VERTICAL
+  ? parseFloat(process.env.BOOKLABEL_LABEL_SPACING_VERTICAL)
+  : 0;
 
-const BOOKLABEL_LABEL_WIDTH = process.env.BOOKLABEL_LABEL_WIDTH ? parseFloat(process.env.BOOKLABEL_LABEL_WIDTH) : 5.0;
+const BOOKLABEL_LABEL_WIDTH = process.env.BOOKLABEL_LABEL_WIDTH
+  ? parseFloat(process.env.BOOKLABEL_LABEL_WIDTH)
+  : 5.0;
 
-const BOOKLABEL_LABEL_HEIGHT = process.env.BOOKLABEL_LABEL_HEIGHT ? parseFloat(process.env.BOOKLABEL_LABEL_HEIGHT) : 3.0;
+const BOOKLABEL_LABEL_HEIGHT = process.env.BOOKLABEL_LABEL_HEIGHT
+  ? parseFloat(process.env.BOOKLABEL_LABEL_HEIGHT)
+  : 3.0;
 
-const BOOKLABEL_MARGIN_IN_LABEL = process.env.BOOKLABEL_MARGIN_IN_LABEL ? parseFloat(process.env.BOOKLABEL_MARGIN_IN_LABEL) : 0.0;
+const BOOKLABEL_MARGIN_IN_LABEL = process.env.BOOKLABEL_MARGIN_IN_LABEL
+  ? parseFloat(process.env.BOOKLABEL_MARGIN_IN_LABEL)
+  : 0.0;
 
-const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env.BOOKLABEL_PRINT_LABEL_FRAME ? JSON.parse(process.env.BOOKLABEL_PRINT_LABEL_FRAME) : false;
+const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env
+  .BOOKLABEL_PRINT_LABEL_FRAME
+  ? JSON.parse(process.env.BOOKLABEL_PRINT_LABEL_FRAME)
+  : false;
 
 const pointPerCm = 28.3464566929;
 
@@ -101,14 +115,18 @@ const styles = StyleSheet.create({
 });
 
 const labelFrame = ({ id }: any) => {
-
   if (BOOKLABEL_PRINT_LABEL_FRAME) {
     return (
       <Canvas
         key={id}
         paint={(painterObject) =>
           painterObject
-            .rect(0, 0, BOOKLABEL_LABEL_WIDTH * pointPerCm, BOOKLABEL_LABEL_HEIGHT * pointPerCm)
+            .rect(
+              0,
+              0,
+              BOOKLABEL_LABEL_WIDTH * pointPerCm,
+              BOOKLABEL_LABEL_HEIGHT * pointPerCm
+            )
             .stroke()
         }
       />
@@ -116,7 +134,6 @@ const labelFrame = ({ id }: any) => {
   }
   return null;
 };
-
 
 const authorLine = (b: BookType) => {
   const authorlineData =
@@ -139,41 +156,54 @@ const authorLine = (b: BookType) => {
     >
       {replacePlaceholder(authorlineData[0], b)}
     </Text>
-  )
-}
+  );
+};
 const getMaxTitleHeight = (useMaxSpace: boolean, pointsize: number) => {
   if (!useMaxSpace) {
     return pointsize / pointPerCm;
   }
   // use all space not used by other lines. Check which other lines exist
-  return BOOKLABEL_LABEL_HEIGHT - (2 * BOOKLABEL_MARGIN_IN_LABEL) - parseFloat(BOOKLABEL_BARCODE_HEIGHT.split("cm")[0]) - getHightForLine(process.env.BOOKLABEL_LINE_BELOW_1) -
-    getHightForLine(process.env.BOOKLABEL_LINE_BELOW_2);
-}
+  return (
+    BOOKLABEL_LABEL_HEIGHT -
+    2 * BOOKLABEL_MARGIN_IN_LABEL -
+    parseFloat(BOOKLABEL_BARCODE_HEIGHT.split("cm")[0]) -
+    getHightForLine(process.env.BOOKLABEL_LINE_BELOW_1) -
+    getHightForLine(process.env.BOOKLABEL_LINE_BELOW_2)
+  );
+};
 const getHightForLine = (lineConfig: string | undefined) => {
   if (lineConfig === undefined || lineConfig == null) return 0;
   return JSON.parse(lineConfig)[1] / pointPerCm;
-}
+};
 
-const infoLine = (b: BookType, configline: string | undefined, useMaxSpace: boolean) => {
+const infoLine = (
+  b: BookType,
+  configline: string | undefined,
+  useMaxSpace: boolean
+) => {
   if (configline === undefined || configline == null) return null;
   const lineConfig = JSON.parse(configline);
   const titleHeight = getMaxTitleHeight(useMaxSpace, lineConfig[1]);
-  const maxTextWith = BOOKLABEL_LABEL_WIDTH - BOOKLABEL_AUTHOR_SPACING - (2 * BOOKLABEL_MARGIN_IN_LABEL);
+  const maxTextWith =
+    BOOKLABEL_LABEL_WIDTH -
+    BOOKLABEL_AUTHOR_SPACING -
+    2 * BOOKLABEL_MARGIN_IN_LABEL;
   // console.log("infoline", lineConfig, titleHeight, maxTextWith);
-  return (<Text
-    style={{
-      fontSize: lineConfig[1],
-      maxHeight: titleHeight + "cm",
-      maxWidth: maxTextWith + "cm",
-      textAlign: lineConfig[2],
-      // maxLines: 1,
-      left: BOOKLABEL_AUTHOR_SPACING + "cm",
-    }}
-  >
-    {replacePlaceholder(lineConfig[0], b)}
-  </Text>)
-}
-
+  return (
+    <Text
+      style={{
+        fontSize: lineConfig[1],
+        maxHeight: titleHeight + "cm",
+        maxWidth: maxTextWith + "cm",
+        textAlign: lineConfig[2],
+        // maxLines: 1,
+        left: BOOKLABEL_AUTHOR_SPACING + "cm",
+      }}
+    >
+      {replacePlaceholder(lineConfig[0], b)}
+    </Text>
+  );
+};
 
 const replacePlaceholder = (text: String, book: any) => {
   try {
@@ -194,7 +224,10 @@ const replacePlaceholder = (text: String, book: any) => {
 
       //let's for the moment assume that the property name is there from the env file
 
-      text = text.replaceAll(nextReplace, book.topics ? book.topics!.split(";")[0] : "");
+      text = text.replaceAll(
+        nextReplace,
+        book.topics ? book.topics!.split(";")[0] : ""
+      );
     }
 
     return text;
@@ -203,38 +236,54 @@ const replacePlaceholder = (text: String, book: any) => {
   }
 };
 
-
-
-const generateBarcode = async (books: Array<BookType>, ignoreLabelFields: number[]) => {
+const generateBarcode = async (
+  books: Array<BookType>,
+  ignoreLabelFields: number[]
+) => {
   const labelsOnPage = BOOKLABEL_ROWSONPAGE * BOOKLABEL_COLUMNSONPAGE;
 
-  const barcodeFloatHeight = parseFloat(BOOKLABEL_BARCODE_HEIGHT.split("cm")[0]);
+  const barcodeFloatHeight = parseFloat(
+    BOOKLABEL_BARCODE_HEIGHT.split("cm")[0]
+  );
+  //console.log("Books", books);
 
   let allcodes = await Promise.all(
     books.map(async (b: BookType, i: number) => {
-
       if (b.id == null) {
         // this is an empty element for a label that is already used - skip it
         return;
       }
       const horizontalIndex = i % BOOKLABEL_COLUMNSONPAGE;
-      const verticalIndex = Math.floor(i % labelsOnPage / BOOKLABEL_COLUMNSONPAGE);
+      const verticalIndex = Math.floor(
+        (i % labelsOnPage) / BOOKLABEL_COLUMNSONPAGE
+      );
 
-      const barId = process.env.BARCODE_MINCODELENGTH != null ? b.id!.toString().padStart(parseInt(process.env.BARCODE_MINCODELENGTH)) : b.id!.toString();
+      const barId =
+        process.env.BARCODE_MINCODELENGTH != null
+          ? b
+              .id!.toString()
+              .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
+          : b.id!.toString();
       const png =
         BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
           ? await bwipjs.toBuffer({
-            bcid: BOOKLABEL_BARCODE_VERSION,
-            text: barId,
-            scale: 3,
-            height: 10,
-            includetext: true,
-            textxalign: "center",
-          })
+              bcid: BOOKLABEL_BARCODE_VERSION,
+              text: barId,
+              scale: 3,
+              height: 10,
+              includetext: true,
+              textxalign: "center",
+            })
           : schoollogo;
       const pos = {
-        left: BOOKLABEL_MARGIN_LEFT + (horizontalIndex * BOOKLABEL_LABEL_WIDTH) + (horizontalIndex * BOOKLABEL_LABEL_SPACING_HORIZONTAL),
-        top: BOOKLABEL_MARGIN_TOP + BOOKLABEL_LABEL_HEIGHT * verticalIndex + (verticalIndex * BOOKLABEL_LABEL_SPACING_VERTICAL),
+        left:
+          BOOKLABEL_MARGIN_LEFT +
+          horizontalIndex * BOOKLABEL_LABEL_WIDTH +
+          horizontalIndex * BOOKLABEL_LABEL_SPACING_HORIZONTAL,
+        top:
+          BOOKLABEL_MARGIN_TOP +
+          BOOKLABEL_LABEL_HEIGHT * verticalIndex +
+          verticalIndex * BOOKLABEL_LABEL_SPACING_VERTICAL,
       };
 
       console.log("Position", pos, i);
@@ -276,7 +325,8 @@ const generateBarcode = async (books: Array<BookType>, ignoreLabelFields: number
               flexDirection: "column",
               left: pos.left + "cm",
               top: pos.top + "cm",
-              width: BOOKLABEL_LABEL_WIDTH - (2 * BOOKLABEL_MARGIN_IN_LABEL) + "cm",
+              width:
+                BOOKLABEL_LABEL_WIDTH - 2 * BOOKLABEL_MARGIN_IN_LABEL + "cm",
               padding: 0,
               margin: BOOKLABEL_MARGIN_IN_LABEL + "cm",
             }}
@@ -287,7 +337,7 @@ const generateBarcode = async (books: Array<BookType>, ignoreLabelFields: number
               }}
             >
               {infoLine(b, process.env.BOOKLABEL_LINE_ABOVE, true)}
-              < Image
+              <Image
                 key={b.id}
                 src={"data:image/png;base64, " + (await png.toString("base64"))}
                 style={{
@@ -309,12 +359,19 @@ const generateBarcode = async (books: Array<BookType>, ignoreLabelFields: number
   return allcodes;
 };
 
-async function createLabelsPDF(books: Array<BookType>, ignoreLabelFields: number[]) {
-  var pdfstream;
+async function createLabelsPDF(
+  books: Array<BookType>,
+  ignoreLabelFields: number[]
+) {
   const barcodes = await generateBarcode(books, ignoreLabelFields);
   //console.log("barcodes", barcodes);
-  const barcodesSections = chunkArray(barcodes, BOOKLABEL_ROWSONPAGE * BOOKLABEL_COLUMNSONPAGE);
-  pdfstream = ReactPDF.renderToStream(
+  const barcodesSections = chunkArray(
+    barcodes,
+    BOOKLABEL_ROWSONPAGE * BOOKLABEL_COLUMNSONPAGE
+  );
+  console.log("Barcodes", barcodes, barcodesSections.length);
+  barcodesSections.map((chunk, i) => console.log("Rendering chunk", chunk));
+  const pdfstream = ReactPDF.renderToStream(
     <Document>
       {barcodesSections.map((chunk, i) => (
         <Page
@@ -333,6 +390,7 @@ async function createLabelsPDF(books: Array<BookType>, ignoreLabelFields: number
       ))}
     </Document>
   );
+  console.log("PDF rendered", pdfstream);
 
   return pdfstream;
 }
@@ -353,12 +411,17 @@ export default async function handle(
             : null;
         const idFilter: number[] = [];
         if ("id" in req.query) {
-
-          Array.isArray(req.query.id) ? (req.query.id! as string[]).map((e) => idFilter.push(parseInt(e))) : idFilter.push(parseInt(req.query.id! as string));
+          Array.isArray(req.query.id)
+            ? (req.query.id! as string[]).map((e) => idFilter.push(parseInt(e)))
+            : idFilter.push(parseInt(req.query.id! as string));
         }
         const ignoreLabelFields: number[] = [];
         if ("block" in req.query) {
-          Array.isArray(req.query.block) ? (req.query.block! as string[]).map((e) => ignoreLabelFields.push(parseInt(e))) : ignoreLabelFields.push(parseInt(req.query.block! as string));
+          Array.isArray(req.query.block)
+            ? (req.query.block! as string[]).map((e) =>
+                ignoreLabelFields.push(parseInt(e))
+              )
+            : ignoreLabelFields.push(parseInt(req.query.block! as string));
         }
         console.log("Filter string", topicFilter, idFilter);
         //TODO this should be able to do more than one topic!
@@ -369,30 +432,41 @@ export default async function handle(
               : true;
           })
           .filter((b: BookType) => {
-            return idFilter.length > 0 ? b.id && idFilter.indexOf(b.id) > -1 : true;
+            return idFilter.length > 0
+              ? b.id && idFilter.indexOf(b.id) > -1
+              : true;
           });
         //console.log("Filtered books", books);
         //console.log("Search Params", req.query, "end" in req.query);
         let printableBooks = books;
         if ("start" in req.query || "end" in req.query) {
-
           const startIndex = "start" in req.query ? req.query.start : "0";
-          const endIndex = "end" in req.query ? req.query.end : books.length - 1;
+          const endIndex =
+            "end" in req.query ? req.query.end : books.length - 1;
           printableBooks = books.slice(
             parseInt(startIndex as string),
             parseInt(endIndex as string)
           );
-          console.log("Printing labels for books in Indexrange", startIndex, endIndex);
+          console.log(
+            "Printing labels for books in Indexrange",
+            startIndex,
+            endIndex
+          );
         } else if ("startId" in req.query && "endId" in req.query) {
-          const startId = "startId" in req.query ? parseInt(req.query.startId as string) : 0;
+          const startId =
+            "startId" in req.query ? parseInt(req.query.startId as string) : 0;
           // books are sorted desc, so first book has highest number
-          const endId = "endId" in req.query ? parseInt(req.query.endId as string) : books[0].id;
+          const endId =
+            "endId" in req.query
+              ? parseInt(req.query.endId as string)
+              : books[0].id;
           //TODO: This should be done in sql and not filtered later.
-          printableBooks = books.filter((b) => b.id! >= startId && b.id! <= endId!)
+          printableBooks = books.filter(
+            (b) => b.id! >= startId && b.id! <= endId!
+          );
           console.log("Printing labels for books in ID range", startId, endId);
         }
         console.log("Printing labels for books");
-
 
         if (!books)
           return res.status(400).json({ data: "ERROR: Books  not found" });
@@ -411,7 +485,7 @@ export default async function handle(
         };
         // splice empty books on positions to skip
         for (var skipindex of ignoreLabelFields) {
-          printableBooks.splice(skipindex, 0, book)
+          printableBooks.splice(skipindex, 0, book);
         }
 
         const labels = await createLabelsPDF(printableBooks, ignoreLabelFields);

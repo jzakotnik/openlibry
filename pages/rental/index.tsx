@@ -51,13 +51,13 @@ export default function Rental({
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
-  const bookFocusRef = useRef<HTMLInputElement>();
+  const bookFocusRef = useRef<HTMLInputElement>(undefined);
   const handleBookSearchSetFocus = () => {
     bookFocusRef.current!.focus();
     bookFocusRef.current!.select();
   }
 
-  const userFocusRef = useRef<HTMLInputElement>();
+  const userFocusRef = useRef<HTMLInputElement>(undefined);
   const handleUserSearchSetFocus = () => {
     userFocusRef.current!.focus();
     userFocusRef.current!.select();
