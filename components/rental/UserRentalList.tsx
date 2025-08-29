@@ -35,8 +35,6 @@ import "dayjs/locale/de";
 import { booksForUser, filterUsers } from "../../utils/searchUtils";
 import RentSearchParams from "./RentSearchParams";
 
-
-
 type UserPropsType = {
   users: Array<UserType>;
   books: Array<BookType>;
@@ -52,7 +50,6 @@ type UserPropsType = {
 const preventDefault = (event: React.SyntheticEvent) => event.preventDefault();
 
 const defaultSearchParams = { overdue: false, grade: "" };
-
 
 export default function UserRentalList({
   users,
@@ -71,14 +68,21 @@ export default function UserRentalList({
   const [showDetailSearch, setShowDetailSearch] = useState(false);
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
 
-  const filterUserSub = (users: Array<UserType>, searchString: string, rentals: Array<RentalsUserType>, exactMatch: boolean = false) => {
-    let [filteredUsers, exactMatchRes] =
-      filterUsers(users, searchString, rentals, exactMatch);
+  const filterUserSub = (
+    users: Array<UserType>,
+    searchString: string,
+    rentals: Array<RentalsUserType>,
+    exactMatch: boolean = false
+  ) => {
+    let [filteredUsers, exactMatchRes] = filterUsers(
+      users,
+      searchString,
+      rentals,
+      exactMatch
+    );
     exactMatchUserId = exactMatchRes;
     return filteredUsers;
-  }
-
-
+  };
 
   const handleClear = (e: any) => {
     e.preventDefault();
@@ -92,24 +96,22 @@ export default function UserRentalList({
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {
-    if (e.key == 'Enter') {
+    if (e.key == "Enter") {
       if (exactMatchUserId > -1) {
         setUserExpanded(exactMatchUserId);
       }
       handleBookSearchSetFocus();
-    } else if (e.key == 'Escape') {
+    } else if (e.key == "Escape") {
       setUserExpanded(false);
       setUserSearchInput("");
     }
-  }
+  };
 
   const handleExpandedUser =
     (userID: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setUserExpanded(isExpanded ? userID : false);
       console.log("Expanded user", userID);
     };
-
-
 
   const getBookFromID = (id: number): BookType => {
     const book = books.filter((b: BookType) => b.id == id);
@@ -154,10 +156,12 @@ export default function UserRentalList({
     return uniqueGrades;
   };
 
-
-
-
-  const extensionDays = extendDays(new Date(), process.env.EXTENSION_DURATION_DAYS ? parseInt(process.env.EXTENSION_DURATION_DAYS) : 14);
+  const extensionDays = extendDays(
+    new Date(),
+    process.env.EXTENSION_DURATION_DAYS
+      ? parseInt(process.env.EXTENSION_DURATION_DAYS)
+      : 14
+  );
 
   return (
     <div>
@@ -244,48 +248,49 @@ export default function UserRentalList({
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel1a-content"
               id="panel1a-header"
+              sx={{
+                // make the internal content a single centered row
+                "& .MuiAccordionSummary-content": {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  width: "100%",
+                  m: 0, // kill default margin that can push things
+                  minWidth: 0, // enables ellipsis
+                },
+              }}
             >
-              <Grid
-                container
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{ px: 0.5 }}
+              {/* LEFT: name + count — grows and can ellipsize */}
+              <Typography
+                sx={{
+                  mx: 4,
+                  flex: 1, // take remaining space
+                  minWidth: 0, // required for ellipsis in flex items
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  mb: 0, // avoid gutter pushing layout
+                }}
+                color="text.secondary"
               >
-                <Grid>
-                  <Typography
-                    sx={{ mx: 4 }}
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    {u.firstName +
-                      " " +
-                      u.lastName +
-                      (rentalsUser.length > 0
-                        ? ", " +
-                        rentalsUser.length +
-                        (rentalsUser.length > 1 ? " Bücher" : " Buch")
-                        : "")}
-                  </Typography>
-                </Grid>
-                <Grid>
-                  <Grid container>
-                    <Grid>
-                      <Typography
-                        sx={{ fontSize: 12 }}
-                        color="text.primary"
-                        gutterBottom
-                      >
-                        {"Nr. " + u.id + ", "} {"Klasse " + u.schoolGrade}{" "}
-                      </Typography>
-                    </Grid>
-                    <Grid>
-                      <OverdueIcon rentalsUser={rentalsUser} />
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
+                {u.firstName} {u.lastName}
+                {rentalsUser.length > 0
+                  ? `, ${rentalsUser.length} ${
+                      rentalsUser.length > 1 ? "Bücher" : "Buch"
+                    }`
+                  : ""}
+              </Typography>
+
+              {/* RIGHT: meta + icon — no wrap, stays on the right */}
+              <Typography
+                sx={{ fontSize: 12, whiteSpace: "nowrap", mb: 0, mr: 1 }}
+                color="text.primary"
+              >
+                Nr. {u.id}, Klasse {u.schoolGrade}
+              </Typography>
+              <OverdueIcon rentalsUser={rentalsUser} />
             </AccordionSummary>
+
             <AccordionDetails>
               <Grid
                 container
@@ -295,8 +300,13 @@ export default function UserRentalList({
                 sx={{ px: 1, my: 1 }}
               >
                 {rentalsUser.map((r: RentalsUserType) => {
-                  let allowExtendBookRent = extensionDays.isAfter(r.dueDate, "day");
-                  let tooltip = allowExtendBookRent ? "Verlängern" : "Maximale Ausleihzeit erreicht";
+                  let allowExtendBookRent = extensionDays.isAfter(
+                    r.dueDate,
+                    "day"
+                  );
+                  let tooltip = allowExtendBookRent
+                    ? "Verlängern"
+                    : "Maximale Ausleihzeit erreicht";
                   return (
                     <span key={"span" + r.id}>
                       {" "}
@@ -309,7 +319,7 @@ export default function UserRentalList({
                           sx={{ px: 1 }}
                         >
                           {" "}
-                          <Grid size={{ xs: 2 }} >
+                          <Grid size={{ xs: 2 }}>
                             <Tooltip title="Zurückgeben">
                               <IconButton
                                 onClick={() => {
@@ -329,16 +339,16 @@ export default function UserRentalList({
                               </IconButton>
                             </Tooltip>
                           </Grid>
-                          <Grid size={{ xs: 8 }} >
+                          <Grid size={{ xs: 8 }}>
                             <Typography sx={{ m: 1 }}>{r.title},</Typography>
                             <Typography variant="caption">
                               bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
                               {r.renewalCount}x verlängert
                             </Typography>
                           </Grid>
-                          <Grid size={{ xs: 2 }} >
+                          <Grid size={{ xs: 2 }}>
                             {userExpanded && (
-                              <Tooltip title={tooltip} >
+                              <Tooltip title={tooltip}>
                                 <span>
                                   <IconButton
                                     aria-label="extend"
@@ -368,7 +378,7 @@ export default function UserRentalList({
                       </Paper>
                       <Divider variant="fullWidth" />
                     </span>
-                  )
+                  );
                 })}
               </Grid>
             </AccordionDetails>
