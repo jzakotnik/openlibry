@@ -109,16 +109,16 @@ export default function XLSImport() {
       const booksJson: any[] = convertSheetToJson(worksheetBooks);
       logs.push(
         "Excel Bücher erfolgreich in JSON konvertiert: " +
-          booksJson.length +
-          " Bücher gefunden"
+        booksJson.length +
+        " Bücher gefunden"
       );
       setBookData(booksJson);
       logs.push("Excel User werden in JSON konvertiert");
       const usersJson: any[] = convertSheetToJson(worksheetUsers);
       logs.push(
         "Excel User erfolgreich in JSON konvertiert: " +
-          usersJson.length +
-          " User gefunden"
+        usersJson.length +
+        " User gefunden"
       );
       setUserData(usersJson);
 
@@ -167,9 +167,8 @@ export default function XLSImport() {
         >
           {" "}
           <Grid
-            item
             container
-            xs={2}
+            size={{ xs: 2 }}
             direction="row"
             justifyContent="center"
             alignItems="center"
@@ -195,7 +194,7 @@ export default function XLSImport() {
               </Button>
             )}
           </Grid>
-          <Grid item xs={10} sx={{ width: "100%" }}>
+          <Grid size={{ xs: 10 }} sx={{ width: "100%" }}>
             {" "}
             <Paper>
               {importLog.map((i: string, idx: number) => (
@@ -204,7 +203,7 @@ export default function XLSImport() {
             </Paper>
           </Grid>
           {excelLoaded && (
-            <Grid container item>
+            <Grid container >
               <Divider></Divider>
               <Typography variant="caption" color="gray">
                 Erste Zeilen der Bücher

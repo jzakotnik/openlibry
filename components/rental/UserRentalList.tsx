@@ -168,7 +168,7 @@ export default function UserRentalList({
         justifyContent="space-between"
         direction="row"
       >
-        <Grid item>
+        <Grid>
           <FormControl variant="standard">
             <InputLabel
               htmlFor="user-search-input-label"
@@ -204,14 +204,14 @@ export default function UserRentalList({
             />{" "}
           </FormControl>
         </Grid>
-        <Grid item>
+        <Grid>
           <Typography variant="caption" color="primary">
             {userExpanded
               ? " Ausgewählt: " + getUserFromID(userExpanded).firstName
               : ""}
           </Typography>
         </Grid>
-        <Grid item>
+        <Grid>
           {" "}
           <IconButton
             aria-label="search-settings"
@@ -252,7 +252,7 @@ export default function UserRentalList({
                 justifyContent="space-between"
                 sx={{ px: 0.5 }}
               >
-                <Grid item>
+                <Grid>
                   <Typography
                     sx={{ mx: 4 }}
                     color="text.secondary"
@@ -268,7 +268,7 @@ export default function UserRentalList({
                         : "")}
                   </Typography>
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Grid container>
                     <Grid>
                       <Typography
@@ -309,7 +309,7 @@ export default function UserRentalList({
                           sx={{ px: 1 }}
                         >
                           {" "}
-                          <Grid item xs={2}>
+                          <Grid size={{ xs: 2 }} >
                             <Tooltip title="Zurückgeben">
                               <IconButton
                                 onClick={() => {
@@ -329,14 +329,14 @@ export default function UserRentalList({
                               </IconButton>
                             </Tooltip>
                           </Grid>
-                          <Grid item xs={8}>
+                          <Grid size={{ xs: 8 }} >
                             <Typography sx={{ m: 1 }}>{r.title},</Typography>
                             <Typography variant="caption">
                               bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
                               {r.renewalCount}x verlängert
                             </Typography>
                           </Grid>
-                          <Grid item xs={2}>
+                          <Grid size={{ xs: 2 }} >
                             {userExpanded && (
                               <Tooltip title={tooltip} >
                                 <span>

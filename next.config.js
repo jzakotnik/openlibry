@@ -6,9 +6,6 @@ const nextConfig = {
     return new Date().toLocaleDateString();
   },
   swcMinify: true,
-  experimental: {
-    instrumentationHook: true,
-  },
   images: {
     minimumCacheTTL: 5,
 
@@ -19,6 +16,7 @@ const nextConfig = {
       },
     ],
   },
+  transpilePackages: ['@mui/x-data-grid']
 };
 
 module.exports = nextConfig;

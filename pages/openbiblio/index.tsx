@@ -212,7 +212,7 @@ export default function MergeFiles() {
         variant="outlined"
       />
       <Grid container spacing={2} sx={{ marginTop: 2 }}>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Button
             onClick={handleMigrateUsers}
             fullWidth
@@ -222,7 +222,7 @@ export default function MergeFiles() {
             User importieren
           </Button>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Button
             onClick={handleMigrateBooks}
             fullWidth

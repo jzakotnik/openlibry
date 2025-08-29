@@ -178,7 +178,6 @@ export default function BookRentalList({
             <div key={b.id}>
               <Paper elevation={2} sx={{ my: 0.5 }}>
                 <Grid
-                  item
                   container
                   direction="column"
                   alignItems="flex-start"
@@ -186,12 +185,11 @@ export default function BookRentalList({
                 >
                   <Grid
                     container
-                    item
                     direction="row"
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <Grid item>
+                    <Grid>
                       <Typography sx={{ m: 0.5 }}>{b.title}</Typography>
                     </Grid>
                     <Grid>
@@ -202,7 +200,7 @@ export default function BookRentalList({
                         justifyContent="flex-start"
                         sx={{ px: 0.5 }}
                       >
-                        <Grid item>
+                        <Grid>
                           {!(b.rentalStatus == "available") && (
                             <Tooltip title={tooltip}>
                               <span>
@@ -226,7 +224,7 @@ export default function BookRentalList({
                             </Tooltip>
                           )}
                         </Grid>
-                        <Grid item>
+                        <Grid>
                           {!(b.rentalStatus == "available") && (
                             <Tooltip title="Zurückgeben">
                               <IconButton
@@ -252,7 +250,7 @@ export default function BookRentalList({
                           )}
                         </Grid>
                         {userExpanded && b.rentalStatus == "available" && (
-                          <Grid container item>
+                          <Grid container>
                             <Tooltip title="Ausleihen">
                               <IconButton
                                 onClick={() => {
@@ -276,13 +274,13 @@ export default function BookRentalList({
                       </Grid>
                     </Grid>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }} >
                     {" "}
                     <Typography sx={{ m: 0.5 }} variant="body2">
                       Untertitel: {b.subtitle}
                     </Typography>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }} >
                     {" "}
                     <Typography sx={{ m: 0.5 }} variant="body2">
                       Buch Nr. {b.id}

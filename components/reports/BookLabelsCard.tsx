@@ -93,7 +93,7 @@ export default function BookLabelCard({
           justifyContent="left"
           spacing={3}
         >
-          <Grid item xs={6} md={6} lg={5} sx={{}}>
+          <Grid size={{ xs: 6, md: 6, lg: 5 }} sx={{}}>
             <TextField
               id="idRangeFrom"
               label="Von ID"
@@ -113,7 +113,7 @@ export default function BookLabelCard({
               sx={{ mt: 5 }}
             />
           </Grid>
-          <Grid item xs={6} md={6} lg={5} sx={{}}>
+          <Grid size={{ xs: 6, md: 6, lg: 5 }} sx={{}}>
             <TextField
               id="idRangeTo"
               label="Bis ID"

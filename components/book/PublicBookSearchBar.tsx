@@ -31,7 +31,7 @@ export default function PublicBookSearchBar({
       justifyContent="center"
       sx={{ px: 10, my: 5 }}
     >
-      <Grid item>
+      <Grid>
         <Paper
           component="form"
           sx={{

@@ -215,7 +215,7 @@ export default function Rental({
         spacing={2}
         sx={{ my: 1 }}
       >
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <UserRentalList
             users={users}
             books={books}
@@ -228,7 +228,7 @@ export default function Rental({
             handleBookSearchSetFocus={handleBookSearchSetFocus}
           />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <BookRentalList
             books={books}
             users={users} //to figure out the name of the user who rented
