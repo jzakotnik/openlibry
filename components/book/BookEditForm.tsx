@@ -62,7 +62,7 @@ export default function BookEditForm({
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   useState<AlertColor>("success");
-  console.log("DELETE config", deleteSafetySeconds);
+  //console.log("DELETE config", deleteSafetySeconds);
 
   const toggleEditButton = () => {
     editable
@@ -165,13 +165,11 @@ export default function BookEditForm({
           )}
         </Grid>{" "}
         <Grid size={{ xs: 12, md: 4 }}>
-
-
           {editable && (
             <Tooltip title="Buchlabel drucken">
               <Button
                 onClick={(e) => {
-                  router.push("/reports/print?id=" + book.id)
+                  router.push("/reports/print?id=" + book.id);
                 }}
                 startIcon={<PrintIcon />}
               >
@@ -179,7 +177,6 @@ export default function BookEditForm({
               </Button>
             </Tooltip>
           )}
-
         </Grid>{" "}
       </Grid>
       <Divider sx={{ mb: 3 }}>

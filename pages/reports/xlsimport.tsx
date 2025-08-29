@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import {
+  Box,
   Divider,
-  Grid,
   Paper,
   Table,
   TableBody,
@@ -109,16 +109,16 @@ export default function XLSImport() {
       const booksJson: any[] = convertSheetToJson(worksheetBooks);
       logs.push(
         "Excel Bücher erfolgreich in JSON konvertiert: " +
-        booksJson.length +
-        " Bücher gefunden"
+          booksJson.length +
+          " Bücher gefunden"
       );
       setBookData(booksJson);
       logs.push("Excel User werden in JSON konvertiert");
       const usersJson: any[] = convertSheetToJson(worksheetUsers);
       logs.push(
         "Excel User erfolgreich in JSON konvertiert: " +
-        usersJson.length +
-        " User gefunden"
+          usersJson.length +
+          " User gefunden"
       );
       setUserData(usersJson);
 
@@ -157,24 +157,15 @@ export default function XLSImport() {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
-        <Grid
-          container
-          direction="column"
-          justifyContent="center"
+        <Box
+          display="flex"
+          flexDirection="column"
           alignItems="center"
-          spacing={2}
-          sx={{ m: 2 }}
+          gap={2}
+          sx={{ m: 2, width: "100%" }}
         >
-          {" "}
-          <Grid
-            container
-            size={{ xs: 2 }}
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            spacing={2}
-            sx={{ m: 2 }}
-          >
+          {/* Button row */}
+          <Box display="flex" flexDirection="row" gap={2}>
             <Button variant="contained" component="label">
               Excel importieren
               <input
@@ -183,28 +174,33 @@ export default function XLSImport() {
                 accept=".xlsx, .xls"
                 onChange={handleFileUpload}
               />
-            </Button>{" "}
+            </Button>
+
             {excelLoaded && (
-              <Button
-                variant="contained"
-                component="label"
-                onClick={handleImportButton}
-              >
+              <Button variant="contained" onClick={handleImportButton}>
                 In die Datenbank importieren
               </Button>
             )}
-          </Grid>
-          <Grid size={{ xs: 10 }} sx={{ width: "100%" }}>
-            {" "}
-            <Paper>
+          </Box>
+
+          {/* Log panel */}
+          <Box sx={{ width: "100%" }}>
+            <Paper sx={{ p: 2 }}>
               {importLog.map((i: string, idx: number) => (
                 <Typography key={idx}>{i}</Typography>
               ))}
             </Paper>
-          </Grid>
+          </Box>
+
+          {/* Data preview */}
           {excelLoaded && (
-            <Grid container >
-              <Divider></Divider>
+            <Box
+              display="flex"
+              flexDirection="column"
+              gap={2}
+              sx={{ width: "100%" }}
+            >
+              <Divider />
               <Typography variant="caption" color="gray">
                 Erste Zeilen der Bücher
               </Typography>
@@ -213,7 +209,8 @@ export default function XLSImport() {
               ) : (
                 "Keine Daten verfügbar"
               )}
-              <Divider></Divider>
+
+              <Divider />
               <Typography variant="caption" color="gray">
                 Erste Zeilen der User
               </Typography>
@@ -222,9 +219,9 @@ export default function XLSImport() {
               ) : (
                 "Keine Daten verfügbar"
               )}
-            </Grid>
+            </Box>
           )}
-        </Grid>
+        </Box>
       </ThemeProvider>
     </Layout>
   );
