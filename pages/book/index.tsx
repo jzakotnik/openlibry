@@ -184,9 +184,9 @@ export default function Books({
 
   const DetailCardContainer = ({ renderedBooks }: any) => {
     return (
-      <Grid container spacing={2} alignItems="stretch">
+      <Grid container spacing={12} alignItems="stretch">
         {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
-          <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
+          <Grid style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <BookSummaryCard
               book={b}
               returnBook={() => handleReturnBook(b.id!, b.userId!)}
@@ -210,6 +210,7 @@ export default function Books({
         sx={{ width: "100%" }}
         direction="column"
         justifyContent="center"
+        spacing={16}
         alignItems="top"
       >
         {renderedBooks.slice(0, pageIndex).map((b: BookType) => (

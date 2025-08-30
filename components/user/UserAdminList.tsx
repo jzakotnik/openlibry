@@ -35,11 +35,20 @@ export default function UserAdminList({
 
   const rentalAmount: { [key: number]: number } = {};
 
-  const filterUserSub = (users: Array<UserType>, searchString: string, rentals: Array<RentalsUserType>, exactMatch: boolean = false) => {
-    let [filteredUsers, exactMatchRes] =
-      filterUsers(users, searchString, rentals, exactMatch);
+  const filterUserSub = (
+    users: Array<UserType>,
+    searchString: string,
+    rentals: Array<RentalsUserType>,
+    exactMatch: boolean = false
+  ) => {
+    let [filteredUsers, exactMatchRes] = filterUsers(
+      users,
+      searchString,
+      rentals,
+      exactMatch
+    );
     return filteredUsers;
-  }
+  };
 
   //initialise user checked array
 
@@ -76,7 +85,7 @@ export default function UserAdminList({
               alignItems="center"
               justifyContent="flex-start"
             >
-              <Grid item xs={1} sx={{ width: "100%", height: "100%" }}>
+              <Grid size={{ xs: 1 }}>
                 <Checkbox
                   checked={checkBoxValue ? checkBoxValue : false}
                   id={userID}
@@ -84,10 +93,9 @@ export default function UserAdminList({
                   onChange={() => {
                     setChecked({ ...checked, [userID]: !checkBoxValue });
                   }}
-                  inputProps={{ "aria-label": "controlled" }}
                 />
               </Grid>
-              <Grid item xs={11} sx={{ width: "100%", height: "100%" }}>
+              <Grid size={{ xs: 11 }}>
                 <Accordion
                   elevation={0}
                   sx={{
@@ -110,7 +118,7 @@ export default function UserAdminList({
                       justifyContent="flex-start  "
                       sx={{ px: 10 }}
                     >
-                      <Grid item sx={{ px: 3 }}>
+                      <Grid sx={{ px: 3 }}>
                         {rentalAmount[u.id!] != undefined ? (
                           <Avatar sx={{ bgcolor: palette.secondary.dark }}>
                             {rentalAmount[u.id!]}

@@ -64,7 +64,6 @@ export default function BookSummaryRow({
   return (
     <Paper elevation={2} sx={{ mx: 2, my: 0.2, width: "100%" }}>
       <Grid
-        item
         container
         direction="row"
         justifyContent="flex-start"
@@ -73,12 +72,12 @@ export default function BookSummaryRow({
         width={"100%"}
       >
         {" "}
-        <Grid item>
+        <Grid>
           <Avatar>
             <BookAvatarIcon b={book} />
           </Avatar>
         </Grid>
-        <Grid item>
+        <Grid>
           <Tooltip title="Buch kopieren">
             <IconButton
               onClick={handleCopyBook}
@@ -90,13 +89,13 @@ export default function BookSummaryRow({
             </IconButton>
           </Tooltip>{" "}
         </Grid>
-        <Grid item sx={{ mx: 1 }}>
+        <Grid sx={{ mx: 1 }}>
           <Typography>{book.title}</Typography>
         </Grid>
-        <Grid item sx={{ mx: 1 }}>
+        <Grid sx={{ mx: 1 }}>
           <Typography variant="caption">{book.author} </Typography>
         </Grid>
-        <Grid item sx={{ mx: 1 }}>
+        <Grid sx={{ mx: 1 }}>
           <BookTopics topics={bookTopics} />
         </Grid>
       </Grid>{" "}

@@ -36,7 +36,7 @@ const BookStatusDropdown = ({
   ];
 
   return (
-    <Grid item xs={12} sm={6}>
+    <Grid size={{ xs: 12, sm: 6 }} >
       <FormControl fullWidth>
         <InputLabel id="book-status-label">Status</InputLabel>
         <Select

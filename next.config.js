@@ -5,13 +5,8 @@ const nextConfig = {
     // This could be anything, using the latest git hash
     return new Date().toLocaleDateString();
   },
-  swcMinify: true,
-  experimental: {
-    instrumentationHook: true,
-  },
   images: {
     minimumCacheTTL: 5,
-
     remotePatterns: [
       {
         protocol: "http",
@@ -19,6 +14,7 @@ const nextConfig = {
       },
     ],
   },
+  transpilePackages: ['@mui/x-data-grid']
 };
 
 module.exports = nextConfig;

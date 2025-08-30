@@ -2,7 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { deDE } from "@mui/x-data-grid";
+import { deDE } from "@mui/x-data-grid/locales";
 import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { getAllUsers } from "../../entities/user";
@@ -210,7 +210,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
           justifyContent="center"
           spacing={3}
         >
-          <Grid item xs={12} md={6} lg={4} sx={{}}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} sx={{}}>
             <ReportCard
               title="Nutzerinnen"
               subtitle="Liste aller Nutzerinnen"
@@ -219,7 +219,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/users"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <ReportCard
               title="Bücher"
               subtitle="Liste aller Bücher"
@@ -228,7 +228,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/books"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <ReportCard
               title="Leihen"
               subtitle="Liste aller Leihen"
@@ -237,7 +237,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/rentals"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <LinkCard
               title="Excel Export"
               subtitle="Excel Export der Daten"
@@ -245,7 +245,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="api/excel"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <LinkCard
               title="Excel Import"
               subtitle="Excel Import der Daten"
@@ -253,7 +253,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/xlsimport"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <ReportCard
               title="Historie"
               subtitle="Aktivitäten Bücher/User"
@@ -262,7 +262,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               link="reports/audit"
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <BookLabelsCard
               title="Buch Etiketten"
               subtitle=""
@@ -282,7 +282,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               allTopics={tagSet}
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <LabelCard
               title="Ausweise"
               subtitle="Liste aller Ausweise"
@@ -293,7 +293,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               setStartLabel={setStartUserLabel}
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <LinkCard
               title="Mahnungen"
               subtitle="Ausdruck aller Mahnungen"

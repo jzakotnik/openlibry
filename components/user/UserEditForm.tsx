@@ -106,7 +106,7 @@ export default function UserEditForm({
         </Typography>
       </Divider>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }} >
           <TextField
             required
             id="firstName"
@@ -122,7 +122,7 @@ export default function UserEditForm({
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }} >
           <TextField
             required
             id="lastName"
@@ -139,7 +139,7 @@ export default function UserEditForm({
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }} >
           <TextField
             required
             id="schoolGrade"
@@ -155,7 +155,7 @@ export default function UserEditForm({
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }} >
           <TextField
             id="schoolTeacherName"
             name="schoolTeacherName"
@@ -172,7 +172,7 @@ export default function UserEditForm({
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }} >
           <TextField
             id="createdAt"
             name="createdAt"
@@ -188,7 +188,7 @@ export default function UserEditForm({
             variant="standard"
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }} >
           <TextField
             id="lastUpdated"
             name="lastUpdated"
@@ -200,7 +200,7 @@ export default function UserEditForm({
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }} >
           <FormControlLabel
             control={
               <Checkbox
@@ -230,7 +230,7 @@ export default function UserEditForm({
         alignItems="center"
         spacing={2}
       >
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }} >
           {" "}
           {books.map((b: BookType) => {
             return "id" in b ? (
@@ -283,12 +283,12 @@ export default function UserEditForm({
             );
           })}
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }} >
           <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
             {editButtonLabel}
           </Button>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           {editable && (
             <Button
               onClick={() => {
@@ -301,7 +301,7 @@ export default function UserEditForm({
             </Button>
           )}
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           {editable && (
             <HoldButton
               duration={deleteSafetySeconds * 1000}

@@ -27,7 +27,7 @@ export default function Home() {
             py: 4,
           }}
         >
-          <Grid item>
+          <Grid>
             <Typography
               variant="h1"
               id="title_headline"
@@ -45,17 +45,15 @@ export default function Home() {
               direction="row"
               alignItems="center"
               justifyContent="center"
+              spacing={4}
               sx={{ px: 10 }}
             >
               {publicNavItems.map((p) => {
                 //console.log("index_" + p.slug.substring(1) + "_button");
                 return (
                   <Grid
-                    item
                     key={p.slug}
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                     justifyContent="center"
                     sx={{
                       display: "flex",

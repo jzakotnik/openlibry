@@ -4,14 +4,15 @@ import { translations } from "@/entities/fieldTranslations";
 import Box from "@mui/material/Box";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { DataGrid, GridToolbar, deDE } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
+import { deDE } from "@mui/x-data-grid/locales";
 import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
-import type {} from "@mui/x-data-grid/themeAugmentation";
+import type { } from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();
 
@@ -96,9 +97,9 @@ export default function Rentals({ rentals }: RentalsPropsType) {
           {reportDataAvailable ? (
             <DataGrid
               autoHeight
+              showToolbar
               columns={reportData.columns}
               rows={reportData.rows}
-              slots={{ toolbar: GridToolbar }}
             />
           ) : (
             <Typography>Keine Daten verfügbar</Typography>
