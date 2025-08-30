@@ -5,10 +5,8 @@ const nextConfig = {
     // This could be anything, using the latest git hash
     return new Date().toLocaleDateString();
   },
-  swcMinify: true,
   images: {
     minimumCacheTTL: 5,
-
     remotePatterns: [
       {
         protocol: "http",

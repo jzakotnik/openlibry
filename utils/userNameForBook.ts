@@ -7,9 +7,7 @@ export default function userNameforBook(
   if (!userbookid) return "";
   const foundUser = users.filter((u) => u.id == userbookid);
   //console.log("Filter user", foundUser, userbookid);
-  if (foundUser.length == 0) {
-    return "";
-  } else {
-    return foundUser[0].firstName + " " + foundUser[0].lastName;
-  }
+  return foundUser.length == 0
+    ? ""
+    : foundUser[0].firstName + " " + foundUser[0].lastName;
 }

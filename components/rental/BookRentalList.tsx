@@ -19,6 +19,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import userNameForBook from "@/utils/userNameForBook";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 
@@ -266,6 +267,51 @@ export default function BookRentalList({
                     )}
                   </Stack>
                 </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    px: 1,
+                    pt: 0.5,
+                    width: "100%",
+                    minWidth: 0, // enables ellipsis on flex children
+                  }}
+                >
+                  <Typography sx={{ m: 0.5 }} variant="body2">
+                    Untertitel: {b.subtitle}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    px: 1,
+                    pt: 0.5,
+                    width: "100%",
+                    minWidth: 0, // enables ellipsis on flex children
+                  }}
+                >
+                  <Typography sx={{ m: 0.5 }} variant="body2">
+                    Buch Nr. {b.id}
+                    {!(
+                      b.rentalStatus == "available" || b.rentalStatus == "lost"
+                    ) && (
+                        <span>
+                          {" "}
+                          - ausgeliehen bis{" "}
+                          {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
+                          {userNameForBook(users, b.userId!)}
+                        </span>
+                      )}
+                    {b.rentalStatus == "available" && (
+                      <span> -{" " + b.author}</span>
+                    )}
+                  </Typography>
+
+                </Box>
+
               </Paper>
             </div>
           );
