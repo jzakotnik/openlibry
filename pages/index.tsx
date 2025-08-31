@@ -19,8 +19,12 @@ export default function Home() {
   return (
     <div
       style={{
+        minHeight: "100vh", // 👈 ensures it covers full screen height
+        width: "100%", // 👈 ensures it spans full width
         backgroundImage:
-          "linear-gradient(135deg, #fff3e0 0%, #ffcc80 50%, #fb8c00 100%)",
+          "linear-gradient(135deg, #fff3e0 0%, #e6cba3ff 50%, #dfb076ff 100%)",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
       }}
     >
       <Layout>
