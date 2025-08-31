@@ -19,18 +19,18 @@ export default function Footer() {
         justifyContent="space-around"
         rowSpacing={5}
       >
-        <Grid container item columnSpacing={2} xs={12} md="auto">
-          <Grid item xs={12} md={4}>
+        <Grid container columnSpacing={2} size={{ xs: 12, md: "auto" }} >
+          <Grid size={{ xs: 12, md: 4 }} >
             <Typography variant="body2">
               <Link href="https://openlibry.de">Copyright</Link>
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
               <Link href="https://openlibry.de">Impressum</Link>
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
               <Link href="https://openlibry.de">Datenschutz</Link>
             </Typography>

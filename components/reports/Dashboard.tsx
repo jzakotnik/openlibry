@@ -22,7 +22,7 @@ export default function Dashboard({ users, books, rentals }: DashboardType) {
         alignItems="center"
         spacing={2}
       >
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }} >
           {" "}
           <InfoTile
             title="Leihe"
@@ -30,7 +30,7 @@ export default function Dashboard({ users, books, rentals }: DashboardType) {
             value={rentals.length}
           />
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           {" "}
           <InfoTile
             title="Nutzerinnen"
@@ -38,7 +38,7 @@ export default function Dashboard({ users, books, rentals }: DashboardType) {
             value={users.length}
           />
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           {" "}
           <InfoTile
             title="Bücher"
@@ -46,7 +46,7 @@ export default function Dashboard({ users, books, rentals }: DashboardType) {
             value={books.length}
           />
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           {" "}
           <InfoTile
             title="Verspätet"

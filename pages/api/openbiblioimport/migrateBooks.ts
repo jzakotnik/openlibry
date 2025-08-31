@@ -16,14 +16,6 @@ const prisma = new PrismaClient();
 
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: MAX_MIGRATION_SIZE, // Set desired value here
-    },
-  },
-};
-
 type Data = {
   data: string;
 };

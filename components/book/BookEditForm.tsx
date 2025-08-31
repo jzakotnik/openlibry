@@ -62,7 +62,7 @@ export default function BookEditForm({
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   useState<AlertColor>("success");
-  console.log("DELETE config", deleteSafetySeconds);
+  //console.log("DELETE config", deleteSafetySeconds);
 
   const toggleEditButton = () => {
     editable
@@ -137,7 +137,7 @@ export default function BookEditForm({
         alignItems="center"
         spacing={2}
       >
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           {editable && (
             <Tooltip title="Speichern">
               <Button
@@ -153,7 +153,7 @@ export default function BookEditForm({
             </Tooltip>
           )}
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           {editable && (
             <Tooltip title="Löschen">
               <HoldButton
@@ -164,14 +164,12 @@ export default function BookEditForm({
             </Tooltip>
           )}
         </Grid>{" "}
-        <Grid item xs={12} md={4}>
-
-
+        <Grid size={{ xs: 12, md: 4 }}>
           {editable && (
             <Tooltip title="Buchlabel drucken">
               <Button
                 onClick={(e) => {
-                  router.push("/reports/print?id=" + book.id)
+                  router.push("/reports/print?id=" + book.id);
                 }}
                 startIcon={<PrintIcon />}
               >
@@ -179,7 +177,6 @@ export default function BookEditForm({
               </Button>
             </Tooltip>
           )}
-
         </Grid>{" "}
       </Grid>
       <Divider sx={{ mb: 3 }}>
@@ -189,9 +186,9 @@ export default function BookEditForm({
       </Divider>
       <Grid container direction="row" justifyContent="center" alignItems="top">
         {" "}
-        <Grid item container xs={12} sm={9} direction="row" spacing={2}>
+        <Grid container size={{ xs: 12, sm: 9 }} direction="row" spacing={2}>
           {" "}
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"title"}
               editable={editable}
@@ -199,7 +196,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"author"}
               editable={editable}
@@ -207,7 +204,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"subtitle"}
               editable={editable}
@@ -215,7 +212,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTopicsChips
               fieldType={"topics"}
               editable={editable}
@@ -225,7 +222,7 @@ export default function BookEditForm({
             />
             <AntolinResult foundNumber={antolinResults} />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <BookMultiText
               fieldType={"summary"}
               editable={editable}
@@ -233,7 +230,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"isbn"}
               editable={editable}
@@ -241,7 +238,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"editionDescription"}
               editable={editable}
@@ -249,7 +246,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"publisherName"}
               editable={editable}
@@ -257,7 +254,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"publisherLocation"}
               editable={editable}
@@ -265,7 +262,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"publisherDate"}
               editable={editable}
@@ -273,7 +270,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookPagesField
               fieldType={"pages"}
               editable={editable}
@@ -282,7 +279,7 @@ export default function BookEditForm({
             />{" "}
           </Grid>{" "}
           <Divider sx={{ mb: 3 }}></Divider>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookStatusDropdown
               fieldType={"rentalStatus"}
               editable={editable}
@@ -290,7 +287,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookNumberField
               fieldType={"renewalCount"}
               editable={editable}
@@ -298,7 +295,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookDateField
               fieldType={"rentedDate"}
               editable={editable}
@@ -306,7 +303,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookDateField
               fieldType={"dueDate"}
               editable={editable}
@@ -315,7 +312,7 @@ export default function BookEditForm({
             />{" "}
           </Grid>{" "}
           <Divider sx={{ mb: 3 }}></Divider>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"minAge"}
               editable={editable}
@@ -323,7 +320,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"maxAge"}
               editable={editable}
@@ -331,7 +328,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"price"}
               editable={editable}
@@ -339,7 +336,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"externalLinks"}
               editable={editable}
@@ -347,7 +344,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"additionalMaterial"}
               editable={editable}
@@ -355,7 +352,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"minPlayers"}
               editable={editable}
@@ -363,7 +360,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"otherPhysicalAttributes"}
               editable={editable}
@@ -371,7 +368,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"supplierComment"}
               editable={editable}
@@ -379,7 +376,7 @@ export default function BookEditForm({
               book={book}
             />{" "}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"physicalSize"}
               editable={editable}
@@ -389,22 +386,20 @@ export default function BookEditForm({
           </Grid>
         </Grid>
         <Grid
-          item
           container
-          xs={12}
-          sm={3}
+          size={{ xs: 12, sm: 3 }}
           direction="column"
           justifyContent="top"
           alignItems="center"
         >
-          <Grid item>
+          <Grid>
             <CoverImage />
             <BookImageUploadButton
               book={book}
               setLoadingImage={setLoadingImage}
             />
           </Grid>{" "}
-          <Grid item>
+          <Grid>
             <BookBarcode book={book} />
           </Grid>
         </Grid>

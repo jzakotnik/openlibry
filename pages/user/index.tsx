@@ -201,7 +201,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
           spacing={2}
           sx={{ mt: 2 }}
         >
-          <Grid item>
+          <Grid>
             <Paper
               component="form"
               sx={{
@@ -267,7 +267,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             </Paper>
           </Grid>{" "}
           {displayDetail > 0 ? (
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }} >
               <UserDetailsCard
                 user={users.filter((u) => u.id == displayDetail)[0]}
                 rentals={booksForUser(displayDetail)}
@@ -276,7 +276,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
           ) : (
             <div></div>
           )}
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <UserAdminList
               users={users}
               rentals={rentals}

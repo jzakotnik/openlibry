@@ -92,7 +92,7 @@ export default function PublicBooks({
     return (
       <Grid container spacing={2} alignItems="stretch">
         {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
-          <Grid item style={{ display: "flex" }} {...gridItemProps} key={b.id}>
+          <Grid style={{ display: "flex" }} {...gridItemProps} key={b.id}>
             <PublicBookSummaryCard book={b} />
           </Grid>
         ))}{" "}

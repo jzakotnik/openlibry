@@ -33,7 +33,7 @@ export async function createAntolinSearchEngine(refresh: boolean = false) {
   //figure out if our book is in the antolin DB?
   console.time("searchEngine_build");
   if (!(global as any).searchEngine || refresh) {
-    (global as any).searchEngine = itemsjs(records, {
+    (global as any).searchEngine = itemsjs(records as any, {
       searchableFields: ["Titel", "Autor"],
     });
     /*console.log(
