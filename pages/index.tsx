@@ -17,7 +17,12 @@ export default function Home() {
   };
 
   return (
-    <div style={{ backgroundImage: `url(/splashbanner.jpg)` }}>
+    <div
+      style={{
+        backgroundImage:
+          "linear-gradient(135deg, #fff3e0 0%, #ffcc80 50%, #fb8c00 100%)",
+      }}
+    >
       <Layout>
         <Grid
           container
