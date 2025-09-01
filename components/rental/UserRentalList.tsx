@@ -13,7 +13,6 @@ import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ClearIcon from "@mui/icons-material/Clear";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import UpdateIcon from "@mui/icons-material/Update";
-import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 
 import { BookType } from "@/entities/BookType";
@@ -23,6 +22,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Divider,
+  IconButton,
   Tooltip,
 } from "@mui/material";
 import OverdueIcon from "./OverdueIcon";
@@ -217,14 +217,16 @@ export default function UserRentalList({
         </Grid>
         <Grid>
           {" "}
-          <IconButton
-            aria-label="search-settings"
-            color="primary"
-            onClick={() => setShowDetailSearch(!showDetailSearch)}
-          >
-            {" "}
-            <SettingsSuggestIcon />
-          </IconButton>
+          <Tooltip title="Sucheinstellungen">
+            <IconButton
+              aria-label="search-settings"
+              color="primary"
+              onClick={() => setShowDetailSearch(!showDetailSearch)}
+            >
+              {" "}
+              <SettingsSuggestIcon />
+            </IconButton>
+          </Tooltip>
         </Grid>
       </Grid>
       {showDetailSearch && (
