@@ -19,15 +19,12 @@ type PrintLabelSelectProps = {
     columns: number;
     link: string;
     startLabel: number;
-    // setStartLabel: any;
     startId: number;
-    // setStartId: any;
     endId: number;
-    // setEndId?: any;
+    start: number;
+    end: number;
     idFilter: number | number[];
-    // setIdFilter: any;
     topicsFilter: any;
-    // setTopicsFilter: any;
 };
 
 export default function PrintLabelSelect({
@@ -36,15 +33,12 @@ export default function PrintLabelSelect({
     columns,
     link,
     startLabel,
-    // setStartLabel,
     idFilter,
-    // setIdFilter,
     startId,
-    // setStartId,
     endId,
-    // setEndId,
+    start,
+    end,
     topicsFilter,
-    // setTopicsFilter,
 }: PrintLabelSelectProps) {
     const [idButtons, setIdButtons] = useState(initialIds);
     const itemsPerPage = rows * columns;
@@ -121,8 +115,10 @@ export default function PrintLabelSelect({
                 Math.floor(startLabel!)) : '') +
             (startId > 0 || endId > 0 ? "&startId=" + startId + "&endId=" + endId : '')
             +
+            (start > 0 || end > 0 ? "&start=" + start + "&end=" + end : '')
+            +
             (idFilter ? "&id=" + idFilter : "") +
-            (topicsFilter ? "&topic=" + topicsFilter.topic : "") + "&" + skipLabels.join("&"), "_blank");
+            (topicsFilter ? "&topic=" + topicsFilter : "") + "&" + skipLabels.join("&"), "_blank");
         // window.open("/api/report/booklabels?", "_blank");
     }
 
