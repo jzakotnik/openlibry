@@ -12,7 +12,6 @@ export function searchAndRemoveKlasse(inputString: string) {
 
     // Search for the string using the regex pattern and capture the number
     const match = regex.exec(inputString);
-    console.log("Klassenmatch", inputString, match);
     if (match) {
         foundKlasse = true;
         klasseNumber = parseInt(match[1], 10); // Convert the captured string to an integer
@@ -63,7 +62,6 @@ export function filterUsers(users: Array<UserType>, searchString: string, rental
         ) {
             foundString = true;
         }
-        console.log("suche klasse bei user", filterForClass, searchPattern.klasse, parseInt(u.schoolGrade!))
         if (
             filterForClass &&
             !(searchPattern.klasse == parseInt(u.schoolGrade!))

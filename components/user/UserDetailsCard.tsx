@@ -90,6 +90,13 @@ export default function UserDetailsCard({
             Editieren
           </Button>
         </Link>
+        <Button size="small"
+          data-cy="user_card_printbutton"
+          onClick={() =>
+            window.open("api/report/userlabels?id=" + user.id, "_blank")
+          }>
+          Drucken
+        </Button>
       </CardActions>
     </Card>
   );
