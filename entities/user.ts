@@ -38,6 +38,115 @@ export async function getAllUsers(client: PrismaClient) {
     throw e;
   }
 }
+export async function getAllUsersOrderById(client: PrismaClient) {
+  try {
+    return await client.user.findMany({
+      orderBy: [
+        {
+          id: "asc",
+        },
+      ],
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getAllUsersOrderById: ", e);
+    }
+    throw e;
+  }
+}
+
+export async function getAllUsersBySchoolGrade(client: PrismaClient, schoolGrade: string) {
+  try {
+    return await client.user.findMany({
+      where: { schoolGrade },
+      orderBy: [
+        {
+          id: "asc",
+        },
+      ],
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getAllUsersBySchoolGrade: ", e);
+    }
+    throw e;
+  }
+}
+
+export async function getUsersInIdRange(client: PrismaClient, startId: number, endId: number) {
+  try {
+    return await client.user.findMany({
+      where: {
+        AND: [
+          {
+            id: {
+              gte: startId
+            }
+          },
+          {
+            id: {
+              lte: endId
+            }
+          }
+        ]
+      },
+      orderBy: [
+        {
+          id: "asc",
+        },
+      ],
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getAllUsersBySchoolGrade: ", e);
+    }
+    throw e;
+  }
+}
+
+export async function getUsersInIdRangeForSchoolgrade(client: PrismaClient, startId: number, endId: number, schoolGrade: string) {
+  try {
+    return await client.user.findMany({
+      where: {
+        AND: [
+          {
+            id: {
+              gte: startId
+            }
+          },
+          {
+            id: {
+              lte: endId
+            }
+          },
+          { schoolGrade }
+        ]
+      },
+      orderBy: [
+        {
+          id: "asc",
+        },
+      ],
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      console.log("ERROR in getAllUsersBySchoolGrade: ", e);
+    }
+    throw e;
+  }
+}
 
 export async function countUser(client: PrismaClient) {
   try {
@@ -52,6 +161,8 @@ export async function countUser(client: PrismaClient) {
     throw e;
   }
 }
+
+
 
 export async function addUser(client: PrismaClient, user: UserType) {
   try {
