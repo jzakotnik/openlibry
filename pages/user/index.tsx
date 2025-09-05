@@ -204,6 +204,9 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
           <Grid>
             <Paper
               component="form"
+              onSubmit={(e) => {
+                e.preventDefault(); // Kein reload der Seite
+              }}
               sx={{
                 p: "2px 4px",
                 display: "flex",
