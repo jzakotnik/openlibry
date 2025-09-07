@@ -46,6 +46,10 @@ const BOOKLABEL_AUTHOR_SPACING = process.env.BOOKLABEL_AUTHOR_SPACING
   ? parseFloat(process.env.BOOKLABEL_AUTHOR_SPACING)
   : 1;
 
+const BOOKLABEL_MAX_AUTHORLINE_LENGTH = process.env.BOOKLABEL_MAX_AUTHORLINE_LENGTH
+  ? parseInt(process.env.BOOKLABEL_MAX_AUTHORLINE_LENGTH)
+  : 20;
+
 const BOOKLABEL_LABEL_SPACING_HORIZONTAL = process.env
   .BOOKLABEL_LABEL_SPACING_HORIZONTAL
   ? parseFloat(process.env.BOOKLABEL_LABEL_SPACING_HORIZONTAL)
@@ -208,6 +212,7 @@ const infoLine = (
 const replacePlaceholder = (text: String, book: any) => {
   try {
     while (text.includes("Book.")) {
+      const propertyIsAuthor: boolean = text === "Book.author"; 
       const nextReplace = String(
         text.split(" ").find((item: any) => item.includes("Book."))
       );
@@ -215,7 +220,11 @@ const replacePlaceholder = (text: String, book: any) => {
       //let's for the moment assume that the property name is there from the env file
 
       text = text.replaceAll(nextReplace, book[propertyName]);
+      if (propertyIsAuthor) { # functionality for individual autor line length in .env
+        text = text.substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH);
+      }
     }
+
     // replace topics
     while (text.includes("firstTopic")) {
       const nextReplace = String(
