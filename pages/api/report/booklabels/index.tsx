@@ -212,10 +212,7 @@ const infoLine = (
 const replacePlaceholder = (text: String, book: any) => {
   try {
     while (text.includes("Book.")) {
-      let propertyIsAuthor: boolean = false; # special case for vertical author line on label
-      if (text === "Book.author") {
-        propertyIsAuthor = true;
-      }
+      const propertyIsAuthor: boolean = text === "Book.author"; 
       const nextReplace = String(
         text.split(" ").find((item: any) => item.includes("Book."))
       );
