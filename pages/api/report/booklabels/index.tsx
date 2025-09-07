@@ -421,99 +421,125 @@ export default async function handle(
   res: NextApiResponse
 ) {
   switch (req.method) {
-    case "GET":
+    case "GET": {
       console.log("Printing book labels via api");
       try {
         const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
+
         const topicFilter =
           "topic" in req.query
             ? (req.query.topic! as string).toLocaleLowerCase()
             : null;
-        const idFilter: number[] = [];
-        if ("id" in req.query) {
-          Array.isArray(req.query.id)
-            ? (req.query.id! as string[]).map((e) => idFilter.push(parseInt(e)))
-            : idFilter.push(parseInt(req.query.id! as string));
-        }
-        const ignoreLabelFields: number[] = [];
-        if ("block" in req.query) {
-          Array.isArray(req.query.block)
-            ? (req.query.block! as string[]).map((e) =>
-                ignoreLabelFields.push(parseInt(e))
+
+        const idFilter: number[] =
+          "id" in req.query
+            ? (Array.isArray(req.query.id) ? req.query.id : [req.query.id]).map(
+                (e) => parseInt(e as string, 10)
               )
-            : ignoreLabelFields.push(parseInt(req.query.block! as string));
-        }
+            : [];
+
+        const ignoreLabelFields: number[] =
+          "block" in req.query
+            ? (Array.isArray(req.query.block)
+                ? req.query.block
+                : [req.query.block]
+              ).map((e) => parseInt(e as string, 10))
+            : [];
+
         console.log("Filter string", topicFilter, idFilter);
-        //TODO this should be able to do more than one topic!
+
         const books = allbooks
-          .filter((b: BookType) => {
-            return topicFilter
+          .filter((b: BookType) =>
+            topicFilter
               ? b.topics != null &&
-                  b.topics!.toLocaleLowerCase().indexOf(topicFilter) > -1
-              : true;
-          })
-          .filter((b: BookType) => {
-            return idFilter.length > 0
-              ? b.id && idFilter.indexOf(b.id) > -1
-              : true;
-          });
-        //console.log("Filtered books", books);
-        //console.log("Search Params", req.query, "end" in req.query);
-        let printableBooks = books;
-        if ("start" in req.query || "end" in req.query) {
-          let startIndex =
-            "start" in req.query ? parseInt(req.query.start as string) : 0;
-          let endIndex =
-            "end" in req.query
-              ? parseInt(req.query.end as string)
-              : books.length - 1;
-          if (startIndex > endIndex) {
-            console.log("Those fools got start and end mixed up again...");
-            const temp: number = endIndex;
-            endIndex = startIndex;
-            startIndex = temp;
-          }
-          printableBooks = books.slice(startIndex, endIndex);
-          console.log(
-            "Printing labels for books in Indexrange",
-            startIndex,
-            endIndex
+                b.topics!.toLocaleLowerCase().indexOf(topicFilter) > -1
+              : true
+          )
+          .filter((b: BookType) =>
+            idFilter.length > 0 ? !!b.id && idFilter.indexOf(b.id) > -1 : true
           );
-        } else if ("startId" in req.query && "endId" in req.query) {
-          let startId =
-            "startId" in req.query ? parseInt(req.query.startId as string) : 0;
-          // books are sorted desc, so first book has highest number
-          let endId =
-            "endId" in req.query
-              ? parseInt(req.query.endId as string)
-              : books[0].id!;
-          if (startId > endId) {
-            console.log("Those fools got startId and endId mixed up again...");
-            const temp: number = endId;
-            endId = startId;
-            startId = temp;
-          }
-          if (startId > books[0].id!) {
-            console.log("Selecting outside of the ID range used");
-          }
-          //TODO: This should be done in sql and not filtered later.
-          console.log("Printing labels for books in ID range", startId, endId);
-          printableBooks = books.filter(
-            (b) => b.id! >= startId && b.id! <= endId!
-          );
-        }
+
+        // Index-range selection (start/end)
+        const hasIndexRange = "start" in req.query || "end" in req.query;
+        const rawStartIndex =
+          "start" in req.query ? parseInt(req.query.start as string, 10) : 0;
+        const rawEndIndex =
+          "end" in req.query
+            ? parseInt(req.query.end as string, 10)
+            : books.length - 1;
+        const startIndex = hasIndexRange
+          ? Math.min(rawStartIndex, rawEndIndex)
+          : rawStartIndex;
+        const endIndex = hasIndexRange
+          ? Math.max(rawStartIndex, rawEndIndex)
+          : rawEndIndex;
+
+        const printableByIndex = hasIndexRange
+          ? (() => {
+              if (rawStartIndex > rawEndIndex) {
+                console.log(
+                  "Those fools got start and end mixed up again, not ok for this universe..."
+                );
+              }
+              const sliced = books.slice(startIndex, endIndex);
+              console.log(
+                "Printing labels for books in Indexrange",
+                startIndex,
+                endIndex
+              );
+              return sliced;
+            })()
+          : null;
+
+        // ID-range selection (startId/endId)
+        const hasIdRange = "startId" in req.query && "endId" in req.query;
+        const rawStartId =
+          "startId" in req.query
+            ? parseInt(req.query.startId as string, 10)
+            : 0;
+        const rawEndId =
+          "endId" in req.query
+            ? parseInt(req.query.endId as string, 10)
+            : books[0]?.id!;
+        const startId = hasIdRange
+          ? Math.min(rawStartId, rawEndId)
+          : rawStartId;
+        const endId = hasIdRange ? Math.max(rawStartId, rawEndId) : rawEndId;
+
+        const printableById = hasIdRange
+          ? (() => {
+              if (rawStartId > rawEndId) {
+                console.log(
+                  "Those fools got startId and endId mixed up again..."
+                );
+              }
+              if (books.length > 0 && startId > books[0].id!) {
+                console.log("Selecting outside of the ID range used");
+              }
+              console.log(
+                "Printing labels for books in ID range",
+                startId,
+                endId
+              );
+              return books.filter((b) => b.id! >= startId && b.id! <= endId!);
+            })()
+          : null;
+
+        const printableBooks = printableByIndex ?? printableById ?? books;
+
         console.log("Printing labels for books");
 
-        if (!books || !printableBooks)
+        if (!books || !printableBooks) {
           return res.status(400).json({ data: "ERROR: Books  not found" });
-        if (printableBooks.length == 0)
+        }
+        if (printableBooks.length === 0) {
           return res
             .status(400)
             .json({ data: "ERROR: No books matching search criteria" });
+        }
 
-        //create a nice label PDF from the books
-        //console.log(books);
-        const book: BookType = {
+        // base empty book used for skipped label positions
+        const emptyBook: BookType = {
           title: "",
           subtitle: "",
           author: "",
@@ -523,26 +549,36 @@ export default async function handle(
           rentedDate: currentTime(),
           dueDate: currentTime(),
         };
-        // splice empty books on positions to skip
-        for (var skipindex of ignoreLabelFields) {
-          printableBooks.splice(skipindex, 0, book);
-        }
 
-        const labels = await createLabelsPDF(printableBooks, ignoreLabelFields);
-        res.writeHead(200, {
-          "Content-Type": "application/pdf",
-        });
+        // Insert empty books at skip indices without reassigning bindings
+        const printableBooksWithSkips = (() => {
+          if (ignoreLabelFields.length === 0) return printableBooks;
+          const sortedSkips = [...ignoreLabelFields].sort((a, b) => a - b);
+          const result = [...printableBooks];
+          sortedSkips.forEach((idx) => {
+            const pos = Math.max(0, Math.min(idx, result.length));
+            result.splice(pos, 0, emptyBook);
+          });
+          return result;
+        })();
+
+        const labels = await createLabelsPDF(
+          printableBooksWithSkips,
+          ignoreLabelFields
+        );
+
+        res.writeHead(200, { "Content-Type": "application/pdf" });
         labels.pipe(res);
-
-        //res.status(200).json(labels);
       } catch (error) {
         console.log(error);
         res.status(400).json({ data: "ERROR: " + error });
       }
       break;
+    }
 
-    default:
+    default: {
       res.status(405).end(`${req.method} Not Allowed`);
       break;
+    }
   }
 }
