@@ -222,9 +222,11 @@ const replacePlaceholder = (input: string, book: any): string => {
       const replaced = original.replaceAll(nextReplace, book[propertyName]);
       const propertyIsAuthor = original === "Book.author";
 
-      return propertyIsAuthor
-        ? replaced.substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH)
-        : replaced;
+      const replacedShortened = (replaced.length > BOOKLABEL_MAX_AUTHORLINE_LENGTH ?
+        replaced.substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3).concat("...") :
+        replaced);
+
+      return propertyIsAuthor ? replacedShortened : replaced;
     };
 
     const replaceTopics = (original: string): string => {
