@@ -454,7 +454,7 @@ export default async function handle(
           .filter((b: BookType) =>
             topicFilter
               ? b.topics != null &&
-                b.topics!.toLocaleLowerCase().indexOf(topicFilter) > -1
+                b.topics!.toLocaleLowerCase() === topicFilter
               : true
           )
           .filter((b: BookType) =>
