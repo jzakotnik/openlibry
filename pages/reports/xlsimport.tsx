@@ -87,8 +87,9 @@ export default function XLSImport() {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    const logs = [] as string[];
     try {
-      const logs = [] as string[];
+      console.log("Check file", event.target);
       const file = event.target.files ? event.target.files[0] : null;
       console.log("Uploading file", event.target.files);
       logs.push("Datei wird geladen: " + file);
@@ -97,8 +98,8 @@ export default function XLSImport() {
       const workbook = new ExcelJS.Workbook();
       const arrayBuffer = await file.arrayBuffer();
       logs.push("Excel wird konvertiert");
-      await workbook.xlsx.load(arrayBuffer);
-      logs.push("Excel erfolgreich konvertiert");
+      const loaded = await workbook.xlsx.load(arrayBuffer);
+      logs.push("Excel erfolgreich konvertiert" + loaded.toString());
 
       const worksheetBooks = workbook.worksheets[0];
       logs.push("Excel Blatt für Bücher gefunden");
@@ -128,7 +129,7 @@ export default function XLSImport() {
         "Excel Import erledigt, Daten können in die Datenbank importiert werden."
       );
     } catch (e: any) {
-      console.log("Datei Import hat nicht funktioniert");
+      console.log("Datei Import hat nicht funktioniert", logs, e);
     }
   };
 
