@@ -10,6 +10,7 @@ import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
 import { PrismaClient } from "@prisma/client";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
+
 const prisma = new PrismaClient();
 
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
@@ -82,10 +83,10 @@ export default async function handle(
         const userData = req.body.userData.slice(1);
         importLog.push(
           "Header Zeilen aus Excel entfernt, damit bleiben " +
-            bookData.length +
-            " Bücher und " +
-            userData.length +
-            " User"
+          bookData.length +
+          " Bücher und " +
+          userData.length +
+          " User"
         );
 
         console.log(
