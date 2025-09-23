@@ -38,7 +38,7 @@
     "formidable": "^3.5.4",
     "itemsjs": "^2.1.25",
     "jsbarcode": "^3.12.1",
-    "next": "15.4.6",
+    "next": "^15.5.3",
     "next-auth": "^4.24.11",
     "notistack": "^3.0.2",
     "pizzip": "^3.2.0",

@@ -1,21 +1,23 @@
-import * as React from "react";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import MenuIcon from "@mui/icons-material/Menu";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
+import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import { useTheme } from "@mui/material/styles";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 import { useRouter } from "next/router";
+import * as React from "react";
 
 import { publicNavItems } from "./navigationItems";
+
+const BACKUP_BUTTON_SWITCH = process.env.BACKUP_BUTTON_SWITCH
+  ? parseInt(process.env.BACKUP_BUTTON_SWITCH)
+  : 1;
 
 export default function TopBar() {
   const router = useRouter();
@@ -32,6 +34,12 @@ export default function TopBar() {
     console.log("Navigating to ", e, page);
     if (page == "backdropClick") setAnchorElNav(null);
     else router.push(page);
+  };
+
+  // Backup-Funktion
+  const BackupFunc = () => {
+    alert("Backup gestartet!");
+    // Hier deine eigentliche Backup-Logik
   };
 
   return (
@@ -130,6 +138,23 @@ export default function TopBar() {
               </Button>
             ))}
           </Box>
+          {
+            BACKUP_BUTTON_SWITCH === 1 && (
+              <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={BackupFunc}
+                  sx={{ ml: 2 }}
+                >
+                  Datensicherung //TODO Abfrage ob überhaupt angezeit aus env, verwenden der fertigen Sicherungsfunktion, Speicherung unter statt einfacher download
+                </Button>
+
+
+              </Box>
+            )
+          }
+
         </Toolbar>
       </Container>
     </AppBar>
