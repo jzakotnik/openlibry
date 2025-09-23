@@ -175,7 +175,7 @@ export default function TopBar() {
                 onClick={BackupFunc}
                 sx={{ ml: 2 }}
               >
-                Datensicherung {/* TODO: verwenden der fertigen Sicherungsfunktion, Speicherung unter statt einfacher download */}
+                Datensicherung
               </Button>
             </Box>
           )}
