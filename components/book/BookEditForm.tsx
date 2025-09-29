@@ -5,6 +5,7 @@ import { Dispatch, useState } from "react";
 
 import { AlertColor } from "@mui/material";
 import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import PrintIcon from "@mui/icons-material/Print";
@@ -15,6 +16,7 @@ import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import React from "react";
 import HoldButton from "../layout/HoldButton";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
@@ -26,6 +28,7 @@ import BookPagesField from "./edit/BookPagesField";
 import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
+
 
 const bull = (
   <Box
@@ -60,6 +63,35 @@ export default function BookEditForm({
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
+
+  //Beginn autofill stuff
+  const [isbnInput, setIsbnInput] = useState("");
+
+  const handleAutoFillFromISBN = async () => {
+    if (!isbnInput) {
+      alert("Bitte geben Sie eine ISBN ein.");
+      return;
+    }
+    // Remove all non-digit characters from the input
+    const cleanedIsbn = isbnInput.replace(/\D/g, "");
+    if (!cleanedIsbn) {
+      alert("Die ISBN ist ungültig (keine Zahlen gefunden).");
+      return;
+    }
+    try {
+      const response = await fetch(`/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`);
+      if (!response.ok) throw new Error("Buch nicht gefunden oder Fehler beim Abruf!");
+      const data = await response.json();
+      setBookData({
+        ...book,
+        ...data, // Merge the fields
+      });
+    } catch (e: any) {
+      alert(e.message || "Fehler beim Laden der Buchdaten.");
+    }
+
+  };
+  //End autofill stuff
 
   useState<AlertColor>("success");
   //console.log("DELETE config", deleteSafetySeconds);
@@ -181,6 +213,33 @@ export default function BookEditForm({
       </Grid>
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
+          Automatisches Ausfüllen
+        </Typography>
+      </Divider>
+      {/* --- NEW ISBN INPUT AND BUTTON ADDED HERE --- */}
+      <Grid container justifyContent="center" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            label="ISBN"
+            variant="outlined"
+            size="small"
+            value={isbnInput}
+            onChange={e => setIsbnInput(e.target.value)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Button
+            variant="outlined"
+
+            onClick={handleAutoFillFromISBN}
+          >
+            Stammdaten automatisch ausfüllen anhand ISBN
+          </Button>
+        </Grid>
+      </Grid>
+      {/* --- END NEW INPUT --- */}
+      <Divider sx={{ mb: 3 }}>
+        <Typography variant="body1" color={palette.info.main}>
           Stammdaten des Buchs
         </Typography>
       </Divider>
@@ -218,7 +277,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-              topics={topics}
+              topics={book.topics}
             />
             <AntolinResult foundNumber={antolinResults} />
           </Grid>

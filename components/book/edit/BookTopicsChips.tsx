@@ -11,13 +11,24 @@ type BookTopicsChipsProps = {
   editable: boolean;
   setBookData: Dispatch<BookType>;
   book: BookType;
-  topics: Array<string>;
+  topics: string[] | string | undefined | null;
 };
 
+/* // Was wenn kein String array?
 const parseTopics = (combined: string) => {
   const parsedTopics = (combined != null ? combined : ";").split(";").filter((t: string) => t.length > 0);
   return parsedTopics;
 };
+*/
+
+function parseTopics(topics: string[] | string | undefined | null): string[] {
+  if (Array.isArray(topics)) return topics;
+  if (typeof topics === "string") {
+    // Split by comma, trim spaces
+    return topics.split(",").map(t => t.trim()).filter(Boolean);
+  }
+  return [];
+}
 
 export default function BookTopicsChips({
   fieldType,
@@ -36,8 +47,8 @@ export default function BookTopicsChips({
   };
 
   // test topics
-  //console.log("Topics for this book:", book.topics);
-  //console.log("All topics", topics);
+  console.log("Topics for this book:", book.topics);
+  console.log("All topics", topics);
 
   const valHtml = parseTopics(book.topics!).map((option, index) => {
     // This is to handle new options added by the user (allowed by freeSolo prop).
@@ -73,7 +84,7 @@ export default function BookTopicsChips({
         id="tags-standard"
         freeSolo
         filterSelectedOptions
-        options={topics}
+        options={Array.isArray(topics) ? topics : typeof topics === "string" ? topics.split(",").map(t => t.trim()).filter(Boolean) : []}
         onChange={(e, newValue: string[]) => {
           //setBookTopics(newValue);
           setBookData({ ...book, [fieldType]: serializeTopics(newValue) });

@@ -80,15 +80,15 @@ export default function BookSummaryCard({
         title={"Buch id " + selectedBook.id}
       />
       <CardMedia sx={{ position: "relative" }}>
-         <a href={"/book/" + book.id} target="_self" rel="noopener noreferrer">
-            <img
-              src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
-              width={320}
-              height={200}
-              alt=""
-              style={{ objectFit: "cover" }}
-            />
-         </a>
+        <a href={"/book/" + book.id} target="_self" rel="noopener noreferrer">
+          <img
+            src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
+            width={320}
+            height={200}
+            alt=""
+            style={{ objectFit: "cover" }}
+          />
+        </a>
       </CardMedia>
       <CardContent>
         <Typography
