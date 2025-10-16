@@ -137,21 +137,27 @@ export default function XLSImport() {
     console.log("Importing data into the db");
     const payload = { bookData: bookData, userData: userData };
     const endpoint = process.env.NEXT_PUBLIC_API_URL + "/api/excel";
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-    const result = await response.json();
-    console.log("API Call to database done, response is", result);
     try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      console.log("API Call to database done, response is", result);
+
       //take the log content of the api call and add it to the log
       const logs = result.logs as string[];
       setImportLog(importLog.concat(logs));
     } catch (e: any) {
-      console.log("Kein Ergebnis der API", result);
+      console.log(
+        "Kein Ergebnis der API, Error, Payload, API Endpoint:",
+        e,
+        payload,
+        endpoint
+      );
     }
   };
 
