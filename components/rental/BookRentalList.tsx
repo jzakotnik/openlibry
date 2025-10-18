@@ -1,29 +1,31 @@
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import { Grid, Tooltip } from "@mui/material";
-import Box from "@mui/material/Box";
-import FormControl from "@mui/material/FormControl";
-import Input from "@mui/material/Input";
-import InputAdornment from "@mui/material/InputAdornment";
-import InputLabel from "@mui/material/InputLabel";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import { useEffect, useState } from "react";
-
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ClearIcon from "@mui/icons-material/Clear";
-import UpdateIcon from "@mui/icons-material/Update";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
+import UpdateIcon from "@mui/icons-material/Update";
+
+import {
+  Box,
+  FormControl,
+  Grid,
+  IconButton,
+  Input,
+  InputAdornment,
+  InputLabel,
+  Paper,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+
+import dayjs from "dayjs";
+import "dayjs/locale/de";
+import itemsjs from "itemsjs";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import userNameForBook from "@/utils/userNameForBook";
-import dayjs from "dayjs";
-import "dayjs/locale/de";
-
-import itemsjs from "itemsjs";
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -32,11 +34,15 @@ interface BookPropsType {
   handleReturnBookButton: (bookid: number, userid: number) => void;
   handleRentBookButton: (id: number, userid: number) => void;
   userExpanded: number | false;
-  searchFieldRef: any;
+  searchFieldRef: React.Ref<HTMLInputElement>;
   handleUserSearchSetFocus: () => void;
   extensionDueDate: dayjs.Dayjs;
-  sortBy: string;
+  sortBy: any;
 }
+type Sorting<T> = {
+  field: keyof T | (keyof T)[];
+  order: "asc" | "desc";
+};
 
 export default function BookRentalList({
   books,
@@ -51,47 +57,54 @@ export default function BookRentalList({
   sortBy,
 }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
-  const [renderedBooks, setRenderedBooks] = useState(books);
-  const [returnedBooks, setReturnedBooks] = useState({});
-  const sortings: any = {
-    id_asc: {
-      field: "id",
-      order: "asc",
-    },
-    id_desc: {
-      field: "id",
-      order: "desc",
-    },
-    title_asc: {
-      field: "title",
-      order: "asc",
-    },
-    title_desc: {
-      field: "title",
-      order: "desc",
-    },
-  };
-  const searchEngine = itemsjs(books, {
-    searchableFields: ["title", "author", "subtitle", "id"],
-    sortings: sortings,
-  });
+  const [renderedBooks, setRenderedBooks] = useState<Array<BookType>>(books);
+  const [returnedBooks, setReturnedBooks] = useState<Record<number, number>>(
+    {}
+  );
 
+  const sortings = useMemo(
+    () =>
+      ({
+        id_asc: { field: "id", order: "asc" },
+        id_desc: { field: "id", order: "desc" },
+        title_asc: { field: "title", order: "asc" },
+        title_desc: { field: "title", order: "desc" },
+      } as const satisfies Record<
+        "id_asc" | "id_desc" | "title_asc" | "title_desc",
+        Sorting<BookType>
+      >),
+    []
+  );
+
+  // Build itemsjs index only when the dataset changes
+  const searchEngine = useMemo(
+    () =>
+      itemsjs(books, {
+        searchableFields: ["title", "author", "subtitle", "id"],
+        sortings,
+      }),
+    [books, sortings]
+  );
+
+  // Stable search function (captures engine + sortBy)
+  const searchBooks = useCallback(
+    (query: any) => {
+      const found = searchEngine.search({
+        per_page: 20,
+        sort: sortBy,
+        query,
+      });
+      setRenderedBooks(found.data.items);
+    },
+    [searchEngine, sortBy]
+  );
+
+  // Run search whenever input text changes or engine/sort changes
   useEffect(() => {
     searchBooks(bookSearchInput);
-  }, [books, bookSearchInput]);
+  }, [bookSearchInput, searchBooks]);
 
-  async function searchBooks(searchString: string) {
-    const foundBooks = searchEngine.search({
-      per_page: 20,
-      sort: sortBy,
-      // full text search
-      query: searchString,
-    });
-    //console.log("Found books", foundBooks);
-    setRenderedBooks(foundBooks.data.items);
-  }
-
-  const handleClear = (e: any) => {
+  const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
     setBookSearchInput("");
   };
@@ -99,14 +112,15 @@ export default function BookRentalList({
   const handleInputChange = (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
-    setBookSearchInput(e.target.value);
-    //set rendered books
-    searchBooks(e.target.value);
+    const v = e.target.value;
+    setBookSearchInput(v);
+    // optional immediate search (effect will also run)
+    searchBooks(v);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {
-    if (e.key == "Escape") {
-      if (bookSearchInput == "") {
+    if (e.key === "Escape") {
+      if (bookSearchInput === "") {
         handleUserSearchSetFocus();
       } else {
         setBookSearchInput("");
@@ -114,24 +128,13 @@ export default function BookRentalList({
     }
   };
 
-  const ReturnedIcon = () => {
-    //console.log("Rendering icon ", id, returnedBooks);
-    return <ArrowCircleLeftIcon />; /*
-    if (id in returnedBooks) {
-      return <CheckCircleIcon color="success" />;
-    } else {
-      return <ArrowCircleLeftIcon />;
-    }*/
+  const markBookTouched = (id: number) => {
+    const time = Date.now();
+    setReturnedBooks((prev) => ({ ...prev, [id]: time }));
   };
 
-  const ExtendedIcon = () => {
-    return <UpdateIcon />; //console.log("Rendering icon ", id, returnedBooks);
-    /*if (id in returnedBooks) {
-      return <CheckCircleIcon color="success" />;
-    } else {
-      return <UpdateIcon />;
-    }*/
-  };
+  const ReturnedIcon = () => <ArrowCircleLeftIcon />;
+  const ExtendedIcon = () => <UpdateIcon />;
 
   return (
     <div>
@@ -161,6 +164,7 @@ export default function BookRentalList({
           onKeyUp={handleKeyUp}
         />
       </FormControl>
+
       <Grid
         container
         direction="column"
@@ -168,11 +172,15 @@ export default function BookRentalList({
         justifyContent="flex-start"
         sx={{ px: 0.5, my: 0.5 }}
       >
-        {renderedBooks.slice(0, 100).map((b: any) => {
-          let allowExtendBookRent = extensionDueDate.isAfter(b.dueDate, "day");
-          let tooltip = allowExtendBookRent
+        {renderedBooks.slice(0, 100).map((b: BookType) => {
+          const allowExtendBookRent = extensionDueDate.isAfter(
+            b.dueDate,
+            "day"
+          );
+          const tooltip = allowExtendBookRent
             ? "Verlängern"
             : "Maximale Ausleihzeit erreicht";
+
           return (
             <div key={b.id}>
               <Paper elevation={2} sx={{ my: 0.5 }}>
@@ -201,28 +209,18 @@ export default function BookRentalList({
                     sx={{ flexShrink: 0, whiteSpace: "nowrap" }}
                   >
                     {b.rentalStatus !== "available" && (
-                      <Tooltip
-                        title={
-                          allowExtendBookRent
-                            ? "Verlängern"
-                            : "Maximale Ausleihzeit erreicht"
-                        }
-                      >
+                      <Tooltip title={tooltip}>
                         <span>
                           <IconButton
                             aria-label="extend"
                             disabled={!allowExtendBookRent}
                             onClick={() => {
                               handleExtendBookButton(b.id!, b);
-                              const time = Date.now();
-                              setReturnedBooks({
-                                ...returnedBooks,
-                                [b.id!]: time,
-                              });
+                              markBookTouched(b.id!);
                             }}
                             size="small"
                           >
-                            <UpdateIcon />
+                            <ExtendedIcon />
                           </IconButton>
                         </span>
                       </Tooltip>
@@ -233,16 +231,12 @@ export default function BookRentalList({
                         <IconButton
                           onClick={() => {
                             handleReturnBookButton(b.id!, b.userId!);
-                            const time = Date.now();
-                            setReturnedBooks({
-                              ...returnedBooks,
-                              [b.id!]: time,
-                            });
+                            markBookTouched(b.id!);
                           }}
                           aria-label="zurückgeben"
                           size="small"
                         >
-                          <ArrowCircleLeftIcon />
+                          <ReturnedIcon />
                         </IconButton>
                       </Tooltip>
                     )}
@@ -252,11 +246,7 @@ export default function BookRentalList({
                         <IconButton
                           onClick={() => {
                             handleRentBookButton(b.id!, userExpanded!);
-                            const time = Date.now();
-                            setReturnedBooks({
-                              ...returnedBooks,
-                              [b.id!]: time,
-                            });
+                            markBookTouched(b.id!);
                           }}
                           aria-label="ausleihen"
                           size="small"
@@ -267,6 +257,7 @@ export default function BookRentalList({
                     )}
                   </Stack>
                 </Box>
+
                 <Box
                   sx={{
                     display: "flex",
@@ -275,13 +266,14 @@ export default function BookRentalList({
                     px: 1,
                     pt: 0.5,
                     width: "100%",
-                    minWidth: 0, // enables ellipsis on flex children
+                    minWidth: 0,
                   }}
                 >
                   <Typography sx={{ m: 0.5 }} variant="body2">
                     Untertitel: {b.subtitle}
                   </Typography>
                 </Box>
+
                 <Box
                   sx={{
                     display: "flex",
@@ -290,28 +282,27 @@ export default function BookRentalList({
                     px: 1,
                     pt: 0.5,
                     width: "100%",
-                    minWidth: 0, // enables ellipsis on flex children
+                    minWidth: 0,
                   }}
                 >
                   <Typography sx={{ m: 0.5 }} variant="body2">
                     Buch Nr. {b.id}
                     {!(
-                      b.rentalStatus == "available" || b.rentalStatus == "lost"
+                      b.rentalStatus === "available" ||
+                      b.rentalStatus === "lost"
                     ) && (
-                        <span>
-                          {" "}
-                          - ausgeliehen bis{" "}
-                          {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
-                          {userNameForBook(users, b.userId!)}
-                        </span>
-                      )}
-                    {b.rentalStatus == "available" && (
-                      <span> -{" " + b.author}</span>
+                      <span>
+                        {" "}
+                        - ausgeliehen bis{" "}
+                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
+                        {userNameForBook(users, b.userId!)}
+                      </span>
+                    )}
+                    {b.rentalStatus === "available" && (
+                      <span> - {b.author}</span>
                     )}
                   </Typography>
-
                 </Box>
-
               </Paper>
             </div>
           );
