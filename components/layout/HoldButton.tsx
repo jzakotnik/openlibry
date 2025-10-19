@@ -43,7 +43,7 @@ const HoldButton: React.FC<HoldButtonProps> = ({
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isHolding, onClick]);
+  }, [isHolding, onClick, holdDuration]);
 
   // Handlers
   const startHold = useCallback(() => setIsHolding(true), []);
