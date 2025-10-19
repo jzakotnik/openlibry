@@ -31,11 +31,15 @@ export default function Register({
   const [submitEnabled, setSubmitEnabled] = useState(false);
 
   useEffect(() => {
-    validate();
+    const invalid = password !== passwordValidate || password.length < 3;
+
+    setPasswordInputError(invalid);
+    setSubmitEnabled(!invalid);
   }, [user, email, password, passwordValidate]);
 
   const router = useRouter();
 
+  /*
   const validate = () => {
     //console.log("Validating input", user, password, passwordValidate);
     if (password != passwordValidate || password.length < 3) {
@@ -46,7 +50,7 @@ export default function Register({
       setSubmitEnabled(true);
     }
     return;
-  };
+  };*/
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,7 +90,12 @@ export default function Register({
           backgroundPosition: "center",
         }}
       />
-      <Grid size={{ xs: 12, sm: 8, md: 5 }} component={Paper} elevation={6} square>
+      <Grid
+        size={{ xs: 12, sm: 8, md: 5 }}
+        component={Paper}
+        elevation={6}
+        square
+      >
         <Box
           sx={{
             my: 8,

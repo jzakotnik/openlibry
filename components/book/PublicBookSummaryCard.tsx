@@ -9,11 +9,13 @@ import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
 import palette from "@/styles/palette";
+import { CardMedia } from "@mui/material";
+import Image from "next/image";
 
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
-import { CardActions, CardHeader, CardMedia } from "@mui/material";
+import { CardActions, CardHeader } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 const bull = (
@@ -83,12 +85,12 @@ export default function PublicBookSummaryCard({
         }
         title={"Buch id " + selectedBook.id}
       />
-      <CardMedia sx={{ position: "relative" }}>
-        <img
-          src={process.env.NEXT_PUBLIC_API_URL + "/api/images/" + book.id}
+      <CardMedia sx={{ position: "relative", width: 320, height: 200 }}>
+        <Image
+          src={`${process.env.NEXT_PUBLIC_API_URL}/api/images/${book.id}`}
+          alt={book?.title ?? "Book cover"}
           width={320}
           height={200}
-          alt=""
           style={{ objectFit: "cover" }}
         />
       </CardMedia>

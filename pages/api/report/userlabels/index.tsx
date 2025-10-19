@@ -5,8 +5,8 @@ import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Canvas,
   Document,
-  Image,
   Page,
+  Image as PdfImage,
   StyleSheet,
   Text,
   View,
@@ -113,7 +113,10 @@ const colorbar = ({ id }: any) => {
 
 const generateBarcode = async (id: String) => {
   if (BARCODE_SETTINGS == null) return null;
-  const barId = process.env.BARCODE_MINCODELENGTH != null ? id!.toString().padStart(parseInt(process.env.BARCODE_MINCODELENGTH)) : id!.toString();
+  const barId =
+    process.env.BARCODE_MINCODELENGTH != null
+      ? id!.toString().padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
+      : id!.toString();
   const png = await bwipjs.toBuffer({
     bcid: BARCODE_SETTINGS[4],
     text: barId,
@@ -123,7 +126,7 @@ const generateBarcode = async (id: String) => {
     textxalign: "center",
   });
   return (
-    <Image
+    <PdfImage
       // key={id}
       src={"data:image/png;base64, " + (await png.toString("base64"))}
       style={{
@@ -168,7 +171,7 @@ const generateLabels = async (users: Array<UserType>) => {
                 flexDirection: "column",
               }}
             >
-              <Image
+              <PdfImage
                 key={u.id}
                 style={styles.image}
                 src={"data:image/jpg;base64, " + base64Image}
