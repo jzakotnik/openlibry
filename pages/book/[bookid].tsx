@@ -1,8 +1,8 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import Layout from "@/components/layout/Layout";
+import { getAllTopics, getBook } from "@/entities/book";
 import { useEffect, useState } from "react";
-import { getAllTopics, getBook } from "../../entities/book";
 
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
 import { useRouter } from "next/router";

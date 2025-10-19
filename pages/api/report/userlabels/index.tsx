@@ -1,7 +1,6 @@
 import { UserType } from "@/entities/UserType";
 import { getAllUsers } from "@/entities/user";
 import { chunkArray } from "@/utils/chunkArray";
-import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Canvas,
   Document,
@@ -15,7 +14,7 @@ import bwipjs from "bwip-js";
 import type { NextApiRequest, NextApiResponse } from "next";
 const { join } = require("path");
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 var fs = require("fs");
 var base64Image = fs.readFileSync(
   join(process.cwd(), "/public/" + process.env.USERID_LABEL_IMAGE),

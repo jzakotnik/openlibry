@@ -7,7 +7,6 @@ import Layout from "@/components/layout/Layout";
 import { useState } from "react";
 
 import { getAllBooks } from "@/entities/book";
-import { PrismaClient } from "@prisma/client";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 
@@ -19,7 +18,7 @@ import PublicBookSummaryCard from "@/components/book/PublicBookSummaryCard";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const gridItemProps = {
   xs: 12,

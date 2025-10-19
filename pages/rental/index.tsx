@@ -12,7 +12,6 @@ import {
   replaceBookStringDate,
   sameDay,
 } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 
 import UserRentalList from "@/components/rental/UserRentalList";
 import { BookType } from "@/entities/BookType";
@@ -36,7 +35,7 @@ interface RentalPropsType {
   bookSortBy: string;
 }
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 

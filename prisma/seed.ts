@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 async function main() {
   const user1 = await prisma.user.create({
     data: {

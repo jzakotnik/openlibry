@@ -9,10 +9,9 @@ import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import { IconButton, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
-import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { useSnackbar } from 'notistack';
+import { useSnackbar } from "notistack";
 import { ChangeEvent, useEffect, useState } from "react";
 import { getAllUsers } from "../../entities/user";
 
@@ -22,6 +21,7 @@ import NewUserDialog from "@/components/user/NewUserDialog";
 import SelectionActions from "@/components/user/SelectionActions";
 import UserDetailsCard from "@/components/user/UserDetailsCard";
 import { BookType } from "@/entities/BookType";
+import { prisma } from "@/entities/db";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import getMaxId from "@/utils/idhandling";
@@ -29,7 +29,6 @@ import { increaseNumberInString } from "@/utils/increaseNumberInString";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { Divider, InputBase, Paper } from "@mui/material";
 import RentSearchParams from "../../components/rental/RentSearchParams";
-const prisma = new PrismaClient();
 /*
 const theme = createTheme({
   palette: {
@@ -56,7 +55,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const defaultSearchParams = { overdue: false, grade: "" };
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
 
-  useEffect(() => { }, []);
+  useEffect(() => {}, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
@@ -95,7 +94,10 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .catch((error) => {
         console.error("Error updating user IDs:", error);
         setUserCreating(false);
-        enqueueSnackbar("Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?", { variant: "error" });
+        enqueueSnackbar(
+          "Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?",
+          { variant: "error" }
+        );
         // Stop further execution if there is an error
       });
   };
@@ -158,7 +160,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Users increased", data);
-        enqueueSnackbar("Klassenstufe für Schüler erhöht")
+        enqueueSnackbar("Klassenstufe für Schüler erhöht");
         router.push("user");
       });
   };
@@ -181,7 +183,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Users deleted", data);
-        enqueueSnackbar("Schüler erfolgreich gelöscht")
+        enqueueSnackbar("Schüler erfolgreich gelöscht");
         router.push("user");
       });
   };
@@ -299,7 +301,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
             />
           )}
           {displayDetail > 0 ? (
-            <Grid size={{ xs: 6 }} >
+            <Grid size={{ xs: 6 }}>
               <UserDetailsCard
                 user={users.filter((u) => u.id == displayDetail)[0]}
                 rentals={booksForUser(displayDetail)}

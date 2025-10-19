@@ -1,8 +1,8 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import Layout from "@/components/layout/Layout";
+import { getUser } from "@/entities/user";
 import { useEffect, useState } from "react";
-import { getUser } from "../../entities/user";
 
 import { getRentedBooksForUser } from "@/entities/book";
 

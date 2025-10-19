@@ -5,7 +5,6 @@ import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 import { deDE } from "@mui/x-data-grid/locales";
-import { PrismaClient } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import { AuditType } from "@/entities/AuditType";
@@ -14,7 +13,7 @@ import { convertDateToTimeString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const theme = createTheme(
   {

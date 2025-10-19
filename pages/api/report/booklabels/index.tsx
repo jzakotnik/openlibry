@@ -2,7 +2,6 @@ import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { chunkArray } from "@/utils/chunkArray";
 import { currentTime } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Canvas,
   Document,
@@ -80,7 +79,7 @@ const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env
 
 const pointPerCm = 28.3464566929;
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 var fs = require("fs");
 var schoollogo = fs.readFileSync(
   join(process.cwd(), "/public/" + process.env.BOOKLABEL_LOGO)

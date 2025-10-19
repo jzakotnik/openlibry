@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { UserType } from "../../../entities/UserType";
+import { getAllUsers } from "@/entities/user";
+import { UserType } from "@/entities/UserType";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { addUser, getAllUsers, updateUser } from "@/entities/user";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 type Data = {
   data: string;
