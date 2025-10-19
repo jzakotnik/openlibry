@@ -32,6 +32,7 @@ export default function RentSearchParams({
       (isOverdue ? "fällig? " : " ") +
         (selectedGrade != "" ? "klasse?" + selectedGrade : " ")
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setter is stable
   }, [isOverdue, selectedGrade]);
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {

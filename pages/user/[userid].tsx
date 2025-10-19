@@ -24,7 +24,7 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next/types";
-import { useSnackbar } from 'notistack';
+import { useSnackbar } from "notistack";
 
 type UserDetailPropsType = {
   user: UserType;
@@ -41,7 +41,6 @@ const theme = createTheme({
 const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
   ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
   : 3;
-
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -62,7 +61,7 @@ export default function UserDetail({
   const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     setUserData(user);
-  }, []);
+  }, [user]);
 
   if (!router.query.userid) {
     return <Typography>ID not found</Typography>;
@@ -75,7 +74,6 @@ export default function UserDetail({
   );
   //console.log("User Page", userid);
   //console.log("User, Books", user, books);
-
 
   const handleSaveButton = () => {
     console.log("Saving user ", userData);
@@ -93,7 +91,11 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         enqueueSnackbar(
-          "Nutzer " + userData.firstName + " " + userData.lastName + " gespeichert"
+          "Nutzer " +
+            userData.firstName +
+            " " +
+            userData.lastName +
+            " gespeichert"
         );
         router.push("/user");
       });
@@ -111,9 +113,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        enqueueSnackbar(
-          "Buch zurückgegeben, super!"
-        );
+        enqueueSnackbar("Buch zurückgegeben, super!");
       });
   };
 
@@ -128,7 +128,12 @@ export default function UserDetail({
     const newDueDate = extendDays(new Date(), extensionDays);
 
     if (sameDay(newbook.dueDate, newDueDate)) {
-      enqueueSnackbar("Buch - " + book.title + " - ist bereits bis zum maximalen Ende ausgeliehen", { variant: "warning" });
+      enqueueSnackbar(
+        "Buch - " +
+          book.title +
+          " - ist bereits bis zum maximalen Ende ausgeliehen",
+        { variant: "warning" }
+      );
       return;
     }
 
@@ -148,18 +153,19 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        enqueueSnackbar(
-          "Buch verlängert, super!"
-        );
+        enqueueSnackbar("Buch verlängert, super!");
       });
-    setUserBooks(userBooks =>
-      userBooks.map(b =>
+    setUserBooks((userBooks) =>
+      userBooks.map((b) =>
         b.id === bookid
-          ? { ...b, renewalCount: b.renewalCount + 1, dueDate: newDueDate.toDate() }
+          ? {
+              ...b,
+              renewalCount: b.renewalCount + 1,
+              dueDate: newDueDate.toDate(),
+            }
           : b
       )
     );
-
   };
 
   const handleDeleteButton = () => {
@@ -174,9 +180,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", userid, data);
-        enqueueSnackbar(
-          "Nutzer gelöscht!"
-        );
+        enqueueSnackbar("Nutzer gelöscht!");
         router.push("/user");
       });
   };
@@ -195,7 +199,6 @@ export default function UserDetail({
           extendBook={handleExtendBookButton}
           initiallyEditable={true}
         />
-
       </ThemeProvider>
     </Layout>
   );
