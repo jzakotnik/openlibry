@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
 
 interface HoldButtonProps {
@@ -50,32 +50,41 @@ const HoldButton: React.FC<HoldButtonProps> = ({
   const stopHold = useCallback(() => setIsHolding(false), []);
 
   return (
-    <Button
-      color="error"
-      onMouseDown={startHold}
-      onMouseUp={stopHold}
-      onMouseLeave={stopHold}
-      onTouchStart={startHold}
-      onTouchEnd={stopHold}
-      sx={{
-        position: "relative",
-        width: "200px",
-        height: "50px",
-        overflow: "hidden",
-        "&::after": {
-          content: '""',
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: `${progress}%`,
-          height: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.5)", // Semi-transparent white fill
-          transition: isHolding ? "none" : "width 0.3s ease-out",
-        },
-      }}
+    <Tooltip
+      arrow
+      placement="top"
+      enterDelay={400}
+      enterNextDelay={200}
+      title="Zum Ausführen gedrückt halten"
+      describeChild
     >
-      {buttonLabel}
-    </Button>
+      <Button
+        color="error"
+        onMouseDown={startHold}
+        onMouseUp={stopHold}
+        onMouseLeave={stopHold}
+        onTouchStart={startHold}
+        onTouchEnd={stopHold}
+        sx={{
+          position: "relative",
+          width: "200px",
+          height: "50px",
+          overflow: "hidden",
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: `${progress}%`,
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.5)", // Semi-transparent white fill
+            transition: isHolding ? "none" : "width 0.3s ease-out",
+          },
+        }}
+      >
+        {buttonLabel}
+      </Button>
+    </Tooltip>
   );
 };
 
