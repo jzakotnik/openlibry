@@ -26,6 +26,7 @@ import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
+import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { Divider, InputBase, Paper } from "@mui/material";
 import RentSearchParams from "../../components/rental/RentSearchParams";
@@ -49,6 +50,7 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [newUserDialogVisible, setNewUserDialogVisible] = useState(false);
   const [checked, setChecked] = useState({} as any);
   const [showDetailSearch, setShowDetailSearch] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const theme = useTheme();
@@ -56,6 +58,18 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
 
   useEffect(() => {}, []);
+
+  // Auto-reset the confirm state after 5s
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const t = setTimeout(() => setConfirmDelete(false), 5000);
+    return () => clearTimeout(t);
+  }, [confirmDelete]);
+
+  // Reset confirm when the selection changes
+  useEffect(() => {
+    setConfirmDelete(false);
+  }, [checked]);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setUserSearchInput(e.target.value);
@@ -166,8 +180,6 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
   };
 
   const handleDeleteUsers = () => {
-    //console.log("Increasing grade for users ", users, checked);
-    //the user IDs that are checked are marked as true
     const updatedUserIDs = users.reduce((acc: any, u: UserType) => {
       if (checked[u.id!]) acc.push(u.id);
       return acc;
@@ -175,17 +187,17 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
 
     fetch("/api/batch/user", {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedUserIDs),
     })
       .then((res) => res.json())
       .then((data) => {
         console.log("Users deleted", data);
         enqueueSnackbar("Schüler erfolgreich gelöscht");
+        setConfirmDelete(false); // ⟵ reset after success
         router.push("user");
-      });
+      })
+      .catch(() => setConfirmDelete(false)); // ⟵ also reset on error
   };
 
   const booksForUser = (id: number) => {
@@ -285,11 +297,25 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
                 action={handleIncreaseGrade}
                 actionTitle="Klasse erhöhen"
               />
+
+              {/* ⟵⟵ Replace the delete action with this 2-step confirm */}
               <SelectionActions
                 checked={checked}
-                icon={<DeleteForeverRoundedIcon />}
-                action={handleDeleteUsers}
-                actionTitle={"User löschen"}
+                icon={
+                  confirmDelete ? (
+                    <DeleteForeverOutlinedIcon />
+                  ) : (
+                    <DeleteForeverRoundedIcon />
+                  )
+                }
+                action={
+                  confirmDelete
+                    ? handleDeleteUsers
+                    : () => setConfirmDelete(true)
+                }
+                actionTitle={
+                  confirmDelete ? "Wirklich löschen?" : "User löschen"
+                }
               />
             </Paper>
           </Grid>{" "}
