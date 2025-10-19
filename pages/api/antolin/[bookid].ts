@@ -1,9 +1,8 @@
 import { BookType } from "@/entities/BookType";
 import { getBook } from "@/entities/book";
+import { prisma } from "@/entities/db";
 import { createAntolinSearchEngine } from "@/utils/antolinIndex";
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-const prisma = new PrismaClient();
 
 const removeDuplicates = (searchResults: any) => {
   //console.log("Removing duplicates", searchResults);

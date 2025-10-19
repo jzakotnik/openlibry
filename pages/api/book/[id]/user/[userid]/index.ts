@@ -1,9 +1,8 @@
 import { BookType } from "@/entities/BookType";
 import { hasRentedBook, rentBook, returnBook } from "@/entities/book";
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 type Data = {
   result: string;

@@ -1,16 +1,15 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
+import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import {
   convertDateToDayString,
   convertDayToISOString,
 } from "@/utils/dateutils";
 import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
-import { PrismaClient } from "@prisma/client";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
-const prisma = new PrismaClient();
 
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
 

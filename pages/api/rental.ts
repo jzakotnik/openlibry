@@ -7,11 +7,10 @@ import {
   convertDateToDayString,
   replaceUsersDateString,
 } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 type Data = {
   users: Array<UserType>;

@@ -1,5 +1,4 @@
 import { getRentedBooksWithUsers } from "@/entities/book";
-import { PrismaClient } from "@prisma/client";
 
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
@@ -10,7 +9,7 @@ import { convertDateToDayString } from "@/utils/dateutils";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const SCHOOL_NAME = process.env.SCHOOL_NAME || "Schule";
 const REMINDER_RESPONSIBLE_NAME =
@@ -115,9 +114,8 @@ export default async function handle(
                 title: b.title,
                 author: b.author,
                 rentedDate: dayjs(b.rentedDate).format("DD.MM.YYYY"),
-              }
-            }
-            ),
+              };
+            }),
             reminder_min_count: REMINDER_RENEWAL_COUNT,
           });
         });
