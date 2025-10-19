@@ -26,6 +26,7 @@ import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
+import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { Divider, InputBase, Paper } from "@mui/material";
 import RentSearchParams from "../../components/rental/RentSearchParams";
@@ -300,7 +301,13 @@ export default function Users({ users, books, rentals }: UsersPropsType) {
               {/* ⟵⟵ Replace the delete action with this 2-step confirm */}
               <SelectionActions
                 checked={checked}
-                icon={<DeleteForeverRoundedIcon />}
+                icon={
+                  confirmDelete ? (
+                    <DeleteForeverOutlinedIcon />
+                  ) : (
+                    <DeleteForeverRoundedIcon />
+                  )
+                }
                 action={
                   confirmDelete
                     ? handleDeleteUsers
