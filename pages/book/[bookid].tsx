@@ -16,8 +16,7 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next/types";
-import { useSnackbar } from 'notistack';
-
+import { useSnackbar } from "notistack";
 
 const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
   ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
@@ -52,23 +51,34 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
 
   const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
+    // keep local state in sync with prop
     setBookData(book);
-    fetch("/api/antolin/" + book.id, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then((res) => {
-      if (!res.ok) {
-        console.log("ERROR while getting Antolin Data", res.statusText);
-      }
-      //console.log("Retrieved Antolin data for book", book.title);
-      res.json().then((antolin) => {
-        //console.log("Antolin data", antolin);
+
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/antolin/${book.id}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          console.error("ERROR while getting Antolin Data", res.statusText);
+          return;
+        }
+        const antolin = await res.json();
         setAntolinResults(antolin as any);
-      });
-    });
-  }, []);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Fetch failed", err);
+        }
+      }
+    })();
+
+    // abort fetch if component unmounts or book changes mid-flight
+    return () => controller.abort();
+  }, [book]); // or [book.id] if you only care about the id
 
   if (!router.query.bookid) {
     return <Typography>ID not found</Typography>;
@@ -118,9 +128,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        enqueueSnackbar(
-          "Buch zurückgegeben, super!"
-        );
+        enqueueSnackbar("Buch zurückgegeben, super!");
       });
   };
 
@@ -136,9 +144,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", bookid, data);
-        enqueueSnackbar(
-          "Buch gelöscht"
-        );
+        enqueueSnackbar("Buch gelöscht");
         router.push("/book");
       });
   };
@@ -155,7 +161,6 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
           topics={topics}
           antolinResults={antolinResults}
         />
-
       </ThemeProvider>
     </Layout>
   );

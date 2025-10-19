@@ -12,7 +12,7 @@ import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { convertDateToDayString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
-import type { } from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();
 
@@ -83,7 +83,7 @@ export default function Books({ books }: BookPropsType) {
         setReportData({ columns: columns, rows: rows as any }); //TODO do TS magic
       }
     }
-  }, []);
+  }, [books]);
 
   return (
     <Layout>
