@@ -9,8 +9,8 @@ export interface BookType {
   title: string;
   subtitle?: string;
   author: string;
-  //topics?: string;
-  topics: string[];
+  topics?: string;
+  //topics: string[]; //War mal ein Zwischenstand, kann wieder raus, wenn Autofill funktioniert //TODO
   imageLink?: string;
   //additional fields from OpenBiblio data model
   isbn?: string;

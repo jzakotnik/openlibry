@@ -7,7 +7,8 @@ type BookFormData = {
     title?: string;
     author?: string;
     subtitle?: string;
-    topics?: string[];
+    //topics?: string[];    //Kann gelöscht werden, sobald autofill funktioniert
+    topics?: string;
     summary?: string;
     isbn?: string;
     editionDescription?: string;
@@ -260,7 +261,7 @@ export default async function handler(
             author: getAllMatchingLiterals(triples, P.author).join(", "),
             subtitle: getFirstMatching(triples, P.subtitle),
             //topics, //TODO
-            //topics: getAllMatching(triples, P.topics),
+            //topics: getAllMatching(triples, P.topics), 
             summary: getFirstMatching(triples, P.summary),
             isbn: getFirstMatching(triples, P.isbn) || isbn,
             editionDescription: undefined, // add mapping if needed
