@@ -284,19 +284,19 @@ const generateBarcode = async (
       const barId =
         process.env.BARCODE_MINCODELENGTH != null
           ? b
-              .id!.toString()
-              .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
+            .id!.toString()
+            .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
           : b.id!.toString();
       const png =
         BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
           ? await bwipjs.toBuffer({
-              bcid: BOOKLABEL_BARCODE_VERSION,
-              text: barId,
-              scale: 3,
-              height: 10,
-              includetext: true,
-              textxalign: "center",
-            })
+            bcid: BOOKLABEL_BARCODE_VERSION,
+            text: barId,
+            scale: 3,
+            height: 10,
+            includetext: true,
+            textxalign: "center",
+          })
           : schoollogo;
       const pos = {
         left:
@@ -436,16 +436,16 @@ export default async function handle(
         const idFilter: number[] =
           "id" in req.query
             ? (Array.isArray(req.query.id) ? req.query.id : [req.query.id]).map(
-                (e) => parseInt(e as string, 10)
-              )
+              (e) => parseInt(e as string, 10)
+            )
             : [];
 
         const ignoreLabelFields: number[] =
           "block" in req.query
             ? (Array.isArray(req.query.block)
-                ? req.query.block
-                : [req.query.block]
-              ).map((e) => parseInt(e as string, 10))
+              ? req.query.block
+              : [req.query.block]
+            ).map((e) => parseInt(e as string, 10))
             : [];
 
         console.log("Filter string", topicFilter, idFilter);
@@ -454,7 +454,7 @@ export default async function handle(
           .filter((b: BookType) =>
             topicFilter
               ? b.topics != null &&
-                b.topics!.toLocaleLowerCase() === topicFilter
+              b.topics!.toLocaleLowerCase() === topicFilter
               : true
           )
           .filter((b: BookType) =>
@@ -478,19 +478,19 @@ export default async function handle(
 
         const printableByIndex = hasIndexRange
           ? (() => {
-              if (rawStartIndex > rawEndIndex) {
-                console.log(
-                  "Those fools got start and end mixed up again, not ok for this universe..."
-                );
-              }
-              const sliced = books.slice(startIndex, endIndex);
+            if (rawStartIndex > rawEndIndex) {
               console.log(
-                "Printing labels for books in Indexrange",
-                startIndex,
-                endIndex
+                "Those fools got start and end mixed up again, not ok for this universe..."
               );
-              return sliced;
-            })()
+            }
+            const sliced = books.slice(startIndex, endIndex);
+            console.log(
+              "Printing labels for books in Indexrange",
+              startIndex,
+              endIndex
+            );
+            return sliced;
+          })()
           : null;
 
         // ID-range selection (startId/endId)
@@ -510,21 +510,21 @@ export default async function handle(
 
         const printableById = hasIdRange
           ? (() => {
-              if (rawStartId > rawEndId) {
-                console.log(
-                  "Those fools got startId and endId mixed up again..."
-                );
-              }
-              if (books.length > 0 && startId > books[0].id!) {
-                console.log("Selecting outside of the ID range used");
-              }
+            if (rawStartId > rawEndId) {
               console.log(
-                "Printing labels for books in ID range",
-                startId,
-                endId
+                "Those fools got startId and endId mixed up again..."
               );
-              return books.filter((b) => b.id! >= startId && b.id! <= endId!);
-            })()
+            }
+            if (books.length > 0 && startId > books[0].id!) {
+              console.log("Selecting outside of the ID range used");
+            }
+            console.log(
+              "Printing labels for books in ID range",
+              startId,
+              endId
+            );
+            return books.filter((b) => b.id! >= startId && b.id! <= endId!);
+          })()
           : null;
 
         const printableBooks = printableByIndex ?? printableById ?? books;

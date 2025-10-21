@@ -277,7 +277,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-              topics={book.topics}
+              topics={topics}
             />
             <AntolinResult foundNumber={antolinResults} />
           </Grid>
