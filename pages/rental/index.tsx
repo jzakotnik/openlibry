@@ -12,7 +12,6 @@ import {
   replaceBookStringDate,
   sameDay,
 } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 
 import UserRentalList from "@/components/rental/UserRentalList";
 import { BookType } from "@/entities/BookType";
@@ -36,7 +35,7 @@ interface RentalPropsType {
   bookSortBy: string;
 }
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -51,17 +50,17 @@ export default function Rental({
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
-  const bookFocusRef = useRef<HTMLInputElement>(undefined);
+  const bookFocusRef = useRef<HTMLInputElement>(null);
   const handleBookSearchSetFocus = () => {
-    bookFocusRef.current!.focus();
-    bookFocusRef.current!.select();
-  }
+    bookFocusRef.current?.focus();
+    bookFocusRef.current?.select();
+  };
 
-  const userFocusRef = useRef<HTMLInputElement>(undefined);
+  const userFocusRef = useRef<HTMLInputElement>(null);
   const handleUserSearchSetFocus = () => {
-    userFocusRef.current!.focus();
-    userFocusRef.current!.select();
-  }
+    userFocusRef.current?.focus();
+    userFocusRef.current?.select();
+  };
 
   const { data, error } = useSWR(
     process.env.NEXT_PUBLIC_API_URL + "/api/rental",
@@ -89,9 +88,9 @@ export default function Rental({
             res.statusText
           );
           enqueueSnackbar(
-            "Leider hat es nicht geklappt, der Server ist aber erreichbar"
-            , { variant: "error" });
-
+            "Leider hat es nicht geklappt, der Server ist aber erreichbar",
+            { variant: "error" }
+          );
         }
         return res.json();
       })
@@ -103,8 +102,9 @@ export default function Rental({
       })
       .catch((error) => {
         enqueueSnackbar(
-          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
-          , { variant: "error" });
+          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+          { variant: "error" }
+        );
       });
     handleBookSearchSetFocus();
   };
@@ -118,7 +118,12 @@ export default function Rental({
     //extend logic
 
     if (sameDay(newbook.dueDate, newDueDate)) {
-      enqueueSnackbar("Buch - " + book.title + " - ist bereits bis zum maximalen Ende ausgeliehen", { variant: "warning" });
+      enqueueSnackbar(
+        "Buch - " +
+          book.title +
+          " - ist bereits bis zum maximalen Ende ausgeliehen",
+        { variant: "warning" }
+      );
       return;
     }
     newbook.renewalCount = newbook.renewalCount + 1;
@@ -142,8 +147,9 @@ export default function Rental({
             res.statusText
           );
           enqueueSnackbar(
-            "Leider hat es nicht geklappt, der Server ist aber erreichbar"
-            , { variant: "error" });
+            "Leider hat es nicht geklappt, der Server ist aber erreichbar",
+            { variant: "error" }
+          );
         }
 
         return res.json();
@@ -151,12 +157,12 @@ export default function Rental({
       .then((data) => {
         // console.log(data);
         enqueueSnackbar("Buch - " + book.title + " - verlängert");
-
       })
       .catch((error) => {
         enqueueSnackbar(
-          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
-          , { variant: "error" });
+          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+          { variant: "error" }
+        );
       });
     handleBookSearchSetFocus();
   };
@@ -176,9 +182,9 @@ export default function Rental({
             res.statusText
           );
           enqueueSnackbar(
-            "Leider hat es nicht geklappt, der Server ist aber erreichbar"
-            , { variant: "error" });
-
+            "Leider hat es nicht geklappt, der Server ist aber erreichbar",
+            { variant: "error" }
+          );
         }
         return res.json();
       })
@@ -187,17 +193,15 @@ export default function Rental({
         enqueueSnackbar(
           "Buch " + getBookFromID(bookid, books).title + " ausgeliehen"
         );
-
       })
       .catch((error) => {
         enqueueSnackbar(
-          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?"
-          , { variant: "error" });
-
+          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+          { variant: "error" }
+        );
       });
     handleBookSearchSetFocus();
   };
-
 
   const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
@@ -243,14 +247,13 @@ export default function Rental({
           />
         </Grid>
       </Grid>
-
     </Layout>
   );
 }
 
 export async function getServerSideProps() {
   const extensionDays = process.env.EXTENSION_DURATION_DAYS || 14;
-  const bookSortBy = process.env.RENTAL_SORT_BOOKS || 'title_asc';
+  const bookSortBy = process.env.RENTAL_SORT_BOOKS || "title_asc";
   const allUsers = await getAllUsers(prisma);
 
   const users = allUsers.map((u) => {

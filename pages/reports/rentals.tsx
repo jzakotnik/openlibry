@@ -6,15 +6,14 @@ import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 import { deDE } from "@mui/x-data-grid/locales";
-import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 import { convertDateToDayString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
-import type { } from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const theme = createTheme(
   {
@@ -81,7 +80,7 @@ export default function Rentals({ rentals }: RentalsPropsType) {
       //console.log("columns", columns);
       setReportData({ columns: columns, rows: rows });
     }
-  }, []);
+  }, [rentals]);
 
   return (
     <Layout>

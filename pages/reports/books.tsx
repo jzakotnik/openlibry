@@ -5,16 +5,15 @@ import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 import { deDE } from "@mui/x-data-grid/locales";
-import { PrismaClient } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { convertDateToDayString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
-import type { } from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const theme = createTheme(
   {
@@ -83,7 +82,7 @@ export default function Books({ books }: BookPropsType) {
         setReportData({ columns: columns, rows: rows as any }); //TODO do TS magic
       }
     }
-  }, []);
+  }, [books]);
 
   return (
     <Layout>

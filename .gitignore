@@ -139,3 +139,4 @@ prisma/database/dev-testing.db
 public/~$hnung-template.docx
 prisma/database/dev-base.db
 prisma/database/dev_sample.db
+prisma/database/sandbox.db

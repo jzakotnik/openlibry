@@ -1,8 +1,7 @@
 import { deleteManyUsers } from "@/entities/user";
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 export default async function handle(
   req: NextApiRequest,

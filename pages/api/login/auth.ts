@@ -1,10 +1,9 @@
 // import prisma client
 import { getLoginUser } from "@/entities/loginuser";
 import { hashPassword } from "@/utils/hashPassword";
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 export default async function handle(
   req: NextApiRequest,

@@ -5,16 +5,15 @@ import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 import { deDE } from "@mui/x-data-grid/locales";
-import { PrismaClient } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import { AuditType } from "@/entities/AuditType";
 import { getAllAudit } from "@/entities/audit";
 import { convertDateToTimeString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
-import type { } from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const theme = createTheme(
   {
@@ -83,7 +82,7 @@ export default function Audit({ audits }: AuditPropsType) {
         setReportData({ columns: columns, rows: rows as any }); //TODO do TS magic
       }
     }
-  }, []);
+  }, [audits]);
 
   console.log("Audits received: ", reportDataAvailable, audits);
 

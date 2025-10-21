@@ -1,5 +1,7 @@
 # Eigene Installation auf einem Server mit Subdomain 
 
+![OpenLibry Installation Architektur](./openlibryinstall.png)
+
 Für eine Installation auf einer Subdomain mit `nginx` als Web-Server, `certbot` für SSL Zertifikate, und `pm2` als node manager, diese Schritte befolgen:
 
 - Allgemeiner [Guide](https://dev.to/knowbee/how-to-setup-secure-subdomains-using-nginx-and-certbot-on-a-vps-4m8h) um eine Subdomain und Certbot in Nginx zu konfigurieren, das ist recht praktisch.

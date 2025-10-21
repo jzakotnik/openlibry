@@ -1,12 +1,10 @@
 //https://api.bookcover.longitood.com/bookcover?book_title=Schule%20der%20magischen%20Tiere%20ermittelt%20Der%20gr%C3%BCne%20Glibber-Brief&author_name=Margit+Auer
 
-import { PrismaClient } from "@prisma/client";
-import { UserType } from "../../../entities/UserType";
-import type { NextApiRequest, NextApiResponse } from "next";
 import { getAllBooks, updateBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 type Data = {
   id: number;

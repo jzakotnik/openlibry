@@ -1,16 +1,16 @@
 import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { getAllUsers } from "@/entities/user";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { deDE } from "@mui/x-data-grid/locales";
-import { PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
-import { getAllUsers } from "../../entities/user";
 
 import BookLabelsCard from "@/components/reports/BookLabelsCard";
 import Dashboard from "@/components/reports/Dashboard";
 import TagCloudDashboard from "@/components/reports/TagCloud";
 import { BookType } from "@/entities/BookType";
+import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
 import { convertDateToDayString } from "@/utils/dateutils";
 import {
@@ -22,11 +22,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { } from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 import router from "next/router";
 import { useState } from "react";
-
-const prisma = new PrismaClient();
 
 const theme = createTheme(
   {
@@ -123,7 +121,10 @@ const LabelCard = ({
         <Button
           size="small"
           onClick={() =>
-            window.open(link + "/?start=0" + "&end=" + Math.floor(startLabel!), "_blank")
+            window.open(
+              link + "/?start=0" + "&end=" + Math.floor(startLabel!),
+              "_blank"
+            )
           }
         >
           Erzeuge PDF

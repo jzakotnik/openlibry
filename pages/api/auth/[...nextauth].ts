@@ -1,9 +1,8 @@
+import { prisma } from "@/entities/db";
 import { getLoginUser } from "@/entities/loginuser";
 import { hashPassword } from "@/utils/hashPassword";
-import { PrismaClient } from "@prisma/client";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-const prisma = new PrismaClient();
 export default NextAuth({
   session: {
     strategy: "jwt",

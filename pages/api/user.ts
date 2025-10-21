@@ -1,10 +1,9 @@
 import { UserType } from "@/entities/UserType";
 import { addUser, getAllUsers } from "@/entities/user";
 import { replaceUsersDateString } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 type Data = {
   result: string;

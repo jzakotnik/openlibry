@@ -60,6 +60,7 @@ export default function UserAdminList({
     }, {} as { [key: string]: boolean });
     setChecked(checkSet);
     //console.log("Initialised user checkboxes", checkSet);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setter is stable
   }, [users]);
 
   rentals.map((r: any) => {

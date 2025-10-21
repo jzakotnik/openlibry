@@ -2,12 +2,11 @@ import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { chunkArray } from "@/utils/chunkArray";
 import { currentTime } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 import ReactPDF, {
   Canvas,
   Document,
-  Image,
   Page,
+  Image as PdfImage,
   StyleSheet,
   Text,
   View,
@@ -80,7 +79,7 @@ const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env
 
 const pointPerCm = 28.3464566929;
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 var fs = require("fs");
 var schoollogo = fs.readFileSync(
   join(process.cwd(), "/public/" + process.env.BOOKLABEL_LOGO)
@@ -222,9 +221,12 @@ const replacePlaceholder = (input: string, book: any): string => {
       const replaced = original.replaceAll(nextReplace, book[propertyName]);
       const propertyIsAuthor = original === "Book.author";
 
-      const replacedShortened = (replaced.length > BOOKLABEL_MAX_AUTHORLINE_LENGTH ?
-        replaced.substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3).concat("...") :
-        replaced);
+      const replacedShortened =
+        replaced.length > BOOKLABEL_MAX_AUTHORLINE_LENGTH
+          ? replaced
+              .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
+              .concat("...")
+          : replaced;
 
       return propertyIsAuthor ? replacedShortened : replaced;
     };
@@ -360,7 +362,7 @@ const generateBarcode = async (
               }}
             >
               {infoLine(b, process.env.BOOKLABEL_LINE_ABOVE, true)}
-              <Image
+              <PdfImage
                 key={b.id}
                 src={"data:image/png;base64, " + (await png.toString("base64"))}
                 style={{

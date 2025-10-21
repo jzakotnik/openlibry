@@ -12,7 +12,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllUsers } from "@/entities/user";
 import { convertDateToDayString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
-import type { } from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
 const prisma = new PrismaClient();
 
@@ -83,7 +83,7 @@ export default function Users({ users }: UsersPropsType) {
         setReportData({ columns: columns, rows: rows as any }); //TODO do TS magic
       }
     }
-  }, []);
+  }, [users]);
 
   return (
     <Layout>

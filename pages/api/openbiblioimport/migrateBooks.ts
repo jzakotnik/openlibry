@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { BookType } from "@/entities/BookType";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { BookType } from "../../../entities/BookType";
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -12,7 +11,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
-const prisma = new PrismaClient();
+import { prisma } from "@/entities/db";
 
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
 
