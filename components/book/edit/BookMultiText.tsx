@@ -24,7 +24,8 @@ const BookMultiText = ({
       name={fieldType}
       label={(translations["books"] as any)[fieldType]}
       InputLabelProps={{ shrink: true }}//because of autofill function
-      defaultValue={(book as any)[fieldType]}
+      //defaultValue={(book as any)[fieldType]}
+      value={(book as any)[fieldType] ?? ""}
       disabled={!editable}
       fullWidth
       variant="standard"

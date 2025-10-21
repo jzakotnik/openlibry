@@ -267,7 +267,7 @@ export default async function handler(
             publisherName: getFirstMatching(triples, P.publisherName),
             publisherLocation: getFirstMatching(triples, P.publisherLocation),
             publisherDate: getFirstMatching(triples, P.publisherDate),
-            pages: getFirstMatching(triples, P.pages),
+            //pages: getFirstMatching(triples, P.pages), //Error because int is required, sometimes String is delivered
             minAge: getFirstMatching(triples, P.minAge),
             maxAge: undefined,
             price: getFirstMatching(triples, P.price),

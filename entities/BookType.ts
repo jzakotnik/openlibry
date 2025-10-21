@@ -9,7 +9,8 @@ export interface BookType {
   title: string;
   subtitle?: string;
   author: string;
-  topics?: string;
+  //topics?: string;
+  topics: string[];
   imageLink?: string;
   //additional fields from OpenBiblio data model
   isbn?: string;
