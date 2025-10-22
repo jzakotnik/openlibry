@@ -48,7 +48,7 @@ const BOOKLABEL_AUTHOR_SPACING = process.env.BOOKLABEL_AUTHOR_SPACING
 const BOOKLABEL_MAX_AUTHORLINE_LENGTH = process.env
   .BOOKLABEL_MAX_AUTHORLINE_LENGTH
   ? parseInt(process.env.BOOKLABEL_MAX_AUTHORLINE_LENGTH)
-  : 20;
+  : 19;
 
 const BOOKLABEL_LABEL_SPACING_HORIZONTAL = process.env
   .BOOKLABEL_LABEL_SPACING_HORIZONTAL
@@ -76,6 +76,11 @@ const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env
   .BOOKLABEL_PRINT_LABEL_FRAME
   ? JSON.parse(process.env.BOOKLABEL_PRINT_LABEL_FRAME)
   : false;
+
+const BOOKLABEL_LINE_BELOW_1_LENGTH = process.env
+  .BOOKLABEL_LINE_BELOW_1_LENGTH
+  ? parseInt(process.env.BOOKLABEL_LINE_BELOW_1_LENGTH)
+  : 30;
 
 const pointPerCm = 28.3464566929;
 
@@ -230,18 +235,42 @@ const replacePlaceholder = (input: string, book: any): string => {
 
       return propertyIsAuthor ? replacedShortened : replaced;
     };
+    /* //TODO alte Version löschen
+        const replaceTopics = (original: string): string => {
+          if (!original.includes("firstTopic")) return original;
+    
+          const nextReplace = String(
+            original.split(" ").find((item: any) => item.includes("firstTopic"))
+          );
+    
+          return original.replaceAll(
+            nextReplace,
+            book.topics ? book.topics.split(";")[0] : ""
+          );
+        };
+    */
 
     const replaceTopics = (original: string): string => {
+      // Überprüfen, ob der originale Text den Platzhalter "firstTopic" enthält
       if (!original.includes("firstTopic")) return original;
 
-      const nextReplace = String(
-        original.split(" ").find((item: any) => item.includes("firstTopic"))
-      );
+      // Teilen der Topics in ein Array und Trim
+      const topics: string[] = book.topics ? book.topics.split(";").map((topic: string) => topic.trim()) : [];
 
-      return original.replaceAll(
-        nextReplace,
-        book.topics ? book.topics.split(";")[0] : ""
-      );
+      // Erstellen einer durch Kommas getrennten Liste von Topics
+      const combinedTopics = topics.join(", ");
+
+      // Ersetzen aller Vorkommen von "firstTopic" im Originaltext durch die kombinierten Topics
+      const allReplacedTopics = original.replaceAll("firstTopic", combinedTopics);
+
+      const replacedShortened =
+        allReplacedTopics.length > BOOKLABEL_LINE_BELOW_1_LENGTH
+          ? allReplacedTopics
+            .substring(0, BOOKLABEL_LINE_BELOW_1_LENGTH - 3)
+            .concat("...")
+          : allReplacedTopics;
+
+      return replacedShortened;
     };
 
     // recursive replacement until no "Book." remains
