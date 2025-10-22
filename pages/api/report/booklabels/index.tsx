@@ -224,8 +224,8 @@ const replacePlaceholder = (input: string, book: any): string => {
       const replacedShortened =
         replaced.length > BOOKLABEL_MAX_AUTHORLINE_LENGTH
           ? replaced
-              .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
-              .concat("...")
+            .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
+            .concat("...")
           : replaced;
 
       return propertyIsAuthor ? replacedShortened : replaced;
@@ -435,6 +435,13 @@ export default async function handle(
             ? (req.query.topic! as string).toLocaleLowerCase()
             : null;
 
+        const parseTopics = (topicsString: string | null) => {
+          if (!topicsString) return [];
+          return topicsString.split(";").map((topic) => topic.trim());
+        };
+
+        const topicsArray = parseTopics(topicFilter); // Nachgebessertes Topic-Array
+
         const idFilter: number[] =
           "id" in req.query
             ? (Array.isArray(req.query.id) ? req.query.id : [req.query.id]).map(
@@ -451,7 +458,8 @@ export default async function handle(
             : [];
 
         console.log("Filter string", topicFilter, idFilter);
-
+        //TODO alte Version löschen
+        /*
         const books = allbooks
           .filter((b: BookType) =>
             topicFilter
@@ -462,6 +470,33 @@ export default async function handle(
           .filter((b: BookType) =>
             idFilter.length > 0 ? !!b.id && idFilter.indexOf(b.id) > -1 : true
           );
+        */
+
+
+        const books = allbooks
+          .filter((b: BookType) => {
+            // Überprüfen, ob b.topics existiert und eine Zeichenkette ist
+            if (typeof b.topics !== 'string' || !b.topics.trim()) {
+              return false; // b.topics existiert nicht oder ist ein leerer String
+            }
+            // Wenn keine Filter vorhanden sind, alle Bücher zurückgeben
+            if (topicsArray.length === 0) return true;
+
+            // Teilen der Buch-Topics in ein Array
+            const bookTopicsArray = b.topics.split(";").map(topic => topic.trim().toLowerCase());
+
+            // Überprüfen auf exakte Übereinstimmung der Topics
+            return topicsArray.some(topic => bookTopicsArray.includes(topic.toLocaleLowerCase()));
+            //return topicsArray.some(topic => b.topics!.toLowerCase().includes(topic.toLocaleLowerCase())); //Funktioniert fast
+          })
+          .filter((b: BookType) =>
+            idFilter.length > 0 ? !!b.id && idFilter.indexOf(b.id) > -1 : true
+          );
+
+        // Fehlerfall, wenn keine Bücher gefunden wurden
+        if (!books || books.length === 0) {
+          return res.status(400).json({ data: "ERROR: No books matching search criteria" });
+        }
 
         // Index-range selection (start/end)
         const hasIndexRange = "start" in req.query || "end" in req.query;
