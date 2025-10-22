@@ -11,8 +11,6 @@ import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
-
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
 
 export default async function handle(
