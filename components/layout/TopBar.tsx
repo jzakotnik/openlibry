@@ -1,3 +1,4 @@
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import MenuIcon from "@mui/icons-material/Menu";
 import AppBar from "@mui/material/AppBar";
@@ -13,9 +14,12 @@ import Typography from "@mui/material/Typography";
 import { useRouter } from "next/router";
 import * as React from "react";
 
+import { Tooltip } from "@mui/material";
 import { publicNavItems } from "./navigationItems";
 
-const BACKUP_BUTTON_SWITCH = parseInt(process.env.NEXT_PUBLIC_BACKUP_BUTTON_SWITCH || "1");
+const BACKUP_BUTTON_SWITCH = parseInt(
+  process.env.NEXT_PUBLIC_BACKUP_BUTTON_SWITCH || "1"
+);
 
 export default function TopBar() {
   const router = useRouter();
@@ -37,7 +41,7 @@ export default function TopBar() {
   const BackupFunc = async () => {
     try {
       const response = await fetch("/api/excel", {
-        method: 'GET',
+        method: "GET",
       });
 
       if (!response.ok) {
@@ -65,7 +69,6 @@ export default function TopBar() {
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-
     } catch (err: any) {
       alert(err.message || "Fehler beim Backup-Download!");
     }
@@ -169,17 +172,17 @@ export default function TopBar() {
           </Box>
           {BACKUP_BUTTON_SWITCH === 1 && (
             <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={BackupFunc}
-                sx={{ ml: 2 }}
-              >
-                Datensicherung
-              </Button>
+              <Tooltip title="Download Backup als Excel">
+                <IconButton
+                  sx={{ my: 2, color: "white", display: "block" }}
+                  onClick={BackupFunc}
+                  aria-label="Backup"
+                >
+                  <CloudDownloadIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           )}
-
         </Toolbar>
       </Container>
     </AppBar>
