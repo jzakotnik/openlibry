@@ -29,6 +29,7 @@ import BookStatusDropdown from "./edit/BookStatusDropdown";
 import BookTextField from "./edit/BookTextField";
 import BookTopicsChips from "./edit/BookTopicsChips";
 
+import { useSnackbar } from "notistack";
 
 const bull = (
   <Box
@@ -64,37 +65,53 @@ export default function BookEditForm({
   const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
+  // ⬇️ NEW: notistack
+  const { enqueueSnackbar } = useSnackbar();
+
   //Beginn autofill stuff
   const [isbnInput, setIsbnInput] = useState("");
 
   const handleAutoFillFromISBN = async () => {
     if (!isbnInput) {
-      alert("Bitte geben Sie eine ISBN ein.");
+      enqueueSnackbar("Bitte geben Sie eine ISBN ein.", { variant: "warning" });
       return;
     }
     // Remove all non-digit characters from the input
     const cleanedIsbn = isbnInput.replace(/\D/g, "");
     if (!cleanedIsbn) {
-      alert("Die ISBN ist ungültig (keine Zahlen gefunden).");
+      enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
+        variant: "warning",
+      });
       return;
     }
     try {
-      const response = await fetch(`/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`);
-      if (!response.ok) throw new Error("Buch nicht gefunden oder Fehler beim Abruf!");
+      const response = await fetch(
+        `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`
+      );
+      if (!response.ok) {
+        enqueueSnackbar(
+          "Stammdaten wurden leider nicht gefunden mit dieser ISBN..",
+          { variant: "error" }
+        );
+        return;
+      }
       const data = await response.json();
       setBookData({
         ...book,
         ...data, // Merge the fields
       });
+      enqueueSnackbar("Stammdaten wurden erfolgreich ausgefüllt.", {
+        variant: "success",
+      });
     } catch (e: any) {
-      alert(e.message || "Fehler beim Laden der Buchdaten.");
+      enqueueSnackbar(e?.message || "Fehler beim Laden der Buchdaten.", {
+        variant: "error",
+      });
     }
-
   };
   //End autofill stuff
 
   useState<AlertColor>("success");
-  //console.log("DELETE config", deleteSafetySeconds);
 
   const toggleEditButton = () => {
     editable
@@ -107,7 +124,6 @@ export default function BookEditForm({
   };
 
   const CoverImage = () => {
-    //console.log("Key", loadingImage); //this forces a reload after upload
     return (
       <img
         src={
@@ -128,10 +144,7 @@ export default function BookEditForm({
       />
     );
   };
-  /*console.log(
-    "This is the antolin results for this book on the edit form",
-    antolinResults
-  );*/
+
   const AntolinResult = (foundNumber: any) => {
     let resultString = "...";
     if (antolinResults) {
@@ -175,8 +188,6 @@ export default function BookEditForm({
               <Button
                 onClick={(e) => {
                   saveBook(e);
-
-                  //toggleEditButton();
                 }}
                 startIcon={<SaveAltIcon />}
               >
@@ -217,24 +228,28 @@ export default function BookEditForm({
         </Typography>
       </Divider>
       {/* --- NEW ISBN INPUT AND BUTTON ADDED HERE --- */}
-      <Grid container justifyContent="center" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+      <Grid
+        container
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+        sx={{ mb: 2 }}
+      >
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="ISBN"
             variant="outlined"
             size="small"
             value={isbnInput}
-            onChange={e => setIsbnInput(e.target.value)}
+            onChange={(e) => setIsbnInput(e.target.value)}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
-          <Button
-            variant="outlined"
-
-            onClick={handleAutoFillFromISBN}
-          >
-            Stammdaten automatisch ausfüllen anhand ISBN
-          </Button>
+          <Tooltip title="Stammdaten mit ISBN in Datenbanken suchen">
+            <Button variant="outlined" onClick={handleAutoFillFromISBN}>
+              Stammdaten ausfüllen
+            </Button>
+          </Tooltip>
         </Grid>
       </Grid>
       {/* --- END NEW INPUT --- */}
