@@ -48,7 +48,7 @@ const BOOKLABEL_AUTHOR_SPACING = process.env.BOOKLABEL_AUTHOR_SPACING
 const BOOKLABEL_MAX_AUTHORLINE_LENGTH = process.env
   .BOOKLABEL_MAX_AUTHORLINE_LENGTH
   ? parseInt(process.env.BOOKLABEL_MAX_AUTHORLINE_LENGTH)
-  : 20;
+  : 19;
 
 const BOOKLABEL_LABEL_SPACING_HORIZONTAL = process.env
   .BOOKLABEL_LABEL_SPACING_HORIZONTAL
@@ -76,6 +76,11 @@ const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env
   .BOOKLABEL_PRINT_LABEL_FRAME
   ? JSON.parse(process.env.BOOKLABEL_PRINT_LABEL_FRAME)
   : false;
+
+const BOOKLABEL_LINE_BELOW_1_LENGTH = process.env
+  .BOOKLABEL_LINE_BELOW_1_LENGTH
+  ? parseInt(process.env.BOOKLABEL_LINE_BELOW_1_LENGTH)
+  : 30;
 
 const pointPerCm = 28.3464566929;
 
@@ -224,24 +229,48 @@ const replacePlaceholder = (input: string, book: any): string => {
       const replacedShortened =
         replaced.length > BOOKLABEL_MAX_AUTHORLINE_LENGTH
           ? replaced
-              .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
-              .concat("...")
+            .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
+            .concat("...")
           : replaced;
 
       return propertyIsAuthor ? replacedShortened : replaced;
     };
+    /* //TODO alte Version löschen
+        const replaceTopics = (original: string): string => {
+          if (!original.includes("firstTopic")) return original;
+    
+          const nextReplace = String(
+            original.split(" ").find((item: any) => item.includes("firstTopic"))
+          );
+    
+          return original.replaceAll(
+            nextReplace,
+            book.topics ? book.topics.split(";")[0] : ""
+          );
+        };
+    */
 
     const replaceTopics = (original: string): string => {
+      // Überprüfen, ob der originale Text den Platzhalter "firstTopic" enthält
       if (!original.includes("firstTopic")) return original;
 
-      const nextReplace = String(
-        original.split(" ").find((item: any) => item.includes("firstTopic"))
-      );
+      // Teilen der Topics in ein Array und Trim
+      const topics: string[] = book.topics ? book.topics.split(";").map((topic: string) => topic.trim()) : [];
 
-      return original.replaceAll(
-        nextReplace,
-        book.topics ? book.topics.split(";")[0] : ""
-      );
+      // Erstellen einer durch Kommas getrennten Liste von Topics
+      const combinedTopics = topics.join(", ");
+
+      // Ersetzen aller Vorkommen von "firstTopic" im Originaltext durch die kombinierten Topics
+      const allReplacedTopics = original.replaceAll("firstTopic", combinedTopics);
+
+      const replacedShortened =
+        allReplacedTopics.length > BOOKLABEL_LINE_BELOW_1_LENGTH
+          ? allReplacedTopics
+            .substring(0, BOOKLABEL_LINE_BELOW_1_LENGTH - 3)
+            .concat("...")
+          : allReplacedTopics;
+
+      return replacedShortened;
     };
 
     // recursive replacement until no "Book." remains
@@ -286,19 +315,19 @@ const generateBarcode = async (
       const barId =
         process.env.BARCODE_MINCODELENGTH != null
           ? b
-              .id!.toString()
-              .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
+            .id!.toString()
+            .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
           : b.id!.toString();
       const png =
         BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
           ? await bwipjs.toBuffer({
-              bcid: BOOKLABEL_BARCODE_VERSION,
-              text: barId,
-              scale: 3,
-              height: 10,
-              includetext: true,
-              textxalign: "center",
-            })
+            bcid: BOOKLABEL_BARCODE_VERSION,
+            text: barId,
+            scale: 3,
+            height: 10,
+            includetext: true,
+            textxalign: "center",
+          })
           : schoollogo;
       const pos = {
         left:
@@ -435,33 +464,68 @@ export default async function handle(
             ? (req.query.topic! as string).toLocaleLowerCase()
             : null;
 
+        const parseTopics = (topicsString: string | null) => {
+          if (!topicsString) return [];
+          return topicsString.split(";").map((topic) => topic.trim());
+        };
+
+        const topicsArray = parseTopics(topicFilter); // Nachgebessertes Topic-Array
+
         const idFilter: number[] =
           "id" in req.query
             ? (Array.isArray(req.query.id) ? req.query.id : [req.query.id]).map(
-                (e) => parseInt(e as string, 10)
-              )
+              (e) => parseInt(e as string, 10)
+            )
             : [];
 
         const ignoreLabelFields: number[] =
           "block" in req.query
             ? (Array.isArray(req.query.block)
-                ? req.query.block
-                : [req.query.block]
-              ).map((e) => parseInt(e as string, 10))
+              ? req.query.block
+              : [req.query.block]
+            ).map((e) => parseInt(e as string, 10))
             : [];
 
         console.log("Filter string", topicFilter, idFilter);
-
+        //TODO alte Version löschen
+        /*
         const books = allbooks
           .filter((b: BookType) =>
             topicFilter
               ? b.topics != null &&
-                b.topics!.toLocaleLowerCase() === topicFilter
+              b.topics!.toLocaleLowerCase() === topicFilter
               : true
           )
           .filter((b: BookType) =>
             idFilter.length > 0 ? !!b.id && idFilter.indexOf(b.id) > -1 : true
           );
+        */
+
+
+        const books = allbooks
+          .filter((b: BookType) => {
+            // Überprüfen, ob b.topics existiert und eine Zeichenkette ist
+            if (typeof b.topics !== 'string' || !b.topics.trim()) {
+              return false; // b.topics existiert nicht oder ist ein leerer String
+            }
+            // Wenn keine Filter vorhanden sind, alle Bücher zurückgeben
+            if (topicsArray.length === 0) return true;
+
+            // Teilen der Buch-Topics in ein Array
+            const bookTopicsArray = b.topics.split(";").map(topic => topic.trim().toLowerCase());
+
+            // Überprüfen auf exakte Übereinstimmung der Topics
+            return topicsArray.some(topic => bookTopicsArray.includes(topic.toLocaleLowerCase()));
+            //return topicsArray.some(topic => b.topics!.toLowerCase().includes(topic.toLocaleLowerCase())); //Funktioniert fast
+          })
+          .filter((b: BookType) =>
+            idFilter.length > 0 ? !!b.id && idFilter.indexOf(b.id) > -1 : true
+          );
+
+        // Fehlerfall, wenn keine Bücher gefunden wurden
+        if (!books || books.length === 0) {
+          return res.status(400).json({ data: "ERROR: No books matching search criteria" });
+        }
 
         // Index-range selection (start/end)
         const hasIndexRange = "start" in req.query || "end" in req.query;
@@ -480,19 +544,19 @@ export default async function handle(
 
         const printableByIndex = hasIndexRange
           ? (() => {
-              if (rawStartIndex > rawEndIndex) {
-                console.log(
-                  "Those fools got start and end mixed up again, not ok for this universe..."
-                );
-              }
-              const sliced = books.slice(startIndex, endIndex);
+            if (rawStartIndex > rawEndIndex) {
               console.log(
-                "Printing labels for books in Indexrange",
-                startIndex,
-                endIndex
+                "Those fools got start and end mixed up again, not ok for this universe..."
               );
-              return sliced;
-            })()
+            }
+            const sliced = books.slice(startIndex, endIndex);
+            console.log(
+              "Printing labels for books in Indexrange",
+              startIndex,
+              endIndex
+            );
+            return sliced;
+          })()
           : null;
 
         // ID-range selection (startId/endId)
@@ -512,21 +576,21 @@ export default async function handle(
 
         const printableById = hasIdRange
           ? (() => {
-              if (rawStartId > rawEndId) {
-                console.log(
-                  "Those fools got startId and endId mixed up again..."
-                );
-              }
-              if (books.length > 0 && startId > books[0].id!) {
-                console.log("Selecting outside of the ID range used");
-              }
+            if (rawStartId > rawEndId) {
               console.log(
-                "Printing labels for books in ID range",
-                startId,
-                endId
+                "Those fools got startId and endId mixed up again..."
               );
-              return books.filter((b) => b.id! >= startId && b.id! <= endId!);
-            })()
+            }
+            if (books.length > 0 && startId > books[0].id!) {
+              console.log("Selecting outside of the ID range used");
+            }
+            console.log(
+              "Printing labels for books in ID range",
+              startId,
+              endId
+            );
+            return books.filter((b) => b.id! >= startId && b.id! <= endId!);
+          })()
           : null;
 
         const printableBooks = printableByIndex ?? printableById ?? books;

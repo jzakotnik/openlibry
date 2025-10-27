@@ -1,21 +1,21 @@
-import * as React from "react";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import MenuIcon from "@mui/icons-material/Menu";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
+import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import { useTheme } from "@mui/material/styles";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 import { useRouter } from "next/router";
+import * as React from "react";
 
 import { publicNavItems } from "./navigationItems";
+
+const BACKUP_BUTTON_SWITCH = parseInt(process.env.NEXT_PUBLIC_BACKUP_BUTTON_SWITCH || "1");
 
 export default function TopBar() {
   const router = useRouter();
@@ -32,6 +32,43 @@ export default function TopBar() {
     console.log("Navigating to ", e, page);
     if (page == "backdropClick") setAnchorElNav(null);
     else router.push(page);
+  };
+
+  const BackupFunc = async () => {
+    try {
+      const response = await fetch("/api/excel", {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error("Fehler beim Erstellen des Backups!");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Dynamically generate date string in yyyy-mm-dd format
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+      const dd = String(today.getDate()).padStart(2, "0");
+      const dateStr = `${yyyy}_${mm}_${dd}`;
+
+      // Use the date in the filename
+      const filename = `Backup_OpenLibry_${dateStr}.xlsx`;
+
+      // Trigger the download
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (err: any) {
+      alert(err.message || "Fehler beim Backup-Download!");
+    }
   };
 
   return (
@@ -130,6 +167,19 @@ export default function TopBar() {
               </Button>
             ))}
           </Box>
+          {BACKUP_BUTTON_SWITCH === 1 && (
+            <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={BackupFunc}
+                sx={{ ml: 2 }}
+              >
+                Datensicherung
+              </Button>
+            </Box>
+          )}
+
         </Toolbar>
       </Container>
     </AppBar>
