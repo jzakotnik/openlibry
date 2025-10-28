@@ -1,11 +1,22 @@
-version: "2.0"
+# docker-compose.yml
+version: "3.9"
+
 services:
   openlibry:
     container_name: openlibry
-    build: .
+    build:
+      context: .
+      target: runner           # uses the slim runtime stage from the Dockerfile
     ports:
-      - 3000:3000
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # DATABASE_URL: "file:./prisma/database/dev.db"   # example for SQLite
+      # DATABASE_URL: "postgresql://user:pass@db:5432/dbname" # example for Postgres
     volumes:
       - ./database:/app/prisma/database
       - ./public/coverimages:/app/public/coverimages
-    restart: always
+    # If you want to run migrations/push at container start, uncomment command:
+    # command: ["/bin/sh", "-c", "npx prisma migrate deploy || npx prisma db push; node server.js"]
+    restart: unless-stopped
