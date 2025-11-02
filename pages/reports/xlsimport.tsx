@@ -136,6 +136,10 @@ export default function XLSImport() {
   const handleImportButton = async () => {
     console.log("Importing data into the db");
     const payload = { bookData: bookData, userData: userData };
+    console.log(
+      "Using endpoint for XLS import",
+      process.env.NEXT_PUBLIC_API_URL + "/api/excel"
+    );
     const endpoint = process.env.NEXT_PUBLIC_API_URL + "/api/excel";
     try {
       const response = await fetch(endpoint, {
