@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   generateBuildId: async () => {
     // This could be anything, using the latest git hash
     return new Date().toLocaleDateString();
@@ -14,7 +15,7 @@ const nextConfig = {
       },
     ],
   },
-  transpilePackages: ['@mui/x-data-grid']
+  transpilePackages: ["@mui/x-data-grid"],
 };
 
 module.exports = nextConfig;
