@@ -11,3 +11,10 @@ LICENSE
 .next
 *.swp
 /scripts
+node_modules
+.next/cache
+.git
+.DS_Store
+*.log
+database/*.db
+database/*.sqlite

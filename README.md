@@ -160,9 +160,10 @@ Das weitere Vorgehen unterscheidet sich je nach Absicht:
 
 **a) Sandbox-Modus zum rückstandsfreien Ausprobieren:** 
 
+
 - Docker Container starten: 
 ```
-docker run --rm -p 3000:3000 -v "$(pwd)/database:/app/database" -e DATABASE_URL="file:/app/ database/dev.db" openlibry:latest
+docker run --rm -p 3000:3000 -v "$(pwd)/database:/app/database" -e DATABASE_URL="file:/app/ database/dev.db" jzakotnik/openlibry:latest
 ```
 - Öffne OpenLibry im Browser und probiere es aus: `http://localhost:3000` (voreingestellter Standard-Wert oder sonst entsprechend deiner Einstellung in der .env-Datei)
 - Zum Beenden den Prozess in der Konsole abrechen mit der Tastenkombination "Strg-c". 
