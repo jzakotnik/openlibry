@@ -1,11 +1,25 @@
-version: "2.0"
+# docker-compose.yml
+version: "3.9"
+
 services:
   openlibry:
     container_name: openlibry
-    build: .
+    build:
+      context: .
+      target: runner   # use the slim runtime stage from the Dockerfile
     ports:
-      - 3000:3000
+      - "3000:3000"
+    environment:
+      NODE_ENV: "production"
+      PORT: "3000"
+      # Absolute path so Prisma doesn't resolve relative to /app/prisma
+      DATABASE_URL: "file:/app/database/dev.db"
     volumes:
-      - ./database:/app/prisma/database
+      # SQLite DB directory (host) -> container mount point
+      - ./database:/app/database
+      # Your cover images
       - ./public/coverimages:/app/public/coverimages
-    restart: always
+    restart: unless-stopped
+    # The Dockerfile already defines ENTRYPOINT and CMD, so no 'command' needed.
+    # If you ever want to force migrations on every start, you could override:
+    # command: ["/bin/sh", "-lc", "npx prisma migrate deploy || npx prisma db push; node server.js"]
