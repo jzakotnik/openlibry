@@ -1,16 +1,15 @@
-# docker-compose.yml
-version: "3.9"
-
 services:
   openlibry:
     container_name: openlibry
     build:
       context: .
       target: runner
+    # Map host port -> container port (container listens on 3000)
     ports:
-      - "${PORT}:${PORT}"
+      - "${PORT:-3000}:3000"
+    # Pass all envs into the container too
     env_file:
-      - ./.env            # exposes all KEY=VALUE pairs to the container
+      - ./.env
     volumes:
       - ./database:/app/database
       - ./public/coverimages:/app/public/coverimages
