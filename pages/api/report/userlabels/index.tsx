@@ -259,6 +259,9 @@ export default async function handle(
         } else if ("id" in req.query) {
           printableUsers = new Array<any>();
           printableUsers.push(await getUser(prisma, parseInt(req.query.id as string)));
+        } else {
+          //default print all users
+          printableUsers = await getAllUsersOrderById(prisma);
         }
         if (!printableUsers)
           return res.status(400).json({ data: "ERROR: Users  not found" });
