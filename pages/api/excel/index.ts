@@ -81,10 +81,10 @@ export default async function handle(
         const userData = req.body.userData.slice(1);
         importLog.push(
           "Header Zeilen aus Excel entfernt, damit bleiben " +
-          bookData.length +
-          " Bücher und " +
-          userData.length +
-          " User"
+            bookData.length +
+            " Bücher und " +
+            userData.length +
+            " User"
         );
 
         console.log(
@@ -129,7 +129,7 @@ export default async function handle(
                 author: b["Autor"],
                 topics: b["Schlagworte"] ? b["Schlagworte"] : "",
                 imageLink: b["Bild"],
-                isbn: b["ISBN"],
+                isbn: b["ISBN"].toString(),
                 editionDescription: b["Edition"],
                 publisherLocation: b["Verlagsort"],
                 pages: parseInt(b["Seiten"]),
