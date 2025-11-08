@@ -1,7 +1,7 @@
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-
-import Grid from "@mui/material/Grid";
 import { useRouter } from "next/router";
 
 import Layout from "@/components/layout/Layout";
@@ -202,32 +202,23 @@ export default function Books({
     );
   };
 
-  const SummaryRowContainer = ({ renderedBooks }: any) => {
-    return (
-      <Grid
-        container
-        sx={{ width: "100%" }}
-        direction="column"
-        justifyContent="center"
-        spacing={16}
-        alignItems="top"
-      >
-        {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
-          <BookSummaryRow
-            key={b.id}
-            book={b}
-            handleCopyBook={() => handleCopyBook(b)}
-          />
-        ))}
-        {renderedBooks.length - pageIndex > 0 && (
-          <Button onClick={() => setPageIndex(pageIndex + numberBooksToShow)}>
-            {"Weitere Bücher..." +
-              Math.max(0, renderedBooks.length - pageIndex).toString()}
-          </Button>
-        )}
-      </Grid>
-    );
-  };
+  const SummaryRowContainer = ({ renderedBooks }: any) => (
+    <Stack spacing={2} sx={{ width: "100%" }}>
+      {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
+        <BookSummaryRow
+          key={b.id}
+          book={b}
+          handleCopyBook={() => handleCopyBook(b)}
+        />
+      ))}
+      {renderedBooks.length - pageIndex > 0 && (
+        <Button onClick={() => setPageIndex(pageIndex + numberBooksToShow)}>
+          {"Weitere Bücher..." +
+            Math.max(0, renderedBooks.length - pageIndex).toString()}
+        </Button>
+      )}
+    </Stack>
+  );
 
   return (
     <Layout>
