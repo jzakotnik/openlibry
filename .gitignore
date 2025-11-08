@@ -114,11 +114,10 @@ importscripts/openbiblio/input/usmarc_tag_dm.frm
 importscripts/openbiblio/input/usmarc_tag_dm.MYD
 importscripts/openbiblio/input/usmarc_tag_dm.MYI
 importscripts/openbiblio/coverDownloader/coverapp
-prisma/database/dev.db
 public/antolin/antolingesamt.csv
 cypress/cypress.env.json
 cypress.env.json
-prisma/database/dev.db-journal
+
 
 
 /backups
@@ -137,7 +136,4 @@ prisma/database/dev_backup.db
 prisma/database/dev-mammolshain.db
 prisma/database/dev-testing.db
 public/~$hnung-template.docx
-prisma/database/dev-base.db
-prisma/database/dev_sample.db
-prisma/database/sandbox.db
-prisma/database/dev-standard.db
+prisma/database/
