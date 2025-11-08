@@ -1,104 +1,152 @@
+import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
+import ControlPointDuplicateIcon from "@mui/icons-material/ControlPointDuplicate";
+
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import {
   Avatar,
+  Box,
   Chip,
-  Grid,
   IconButton,
   Paper,
+  Stack,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 
 import { BookType } from "@/entities/BookType";
-import palette from "@/styles/palette";
-import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
-import FileCopyIcon from "@mui/icons-material/FileCopy";
-import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 interface BookSummaryRowPropType {
   book: BookType;
   handleCopyBook: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-interface BookTopicsPropType {
-  topics: string;
-}
-
-interface BookAvatarIconPropType {
-  b: BookType;
-}
-
 export default function BookSummaryRow({
   book,
   handleCopyBook,
 }: BookSummaryRowPropType) {
-  const selectedBook = book;
+  const theme = useTheme();
   const router = useRouter();
 
-  const BookAvatarIcon = ({ b }: BookAvatarIconPropType) => {
-    return b.rentalStatus == "rented" ? (
-      <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
-        <CancelPresentationIcon />
-      </Avatar>
-    ) : (
-      <Avatar sx={{ bgcolor: palette.info.main }} aria-label="avatar">
-        <TaskAltIcon />
-      </Avatar>
-    );
-  };
+  const topics = useMemo(
+    () =>
+      (book.topics ?? "")
+        .split(";")
+        .map((t) => t.trim())
+        .filter(Boolean),
+    [book.topics]
+  );
 
-  const BookTopics = ({ topics }: BookTopicsPropType) => {
-    const topicsArray = topics.split(";");
-    return (
-      <div>
-        {topicsArray
-          .filter((t) => t.length > 0)
-          .map((t) => (
-            <Chip key={t} label={t} size="small" sx={{ mx: 0.2 }} />
-          ))}{" "}
-      </div>
-    );
-  };
-  const bookTopics = "topics" in book && book.topics != null ? book.topics : "";
+  const maxChips = 4;
+  const extraCount = Math.max(0, topics.length - maxChips);
+  const visibleTopics = topics.slice(0, maxChips);
+
+  const isRented = book.rentalStatus === "rented";
 
   return (
-    <Paper elevation={2} sx={{ mx: 2, my: 0.2, width: "100%" }}>
-      <Grid
-        container
+    <Paper
+      elevation={1}
+      sx={{
+        px: 2,
+        py: 1.25,
+        my: 1,
+        width: "100%",
+        borderRadius: 2,
+        transition: "box-shadow 120ms ease, transform 120ms ease",
+        "&:hover": {
+          boxShadow: 4,
+          transform: "translateY(-1px)",
+          cursor: "pointer",
+        },
+      }}
+      onClick={() => router.push(`/book/${book.id}`)}
+      role="button"
+      aria-label={`Open book ${book.title}`}
+    >
+      <Stack
         direction="row"
-        justifyContent="flex-start"
         alignItems="center"
-        key={book.id}
-        width={"100%"}
+        spacing={1.5}
+        useFlexGap
+        flexWrap="wrap"
       >
-        {" "}
-        <Grid>
-          <Avatar>
-            <BookAvatarIcon b={book} />
-          </Avatar>
-        </Grid>
-        <Grid>
-          <Tooltip title="Buch kopieren">
+        {/* Status avatar */}
+        <Avatar
+          sx={{
+            width: 36,
+            height: 36,
+            bgcolor: isRented ? "error.main" : "success.main",
+          }}
+        >
+          {isRented ? (
+            <CancelPresentationIcon fontSize="small" />
+          ) : (
+            <TaskAltIcon fontSize="small" />
+          )}
+        </Avatar>
+
+        {/* Title + author (grows) */}
+        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+          <Typography
+            variant="subtitle1"
+            fontWeight={600}
+            noWrap
+            title={book.title}
+          >
+            {book.title || "Untitled"}
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            noWrap
+            title={book.author || ""}
+          >
+            {book.author}
+          </Typography>
+        </Box>
+
+        {/* Topics */}
+        <Stack
+          direction="row"
+          spacing={0.5}
+          alignItems="center"
+          flexWrap="wrap"
+          sx={{
+            maxWidth: { xs: "100%", md: "60%" },
+            rowGap: 0.5,
+          }}
+        >
+          {visibleTopics.map((t) => (
+            <Chip key={t} label={t} size="small" />
+          ))}
+          {extraCount > 0 && (
+            <Chip
+              label={`+${extraCount}`}
+              size="small"
+              variant="outlined"
+              sx={{ fontWeight: 500 }}
+            />
+          )}
+        </Stack>
+
+        {/* Actions (don’t trigger row click) */}
+        <Box
+          onClick={(e) => e.stopPropagation()}
+          sx={{ ml: "auto", display: "flex", alignItems: "center" }}
+        >
+          <Tooltip title="Buch duplizieren">
             <IconButton
-              onClick={handleCopyBook}
               color="primary"
-              sx={{ p: "10px" }}
-              aria-label="new-copy-book"
+              aria-label="copy-book"
+              onClick={handleCopyBook}
             >
-              <FileCopyIcon />
+              <ControlPointDuplicateIcon />
             </IconButton>
-          </Tooltip>{" "}
-        </Grid>
-        <Grid sx={{ mx: 1 }}>
-          <Typography>{book.title}</Typography>
-        </Grid>
-        <Grid sx={{ mx: 1 }}>
-          <Typography variant="caption">{book.author} </Typography>
-        </Grid>
-        <Grid sx={{ mx: 1 }}>
-          <BookTopics topics={bookTopics} />
-        </Grid>
-      </Grid>{" "}
+          </Tooltip>
+        </Box>
+      </Stack>
     </Paper>
   );
 }
