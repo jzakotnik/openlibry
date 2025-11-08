@@ -170,7 +170,7 @@ docker run --rm -p 3000:3000 -v "$(pwd)/database:/app/database" -e AUTH_SECRET="
 - Zum Beenden den Prozess in der Konsole abrechen mit der Tastenkombination "Strg-c". 
 - Optional das Docker-Image löschen: `docker image rm openlibry `
 - Troubleshooting: Falls was nicht funktioniert, kann man die Servers logs im Docker container sehen oder die Frontend Logs in der Browser Developer Console
-- In dem existierenden Folder wird ein Datenbank file im Folder `./database` erzeugt, d.h. falls in der Sandbox Daten angelegt werden, bleiben diese hier erhalten.
+- In dem existierenden Folder wird ein Datenbank file im Folder `./database` erzeugt, d.h. falls in der Sandbox Daten angelegt werden, bleiben diese hier erhalten. Falls diese nicht erzeugt werden kann. Falls der Ordner nicht erzeugt werden kann, kann es an den Permissions vom Host liegen, in diesem Fall den Owner ändern: `docker run --rm --entrypoint sh jzakotnik/openlibry:latest -c 'id -u'` und den entsprechenden User als owner des Folder machen `sudo chown 1000:1000 database`
 
 
 **b) Dauerhafte Installation**
