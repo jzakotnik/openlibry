@@ -14,6 +14,7 @@ import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
 import { convertDateToDayString } from "@/utils/dateutils";
 import {
+  Autocomplete,
   Button,
   Card,
   CardActions,
@@ -50,9 +51,26 @@ type ReportCardProps = {
   subtitle: string;
   unit: string;
   link: string;
-  startLabel?: number;
+  totalNumber: number;
+
+};
+type LabelCardProps = {
+  title: string;
+  subtitle: string;
+  unit: string;
+  link: string;
+  startLabel: number;
   setStartLabel?: any;
   totalNumber: number;
+  startUserId: number;
+  setStartUserId: any;
+  endUserId: number;
+  setEndUserId?: any;
+  idUserFilter: number;
+  setIdUserFilter: any;
+  topicsFilter: any;
+  setTopicsFilter: any;
+  allTopics: any;
 };
 
 type LinkCardProps = {
@@ -88,7 +106,30 @@ const LabelCard = ({
   startLabel,
   totalNumber,
   setStartLabel,
-}: ReportCardProps) => {
+  idUserFilter,
+  setIdUserFilter,
+  startUserId,
+  setStartUserId,
+  endUserId,
+  setEndUserId,
+  topicsFilter,
+  setTopicsFilter,
+  allTopics,
+}: LabelCardProps) => {
+
+
+  const getUserUrl = (() => {
+    return "/?" + (startLabel > 0 ? ("start=0" +
+      "&end=" +
+      Math.floor(startLabel!)) : '') +
+      (startUserId > 0 || endUserId > 0 ? "&startId=" + startUserId + "&endId=" + endUserId : '')
+      +
+      (idUserFilter > 0 ? "&id=" + idUserFilter : "")
+      +
+      (topicsFilter ? "&schoolGrade=" + topicsFilter.topic : "")
+
+  });
+
   return (
     <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
       <CardContent>
@@ -114,6 +155,80 @@ const LabelCard = ({
           }}
           sx={{ mt: 5 }}
         />
+        <Grid
+          container
+          direction="row"
+          alignItems="left"
+          justifyContent="left"
+          spacing={3}
+        >
+          <Grid size={{ xs: 6, md: 6, lg: 5 }} sx={{}}>
+            <TextField
+              id="idUserRangeFrom"
+              label="Von ID"
+              key="idUserRangeFrom"
+              type="number"
+              value={startUserId}
+              onChange={(e: any) => {
+                setStartUserId(parseInt(e.target.value));
+              }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              sx={{ mt: 5 }}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, md: 6, lg: 5 }} sx={{}}>
+            <TextField
+              id="idUserRangeTo"
+              label="Bis ID"
+              key="idUserRangeTo"
+              type="number"
+              value={endUserId}
+              onChange={(e: any) => {
+                setEndUserId(parseInt(e.target.value));
+              }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              sx={{ mt: 5 }}
+            />
+
+          </Grid>
+        </Grid>
+        <TextField
+          id="outlined-user-number"
+          label="Etikett für UserID:"
+          key="user_report_id_input"
+          type="number"
+          value={idUserFilter}
+          onChange={(e: any) => {
+            setIdUserFilter(parseInt(e.target.value));
+          }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{ mt: 5 }}
+        />
+
+        <Autocomplete
+          freeSolo
+          id="schoolgrades"
+          getOptionLabel={(option: any) => `${option.topic} (${option.count})`} // Display topic and count concatenated
+          options={allTopics}
+          onChange={(event: any, newValue: string | null) => {
+            setTopicsFilter(newValue);
+          }}
+          value={topicsFilter} // Set the selected value based on the topic
+          isOptionEqualToValue={(option, value) => option === value} // Compare by topic
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Schlagwort Filter"
+              variant="standard"
+            />
+          )}
+        />
 
         <Typography variant="body2">{subtitle}</Typography>
       </CardContent>
@@ -121,10 +236,7 @@ const LabelCard = ({
         <Button
           size="small"
           onClick={() =>
-            window.open(
-              link + "/?start=0" + "&end=" + Math.floor(startLabel!),
-              "_blank"
-            )
+            window.open(link + getUserUrl(), "_blank")
           }
         >
           Erzeuge PDF
@@ -138,9 +250,13 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
   const [startLabel, setStartLabel] = useState(0);
   const [startId, setStartId] = useState(0);
   const [endId, setEndId] = useState(0);
-  const [startUserLabel, setStartUserLabel] = useState(10);
+  const [startUserLabel, setStartUserLabel] = useState(0);
+  const [startUserId, setStartUserId] = useState(0);
+  const [endUserId, setEndUserId] = useState(0);
   const [topicsFilter, setTopicsFilter] = useState(null);
   const [idFilter, setIdFilter] = useState(0);
+  const [idUserFilter, setIdUserFilter] = useState(0);
+  const [schoolgradeFilter, setSchoolgradeFilter] = useState(null);
 
   const ReportCard = ({
     title,
@@ -179,6 +295,12 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
 
   const tagSet = convertToTopicCount(allTags);
   //console.log("Tag Set", tagSet);
+
+  const allSchoolGrades = [] as any;
+  users.map((u: UserType) => {
+    u.schoolGrade ? allSchoolGrades.push(u.schoolGrade) : null;
+  })
+  const schoolGradeSet = convertToTopicCount(allSchoolGrades);
 
   function convertToTopicCount(
     arr: string[][]
@@ -292,6 +414,15 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               totalNumber={users.length}
               startLabel={startUserLabel}
               setStartLabel={setStartUserLabel}
+              startUserId={startUserId}
+              setStartUserId={setStartUserId}
+              endUserId={endUserId}
+              setEndUserId={setEndUserId}
+              idUserFilter={idUserFilter}
+              setIdUserFilter={setIdUserFilter}
+              topicsFilter={schoolgradeFilter}
+              setTopicsFilter={setSchoolgradeFilter}
+              allTopics={schoolGradeSet}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>

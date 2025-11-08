@@ -1,5 +1,5 @@
 import { UserType } from "@/entities/UserType";
-import { getAllUsers } from "@/entities/user";
+import { countUser, getAllUsersBySchoolGrade, getAllUsersOrderById, getUser, getUsersInIdRange, getUsersInIdRangeForSchoolgrade } from "@/entities/user";
 import { chunkArray } from "@/utils/chunkArray";
 import ReactPDF, {
   Canvas,
@@ -188,9 +188,9 @@ const generateLabels = async (users: Array<UserType>) => {
   return allcodes;
 };
 
-async function createUserPDF(books: Array<UserType>) {
+async function createUserPDF(user: Array<UserType>) {
   var pdfstream;
-  const barcodes = await generateLabels(books);
+  const barcodes = await generateLabels(user);
   console.log("split", labelsPerPage);
   const barcodesSections = chunkArray(barcodes, labelsPerPage);
 
@@ -225,22 +225,49 @@ export default async function handle(
     case "GET":
       console.log("Printing user labels via api");
       try {
-        const users = (await getAllUsers(prisma)) as any;
-        //console.log("Search Params", req.query, "end" in req.query);
-        const startUserID = "start" in req.query ? req.query.start : "0";
-        const endUserID = "end" in req.query ? req.query.end : users.length - 1;
+        // four different ways to call: 
+        // - start&end for last created user ordered by id
+        // - startId & endId for user in ID range
+        // - specific id
+        // - specific school grade (School grade also works in combination with start / end or startId/endId)
+        let printableUsers;
+        if ("start" in req.query || "schoolGrade" in req.query) {
+          const users = "schoolGrade" in req.query ? (await getAllUsersBySchoolGrade(prisma, req.query.schoolGrade as string)) as any : (await getAllUsersOrderById(prisma)) as any;
+          const startUserID = "start" in req.query ? req.query.start : "0";
+          const endUserID = "end" in req.query ? req.query.end : users.length - 1;
 
-        const printableUsers = users
-          .reverse()
-          .slice(
-            parseInt(startUserID as string),
-            parseInt(endUserID as string)
-          );
+          printableUsers = users
+            .reverse()
+            .slice(
+              parseInt(startUserID as string),
+              parseInt(endUserID as string)
+            );
 
-        console.log("Printing labels for users", startUserID, endUserID);
+          console.log("Printing labels for users", startUserID, endUserID, printableUsers);
+        } else if ("startId" in req.query) {
 
-        if (!users)
+          let startId = "startId" in req.query ? parseInt(req.query.startId as string) : 0
+          let endId = "endId" in req.query ? parseInt(req.query.endId as string) : await countUser(prisma);
+          if (startId > endId) {
+            console.log("Those fools got start and end mixed up again...");
+            const temp = endId;
+            endId = startId;
+            startId = temp;
+          }
+          printableUsers = "schoolGrade" in req.query ? await getUsersInIdRangeForSchoolgrade(prisma, startId, endId, req.query.schoolGrade as string) as any :
+            await getUsersInIdRange(prisma, startId, endId);
+        } else if ("id" in req.query) {
+          printableUsers = new Array<any>();
+          printableUsers.push(await getUser(prisma, parseInt(req.query.id as string)));
+        } else {
+          //default print all users
+          printableUsers = await getAllUsersOrderById(prisma);
+        }
+        if (!printableUsers)
           return res.status(400).json({ data: "ERROR: Users  not found" });
+
+        if (printableUsers.length == 0 || printableUsers[0] == null)
+          return res.status(400).json({ data: "ERROR: No users match search" });
 
         const labels = await createUserPDF(printableUsers);
         res.writeHead(200, {

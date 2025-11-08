@@ -283,12 +283,12 @@ export default function UserEditForm({
             );
           })}
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }} >
+        <Grid size={{ xs: 12, md: 3 }} >
           <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
             {editButtonLabel}
           </Button>
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 3 }}>
           {editable && (
             <Button
               onClick={() => {
@@ -301,7 +301,7 @@ export default function UserEditForm({
             </Button>
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 3 }}>
           {editable && (
             <HoldButton
               duration={deleteSafetySeconds * 1000}
@@ -309,7 +309,18 @@ export default function UserEditForm({
               buttonLabel="Löschen"
             />
           )}
-        </Grid>{" "}
+        </Grid>
+        <Grid size={{ xs: 12, md: 3 }}>
+          {editable && (
+            <Button
+              onClick={() => {
+                window.open("/api/report/userlabels?id=" + user.id, "_blank")
+              }}
+            >
+              Drucken
+            </Button>
+          )}
+        </Grid>
       </Grid>
     </Paper>
   );
