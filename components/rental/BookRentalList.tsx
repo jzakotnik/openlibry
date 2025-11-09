@@ -7,7 +7,6 @@ import UpdateIcon from "@mui/icons-material/Update";
 import {
   Box,
   FormControl,
-  Grid,
   IconButton,
   Input,
   InputAdornment,
@@ -39,6 +38,7 @@ interface BookPropsType {
   extensionDueDate: dayjs.Dayjs;
   sortBy: any;
 }
+
 type Sorting<T> = {
   field: keyof T | (keyof T)[];
   order: "asc" | "desc";
@@ -165,13 +165,8 @@ export default function BookRentalList({
         />
       </FormControl>
 
-      <Grid
-        container
-        direction="column"
-        alignItems="stretch"
-        justifyContent="flex-start"
-        sx={{ px: 0.5, my: 0.5 }}
-      >
+      {/* Use Stack instead of Grid for the vertical list to avoid spacing/overflow quirks */}
+      <Stack spacing={1} sx={{ px: 0.5, my: 0.5 }}>
         {renderedBooks.slice(0, 100).map((b: BookType) => {
           const allowExtendBookRent = extensionDueDate.isAfter(
             b.dueDate,
@@ -182,132 +177,146 @@ export default function BookRentalList({
             : "Maximale Ausleihzeit erreicht";
 
           return (
-            <div key={b.id}>
-              <Paper elevation={2} sx={{ my: 0.5 }}>
-                {/* HEADER ROW */}
-                <Box
+            <Paper
+              key={b.id}
+              elevation={2}
+              sx={{
+                my: 0.5,
+                // VERY IMPORTANT for iPad/Safari: do not clip trailing icons
+                overflow: "visible",
+              }}
+            >
+              {/* HEADER ROW */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 1,
+                  pt: 0.5,
+                  width: "100%",
+                  // Make this a strict single-line row with proper shrinking
+                  flexWrap: "nowrap",
+                  minWidth: 0,
+                }}
+              >
+                {/* LEFT: title — grows, can truncate */}
+                <Typography sx={{ flex: "1 1 auto", minWidth: 0 }} noWrap>
+                  {b.title}
+                </Typography>
+
+                {/* RIGHT: icon cluster — never shrink, never wrap, keep on top */}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={0.5}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    px: 1,
-                    pt: 0.5,
-                    width: "100%",
-                    minWidth: 0, // enables ellipsis on flex children
+                    flex: "0 0 auto",
+                    whiteSpace: "nowrap",
+                    position: "relative",
+                    zIndex: 1,
+                    overflow: "visible",
                   }}
                 >
-                  {/* LEFT: title — grows, no wrap */}
-                  <Typography sx={{ flex: 1, minWidth: 0 }} noWrap>
-                    {b.title}
-                  </Typography>
-
-                  {/* RIGHT: icon cluster — stays on one line */}
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={0.5}
-                    sx={{ flexShrink: 0, whiteSpace: "nowrap" }}
-                  >
-                    {b.rentalStatus !== "available" && (
-                      <Tooltip title={tooltip}>
-                        <span>
-                          <IconButton
-                            aria-label="extend"
-                            disabled={!allowExtendBookRent}
-                            onClick={() => {
-                              handleExtendBookButton(b.id!, b);
-                              markBookTouched(b.id!);
-                            }}
-                            size="small"
-                          >
-                            <ExtendedIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    )}
-
-                    {b.rentalStatus !== "available" && (
-                      <Tooltip title="Zurückgeben">
-                        <IconButton
-                          onClick={() => {
-                            handleReturnBookButton(b.id!, b.userId!);
-                            markBookTouched(b.id!);
-                          }}
-                          aria-label="zurückgeben"
-                          size="small"
-                        >
-                          <ReturnedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-
-                    {userExpanded && b.rentalStatus === "available" && (
-                      <Tooltip title="Ausleihen">
-                        <IconButton
-                          onClick={() => {
-                            handleRentBookButton(b.id!, userExpanded!);
-                            markBookTouched(b.id!);
-                          }}
-                          aria-label="ausleihen"
-                          size="small"
-                        >
-                          <PlaylistAddIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  </Stack>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    px: 1,
-                    pt: 0.5,
-                    width: "100%",
-                    minWidth: 0,
-                  }}
-                >
-                  <Typography sx={{ m: 0.5 }} variant="body2">
-                    Untertitel: {b.subtitle}
-                  </Typography>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    px: 1,
-                    pt: 0.5,
-                    width: "100%",
-                    minWidth: 0,
-                  }}
-                >
-                  <Typography sx={{ m: 0.5 }} variant="body2">
-                    Buch Nr. {b.id}
-                    {!(
-                      b.rentalStatus === "available" ||
-                      b.rentalStatus === "lost"
-                    ) && (
+                  {b.rentalStatus !== "available" && (
+                    <Tooltip title={tooltip}>
                       <span>
-                        {" "}
-                        - ausgeliehen bis{" "}
-                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
-                        {userNameForBook(users, b.userId!)}
+                        <IconButton
+                          aria-label="extend"
+                          disabled={!allowExtendBookRent}
+                          onClick={() => {
+                            handleExtendBookButton(b.id!, b);
+                            markBookTouched(b.id!);
+                          }}
+                          size="small"
+                        >
+                          <ExtendedIcon />
+                        </IconButton>
                       </span>
-                    )}
-                    {b.rentalStatus === "available" && (
-                      <span> - {b.author}</span>
-                    )}
-                  </Typography>
-                </Box>
-              </Paper>
-            </div>
+                    </Tooltip>
+                  )}
+
+                  {b.rentalStatus !== "available" && (
+                    <Tooltip title="Zurückgeben">
+                      <IconButton
+                        onClick={() => {
+                          handleReturnBookButton(b.id!, b.userId!);
+                          markBookTouched(b.id!);
+                        }}
+                        aria-label="zurückgeben"
+                        size="small"
+                      >
+                        <ReturnedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+
+                  {userExpanded && b.rentalStatus === "available" && (
+                    <Tooltip title="Ausleihen">
+                      <IconButton
+                        onClick={() => {
+                          handleRentBookButton(b.id!, userExpanded!);
+                          markBookTouched(b.id!);
+                        }}
+                        aria-label="ausleihen"
+                        size="small"
+                      >
+                        <PlaylistAddIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Stack>
+              </Box>
+
+              {/* SUBTITLE ROW */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 1,
+                  pt: 0.5,
+                  width: "100%",
+                  minWidth: 0,
+                }}
+              >
+                <Typography sx={{ m: 0.5 }} variant="body2" noWrap>
+                  Untertitel: {b.subtitle}
+                </Typography>
+              </Box>
+
+              {/* INFO ROW */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 1,
+                  pt: 0.5,
+                  width: "100%",
+                  minWidth: 0,
+                }}
+              >
+                <Typography sx={{ m: 0.5 }} variant="body2">
+                  Buch Nr. {b.id}
+                  {!(
+                    b.rentalStatus === "available" || b.rentalStatus === "lost"
+                  ) && (
+                    <span>
+                      {" "}
+                      - ausgeliehen bis {dayjs(b.dueDate).format(
+                        "DD.MM.YYYY"
+                      )}{" "}
+                      an {userNameForBook(users, b.userId!)}
+                    </span>
+                  )}
+                  {b.rentalStatus === "available" && <span> - {b.author}</span>}
+                </Typography>
+              </Box>
+            </Paper>
           );
         })}
-      </Grid>
+      </Stack>
     </div>
   );
 }
