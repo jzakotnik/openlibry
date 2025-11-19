@@ -1,0 +1,73 @@
+{
+  "title": [
+    "http://purl.org/dc/terms/title",
+    "http://xmlns.com/foaf/0.1/name",
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://schema.org/name",
+    "http://purl.org/dc/elements/1.1/title",
+    "https://d-nb.info/standards/elementset/gnd#preferredName"
+  ],
+  "author": [
+    "http://purl.org/dc/terms/creator",
+    "http://rdaregistry.info/Elements/u/P60327",
+    "http://id.loc.gov/vocabulary/relators/aut",
+    "http://xmlns.com/foaf/0.1/name",
+    "http://schema.org/author"
+  ],
+  "subtitle": [
+    "http://rdaregistry.info/Elements/u/P60493",
+    "http://purl.org/dc/terms/alternative",
+    "http://schema.org/alternateName"
+  ],
+  "topics": [
+    "http://purl.org/dc/terms/subject",
+    "http://purl.org/dc/elements/1.1/subject",
+    "http://www.w3.org/2004/02/skos/core#prefLabel"
+  ],
+  "summary": [
+    "http://purl.org/dc/terms/description",
+    "http://purl.org/dc/terms/tableOfContents",
+    "http://schema.org/description",
+    "http://rdaregistry.info/Elements/u/P60372"
+  ],
+  "isbn": [
+    "http://purl.org/ontology/bibo/isbn13",
+    "http://purl.org/ontology/bibo/isbn10",
+    "http://purl.org/ontology/bibo/gtin14",
+    "http://rdaregistry.info/Elements/u/P60059",
+    "http://schema.org/isbn"
+  ],
+  "editionDescription": ["http://purl.org/ontology/bibo/edition"],
+  "publisherName": [
+    "http://purl.org/dc/elements/1.1/publisher",
+    "http://purl.org/dc/terms/publisher",
+    "http://schema.org/publisher"
+  ],
+  "publisherLocation": [
+    "http://rdaregistry.info/Elements/u/P60163",
+    "http://rdaregistry.info/Elements/u/P60333"
+  ],
+  "publisherDate": [
+    "http://purl.org/dc/terms/issued",
+    "http://purl.org/dc/terms/date",
+    "http://schema.org/datePublished"
+  ],
+  "pages": [
+    "http://iflastandards.info/ns/isbd/elements/P1053",
+    "http://rdaregistry.info/Elements/u/P60150",
+    "http://schema.org/numberOfPages"
+  ],
+  "minAge": ["http://schema.org/typicalAgeRange"],
+  "price": [
+    "http://rdaregistry.info/Elements/u/P60521",
+    "http://schema.org/price"
+  ],
+  "externalLinks": [
+    "http://purl.org/dc/terms/isReferencedBy",
+    "http://www.w3.org/2007/05/powder-s#describedby",
+    "http://www.w3.org/2002/07/owl#sameAs"
+  ],
+  "additionalMaterial": ["http://purl.org/dc/terms/isFormatOf"],
+  "otherPhysicalAttributes": ["http://rdaregistry.info/Elements/u/P60539"],
+  "physicalSize": ["http://rdaregistry.info/Elements/u/P60101"]
+}
