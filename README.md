@@ -237,7 +237,7 @@ Nach der Installation:
 
 ## ⚙️ Konfiguration
 
-### Bücherlabel konfigurieren {#bookLabelConfig}
+### Bücherlabel konfigurieren
 
 Bücherlabels sind für den Druck auf A4-Labelpapier optimiert. Größe und Inhalt lassen sich in der `.env`-Datei anpassen.
 
@@ -319,7 +319,7 @@ In der Nutzerverwaltung verwalten Sie alle Leiher. Sie können mehrere Nutzer ma
 
 ### Bücherlabel drucken
 
-Nach der Konfiguration (siehe [Konfiguration](#bookLabelConfig)) drucken Sie Labels unter "REPORTS":
+Nach der Konfiguration (siehe [Konfiguration](#bücherlabel-konfigurieren)) drucken Sie Labels unter "REPORTS":
 
 **Auswahlmöglichkeiten**:
 
