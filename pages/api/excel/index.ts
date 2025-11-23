@@ -25,7 +25,7 @@ export default async function handle(
         const allUsers = await getAllUsers(prisma);
 
         const users = allUsers.map((u) => {
-          const newUser = { ...u } as any; //define a better type there with conversion of Date to string
+          const newUser = { ...u } as any;
           newUser.createdAt = convertDateToDayString(u.createdAt);
           newUser.updatedAt = convertDateToDayString(u.updatedAt);
           return newUser;
@@ -33,14 +33,13 @@ export default async function handle(
 
         const allBooks = await getAllBooks(prisma);
         const books = allBooks.map((b) => {
-          const newBook = { ...b } as any; //define a better type there with conversion of Date to string
+          const newBook = { ...b } as any;
           newBook.createdAt = convertDateToDayString(b.createdAt);
           newBook.updatedAt = convertDateToDayString(b.updatedAt);
           newBook.rentedDate = b.rentedDate
             ? convertDateToDayString(b.rentedDate)
             : "";
           newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-          //temp TODO
           return newBook;
         });
 
@@ -50,13 +49,13 @@ export default async function handle(
 
         booksheet.columns = xlsbookcolumns;
 
-        books.map((b: BookType) => {
+        books.forEach((b: BookType) => {
           booksheet.addRow(b);
         });
 
         usersheet.columns = xlsusercolumns;
 
-        users.map((u: UserType) => {
+        users.forEach((u: UserType) => {
           usersheet.addRow(u);
         });
 
@@ -77,8 +76,40 @@ export default async function handle(
     case "POST":
       const importLog = ["Starte den Transfer in die Datenbank"];
       try {
-        const bookData = req.body.bookData.slice(1); //remove top header row of excel
-        const userData = req.body.userData.slice(1);
+        // Extract import flags from request body
+        const importBooks = req.body.importBooks !== false; // default true
+        const importUsers = req.body.importUsers !== false; // default true
+        const dropBeforeImport = req.body.dropBeforeImport === true; // default false
+
+        const bookData = req.body.bookData?.slice(1) || []; // remove top header row
+        const userData = req.body.userData?.slice(1) || [];
+
+        // Validation
+        if (!importBooks && !importUsers) {
+          return res.status(400).json({
+            data: "ERROR: Mindestens eine Import-Option (Bücher oder User) muss aktiviert sein",
+            logs: importLog,
+          });
+        }
+
+        if (importBooks && bookData.length === 0) {
+          return res.status(400).json({
+            data: "ERROR: Bücher-Import aktiviert, aber keine Bücher-Daten vorhanden",
+            logs: importLog,
+          });
+        }
+
+        if (importUsers && userData.length === 0) {
+          return res.status(400).json({
+            data: "ERROR: User-Import aktiviert, aber keine User-Daten vorhanden",
+            logs: importLog,
+          });
+        }
+
+        importLog.push(
+          `Import-Einstellungen: Bücher=${importBooks}, User=${importUsers}, Vorher löschen=${dropBeforeImport}`
+        );
+
         importLog.push(
           "Header Zeilen aus Excel entfernt, damit bleiben " +
             bookData.length +
@@ -94,72 +125,109 @@ export default async function handle(
         );
         console.log("Example: ", bookData.slice(0, 5), userData.slice(0, 5));
 
-        //create a big transaction to import all users and books (or do nothing if something fails)
-        const transaction = [] as any;
-        var userImportedCount = 0;
-        //transaction.push(prisma.user.deleteMany({})); //start with empty table
-        userData.map((u: any) => {
-          transaction.push(
-            prisma.user.create({
-              data: {
-                id: u["Nummer"], //TODO refactoring to re-use the mapping from utils xls mapping
-                lastName: u["Nachname"],
-                firstName: u["Vorname"],
-                schoolGrade: u["Klasse"],
-                schoolTeacherName: u["Lehrkraft"],
-                active: u["Freigeschaltet"],
-              },
-            })
+        // Create transaction array
+        const transaction = [];
+        let userImportedCount = 0;
+        let bookImportedCount = 0;
+
+        // Add delete operations if dropBeforeImport is true
+        if (dropBeforeImport) {
+          // Delete books first to avoid foreign key constraints
+          if (importBooks) {
+            transaction.push(prisma.book.deleteMany({}));
+            importLog.push("Alle Bücher werden vor dem Import gelöscht");
+          }
+          if (importUsers) {
+            transaction.push(prisma.user.deleteMany({}));
+            importLog.push("Alle User werden vor dem Import gelöscht");
+          }
+        }
+
+        // Import users first to satisfy foreign key constraints
+        if (importUsers && userData.length > 0) {
+          userData.forEach((u: any) => {
+            transaction.push(
+              prisma.user.create({
+                data: {
+                  id: u["Nummer"],
+                  lastName: u["Nachname"],
+                  firstName: u["Vorname"],
+                  schoolGrade: u["Klasse"],
+                  schoolTeacherName: u["Lehrkraft"],
+                  active: u["Freigeschaltet"],
+                },
+              })
+            );
+            userImportedCount++;
+          });
+          importLog.push(`${userImportedCount} User werden importiert`);
+        } else if (!importUsers) {
+          importLog.push("User-Import übersprungen (Flag nicht gesetzt)");
+        }
+
+        // Import books after users
+        if (importBooks && bookData.length > 0) {
+          bookData.forEach((b: any) => {
+            transaction.push(
+              prisma.book.create({
+                data: {
+                  id: b["Mediennummer"],
+                  rentalStatus: b["Ausleihstatus"],
+                  rentedDate: convertDayToISOString(b["Ausgeliehen am"]),
+                  dueDate: convertDayToISOString(b["Rückgabe am"]),
+                  renewalCount: b["Anzahl Verlängerungen"],
+                  title: b["Titel"],
+                  subtitle: b["Untertitel"],
+                  author: b["Autor"],
+                  topics: b["Schlagworte"] || "",
+                  imageLink: b["Bild"],
+                  isbn: b["ISBN"]?.toString() || "",
+                  editionDescription: b["Edition"],
+                  publisherLocation: b["Verlagsort"],
+                  pages: parseInt(b["Seiten"]) || 0,
+                  summary: b["Zusammenfassung"],
+                  minPlayers: b["Min Spieler"],
+                  publisherName: b["Verlag"],
+                  otherPhysicalAttributes: b["Merkmale"],
+                  supplierComment: b["Beschaffung"],
+                  publisherDate: b["Publikationsdatum"],
+                  physicalSize: b["Abmessungen"],
+                  minAge: b["Min Alter"],
+                  maxAge: b["Max Alter"],
+                  additionalMaterial: b["Material"],
+                  price: b["Preis"],
+                  externalLinks: b["Links"],
+                  userId: b["Ausgeliehen von"],
+                },
+              })
+            );
+            bookImportedCount++;
+          });
+          importLog.push(`${bookImportedCount} Bücher werden importiert`);
+        } else if (!importBooks) {
+          importLog.push("Bücher-Import übersprungen (Flag nicht gesetzt)");
+        }
+
+        // Execute transaction if there are operations to perform
+        if (transaction.length > 0) {
+          importLog.push(
+            "Transaction für alle Daten erzeugt, importiere jetzt"
           );
-          userImportedCount++;
-        });
-        var bookImportedCount = 0;
-        bookData.map((b: any) => {
-          transaction.push(
-            prisma.book.create({
-              //TODO this needs a more configurable mapping
-              data: {
-                id: b["Mediennummer"],
-                rentalStatus: b["Ausleihstatus"],
-                rentedDate: convertDayToISOString(b["Ausgeliehen am"]),
-                dueDate: convertDayToISOString(b["Rückgabe am"]),
-                renewalCount: b["Anzahl Verlängerungen"],
-                title: b["Titel"],
-                subtitle: b["Untertitel"],
-                author: b["Autor"],
-                topics: b["Schlagworte"] ? b["Schlagworte"] : "",
-                imageLink: b["Bild"],
-                isbn: b["ISBN"].toString(),
-                editionDescription: b["Edition"],
-                publisherLocation: b["Verlagsort"],
-                pages: parseInt(b["Seiten"]),
-                summary: b["Zusammenfassung"],
-                minPlayers: b["Min Spieler"],
-                publisherName: b["Verlag"],
-                otherPhysicalAttributes: b["Merkmale"],
-                supplierComment: b["Beschaffung"],
-                publisherDate: b["Publikationsdatum"],
-                physicalSize: b["Abmessungen"],
-                minAge: b["Min Alter"],
-                maxAge: b["Max Alter"],
-                additionalMaterial: b["Material"],
-                price: b["Preis"],
-                externalLinks: b["Links"],
-                userId: b["Ausgeliehen von"],
-              },
-            })
-          );
-          bookImportedCount++;
-        });
-        importLog.push("Transaction für alle Daten erzeugt, importiere jetzt");
-        await prisma.$transaction(transaction);
-        importLog.push("Daten importiert");
+          await prisma.$transaction(transaction);
+          importLog.push("Daten erfolgreich importiert");
+        } else {
+          importLog.push("Keine Daten zum Importieren");
+        }
 
         console.log("Importing " + userImportedCount + " users");
         console.log("Importing " + bookImportedCount + " books");
 
         res.status(200).json({
           result: "Imported dataset",
+          imported: {
+            users: userImportedCount,
+            books: bookImportedCount,
+          },
           logs: importLog,
         });
       } catch (error) {
