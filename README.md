@@ -10,30 +10,30 @@ OpenLibry entstand aus dem Bedarf einer Grundschule, in der die veraltete OpenBi
 
 ## 📋 Navigation - Was möchten Sie tun?
 
-### 🔍 [1. Mehr über die Software erfahren](#software-info)
+### 🔍 [1. Mehr über die Software erfahren](#-software-info)
 Entdecken Sie die Features, sehen Sie Screenshots und verstehen Sie, wie OpenLibry funktioniert.
 
-### 💻 [2. OpenLibry installieren](#installation)
+### 💻 [2. OpenLibry installieren](#-installation)
 Schritt-für-Schritt Anleitungen für verschiedene Installationsmethoden (Bare Metal, Docker, nginx).
 
-### ⚙️ [3. Software konfigurieren](#konfiguration)
+### ⚙️ [3. Software konfigurieren](#%EF%B8%8F-konfiguration)
 Passen Sie OpenLibry an Ihre Bedürfnisse an - von Ausleihzeiten bis zu Bücherlabels.
 
-### 📖 [4. Die Software benutzen](#benutzung)
+### 📖 [4. Die Software benutzen](#-benutzung)
 Lernen Sie die tägliche Arbeit mit OpenLibry kennen - Ausleihe, Verwaltung, Reports.
 
-### 🔄 [5. Daten importieren/exportieren](#import-export)
+### 🔄 [5. Daten importieren/exportieren](#-import--export)
 Importieren Sie bestehende Daten aus anderen Systemen oder erstellen Sie Backups.
 
-### 🔧 [6. API & Entwicklung](#api-entwicklung)
+### 🔧 [6. API & Entwicklung](#-api--entwicklung)
 Technische Informationen für Entwickler und API-Nutzung.
 
-### 📧 [7. Kontakt & Unterstützung](#kontakt)
+### 📧 [7. Kontakt & Unterstützung](#-kontakt--unterstützung)
 Hilfe erhalten, mitmachen oder das Projekt unterstützen.
 
 ---
 
-## 🔍 Software-Info {#software-info}
+## 🔍 Software-Info
 
 ### Hauptfeatures
 
@@ -71,7 +71,7 @@ OpenLibry bietet eine durchdachte Kombination aus Funktionalität und Benutzerfr
 
 ---
 
-## 💻 Installation {#installation}
+## 💻 Installation
 
 ### Vorbereitung
 
@@ -235,7 +235,7 @@ Nach der Installation:
 
 ---
 
-## ⚙️ Konfiguration {#konfiguration}
+## ⚙️ Konfiguration
 
 ### Bücherlabel konfigurieren {#bookLabelConfig}
 
@@ -295,7 +295,7 @@ OpenLibry durchsucht die Datenbank nach Übereinstimmungen bei Autor und Titel.
 
 ---
 
-## 📖 Benutzung {#benutzung}
+## 📖 Benutzung
 
 ### Ausleihe
 
@@ -340,7 +340,7 @@ In der Bücherverwaltung können Sie auch direkt ein einzelnes Label für ein Bu
 
 ---
 
-## 🔄 Import & Export {#import-export}
+## 🔄 Import & Export
 
 ### Excel Export
 
@@ -376,7 +376,7 @@ Wichtige Felder: id (Mediennummer), rentalStatus, rentedDate, dueDate, renewalCo
 
 ---
 
-## 🔧 API & Entwicklung {#api-entwicklung}
+## 🔧 API & Entwicklung
 
 ### REST-API
 
@@ -393,7 +393,7 @@ Weitere Beispiele finden Sie im [docs-Ordner](./doc/sampleAPIRequests/).
 
 ---
 
-## 📧 Kontakt & Unterstützung {#kontakt}
+## 📧 Kontakt & Unterstützung
 
 **Mitmachen**: Möchten Sie die Software nutzen, zur Entwicklung beitragen oder Hosting-Unterstützung erhalten? Kontaktieren Sie uns unter [info@openlibry.de](mailto:info@openlibry.de).
 
