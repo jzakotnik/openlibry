@@ -1,7 +1,10 @@
 import Layout from "@/components/layout/Layout";
 import {
   Box,
+  Checkbox,
   Divider,
+  FormControlLabel,
+  FormGroup,
   Paper,
   Table,
   TableBody,
@@ -27,30 +30,46 @@ const theme = createTheme({
 export default function XLSImport() {
   const [bookData, setBookData] = useState<any[]>([]);
   const [excelLoaded, setExcelLoaded] = useState(false);
-
   const [userData, setUserData] = useState<any[]>([]);
   const [importLog, setImportLog] = useState<string[]>(["Los gehts..."]);
 
+  // Import option flags
+  const [importBooks, setImportBooks] = useState(true);
+  const [importUsers, setImportUsers] = useState(true);
+  const [dropBeforeImport, setDropBeforeImport] = useState(false);
+
   const DenseTable = ({ data }: any) => {
     console.log("Rendering table", data);
+
+    if (!data || data.length === 0) {
+      return <Typography>Keine Daten verfügbar</Typography>;
+    }
+
+    // Extract headers from first row
+    const headers = data[0];
+
     return (
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
           <TableHead>
             <TableRow>
-              {data[0].map((d: any, i: number) => {
-                return <TableCell key={i}>{d}</TableCell>;
+              {headers.map((header: any, i: number) => {
+                // Skip the first undefined/null column that comes from Excel
+                if (i === 0 && !header) return null;
+                return <TableCell key={i}>{header}</TableCell>;
               })}
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.slice(1, 10).map((row: any) => (
+            {data.slice(1, 10).map((row: any, rowIndex: number) => (
               <TableRow
-                key={row.name}
+                key={rowIndex}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
-                {Object.keys(row).map((d: any, i: number) => {
-                  return <TableCell key={i}>{row[d]}</TableCell>;
+                {headers.map((header: any, i: number) => {
+                  // Skip the first undefined/null column
+                  if (i === 0 && !header) return null;
+                  return <TableCell key={i}>{row[header]}</TableCell>;
                 })}
               </TableRow>
             ))}
@@ -65,11 +84,9 @@ export default function XLSImport() {
     worksheet.eachRow(
       { includeEmpty: false },
       (row: any, rowNumber: number) => {
-        //console.log("Reading row", row);
         const rowValues = row.values as ExcelJS.CellValue[];
         if (rowNumber === 1) {
-          // Assuming the first row contains headers
-          json.push(rowValues); // Capturing headers
+          json.push(rowValues);
         } else {
           const rowData: any = {};
           rowValues.forEach((value, index) => {
@@ -134,8 +151,20 @@ export default function XLSImport() {
   };
 
   const handleImportButton = async () => {
-    console.log("Importing data into the db");
-    const payload = { bookData: bookData, userData: userData };
+    console.log("Importing data into the db with options:", {
+      importBooks,
+      importUsers,
+      dropBeforeImport,
+    });
+
+    const payload = {
+      bookData: bookData,
+      userData: userData,
+      importBooks: importBooks,
+      importUsers: importUsers,
+      dropBeforeImport: dropBeforeImport,
+    };
+
     console.log(
       "Using endpoint for XLS import",
       process.env.NEXT_PUBLIC_API_URL + "/api/excel"
@@ -152,7 +181,7 @@ export default function XLSImport() {
       const result = await response.json();
       console.log("API Call to database done, response is", result);
 
-      //take the log content of the api call and add it to the log
+      // Take the log content of the api call and add it to the log
       const logs = result.logs as string[];
       setImportLog(importLog.concat(logs));
     } catch (e: any) {
@@ -162,6 +191,7 @@ export default function XLSImport() {
         payload,
         endpoint
       );
+      setImportLog([...importLog, "Fehler beim API-Aufruf: " + e.toString()]);
     }
   };
 
@@ -193,6 +223,51 @@ export default function XLSImport() {
               </Button>
             )}
           </Box>
+
+          {/* Import options */}
+          {excelLoaded && (
+            <Paper sx={{ p: 2, width: "100%" }}>
+              <Typography variant="h6" gutterBottom>
+                Import-Optionen
+              </Typography>
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={importBooks}
+                      onChange={(e) => setImportBooks(e.target.checked)}
+                    />
+                  }
+                  label={`Bücher importieren (${bookData.length - 1} gefunden)`}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={importUsers}
+                      onChange={(e) => setImportUsers(e.target.checked)}
+                    />
+                  }
+                  label={`User importieren (${userData.length - 1} gefunden)`}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={dropBeforeImport}
+                      onChange={(e) => setDropBeforeImport(e.target.checked)}
+                      color="warning"
+                    />
+                  }
+                  label="Alle vorhandenen Daten vor Import löschen (VORSICHT!)"
+                />
+              </FormGroup>
+              {dropBeforeImport && (
+                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                  ⚠️ Warnung: Alle ausgewählten Daten in der Datenbank werden
+                  gelöscht!
+                </Typography>
+              )}
+            </Paper>
+          )}
 
           {/* Log panel */}
           <Box sx={{ width: "100%" }}>
