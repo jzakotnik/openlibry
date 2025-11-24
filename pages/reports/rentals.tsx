@@ -1,6 +1,9 @@
 import Layout from "@/components/layout/Layout";
 import { getRentedBooksWithUsers } from "@/entities/book";
+import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
+import { convertDateToDayString } from "@/utils/dateutils";
+import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -9,78 +12,108 @@ import { deDE } from "@mui/x-data-grid/locales";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
-import { convertDateToDayString } from "@/utils/dateutils";
-import { Typography } from "@mui/material";
-import type {} from "@mui/x-data-grid/themeAugmentation";
-
-import { prisma } from "@/entities/db";
-
 const theme = createTheme(
   {
     palette: {
       primary: { main: "#1976d2" },
     },
   },
-  deDE, // x-data-grid translations
-  coreDeDE // core translations
+  deDE,
+  coreDeDE
 );
 
+interface RentalData {
+  id: number | string;
+  title: string;
+  lastName?: string;
+  firstName?: string;
+  remainingDays: number;
+  dueDate: string;
+  renewalCount: number;
+  userid?: number | string;
+  schoolGrade?: string;
+  rentalStatus?: string;
+}
+
 interface RentalsPropsType {
-  rentals: any;
+  rentals: RentalData[];
+  error?: string;
 }
 
-interface ReportKeyType {
-  translations: string;
+const COLUMN_WIDTHS: Record<string, number> = {
+  ID: 20,
+  title: 250,
+  lastName: 180,
+};
+
+const DEFAULT_COLUMN_WIDTH = 100;
+
+function getWidth(columnName: string = ""): number {
+  return COLUMN_WIDTHS[columnName] ?? DEFAULT_COLUMN_WIDTH;
 }
 
-export default function Rentals({ rentals }: RentalsPropsType) {
-  const [reportData, setReportData] = useState({ columns: [], rows: [] });
+export default function Rentals({ rentals, error }: RentalsPropsType) {
+  const [reportData, setReportData] = useState<{
+    columns: any[];
+    rows: RentalData[];
+  }>({ columns: [], rows: [] });
   const [reportDataAvailable, setReportDataAvailable] = useState(false);
 
-  //TODO find a better way for dynamic layouts
-  function getWidth(columnName: string = "") {
-    switch (columnName) {
-      case "ID":
-        return 40;
-        break;
-      case "title":
-        return 350;
-        break;
-      case "lastName":
-        return 180;
-        break;
-      default:
-        return 100;
-    }
-  }
-
   useEffect(() => {
-    setReportDataAvailable(rentals.length > 0);
-    if (rentals && rentals.length > 0) {
-      const colTitles = rentals[0];
-      const fields = Object.keys(colTitles) as any;
-      const columns = fields.map((f: string) => {
-        const fieldTranslation = (translations as any)["rentals"][f];
-        const col = {
-          field: f,
-          headerName: fieldTranslation,
-          width: getWidth(f),
-        };
-        return col;
-      });
-      const rows = rentals.map((r: any) => {
-        const rowCopy = {
-          id: r.id,
-          ...r,
-          rentalStatus: (translations.rentalStatus as any)[r.rentalStatus],
-        };
-        //console.log("Row Copy", rowCopy);
-        return rowCopy;
-      });
-      //console.log("columns", columns);
-      setReportData({ columns: columns, rows: rows });
+    // Handle error state
+    if (error || !rentals) {
+      setReportDataAvailable(false);
+      return;
     }
-  }, [rentals]);
+
+    setReportDataAvailable(rentals.length > 0);
+
+    if (rentals.length > 0) {
+      try {
+        const colTitles = rentals[0];
+        const fields = Object.keys(colTitles);
+
+        const columns = fields.map((f: string) => {
+          // Safe translation lookup with fallback
+          const rentalTranslations = translations?.rentals;
+          const fieldTranslation =
+            rentalTranslations && typeof rentalTranslations === "object"
+              ? (rentalTranslations as Record<string, string>)[f] || f
+              : f;
+
+          return {
+            field: f,
+            headerName: fieldTranslation,
+            width: getWidth(f),
+          };
+        });
+
+        const rows = rentals.map((r: RentalData) => {
+          // Safe rental status translation
+          const statusTranslations = translations?.rentalStatus;
+          const translatedStatus =
+            statusTranslations &&
+            typeof statusTranslations === "object" &&
+            r.rentalStatus
+              ? (statusTranslations as Record<string, string>)[
+                  r.rentalStatus
+                ] || r.rentalStatus
+              : r.rentalStatus;
+
+          return {
+            ...r,
+            id: r.id,
+            rentalStatus: translatedStatus,
+          };
+        });
+
+        setReportData({ columns, rows });
+      } catch (err) {
+        console.error("Error processing rental data:", err);
+        setReportDataAvailable(false);
+      }
+    }
+  }, [rentals, error]);
 
   return (
     <Layout>
@@ -90,15 +123,25 @@ export default function Rentals({ rentals }: RentalsPropsType) {
             backgroundColor: "#CFCFCF",
             width: "100%",
             mt: 5,
+            p: 2,
           }}
         >
-          {" "}
-          {reportDataAvailable ? (
+          {error ? (
+            <Typography color="error">
+              Fehler beim Laden der Daten: {error}
+            </Typography>
+          ) : reportDataAvailable ? (
             <DataGrid
               autoHeight
-              showToolbar
               columns={reportData.columns}
               rows={reportData.rows}
+              initialState={{
+                pagination: {
+                  paginationModel: { pageSize: 25 },
+                },
+              }}
+              pageSizeOptions={[25, 50, 80]}
+              //autoPageSize // Adjust page size based on container height
             />
           ) : (
             <Typography>Keine Daten verfügbar</Typography>
@@ -110,27 +153,50 @@ export default function Rentals({ rentals }: RentalsPropsType) {
 }
 
 export async function getServerSideProps() {
-  const allRentals = await getRentedBooksWithUsers(prisma);
-  const rentals = allRentals.map((r) => {
-    //calculate remaining days for the rental
-    const due = dayjs(r.dueDate);
-    const today = dayjs();
-    const diff = today.diff(due, "days");
+  try {
+    const allRentals = await getRentedBooksWithUsers(prisma);
+
+    if (!allRentals || !Array.isArray(allRentals)) {
+      return {
+        props: {
+          rentals: [],
+          error: "Ungültige Daten vom Server erhalten",
+        },
+      };
+    }
+
+    const rentals = allRentals.map((r) => {
+      // Safe date handling
+      const due = r.dueDate ? dayjs(r.dueDate) : dayjs();
+      const today = dayjs();
+      const diff = due.diff(today, "days"); // Fixed: was today.diff(due)
+
+      return {
+        id: r.id,
+        title: r.title || "Unbekannter Titel",
+        lastName: r.user?.lastName || "Unbekannt",
+        firstName: r.user?.firstName || "Unbekannt",
+        remainingDays: diff,
+        dueDate: convertDateToDayString(due.toDate()),
+        renewalCount: r.renewalCount ?? 0,
+        userid: r.user?.id,
+        schoolGrade: r.user?.schoolGrade || "0",
+      };
+    });
 
     return {
-      id: r.id,
-      title: r.title,
-      lastName: r.user?.lastName,
-      firstName: r.user?.firstName,
-      remainingDays: diff,
-      dueDate: convertDateToDayString(due.toDate()),
-      renewalCount: r.renewalCount,
-      userid: r.user?.id,
+      props: {
+        rentals: JSON.parse(JSON.stringify(rentals)), // Ensure serialization
+      },
     };
-  });
+  } catch (error) {
+    console.error("Error fetching rentals:", error);
 
-  //console.log(allRentals);
-
-  // Pass data to the page via props
-  return { props: { rentals } };
+    return {
+      props: {
+        rentals: [],
+        error: "Fehler beim Laden der Ausleihdaten",
+      },
+    };
+  }
 }
