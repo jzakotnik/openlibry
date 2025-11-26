@@ -81,11 +81,6 @@ Kopieren Sie zunächst das Beispiel-Environment-File und konfigurieren Sie es:
 cp .env_example .env
 ```
 
-Passen Sie den Servernamen in der `.env`-Datei an, zum Beispiel:
-```
-NEXT_PUBLIC_API_URL="http://localhost:3000"
-```
-
 **Wichtig**: Setzen Sie `AUTH_ENABLED` zunächst auf `false`, um sich beim ersten Login ohne Authentifizierung anmelden zu können. Nach der Registrierung des ersten Users über `https://<domain>/auth/register` setzen Sie den Wert auf `true`.
 
 ### Option 1: Bare Metal Installation (z.B. Raspberry Pi)

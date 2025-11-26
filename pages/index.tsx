@@ -85,7 +85,7 @@ export default function Home({ showBackupButton }: HomeProps) {
 
 export async function getServerSideProps() {
   const showBackupButton =
-    parseInt(process.env.NEXT_PUBLIC_BACKUP_BUTTON_SWITCH || "1", 10) === 1;
+    parseInt(process.env.BACKUP_BUTTON_SWITCH || "1", 10) === 1;
 
   return {
     props: {
