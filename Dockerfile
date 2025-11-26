@@ -11,6 +11,17 @@ RUN npm ci --omit=dev
 
 # ---- Builder (needs dev deps, but skip Cypress binary) ----
 FROM base AS builder
+
+# Accept build arguments for NEXT_PUBLIC_* variables
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_NEXTAUTH_URL
+ARG NEXT_PUBLIC_BACKUP_BUTTON_SWITCH
+
+# Set them as environment variables so Next.js can embed them at build time
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_NEXTAUTH_URL=$NEXT_PUBLIC_NEXTAUTH_URL
+ENV NEXT_PUBLIC_BACKUP_BUTTON_SWITCH=$NEXT_PUBLIC_BACKUP_BUTTON_SWITCH
+
 ENV CYPRESS_INSTALL_BINARY=0
 COPY package*.json ./
 RUN npm ci
