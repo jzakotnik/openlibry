@@ -9,7 +9,11 @@ import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home() {
+interface HomeProps {
+  showBackupButton: boolean;
+}
+
+export default function Home({ showBackupButton }: HomeProps) {
   const router = useRouter();
   const onClick = (e: any, slug: string) => {
     console.log("Selected", slug);
@@ -18,7 +22,7 @@ export default function Home() {
 
   return (
     <div style={{ backgroundImage: `url(/splashbanner.jpg)` }}>
-      <Layout>
+      <Layout showBackupButton={showBackupButton}>
         <Grid
           container
           alignItems="center"
@@ -49,7 +53,6 @@ export default function Home() {
               sx={{ px: 10 }}
             >
               {publicNavItems.map((p) => {
-                //console.log("index_" + p.slug.substring(1) + "_button");
                 return (
                   <Grid
                     key={p.slug}
@@ -72,10 +75,21 @@ export default function Home() {
                   </Grid>
                 );
               })}
-            </Grid>{" "}
+            </Grid>
           </Grid>
         </Grid>
-      </Layout>{" "}
+      </Layout>
     </div>
   );
+}
+
+export async function getServerSideProps() {
+  const showBackupButton =
+    parseInt(process.env.NEXT_PUBLIC_BACKUP_BUTTON_SWITCH || "1", 10) === 1;
+
+  return {
+    props: {
+      showBackupButton,
+    },
+  };
 }
