@@ -4,6 +4,7 @@ declare namespace Cypress {
   interface Chainable<Subject = any> {
     login(): Chainable<any>;
     resetDatabase(): Chainable<any>;
+    deleteBookCoverImage(bookId: string): Chainable<any>;
   }
 }
 
@@ -18,8 +19,16 @@ Cypress.Commands.add("login", () => {
 });
 
 Cypress.Commands.add("resetDatabase", () => {
-  // Copy the automated-test-db.db to dev.db (overwrites dev.db)
+  // Copy the automated-test-db-init.db to automated-test-db.db (overwrites it)
   cy.exec(
     "cp prisma/database/automated-test-db-init.db prisma/database/automated-test-db.db"
+  );
+});
+
+Cypress.Commands.add("deleteBookCoverImage", (bookId: string) => {
+  // Delete the book cover image file if it exists (try multiple extensions)
+  cy.exec(
+    `rm -f public/coverimages/${bookId}.jpg public/coverimages/${bookId}.jpeg public/coverimages/${bookId}.png || true`,
+    { failOnNonZeroExit: false }
   );
 });

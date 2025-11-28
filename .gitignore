@@ -142,3 +142,4 @@ prisma/database/
 cypress/screenshots
 
 .env.test
+cypress/videos/
