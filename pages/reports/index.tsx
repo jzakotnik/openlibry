@@ -94,14 +94,20 @@ const LinkCard = ({
       data-cy={dataCy}
     >
       <CardContent>
-        <Typography variant="h5" component="div">
+        <Typography variant="h5" component="div" data-cy={`${dataCy}-title`}>
           {title}
         </Typography>
 
-        <Typography variant="body2">{subtitle}</Typography>
+        <Typography variant="body2" data-cy={`${dataCy}-subtitle`}>
+          {subtitle}
+        </Typography>
       </CardContent>
       <CardActions>
-        <Button size="small" onClick={() => router.push(link)}>
+        <Button
+          size="small"
+          onClick={() => router.push(link)}
+          data-cy={`${dataCy}-button`}
+        >
           {buttonTitle}
         </Button>
       </CardActions>
@@ -145,7 +151,7 @@ const LabelCard = ({
       data-cy="user-labels-card"
     >
       <CardContent>
-        <Typography variant="h5" component="div">
+        <Typography variant="h5" component="div" data-cy="user-labels-title">
           {title}
         </Typography>
 
@@ -246,7 +252,9 @@ const LabelCard = ({
           )}
         />
 
-        <Typography variant="body2">{subtitle}</Typography>
+        <Typography variant="body2" data-cy="user-labels-subtitle">
+          {subtitle}
+        </Typography>
       </CardContent>
       <CardActions>
         <Button
@@ -280,19 +288,36 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
     link,
     totalNumber,
   }: ReportCardProps) => {
+    // Generate data-cy attribute based on unit
+    const dataCy = `report-card-${unit}`;
+
     return (
-      <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
+      <Card
+        variant="outlined"
+        sx={{ minWidth: 275, minHeight: cardHeight }}
+        data-cy={dataCy}
+      >
         <CardContent>
-          <Typography variant="h5" component="div">
+          <Typography variant="h5" component="div" data-cy={`${dataCy}-title`}>
             {title}
           </Typography>
-          <Typography sx={{ mb: 1.5 }} color="text.secondary">
+          <Typography
+            sx={{ mb: 1.5 }}
+            color="text.secondary"
+            data-cy={`${dataCy}-count`}
+          >
             {totalNumber}
           </Typography>
-          <Typography variant="body2">{subtitle}</Typography>
+          <Typography variant="body2" data-cy={`${dataCy}-subtitle`}>
+            {subtitle}
+          </Typography>
         </CardContent>
         <CardActions>
-          <Button size="small" onClick={() => router.push(link)}>
+          <Button
+            size="small"
+            onClick={() => router.push(link)}
+            data-cy={`${dataCy}-button`}
+          >
             Erzeuge Tabelle
           </Button>
         </CardActions>
@@ -350,94 +375,31 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
           data-cy="reports-grid"
         >
           <Grid size={{ xs: 12, md: 6, lg: 4 }} sx={{}}>
-            <Card
-              variant="outlined"
-              sx={{ minWidth: 275, minHeight: cardHeight }}
-              data-cy="report-card-users"
-            >
-              <CardContent>
-                <Typography variant="h5" component="div">
-                  Nutzerinnen
-                </Typography>
-                <Typography
-                  sx={{ mb: 1.5 }}
-                  color="text.secondary"
-                  data-cy="report-card-users-count"
-                >
-                  {users.length}
-                </Typography>
-                <Typography variant="body2">Liste aller Nutzerinnen</Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  size="small"
-                  onClick={() => router.push("reports/users")}
-                  data-cy="report-card-users-button"
-                >
-                  Erzeuge Tabelle
-                </Button>
-              </CardActions>
-            </Card>
+            <ReportCard
+              title="Nutzerinnen"
+              subtitle="Liste aller Nutzerinnen"
+              unit="users"
+              totalNumber={users.length}
+              link="reports/users"
+            />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <Card
-              variant="outlined"
-              sx={{ minWidth: 275, minHeight: cardHeight }}
-              data-cy="report-card-books"
-            >
-              <CardContent>
-                <Typography variant="h5" component="div">
-                  Bücher
-                </Typography>
-                <Typography
-                  sx={{ mb: 1.5 }}
-                  color="text.secondary"
-                  data-cy="report-card-books-count"
-                >
-                  {books.length}
-                </Typography>
-                <Typography variant="body2">Liste aller Bücher</Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  size="small"
-                  onClick={() => router.push("reports/books")}
-                  data-cy="report-card-books-button"
-                >
-                  Erzeuge Tabelle
-                </Button>
-              </CardActions>
-            </Card>
+            <ReportCard
+              title="Bücher"
+              subtitle="Liste aller Bücher"
+              unit="books"
+              totalNumber={books.length}
+              link="reports/books"
+            />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <Card
-              variant="outlined"
-              sx={{ minWidth: 275, minHeight: cardHeight }}
-              data-cy="report-card-rentals"
-            >
-              <CardContent>
-                <Typography variant="h5" component="div">
-                  Leihen
-                </Typography>
-                <Typography
-                  sx={{ mb: 1.5 }}
-                  color="text.secondary"
-                  data-cy="report-card-rentals-count"
-                >
-                  {rentals.length}
-                </Typography>
-                <Typography variant="body2">Liste aller Leihen</Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  size="small"
-                  onClick={() => router.push("reports/rentals")}
-                  data-cy="report-card-rentals-button"
-                >
-                  Erzeuge Tabelle
-                </Button>
-              </CardActions>
-            </Card>
+            <ReportCard
+              title="Leihen"
+              subtitle="Liste aller Leihen"
+              unit="rentals"
+              totalNumber={rentals.length}
+              link="reports/rentals"
+            />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <LinkCard
@@ -458,34 +420,13 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <Card
-              variant="outlined"
-              sx={{ minWidth: 275, minHeight: cardHeight }}
-              data-cy="report-card-audits"
-            >
-              <CardContent>
-                <Typography variant="h5" component="div">
-                  Historie
-                </Typography>
-                <Typography
-                  sx={{ mb: 1.5 }}
-                  color="text.secondary"
-                  data-cy="report-card-audits-count"
-                >
-                  1000
-                </Typography>
-                <Typography variant="body2">Aktivitäten Bücher/User</Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  size="small"
-                  onClick={() => router.push("reports/audit")}
-                  data-cy="report-card-audits-button"
-                >
-                  Erzeuge Tabelle
-                </Button>
-              </CardActions>
-            </Card>
+            <ReportCard
+              title="Historie"
+              subtitle="Aktivitäten Bücher/User"
+              unit="audits"
+              totalNumber={1000}
+              link="reports/audit"
+            />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <BookLabelsCard
