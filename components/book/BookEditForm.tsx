@@ -128,6 +128,7 @@ export default function BookEditForm({
         height="200"
         alt="cover image"
         key={loadingImage}
+        data-cy="book-cover-image"
         style={{
           border: "1px solid #fff",
           width: "auto",
@@ -160,7 +161,7 @@ export default function BookEditForm({
   };
 
   return (
-    <Paper sx={{ mt: 5, px: 4 }}>
+    <Paper sx={{ mt: 5, px: 4 }} data-cy="book-edit-form">
       <BookAntolinDialog
         open={antolinDetailsDialog}
         setOpen={setAntolinDetailsDialog}
@@ -181,6 +182,7 @@ export default function BookEditForm({
                   saveBook(e);
                 }}
                 startIcon={<SaveAltIcon />}
+                data-cy="save-book-button"
               >
                 Speichern
               </Button>
@@ -194,6 +196,7 @@ export default function BookEditForm({
                 duration={deleteSafetySeconds * 1000}
                 buttonLabel="Löschen"
                 onClick={deleteBook}
+                data-cy="delete-book-button"
               />
             </Tooltip>
           )}
@@ -206,6 +209,7 @@ export default function BookEditForm({
                   router.push(`/reports/print?id=${book.id}`);
                 }}
                 startIcon={<PrintIcon />}
+                data-cy="print-book-button"
               >
                 Drucken
               </Button>
@@ -232,11 +236,16 @@ export default function BookEditForm({
             size="small"
             value={isbnInput}
             onChange={(e) => setIsbnInput(e.target.value)}
+            data-cy="isbn-input"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <Tooltip title="Stammdaten mit ISBN in Datenbanken suchen">
-            <Button variant="outlined" onClick={handleAutoFillFromISBN}>
+            <Button
+              variant="outlined"
+              onClick={handleAutoFillFromISBN}
+              data-cy="autofill-button"
+            >
               Stammdaten ausfüllen
             </Button>
           </Tooltip>
