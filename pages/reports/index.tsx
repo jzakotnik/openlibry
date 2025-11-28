@@ -52,7 +52,6 @@ type ReportCardProps = {
   unit: string;
   link: string;
   totalNumber: number;
-
 };
 type LabelCardProps = {
   title: string;
@@ -78,11 +77,22 @@ type LinkCardProps = {
   subtitle: string;
   buttonTitle: string;
   link: string;
+  dataCy?: string;
 };
 
-const LinkCard = ({ title, subtitle, buttonTitle, link }: LinkCardProps) => {
+const LinkCard = ({
+  title,
+  subtitle,
+  buttonTitle,
+  link,
+  dataCy,
+}: LinkCardProps) => {
   return (
-    <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
+    <Card
+      variant="outlined"
+      sx={{ minWidth: 275, minHeight: cardHeight }}
+      data-cy={dataCy}
+    >
       <CardContent>
         <Typography variant="h5" component="div">
           {title}
@@ -116,22 +126,24 @@ const LabelCard = ({
   setTopicsFilter,
   allTopics,
 }: LabelCardProps) => {
-
-
-  const getUserUrl = (() => {
-    return "/?" + (startLabel > 0 ? ("start=0" +
-      "&end=" +
-      Math.floor(startLabel!)) : '') +
-      (startUserId > 0 || endUserId > 0 ? "&startId=" + startUserId + "&endId=" + endUserId : '')
-      +
-      (idUserFilter > 0 ? "&id=" + idUserFilter : "")
-      +
+  const getUserUrl = () => {
+    return (
+      "/?" +
+      (startLabel > 0 ? "start=0" + "&end=" + Math.floor(startLabel!) : "") +
+      (startUserId > 0 || endUserId > 0
+        ? "&startId=" + startUserId + "&endId=" + endUserId
+        : "") +
+      (idUserFilter > 0 ? "&id=" + idUserFilter : "") +
       (topicsFilter ? "&schoolGrade=" + topicsFilter.topic : "")
-
-  });
+    );
+  };
 
   return (
-    <Card variant="outlined" sx={{ minWidth: 275, minHeight: cardHeight }}>
+    <Card
+      variant="outlined"
+      sx={{ minWidth: 275, minHeight: cardHeight }}
+      data-cy="user-labels-card"
+    >
       <CardContent>
         <Typography variant="h5" component="div">
           {title}
@@ -154,6 +166,7 @@ const LabelCard = ({
             shrink: true,
           }}
           sx={{ mt: 5 }}
+          data-cy="user-labels-count-input"
         />
         <Grid
           container
@@ -176,6 +189,7 @@ const LabelCard = ({
                 shrink: true,
               }}
               sx={{ mt: 5 }}
+              data-cy="user-labels-start-id"
             />
           </Grid>
           <Grid size={{ xs: 6, md: 6, lg: 5 }} sx={{}}>
@@ -192,8 +206,8 @@ const LabelCard = ({
                 shrink: true,
               }}
               sx={{ mt: 5 }}
+              data-cy="user-labels-end-id"
             />
-
           </Grid>
         </Grid>
         <TextField
@@ -209,23 +223,25 @@ const LabelCard = ({
             shrink: true,
           }}
           sx={{ mt: 5 }}
+          data-cy="user-labels-user-id-filter"
         />
 
         <Autocomplete
           freeSolo
           id="schoolgrades"
-          getOptionLabel={(option: any) => `${option.topic} (${option.count})`} // Display topic and count concatenated
+          getOptionLabel={(option: any) => `${option.topic} (${option.count})`}
           options={allTopics}
           onChange={(event: any, newValue: string | null) => {
             setTopicsFilter(newValue);
           }}
-          value={topicsFilter} // Set the selected value based on the topic
-          isOptionEqualToValue={(option, value) => option === value} // Compare by topic
+          value={topicsFilter}
+          isOptionEqualToValue={(option, value) => option === value}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Schlagwort Filter"
               variant="standard"
+              data-cy="user-labels-schoolgrade-filter"
             />
           )}
         />
@@ -235,9 +251,8 @@ const LabelCard = ({
       <CardActions>
         <Button
           size="small"
-          onClick={() =>
-            window.open(link + getUserUrl(), "_blank")
-          }
+          onClick={() => window.open(link + getUserUrl(), "_blank")}
+          data-cy="user-labels-generate-button"
         >
           Erzeuge PDF
         </Button>
@@ -299,7 +314,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
   const allSchoolGrades = [] as any;
   users.map((u: UserType) => {
     u.schoolGrade ? allSchoolGrades.push(u.schoolGrade) : null;
-  })
+  });
   const schoolGradeSet = convertToTopicCount(allSchoolGrades);
 
   function convertToTopicCount(
@@ -332,33 +347,97 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
           alignItems="center"
           justifyContent="center"
           spacing={3}
+          data-cy="reports-grid"
         >
           <Grid size={{ xs: 12, md: 6, lg: 4 }} sx={{}}>
-            <ReportCard
-              title="Nutzerinnen"
-              subtitle="Liste aller Nutzerinnen"
-              unit="users"
-              totalNumber={users.length}
-              link="reports/users"
-            />
+            <Card
+              variant="outlined"
+              sx={{ minWidth: 275, minHeight: cardHeight }}
+              data-cy="report-card-users"
+            >
+              <CardContent>
+                <Typography variant="h5" component="div">
+                  Nutzerinnen
+                </Typography>
+                <Typography
+                  sx={{ mb: 1.5 }}
+                  color="text.secondary"
+                  data-cy="report-card-users-count"
+                >
+                  {users.length}
+                </Typography>
+                <Typography variant="body2">Liste aller Nutzerinnen</Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => router.push("reports/users")}
+                  data-cy="report-card-users-button"
+                >
+                  Erzeuge Tabelle
+                </Button>
+              </CardActions>
+            </Card>
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Bücher"
-              subtitle="Liste aller Bücher"
-              unit="books"
-              totalNumber={books.length}
-              link="reports/books"
-            />
+            <Card
+              variant="outlined"
+              sx={{ minWidth: 275, minHeight: cardHeight }}
+              data-cy="report-card-books"
+            >
+              <CardContent>
+                <Typography variant="h5" component="div">
+                  Bücher
+                </Typography>
+                <Typography
+                  sx={{ mb: 1.5 }}
+                  color="text.secondary"
+                  data-cy="report-card-books-count"
+                >
+                  {books.length}
+                </Typography>
+                <Typography variant="body2">Liste aller Bücher</Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => router.push("reports/books")}
+                  data-cy="report-card-books-button"
+                >
+                  Erzeuge Tabelle
+                </Button>
+              </CardActions>
+            </Card>
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Leihen"
-              subtitle="Liste aller Leihen"
-              unit="rentals"
-              totalNumber={rentals.length}
-              link="reports/rentals"
-            />
+            <Card
+              variant="outlined"
+              sx={{ minWidth: 275, minHeight: cardHeight }}
+              data-cy="report-card-rentals"
+            >
+              <CardContent>
+                <Typography variant="h5" component="div">
+                  Leihen
+                </Typography>
+                <Typography
+                  sx={{ mb: 1.5 }}
+                  color="text.secondary"
+                  data-cy="report-card-rentals-count"
+                >
+                  {rentals.length}
+                </Typography>
+                <Typography variant="body2">Liste aller Leihen</Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => router.push("reports/rentals")}
+                  data-cy="report-card-rentals-button"
+                >
+                  Erzeuge Tabelle
+                </Button>
+              </CardActions>
+            </Card>
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <LinkCard
@@ -366,6 +445,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               subtitle="Excel Export der Daten"
               buttonTitle="Download Excel"
               link="api/excel"
+              dataCy="excel-export-card"
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
@@ -374,16 +454,38 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               subtitle="Excel Import der Daten"
               buttonTitle="Upload Excel"
               link="reports/xlsimport"
+              dataCy="excel-import-card"
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Historie"
-              subtitle="Aktivitäten Bücher/User"
-              unit="audits"
-              totalNumber={1000}
-              link="reports/audit"
-            />
+            <Card
+              variant="outlined"
+              sx={{ minWidth: 275, minHeight: cardHeight }}
+              data-cy="report-card-audits"
+            >
+              <CardContent>
+                <Typography variant="h5" component="div">
+                  Historie
+                </Typography>
+                <Typography
+                  sx={{ mb: 1.5 }}
+                  color="text.secondary"
+                  data-cy="report-card-audits-count"
+                >
+                  1000
+                </Typography>
+                <Typography variant="body2">Aktivitäten Bücher/User</Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => router.push("reports/audit")}
+                  data-cy="report-card-audits-button"
+                >
+                  Erzeuge Tabelle
+                </Button>
+              </CardActions>
+            </Card>
           </Grid>
           <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <BookLabelsCard
@@ -431,6 +533,7 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
               subtitle="Ausdruck aller Mahnungen"
               buttonTitle="Erzeuge Word"
               link="/api/report/reminder"
+              dataCy="reminder-card"
             />
           </Grid>
         </Grid>

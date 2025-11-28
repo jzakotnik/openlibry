@@ -8,6 +8,6 @@ describe("Navigation", () => {
     // Start from the index page
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_reports_button]").click();
-    cy.get("[data-cy=rental_input_selectreports]").should("be.visible");
+    cy.get("[data-cy=report-card-rentals-button]").should("be.visible");
   });
 });
