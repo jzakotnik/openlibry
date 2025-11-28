@@ -29,6 +29,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env.test
 
 # vercel
 .vercel
@@ -139,3 +140,5 @@ public/~$hnung-template.docx
 prisma/database/
 
 cypress/screenshots
+
+.env.test
