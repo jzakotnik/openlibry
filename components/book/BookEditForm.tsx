@@ -3,7 +3,6 @@ import Box from "@mui/material/Box";
 import { useRouter } from "next/router";
 import { Dispatch, useState } from "react";
 
-import { AlertColor } from "@mui/material";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -65,10 +64,9 @@ export default function BookEditForm({
   const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
-  // ⬇️ NEW: notistack
   const { enqueueSnackbar } = useSnackbar();
 
-  //Beginn autofill stuff
+  //Begin autofill stuff
   const [isbnInput, setIsbnInput] = useState("");
 
   const handleAutoFillFromISBN = async () => {
@@ -111,14 +109,13 @@ export default function BookEditForm({
   };
   //End autofill stuff
 
-  useState<AlertColor>("success");
-
   const toggleEditButton = () => {
     editable
       ? setEditButtonLabel("Editieren")
       : setEditButtonLabel("Abbrechen");
     setEditable(!editable);
   };
+
   const handleAntolinClick = () => {
     setAntolinDetailsDialog(true);
   };
@@ -126,13 +123,7 @@ export default function BookEditForm({
   const CoverImage = () => {
     return (
       <img
-        src={
-          process.env.NEXT_PUBLIC_API_URL +
-          "/api/images/" +
-          book.id +
-          "?" +
-          loadingImage
-        }
+        src={`/api/images/${book.id}?${loadingImage}`}
         width="200"
         height="200"
         alt="cover image"
@@ -145,14 +136,14 @@ export default function BookEditForm({
     );
   };
 
-  const AntolinResult = (foundNumber: any) => {
+  const AntolinResult = () => {
     let resultString = "...";
     if (antolinResults) {
       if (antolinResults.foundNumber > 1) {
-        resultString = " " + antolinResults.foundNumber + " Bücher";
-      } else if (antolinResults.foundNumber == 0) {
+        resultString = ` ${antolinResults.foundNumber} Bücher`;
+      } else if (antolinResults.foundNumber === 0) {
         resultString = " Kein Buch gefunden";
-      } else if (antolinResults.foundNumber == 1) {
+      } else if (antolinResults.foundNumber === 1) {
         resultString = " Ein Buch gefunden";
       }
 
@@ -174,7 +165,7 @@ export default function BookEditForm({
         open={antolinDetailsDialog}
         setOpen={setAntolinDetailsDialog}
         antolinBooks={antolinResults}
-      />{" "}
+      />
       <Grid
         container
         direction="row"
@@ -206,13 +197,13 @@ export default function BookEditForm({
               />
             </Tooltip>
           )}
-        </Grid>{" "}
+        </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
           {editable && (
             <Tooltip title="Buchlabel drucken">
               <Button
                 onClick={(e) => {
-                  router.push("/reports/print?id=" + book.id);
+                  router.push(`/reports/print?id=${book.id}`);
                 }}
                 startIcon={<PrintIcon />}
               >
@@ -220,14 +211,13 @@ export default function BookEditForm({
               </Button>
             </Tooltip>
           )}
-        </Grid>{" "}
+        </Grid>
       </Grid>
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
           Automatisches Ausfüllen
         </Typography>
       </Divider>
-      {/* --- NEW ISBN INPUT AND BUTTON ADDED HERE --- */}
       <Grid
         container
         justifyContent="center"
@@ -252,16 +242,13 @@ export default function BookEditForm({
           </Tooltip>
         </Grid>
       </Grid>
-      {/* --- END NEW INPUT --- */}
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
           Stammdaten des Buchs
         </Typography>
       </Divider>
       <Grid container direction="row" justifyContent="center" alignItems="top">
-        {" "}
         <Grid container size={{ xs: 12, sm: 9 }} direction="row" spacing={2}>
-          {" "}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"title"}
@@ -294,7 +281,7 @@ export default function BookEditForm({
               book={book}
               topics={topics}
             />
-            <AntolinResult foundNumber={antolinResults} />
+            <AntolinResult />
           </Grid>
           <Grid size={{ xs: 12 }}>
             <BookMultiText
@@ -310,7 +297,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -318,7 +305,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -326,7 +313,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -334,7 +321,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -342,7 +329,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookPagesField
@@ -350,8 +337,8 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
-          </Grid>{" "}
+            />
+          </Grid>
           <Divider sx={{ mb: 3 }}></Divider>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookStatusDropdown
@@ -359,7 +346,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookNumberField
@@ -367,7 +354,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookDateField
@@ -375,7 +362,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookDateField
@@ -383,8 +370,8 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
-          </Grid>{" "}
+            />
+          </Grid>
           <Divider sx={{ mb: 3 }}></Divider>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -392,7 +379,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -400,7 +387,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -408,7 +395,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -416,7 +403,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -424,7 +411,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -432,7 +419,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -440,7 +427,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -448,7 +435,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
@@ -456,7 +443,7 @@ export default function BookEditForm({
               editable={editable}
               setBookData={setBookData}
               book={book}
-            />{" "}
+            />
           </Grid>
         </Grid>
         <Grid
@@ -472,7 +459,7 @@ export default function BookEditForm({
               book={book}
               setLoadingImage={setLoadingImage}
             />
-          </Grid>{" "}
+          </Grid>
           <Grid>
             <BookBarcode book={book} />
           </Grid>

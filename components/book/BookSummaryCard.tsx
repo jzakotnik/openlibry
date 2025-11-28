@@ -42,7 +42,7 @@ export default function BookSummaryCard({
   const selectedBook = book;
 
   const getAvatarIcon = (b: BookType) => {
-    return b.rentalStatus == "rented" ? (
+    return b.rentalStatus === "rented" ? (
       <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
         <CancelPresentationIcon />
       </Avatar>
@@ -70,7 +70,7 @@ export default function BookSummaryCard({
       <CardHeader
         avatar={getAvatarIcon(selectedBook)}
         action={
-          <Link href={"/book/" + book.id} passHref>
+          <Link href={`/book/${book.id}`} passHref>
             <Tooltip title="Details für das Buch">
               <IconButton aria-label="settings">
                 <MoreVertIcon />
@@ -78,7 +78,7 @@ export default function BookSummaryCard({
             </Tooltip>
           </Link>
         }
-        title={"Buch id " + selectedBook.id}
+        title={`Buch id ${selectedBook.id}`}
       />
       <CardMedia sx={{ position: "relative", width: 320, height: 200 }}>
         <Link
@@ -86,12 +86,11 @@ export default function BookSummaryCard({
           aria-label={`Open ${book.title ?? "book"}`}
         >
           <Image
-            src={`/api/images/${book.id}`} // or `${process.env.NEXT_PUBLIC_API_URL}/api/images/${book.id}`
+            src={`/api/images/${book.id}`}
             alt={book.title ?? "Book cover"}
             fill
             sizes="(max-width: 600px) 100vw, 320px"
             style={{ objectFit: "cover" }}
-            // priority // <- uncomment if above the fold
           />
         </Link>
       </CardMedia>
@@ -108,29 +107,29 @@ export default function BookSummaryCard({
           {selectedBook.author}
         </Typography>
       </CardContent>
-      {showDetailsControl ? (
+      {showDetailsControl && (
         <CardActions>
-          <Link href={"/book/" + book.id} passHref>
+          <Link href={`/book/${book.id}`} passHref>
             <Tooltip title="Details für das Buch">
               <Button size="small" data-cy="book_card_editbutton">
                 Details
               </Button>
             </Tooltip>
           </Link>
-          <Link href={"/reports/print?id=" + book.id} passHref>
+          <Link href={`/reports/print?id=${book.id}`} passHref>
             <Tooltip title="Buchlabel drucken">
               <Button size="small" data-cy="book_card_editbutton">
                 Drucken
               </Button>
             </Tooltip>
           </Link>
-          {book.rentalStatus != "available" ? (
+          {book.rentalStatus !== "available" && (
             <Button size="small" onClick={returnBook}>
               Abgeben
             </Button>
-          ) : null}
+          )}
         </CardActions>
-      ) : null}
+      )}
     </Card>
   );
 }

@@ -1,35 +1,24 @@
-// ("use client"); // keep commented if you're in /pages with getServerSideProps
 import Layout from "@/components/layout/Layout";
-
-// ✅ Use the newest MUI Grid v2
-import Grid from "@mui/material/Grid";
-
 import BookRentalList from "@/components/rental/BookRentalList";
 import UserRentalList from "@/components/rental/UserRentalList";
-
-import { useRouter } from "next/router";
-import { forwardRef, useRef, useState } from "react";
-
+import { BookType } from "@/entities/BookType";
+import { RentalsUserType } from "@/entities/RentalsUserType";
+import { UserType } from "@/entities/UserType";
+import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { prisma } from "@/entities/db";
+import { getAllUsers } from "@/entities/user";
 import {
   convertDateToDayString,
   extendDays,
   replaceBookStringDate,
   sameDay,
 } from "@/utils/dateutils";
-
-import { BookType } from "@/entities/BookType";
-import { RentalsUserType } from "@/entities/RentalsUserType";
-import { UserType } from "@/entities/UserType";
-
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
-import { prisma } from "@/entities/db";
-import { getAllUsers } from "@/entities/user";
-
 import { getBookFromID } from "@/utils/getBookFromID";
-
-import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 import { useSnackbar } from "notistack";
+import { useRef, useState } from "react";
 import useSWR from "swr";
 
 interface RentalPropsType {
@@ -43,9 +32,9 @@ interface RentalPropsType {
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function Rental({
-  books,
-  users,
-  rentals,
+  books: initialBooks,
+  users: initialUsers,
+  rentals: initialRentals,
   extensionDays,
   bookSortBy,
 }: RentalPropsType) {
@@ -65,132 +54,118 @@ export default function Rental({
     userFocusRef.current?.select();
   };
 
-  const { data } = useSWR(
-    process.env.NEXT_PUBLIC_API_URL + "/api/rental",
-    fetcher,
-    { refreshInterval: 1000 }
-  );
-  // Live-update lists when SWR has fresh data
-  if (data) {
-    rentals = data.rentals;
-    books = data.books;
-    users = data.users;
-  }
+  // Use SWR for live updates
+  const { data } = useSWR("/api/rental", fetcher, { refreshInterval: 1000 });
 
-  const handleReturnBookButton = (bookid: number, userid: number) => {
-    fetch("/api/book/" + bookid + "/user/" + userid, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          enqueueSnackbar(
-            "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-            { variant: "error" }
-          );
-        }
-        return res.json();
-      })
-      .then(() => {
+  // Use live data if available, otherwise fall back to initial props
+  const books = data?.books ?? initialBooks;
+  const users = data?.users ?? initialUsers;
+  const rentals = data?.rentals ?? initialRentals;
+
+  const handleReturnBookButton = async (bookid: number, userid: number) => {
+    try {
+      const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
         enqueueSnackbar(
-          "Buch - " + getBookFromID(bookid, books).title + " - zurückgegeben"
-        );
-      })
-      .catch(() => {
-        enqueueSnackbar(
-          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+          "Leider hat es nicht geklappt, der Server ist aber erreichbar",
           { variant: "error" }
         );
-      });
-    handleBookSearchSetFocus();
+        return;
+      }
+
+      await res.json();
+      enqueueSnackbar(
+        `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`
+      );
+      handleBookSearchSetFocus();
+    } catch (error) {
+      enqueueSnackbar(
+        "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+        { variant: "error" }
+      );
+    }
   };
 
   const newDueDate = extendDays(new Date(), extensionDays);
 
-  const handleExtendBookButton = (bookid: number, book: BookType) => {
+  const handleExtendBookButton = async (bookid: number, book: BookType) => {
     const newbook = replaceBookStringDate(book) as any;
 
     if (sameDay(newbook.dueDate, newDueDate)) {
       enqueueSnackbar(
-        "Buch - " +
-          book.title +
-          " - ist bereits bis zum maximalen Ende ausgeliehen",
+        `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
         { variant: "warning" }
       );
       return;
     }
+
     newbook.renewalCount = newbook.renewalCount + 1;
     newbook.dueDate = newDueDate.toDate();
 
     delete newbook.user; // not needed for update
     delete newbook._id; // SWR helper id; not needed for update
 
-    fetch("/api/book/" + bookid, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newbook),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          enqueueSnackbar(
-            "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-            { variant: "error" }
-          );
-        }
-        return res.json();
-      })
-      .then(() => {
-        enqueueSnackbar("Buch - " + book.title + " - verlängert");
-      })
-      .catch(() => {
+    try {
+      const res = await fetch(`/api/book/${bookid}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newbook),
+      });
+
+      if (!res.ok) {
         enqueueSnackbar(
-          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+          "Leider hat es nicht geklappt, der Server ist aber erreichbar",
           { variant: "error" }
         );
-      });
-    handleBookSearchSetFocus();
+        return;
+      }
+
+      await res.json();
+      enqueueSnackbar(`Buch - ${book.title} - verlängert`);
+      handleBookSearchSetFocus();
+    } catch (error) {
+      enqueueSnackbar(
+        "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+        { variant: "error" }
+      );
+    }
   };
 
-  const handleRentBookButton = (bookid: number, userid: number) => {
-    fetch("/api/book/" + bookid + "/user/" + userid, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          enqueueSnackbar(
-            "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-            { variant: "error" }
-          );
-        }
-        return res.json();
-      })
-      .then(() => {
+  const handleRentBookButton = async (bookid: number, userid: number) => {
+    try {
+      const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
         enqueueSnackbar(
-          "Buch " + getBookFromID(bookid, books).title + " ausgeliehen"
-        );
-      })
-      .catch(() => {
-        enqueueSnackbar(
-          "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+          "Leider hat es nicht geklappt, der Server ist aber erreichbar",
           { variant: "error" }
         );
-      });
-    handleBookSearchSetFocus();
-  };
+        return;
+      }
 
-  const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
-    props,
-    ref
-  ) {
-    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-  });
+      await res.json();
+      enqueueSnackbar(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
+      handleBookSearchSetFocus();
+    } catch (error) {
+      enqueueSnackbar(
+        "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+        { variant: "error" }
+      );
+    }
+  };
 
   return (
     <Layout>
@@ -239,6 +214,7 @@ export default function Rental({
 export async function getServerSideProps() {
   const extensionDays = Number(process.env.EXTENSION_DURATION_DAYS) || 14;
   const bookSortBy = process.env.RENTAL_SORT_BOOKS || "title_asc";
+
   const allUsers = await getAllUsers(prisma);
 
   const users = allUsers.map((u) => {

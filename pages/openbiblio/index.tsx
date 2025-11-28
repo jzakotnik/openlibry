@@ -1,7 +1,5 @@
-import { useState, type JSX } from "react";
-
 import { Button, Container, Grid, TextField, Typography } from "@mui/material";
-import React, { ChangeEvent, FormEvent } from "react";
+import React, { ChangeEvent, FormEvent, useState, type JSX } from "react";
 
 interface ActivityLog {
   map(arg0: (a: any, i: number) => JSX.Element): React.ReactNode;
@@ -25,43 +23,61 @@ export default function MergeFiles() {
   const [activityLog, setActivityLog] = useState(["Migration engine ready.."]);
 
   // Handler for file change events
-  const handleFileChange = (fileIndex: any, event: any) => {
-    const file = event.target.files[0];
-    if (file && file.type === "application/json") {
+  const handleFileChange = (
+    fileIndex: number,
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type === "application/json") {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const content = JSON.parse(e.target!.result as any);
-        // Assign content to the right state based on file index
-        if (fileIndex === 1) {
-          setBiblio_copy(content);
-          setActivityLog([
-            ...activityLog,
-            "Biblio Copy geladen - " + content[2].data.length + " Felder",
-          ]);
-        } else if (fileIndex === 2) {
-          setUsers(content);
-          setActivityLog([
-            ...activityLog,
-            "Members geladen - " + content[2].data.length + " Felder",
-          ]);
-        } else if (fileIndex === 3) {
-          setBiblio(content);
-          setActivityLog([
-            ...activityLog,
-            "Biblio geladen - " + content[2].data.length + " Felder",
-          ]);
-        } else if (fileIndex === 4) {
-          setBiblio_hist(content);
-          setActivityLog([
-            ...activityLog,
-            "Biblio History geladen - " + content[2].data.length + " Felder",
-          ]);
-        } else if (fileIndex === 5) {
-          setFields(content);
-          setActivityLog([
-            ...activityLog,
-            "Felder geladen - " + content[2].data.length + " Felder",
-          ]);
+        try {
+          const content = JSON.parse(e.target?.result as string);
+          const recordCount = content[2]?.data?.length || 0;
+
+          // Assign content to the right state based on file index
+          switch (fileIndex) {
+            case 1:
+              setBiblio_copy(content);
+              setActivityLog((prev) => [
+                ...prev,
+                `Biblio Copy geladen - ${recordCount} Felder`,
+              ]);
+              break;
+            case 2:
+              setUsers(content);
+              setActivityLog((prev) => [
+                ...prev,
+                `Members geladen - ${recordCount} Felder`,
+              ]);
+              break;
+            case 3:
+              setBiblio(content);
+              setActivityLog((prev) => [
+                ...prev,
+                `Biblio geladen - ${recordCount} Felder`,
+              ]);
+              break;
+            case 4:
+              setBiblio_hist(content);
+              setActivityLog((prev) => [
+                ...prev,
+                `Biblio History geladen - ${recordCount} Felder`,
+              ]);
+              break;
+            case 5:
+              setFields(content);
+              setActivityLog((prev) => [
+                ...prev,
+                `Felder geladen - ${recordCount} Felder`,
+              ]);
+              break;
+          }
+        } catch (error) {
+          console.error("Failed to parse JSON:", error);
+          alert("Fehler beim Lesen der JSON-Datei");
         }
       };
       reader.readAsText(file);
@@ -70,47 +86,41 @@ export default function MergeFiles() {
     }
   };
 
-  const handleMigrateUsers = (event: any) => {
+  const handleMigrateUsers = async (event: FormEvent) => {
     event.preventDefault();
-    /*console.log("File 1 content:", fileContent1);
-    console.log("File 2 content:", fileContent2);
-    console.log("File 3 content:", fileContent3);
-    console.log("File 4 content:", fileContent4);
-    */
-    // Here you can do further processing with the uploaded JSON content
 
-    /*setActivityLog([...activityLog, "Download gestartet.."]);
-    var blob = new Blob([JSON.stringify(merged)], {
-      type: "text/plain;charset=utf-8",
-    });*/
-    //saveAs(blob, "books_all.json");
-    //executing API to create users
+    if (!users) {
+      alert("Bitte zuerst Members-Datei hochladen");
+      return;
+    }
+
     console.log("Users to be imported", users);
-    fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/api/openbiblioimport/migrateUsers",
-      {
+
+    try {
+      const response = await fetch("/api/openbiblioimport/migrateUsers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify(users),
-      }
-    )
-      .then(function (res) {
-        return res.json();
-      })
-      .then(function (json) {
-        console.log(json);
-        setActivityLog([...activityLog, JSON.stringify(json)]);
-        //setLoadingImage(Math.floor(Math.random() * 10000));
       });
 
-    console.log("Merged", merged);
+      const json = await response.json();
+      console.log(json);
+      setActivityLog((prev) => [...prev, JSON.stringify(json)]);
+    } catch (error) {
+      console.error("Migration failed:", error);
+      setActivityLog((prev) => [...prev, `Fehler: ${error}`]);
+    }
   };
 
-  const handleMigrateBooks = (event: any) => {
+  const handleMigrateBooks = async (event: FormEvent) => {
     event.preventDefault();
+
+    if (!biblio_copy || !users || !biblio || !biblio_hist || !fields) {
+      alert("Bitte alle Dateien hochladen bevor die Migration gestartet wird");
+      return;
+    }
 
     const merged = {
       biblio_copy: biblio_copy,
@@ -119,34 +129,25 @@ export default function MergeFiles() {
       biblio_hist: biblio_hist,
       fields: fields,
     };
-    /*setActivityLog([...activityLog, "Download gestartet.."]);
-    var blob = new Blob([JSON.stringify(merged)], {
-      type: "text/plain;charset=utf-8",
-    });*/
-    //saveAs(blob, "books_all.json");
-    //executing API to create users
-    console.log("Users to be imported", merged.users);
-    fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/api/openbiblioimport/migrateBooks",
-      {
+
+    console.log("Merged data to be imported", merged);
+
+    try {
+      const response = await fetch("/api/openbiblioimport/migrateBooks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify(merged),
-      }
-    )
-      .then(function (res) {
-        return res.json();
-      })
-      .then(function (json) {
-        console.log(json);
-        setActivityLog([...activityLog, JSON.stringify(json)]);
-        //setLoadingImage(Math.floor(Math.random() * 10000));
       });
 
-    console.log("Merged", merged);
+      const json = await response.json();
+      console.log(json);
+      setActivityLog((prev) => [...prev, JSON.stringify(json)]);
+    } catch (error) {
+      console.error("Migration failed:", error);
+      setActivityLog((prev) => [...prev, `Fehler: ${error}`]);
+    }
   };
 
   return (
@@ -234,7 +235,7 @@ export default function MergeFiles() {
         </Grid>
       </Grid>
       <Grid>
-        {activityLog.reverse().map((a: string, i: number) => (
+        {[...activityLog].reverse().map((a: string, i: number) => (
           <div key={i}>
             <Typography color={"black"}>{a.substring(0, 200)}</Typography>
           </div>

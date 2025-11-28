@@ -30,6 +30,7 @@ type UserDetailPropsType = {
   user: UserType;
   books: Array<BookType>;
   extensionDays: number;
+  deleteSafetySeconds: number;
 };
 
 const theme = createTheme({
@@ -37,10 +38,6 @@ const theme = createTheme({
     primary: { main: "#1976d2" },
   },
 });
-
-const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
-  ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
-  : 3;
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -53,6 +50,7 @@ export default function UserDetail({
   user,
   books,
   extensionDays,
+  deleteSafetySeconds,
 }: UserDetailPropsType) {
   const router = useRouter();
 
@@ -205,7 +203,15 @@ export default function UserDetail({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const extensionDays = process.env.EXTENSION_DURATION_DAYS || 14;
+  const extensionDays = parseInt(
+    process.env.EXTENSION_DURATION_DAYS || "14",
+    10
+  );
+  const deleteSafetySeconds = parseInt(
+    process.env.DELETE_SAFETY_SECONDS || "3",
+    10
+  );
+  console.log("Delete safety seconds for the user", deleteSafetySeconds);
   if (!context.query.userid) return { props: {} };
   const prisma = new PrismaClient();
 
@@ -243,5 +249,5 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   // Pass data to the page via props
-  return { props: { user, books, extensionDays } };
+  return { props: { user, books, extensionDays, deleteSafetySeconds } };
 }

@@ -1,28 +1,16 @@
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-
+import BookEditForm from "@/components/book/BookEditForm";
 import Layout from "@/components/layout/Layout";
 import { getAllTopics, getBook } from "@/entities/book";
-import { useEffect, useState } from "react";
-
-import MuiAlert, { AlertProps } from "@mui/material/Alert";
-import { useRouter } from "next/router";
-import { forwardRef } from "react";
-
-import { convertStringToDay, replaceBookDateString } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
-
-import BookEditForm from "@/components/book/BookEditForm";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { convertStringToDay, replaceBookDateString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { PrismaClient } from "@prisma/client";
+import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
 import { useSnackbar } from "notistack";
-
-const deleteSafetySeconds = process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS
-  ? parseInt(process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS)
-  : 3;
-
-console.log("Delete seconds", process.env.NEXT_PUBLIC_DELETE_SAFETY_SECONDS);
+import { useEffect, useState } from "react";
 
 const theme = createTheme({
   palette: {
@@ -30,26 +18,24 @@ const theme = createTheme({
   },
 });
 
-const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
-  props,
-  ref
-) {
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
-
 interface BookDetailProps {
   user: UserType;
   book: BookType;
   topics: string[];
+  deleteSafetySeconds: number;
 }
 
-export default function BookDetail({ user, book, topics }: BookDetailProps) {
+export default function BookDetail({
+  user,
+  book,
+  topics,
+  deleteSafetySeconds,
+}: BookDetailProps) {
   const router = useRouter();
-
   const [bookData, setBookData] = useState<BookType>(book);
   const [antolinResults, setAntolinResults] = useState(null);
-
   const { enqueueSnackbar } = useSnackbar();
+
   useEffect(() => {
     // keep local state in sync with prop
     setBookData(book);
@@ -78,7 +64,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
 
     // abort fetch if component unmounts or book changes mid-flight
     return () => controller.abort();
-  }, [book]); // or [book.id] if you only care about the id
+  }, [book]);
 
   if (!router.query.bookid) {
     return <Typography>ID not found</Typography>;
@@ -90,7 +76,7 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
       : router.query.bookid
   );
 
-  const handleSaveButton = () => {
+  const handleSaveButton = async () => {
     console.log("Saving book ", bookData);
 
     const rentedDate = convertStringToDay(bookData.rentedDate as string);
@@ -99,54 +85,65 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
     //we don't need to update the dates
     const { updatedAt, createdAt, ...savingBook } = bookData;
 
-    fetch("/api/book/" + bookid, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ...savingBook, rentedDate, dueDate }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        enqueueSnackbar(
-          "Buch " + bookData.title + " gespeichert, gut gemacht!"
-        );
-
-        router.push("/book");
+    try {
+      const res = await fetch(`/api/book/${bookid}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...savingBook, rentedDate, dueDate }),
       });
+
+      await res.json();
+      enqueueSnackbar(`Buch ${bookData.title} gespeichert, gut gemacht!`);
+      router.push("/book");
+    } catch (error) {
+      console.error("Failed to save book:", error);
+      enqueueSnackbar("Fehler beim Speichern des Buches", { variant: "error" });
+    }
   };
 
-  const handleReturnBookButton = (userid: number) => {
+  const handleReturnBookButton = async (userid: number) => {
     console.log("Returning book ", bookid);
 
-    fetch("/api/book/" + bookid + "/user/" + userid, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        enqueueSnackbar("Buch zurückgegeben, super!");
+    try {
+      const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+
+      const data = await res.json();
+      console.log(data);
+      enqueueSnackbar("Buch zurückgegeben, super!");
+    } catch (error) {
+      console.error("Failed to return book:", error);
+      enqueueSnackbar("Fehler beim Zurückgeben des Buches", {
+        variant: "error",
+      });
+    }
   };
 
-  const handleDeleteButton = () => {
+  const handleDeleteButton = async () => {
     console.log("Deleting book ", bookData);
 
-    fetch("/api/book/" + bookid, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Delete operation performed on ", bookid, data);
-        enqueueSnackbar("Buch gelöscht");
-        router.push("/book");
+    try {
+      const res = await fetch(`/api/book/${bookid}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+
+      const data = await res.json();
+      console.log("Delete operation performed on ", bookid, data);
+      enqueueSnackbar("Buch gelöscht");
+      router.push("/book");
+    } catch (error) {
+      console.error("Failed to delete book:", error);
+      enqueueSnackbar("Fehler beim Löschen des Buches", { variant: "error" });
+    }
   };
 
   return (
@@ -168,6 +165,10 @@ export default function BookDetail({ user, book, topics }: BookDetailProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const prisma = new PrismaClient();
+  const deleteSafetySeconds = parseInt(
+    process.env.DELETE_SAFETY_SECONDS || "5",
+    10
+  );
 
   const dbbook = await getBook(prisma, parseInt(context.query.bookid as any));
   if (!dbbook) {
@@ -178,6 +179,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const dbtopics = await getAllTopics(prisma);
   const topics: string[] = [];
+
   if (dbtopics != null) {
     const redundanttopics: string[] = [];
     dbtopics.map((t) => {
@@ -185,34 +187,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         const singletopics = t.topics.split(";");
         singletopics.map((s) => {
           const filteredTopic = s.trim();
-          s.trim().length > 0 ? redundanttopics.push(s) : 0;
+          if (filteredTopic.length > 0) {
+            redundanttopics.push(filteredTopic);
+          }
         });
       }
     });
 
-    //const topics = [...new Set(redundanttopics)];
-
-    redundanttopics.map((element: string) => {
+    // Remove duplicates
+    redundanttopics.forEach((element: string) => {
       if (!topics.includes(element)) {
         topics.push(element);
       }
     });
   }
 
-  //console.log("Found these topics:", topics);
-
-  if (!dbbook) return;
-
   const book = replaceBookDateString(dbbook as any);
-  //console.log("Replaced date string", book, dbbook);
-  //const imagesArray = await getImages();
-  //console.log("Images", imagesArray);
-  //push array to object for performance reasons
-  //const images = {};
-  //imagesArray.map((i) => ((images as any)[i] = "1"));
 
-  if (!("id" in book) || !book.id) return; //shouldn't happen
+  if (!("id" in book) || !book.id) {
+    return {
+      notFound: true,
+    };
+  }
 
   // Pass data to the page via props
-  return { props: { book, topics } };
+  return { props: { book, topics, deleteSafetySeconds } };
 }

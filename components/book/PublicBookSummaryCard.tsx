@@ -26,6 +26,7 @@ const bull = (
     •
   </Box>
 );
+
 const ExpandMore = styled((props: any) => {
   const { expand, ...other } = props;
   return <IconButton {...other} />;
@@ -51,7 +52,7 @@ export default function PublicBookSummaryCard({
   const selectedBook = book;
 
   const getAvatarIcon = (b: BookType) => {
-    return b.rentalStatus == "rented" ? (
+    return b.rentalStatus === "rented" ? (
       <Avatar sx={{ bgcolor: palette.error.main }} aria-label="avatar">
         <CancelPresentationIcon />
       </Avatar>
@@ -87,7 +88,7 @@ export default function PublicBookSummaryCard({
       />
       <CardMedia sx={{ position: "relative", width: 320, height: 200 }}>
         <Image
-          src={`${process.env.NEXT_PUBLIC_API_URL}/api/images/${book.id}`}
+          src={`/api/images/${book.id}`}
           alt={book?.title ?? "Book cover"}
           width={320}
           height={200}
@@ -114,10 +115,9 @@ export default function PublicBookSummaryCard({
           aria-expanded={expanded}
           aria-label="show more"
         >
-          {" "}
           <ExpandMoreIcon />
         </ExpandMore>
-      </CardActions>{" "}
+      </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
           {book.rentalStatus && (

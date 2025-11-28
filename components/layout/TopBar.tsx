@@ -1,6 +1,7 @@
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import MenuIcon from "@mui/icons-material/Menu";
+import { Tooltip } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -13,15 +14,13 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { useRouter } from "next/router";
 import * as React from "react";
-
-import { Tooltip } from "@mui/material";
 import { publicNavItems } from "./navigationItems";
 
-const BACKUP_BUTTON_SWITCH = parseInt(
-  process.env.NEXT_PUBLIC_BACKUP_BUTTON_SWITCH || "1"
-);
+interface TopBarProps {
+  showBackupButton?: boolean;
+}
 
-export default function TopBar() {
+export default function TopBar({ showBackupButton = true }: TopBarProps) {
   const router = useRouter();
   const theme = useTheme();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
@@ -32,10 +31,16 @@ export default function TopBar() {
     setAnchorElNav(event.currentTarget);
   };
 
-  const handleCloseNavMenu = (e: any, page: any) => {
-    console.log("Navigating to ", e, page);
-    if (page == "backdropClick") setAnchorElNav(null);
-    else router.push(page);
+  const handleCloseNavMenu = (
+    event: React.MouseEvent | React.SyntheticEvent,
+    page?: string
+  ) => {
+    if (page === "backdropClick" || !page) {
+      setAnchorElNav(null);
+    } else {
+      setAnchorElNav(null);
+      router.push(page);
+    }
   };
 
   const BackupFunc = async () => {
@@ -89,7 +94,6 @@ export default function TopBar() {
             sx={{
               mr: 2,
               display: { xs: "none", md: "flex" },
-
               fontWeight: 700,
               letterSpacing: ".3rem",
               color: "inherit",
@@ -170,7 +174,7 @@ export default function TopBar() {
               </Button>
             ))}
           </Box>
-          {BACKUP_BUTTON_SWITCH === 1 && (
+          {showBackupButton && (
             <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
               <Tooltip title="Download Backup als Excel">
                 <IconButton

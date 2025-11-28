@@ -165,13 +165,8 @@ export default function XLSImport() {
       dropBeforeImport: dropBeforeImport,
     };
 
-    console.log(
-      "Using endpoint for XLS import",
-      process.env.NEXT_PUBLIC_API_URL + "/api/excel"
-    );
-    const endpoint = process.env.NEXT_PUBLIC_API_URL + "/api/excel";
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/excel", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -185,12 +180,7 @@ export default function XLSImport() {
       const logs = result.logs as string[];
       setImportLog(importLog.concat(logs));
     } catch (e: any) {
-      console.log(
-        "Kein Ergebnis der API, Error, Payload, API Endpoint:",
-        e,
-        payload,
-        endpoint
-      );
+      console.log("Kein Ergebnis der API, Error, Payload:", e, payload);
       setImportLog([...importLog, "Fehler beim API-Aufruf: " + e.toString()]);
     }
   };
