@@ -137,3 +137,5 @@ prisma/database/dev-mammolshain.db
 prisma/database/dev-testing.db
 public/~$hnung-template.docx
 prisma/database/
+
+cypress/screenshots
