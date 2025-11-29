@@ -11,6 +11,8 @@ declare namespace Cypress {
 }
 
 Cypress.Commands.add("login", () => {
+  cy.clearCookies();
+  cy.clearLocalStorage();
   cy.log(Cypress.env("user"));
   // Start from the index page
   cy.visit("http://localhost:3000/");
@@ -21,15 +23,54 @@ Cypress.Commands.add("login", () => {
 });
 
 Cypress.Commands.add("resetDatabase", () => {
+  // Verify source database has content FIRST
+  cy.exec("ls -lh cypress/fixtures/automated-test-db-init.db").then(
+    (result) => {
+      cy.log("Source database:", result.stdout);
+      if (
+        result.stdout.includes(" 0 ") ||
+        result.stdout.includes(" 0B") ||
+        result.stdout.includes("No such file")
+      ) {
+        cy.log("❌ ERROR: Source database is empty or missing!");
+        throw new Error(
+          "Source database cypress/fixtures/automated-test-db-init.db is empty or missing. Run setup first!"
+        );
+      }
+    }
+  );
+  // Remove the old test database file completely
+  cy.exec("rm -f prisma/database/automated-test-db.db", {
+    failOnNonZeroExit: false,
+  });
+
   // Copy the automated-test-db-init.db to automated-test-db.db (overwrites it)
   cy.exec(
     "cp cypress/fixtures/automated-test-db-init.db prisma/database/automated-test-db.db"
   );
+  // Fix permissions on the copied database
+  cy.exec("chmod 644 prisma/database/automated-test-db.db");
+  // Verify the copied file has content
+  cy.exec("ls -lh prisma/database/automated-test-db.db").then((result) => {
+    cy.log("Copied test database:", result.stdout);
+    if (result.stdout.includes(" 0 ") || result.stdout.includes(" 0B")) {
+      throw new Error("Database copy failed - target file is 0 bytes!");
+    }
+  });
+  cy.request({
+    method: "POST",
+    url: "http://localhost:3000/api/db/reconnect",
+    failOnStatusCode: false,
+  });
+
+  // Wait a moment for the database to be ready
+  cy.wait(1500);
 });
 
 Cypress.Commands.add("cleanupDatabase", () => {
   // Copy the automated-test-db-init.db to automated-test-db.db (overwrites it)
   cy.exec("rm  prisma/database/automated-test-db.db");
+  cy.wait(500);
 });
 
 Cypress.Commands.add("deleteBookCoverImage", (bookId: string) => {

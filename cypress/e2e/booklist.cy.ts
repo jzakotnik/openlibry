@@ -1,7 +1,18 @@
 /// <reference types="cypress" />
-describe("Navigation", () => {
+describe("List of books", () => {
   before(() => {
-    cy.login();
+    cy.resetDatabase();
+  });
+
+  after(() => {
+    cy.cleanupDatabase();
+  });
+
+  beforeEach(() => {
+    cy.session("user-session", () => {
+      cy.login();
+    });
+    cy.visit("http://localhost:3000/");
   });
   it("should navigate to the book screen", () => {
     cy.log(Cypress.env("user"));

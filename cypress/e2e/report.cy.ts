@@ -1,7 +1,11 @@
 /// <reference types="cypress" />
-describe("Navigation", () => {
+describe("Various Reports show data", () => {
   before(() => {
+    cy.resetDatabase();
     cy.login();
+  });
+  after(() => {
+    cy.cleanupDatabase();
   });
   it("should navigate to the rental screen", () => {
     cy.log(Cypress.env("user"));

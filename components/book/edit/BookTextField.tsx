@@ -30,6 +30,7 @@ const BookTextField = ({
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
         setBookData({ ...book, [fieldType]: event.target.value });
       }}
+      data-cy={`book-${fieldType}-field`}
     />
   );
 };

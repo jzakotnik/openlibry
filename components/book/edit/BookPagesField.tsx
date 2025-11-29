@@ -35,6 +35,7 @@ const BookPagesField = ({
           [fieldType]: pageNumber,
         });
       }}
+      data-cy={`book-${fieldType}-field`}
     />
   );
 };

@@ -1,5 +1,12 @@
 /// <reference types="cypress" />
-describe("Navigation", () => {
+describe("Login", () => {
+  before(() => {
+    cy.resetDatabase();
+  });
+
+  after(() => {
+    cy.cleanupDatabase();
+  });
   it("should navigate to the title screen", () => {
     cy.log(Cypress.env("user"));
     // Start from the index page
