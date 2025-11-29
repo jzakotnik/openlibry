@@ -3,6 +3,9 @@ describe("Navigation", () => {
   before(() => {
     cy.resetDatabase();
   });
+  after(() => {
+    cy.cleanupDatabase();
+  });
   beforeEach(() => {
     // Preserve session between tests
     cy.session("user-session", () => {
