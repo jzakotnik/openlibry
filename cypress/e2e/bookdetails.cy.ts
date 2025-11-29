@@ -2,9 +2,12 @@
 describe("Navigation", () => {
   before(() => {
     cy.resetDatabase();
+    // just in case it is there
+    cy.deleteBookCoverImage(Cypress.env("bookid"));
   });
   after(() => {
     cy.cleanupDatabase();
+    cy.deleteBookCoverImage(Cypress.env("bookid"));
   });
   beforeEach(() => {
     // Preserve session between tests
@@ -31,9 +34,6 @@ describe("Navigation", () => {
   });
 
   it("should upload a book cover image", () => {
-    // Delete the existing cover image before testing upload
-    cy.deleteBookCoverImage(Cypress.env("bookid"));
-
     // Navigate to the book edit page
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
