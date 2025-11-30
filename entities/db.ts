@@ -1,13 +1,30 @@
-// db.ts (singleton)
+// @/entities/db.ts (or wherever your prisma client is defined)
 import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
-console.log("Database path", process.env.DATABASE_URL);
 export const prisma =
-  globalForPrisma.prisma ||
+  global.prisma ||
   new PrismaClient({
-    log: ["query", "error", "warn"], // optional
+    log:
+      process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = prisma;
+}
+
+// Force reconnection - useful for tests
+export async function reconnectPrisma() {
+  try {
+    await prisma.$disconnect();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await prisma.$connect();
+    console.log("✓ Prisma reconnected");
+  } catch (error) {
+    console.error("❌ Error reconnecting Prisma:", error);
+    throw error;
+  }
+}

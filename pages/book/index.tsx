@@ -5,28 +5,19 @@ import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
-
-import { getAllBooks } from "@/entities/book";
-
-import { convertDateToDayString, currentTime } from "@/utils/dateutils";
-
-import { BookType } from "@/entities/BookType";
-
-import BookSummaryCard from "@/components/book/BookSummaryCard";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
+import BookSummaryCard from "@/components/book/BookSummaryCard";
 import BookSummaryRow from "@/components/book/BookSummaryRow";
+import { getAllBooks } from "@/entities/book";
+import { BookType } from "@/entities/BookType";
+import { prisma, reconnectPrisma } from "@/entities/db";
+import { convertDateToDayString, currentTime } from "@/utils/dateutils";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
 
-import { prisma } from "@/entities/db";
-/*
-const theme = createTheme({
-  palette: {
-    primary: { main: "#1976d2" },
-  },
-});*/
 const gridItemProps = {
   xs: 12,
   sm: 12,
@@ -43,16 +34,31 @@ interface BookPropsType {
   books: Array<SearchableBookType>;
   numberBooksToShow: number;
   maxBooks: number;
+  _timestamp?: number;
 }
 
+// Fetcher function for SWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function Books({
-  books,
+  books: initialBooks,
   numberBooksToShow,
   maxBooks,
 }: BookPropsType) {
   const theme = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  // SWR hook to fetch fresh data
+  const { data: freshData, mutate } = useSWR("/api/books/all", fetcher, {
+    fallbackData: { books: initialBooks },
+    refreshInterval: 0, // Only refresh on demand, not automatically
+    revalidateOnFocus: true, // Revalidate when window gains focus
+    revalidateOnReconnect: true,
+    dedupingInterval: 0, // No deduplication in test mode
+  });
+
+  const books = freshData?.books || initialBooks;
 
   const [renderedBooks, setRenderedBooks] = useState(books);
   const [bookSearchInput, setBookSearchInput] = useState("");
@@ -61,12 +67,21 @@ export default function Books({
   const [searchResultNumber, setSearchResultNumber] = useState(0);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
+  // Update rendered books when fresh data arrives
+  useEffect(() => {
+    setRenderedBooks(books);
+    if (bookSearchInput) {
+      searchBooks(bookSearchInput);
+    }
+  }, [books]);
+
   if (isMobile) {
     gridItemProps.sm = 12;
     gridItemProps.md = 12;
     gridItemProps.lg = 12;
     gridItemProps.xl = 12;
   }
+
   const searchEngine = itemsjs(books, {
     searchableFields: ["title", "author", "subtitle", "searchableTopics", "id"],
   });
@@ -75,10 +90,8 @@ export default function Books({
     const foundBooks = searchEngine.search({
       sort: "name_asc",
       per_page: maxBooks,
-      // full text search
       query: searchString,
     });
-    //console.log("Searched books", books);
 
     console.log("Found books", foundBooks);
     setPageIndex(numberBooksToShow);
@@ -110,6 +123,8 @@ export default function Books({
       .then((res) => res.json())
       .then((data) => {
         setBookCreating(false);
+        // Revalidate SWR cache after creating
+        mutate();
         router.push("book/" + data.id);
         console.log("Book created", data);
       });
@@ -139,13 +154,15 @@ export default function Books({
       .then((res) => res.json())
       .then((data) => {
         setBookCreating(false);
+        // Revalidate SWR cache after creating
+        mutate();
         router.push("book/" + data.id);
         console.log("Book created", data);
       });
   };
 
   const handleReturnBook = (id: number, userid: number) => {
-    console.log("Return  book");
+    console.log("Return book");
 
     fetch(`/api/book/${id}/user/${userid}`, {
       method: "DELETE",
@@ -156,12 +173,15 @@ export default function Books({
       .then((res) => res.json())
       .then((data) => {
         console.log("Book returned, relationship deleted", data, id, userid);
-        const newRenderedBooks = renderedBooks.map((b) => {
-          console.log("Compare rendered books", b.id, id);
+
+        // Optimistic update
+        const newRenderedBooks = renderedBooks.map((b: any) => {
           return b.id === id ? { ...b, rentalStatus: "available" } : b;
         });
-        console.log("New rendered books", newRenderedBooks, renderedBooks);
         setRenderedBooks(newRenderedBooks);
+
+        // Revalidate from server
+        mutate();
       });
   };
 
@@ -170,7 +190,7 @@ export default function Books({
   ) => {
     const searchString = e.target.value;
     setPageIndex(numberBooksToShow);
-    const result = searchBooks(searchString);
+    searchBooks(searchString);
     setBookSearchInput(searchString);
   };
 
@@ -191,7 +211,7 @@ export default function Books({
               returnBook={() => handleReturnBook(b.id!, b.userId!)}
             />
           </Grid>
-        ))}{" "}
+        ))}
         {renderedBooks.length - pageIndex > 0 && (
           <Button onClick={() => setPageIndex(pageIndex + numberBooksToShow)}>
             {"Weitere Bücher..." +
@@ -244,6 +264,11 @@ export default function Books({
 export const getServerSideProps: GetServerSideProps = async (
   context: GetServerSidePropsContext
 ) => {
+  // In test/dev environment, force fresh Prisma connection
+  if (process.env.NODE_ENV !== "production") {
+    await reconnectPrisma();
+  }
+
   // Disable all caching
   context.res.setHeader(
     "Cache-Control",
@@ -251,27 +276,47 @@ export const getServerSideProps: GetServerSideProps = async (
   );
   context.res.setHeader("Pragma", "no-cache");
   context.res.setHeader("Expires", "0");
-  const allBooks = await getAllBooks(prisma);
-  const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
-    ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
-    : 10;
 
-  const maxBooks = process.env.NUMBER_BOOKS_MAX
-    ? parseInt(process.env.NUMBER_BOOKS_MAX)
-    : 1000000;
+  try {
+    const allBooks = await getAllBooks(prisma);
+    const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
+      ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
+      : 10;
 
-  const books = allBooks.map((b) => {
-    const newBook = { ...b } as any; //define a better type there with conversion of Date to string
-    newBook.createdAt = convertDateToDayString(b.createdAt);
-    newBook.updatedAt = convertDateToDayString(b.updatedAt);
-    newBook.rentedDate = b.rentedDate
-      ? convertDateToDayString(b.rentedDate)
-      : "";
-    newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-    newBook.searchableTopics = b.topics ? b.topics.split(";") : ""; //otherwise the itemsjs search doesn't work, but not sure if I can override the type?
+    const maxBooks = process.env.NUMBER_BOOKS_MAX
+      ? parseInt(process.env.NUMBER_BOOKS_MAX)
+      : 1000000;
 
-    return newBook;
-  });
+    const books = allBooks.map((b) => {
+      const newBook = { ...b } as any;
+      newBook.createdAt = convertDateToDayString(b.createdAt);
+      newBook.updatedAt = convertDateToDayString(b.updatedAt);
+      newBook.rentedDate = b.rentedDate
+        ? convertDateToDayString(b.rentedDate)
+        : "";
+      newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+      newBook.searchableTopics = b.topics ? b.topics.split(";") : "";
 
-  return { props: { books, numberBooksToShow, maxBooks } };
+      return newBook;
+    });
+
+    return {
+      props: {
+        books,
+        numberBooksToShow,
+        maxBooks,
+        _timestamp: Date.now(),
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching books:", error);
+    return {
+      props: {
+        books: [],
+        numberBooksToShow: 10,
+        maxBooks: 1000000,
+        _timestamp: Date.now(),
+      },
+    };
+  }
 };

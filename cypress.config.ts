@@ -3,7 +3,6 @@ import { defineConfig } from "cypress";
 import * as fs from "fs";
 import * as path from "path";
 
-// Create a Prisma client for Cypress tasks
 let prisma: PrismaClient | null = null;
 
 function getPrismaClient() {
@@ -26,14 +25,10 @@ export default defineConfig({
   e2e: {
     experimentalRunAllSpecs: true,
     baseUrl: "http://localhost:3000",
-
-    // Video configuration
     video: false,
     videosFolder: "cypress/videos",
     videoCompression: 32,
     trashAssetsBeforeRuns: true,
-
-    // Screenshot configuration
     screenshotOnRunFailure: false,
     screenshotsFolder: "cypress/screenshots",
 
@@ -93,6 +88,37 @@ export default defineConfig({
             return null;
           } catch (error) {
             console.error("❌ Error resetting database:", error);
+            throw error;
+          }
+        },
+
+        async cleanupDatabase() {
+          const targetDb = path.join(
+            __dirname,
+            "prisma/database/automated-test-db.db"
+          );
+
+          try {
+            // 1. Disconnect Prisma if connected
+            if (prisma) {
+              await prisma.$disconnect();
+              prisma = null;
+            }
+
+            // 2. Wait for file locks to release
+            await new Promise((resolve) => setTimeout(resolve, 200));
+
+            // 3. Delete database file if it exists
+            if (fs.existsSync(targetDb)) {
+              fs.unlinkSync(targetDb);
+              console.log("✓ Database cleaned up successfully");
+            } else {
+              console.log("ℹ Database file does not exist, nothing to clean");
+            }
+
+            return null;
+          } catch (error) {
+            console.error("❌ Error cleaning up database:", error);
             throw error;
           }
         },
@@ -170,6 +196,55 @@ export default defineConfig({
             throw error;
           }
         },
+
+        async deleteFile(filePath: string) {
+          try {
+            const fullPath = path.join(__dirname, filePath);
+
+            if (fs.existsSync(fullPath)) {
+              fs.unlinkSync(fullPath);
+              console.log(`✓ Deleted file: ${filePath}`);
+            } else {
+              console.log(`ℹ File does not exist: ${filePath}`);
+            }
+
+            return null;
+          } catch (error) {
+            console.error(`❌ Error deleting file ${filePath}:`, error);
+            // Don't throw - file deletion failures shouldn't fail tests
+            return null;
+          }
+        },
+
+        async deleteBookCoverImage(bookId: string) {
+          try {
+            const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+            const coverDir = path.join(__dirname, "public/coverimages");
+            let deletedCount = 0;
+
+            for (const ext of extensions) {
+              const filePath = path.join(coverDir, `${bookId}${ext}`);
+              if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                deletedCount++;
+                console.log(`✓ Deleted cover image: ${bookId}${ext}`);
+              }
+            }
+
+            if (deletedCount === 0) {
+              console.log(`ℹ No cover images found for book ${bookId}`);
+            }
+
+            return null;
+          } catch (error) {
+            console.error(
+              `❌ Error deleting cover images for book ${bookId}:`,
+              error
+            );
+            // Don't throw - image deletion failures shouldn't fail tests
+            return null;
+          }
+        },
       });
 
       // Clean up Prisma connection when Cypress closes
@@ -177,26 +252,6 @@ export default defineConfig({
         if (prisma) {
           await prisma.$disconnect();
           console.log("✓ Prisma disconnected after test run");
-        }
-      });
-
-      // Optional: Delete videos for passed tests
-      on("after:spec", (spec, results) => {
-        if (results && results.video) {
-          const failures = results.tests.some((test) =>
-            test.attempts.some((attempt) => attempt.state === "failed")
-          );
-
-          if (!failures) {
-            try {
-              fs.unlinkSync(results.video);
-              console.log("✓ Deleted video for passed test:", spec.name);
-            } catch (err) {
-              console.error("Could not delete video:", err);
-            }
-          } else {
-            console.log("✗ Keeping video for failed test:", spec.name);
-          }
         }
       });
 

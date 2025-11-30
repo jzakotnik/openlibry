@@ -6,7 +6,7 @@ describe("Book editing and upload of cover", () => {
   });
 
   after(() => {
-    cy.task("logDatabaseState");
+    cy.task("cleanupDatabase");
   });
 
   beforeEach(() => {

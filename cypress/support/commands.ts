@@ -14,49 +14,37 @@ Cypress.Commands.add("login", () => {
   cy.clearCookies();
   cy.clearLocalStorage();
   cy.log(Cypress.env("user"));
-  // Start from the index page
   cy.visit("http://localhost:3000/");
   cy.get('input[id="user"]').type(Cypress.env("user"));
   cy.get('input[id="password"]').type(Cypress.env("password"));
-  cy.get('input[id="password"]').type("{enter}"); // '{enter}' submits the form
+  cy.get('input[id="password"]').type("{enter}");
   cy.get("[data-cy=indexpage]").should("be.visible");
 });
 
+// Wrapper commands that call the config tasks
 Cypress.Commands.add("resetDatabase", () => {
-  // Verify source database exists and has content
-  const sourceDbPath = "cypress/fixtures/automated-test-db-init.db";
-
   cy.task("resetDatabase").then(() => {
-    // Optional: verify the copy succeeded
     cy.log("✓ Database reset successfully");
   });
 
-  // Reconnect the database connection
+  // Reconnect via API
   cy.request({
     method: "POST",
     url: "http://localhost:3000/api/db/reconnect",
     failOnStatusCode: false,
   });
 
-  // Wait for database to be ready
-  cy.wait(1500);
+  cy.wait(500); // Reduced wait time since operations are faster now
 });
 
 Cypress.Commands.add("cleanupDatabase", () => {
-  // Copy the automated-test-db-init.db to automated-test-db.db (overwrites it)
-  cy.exec("rm  prisma/database/automated-test-db.db");
-  cy.wait(500);
+  cy.task("cleanupDatabase");
 });
 
 Cypress.Commands.add("deleteBookCoverImage", (bookId: string) => {
-  // Delete the book cover image file if it exists (try multiple extensions)
-  cy.exec(
-    `rm -f public/coverimages/${bookId}.jpg public/coverimages/${bookId}.jpeg public/coverimages/${bookId}.png || true`,
-    { failOnNonZeroExit: false }
-  );
+  cy.task("deleteBookCoverImage", bookId);
 });
 
 Cypress.Commands.add("deleteFile", (filePath: string) => {
-  // Delete any file using rm command
-  cy.exec(`rm -f ${filePath} || true`, { failOnNonZeroExit: false });
+  cy.task("deleteFile", filePath);
 });
