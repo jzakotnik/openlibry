@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { defineConfig } from "cypress";
+import ExcelJS from "exceljs";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -84,6 +85,19 @@ export default defineConfig({
             console.log(
               `✓ Database reset: ${stats.size} bytes copied, ${bookCount} books found`
             );
+
+            // 9. Clear downloads folder for Excel export tests
+            const downloadsFolder = path.join(__dirname, "cypress/downloads");
+            if (fs.existsSync(downloadsFolder)) {
+              const files = fs.readdirSync(downloadsFolder);
+              files.forEach((file) => {
+                fs.unlinkSync(path.join(downloadsFolder, file));
+              });
+              console.log(`✓ Downloads folder cleared`);
+            } else {
+              fs.mkdirSync(downloadsFolder, { recursive: true });
+              console.log(`✓ Downloads folder created`);
+            }
 
             return null;
           } catch (error) {
@@ -243,6 +257,303 @@ export default defineConfig({
             );
             // Don't throw - image deletion failures shouldn't fail tests
             return null;
+          }
+        },
+
+        // Excel Export Validation Tasks
+        clearDownloads(downloadsFolder: string) {
+          try {
+            const downloadPath = path.resolve(downloadsFolder);
+
+            if (fs.existsSync(downloadPath)) {
+              const files = fs.readdirSync(downloadPath);
+              files.forEach((file) => {
+                fs.unlinkSync(path.join(downloadPath, file));
+              });
+              console.log(
+                `✓ Downloads folder cleared: ${files.length} files deleted`
+              );
+            } else {
+              fs.mkdirSync(downloadPath, { recursive: true });
+              console.log(`✓ Downloads folder created: ${downloadPath}`);
+            }
+
+            return null;
+          } catch (error) {
+            console.error("❌ Error clearing downloads:", error);
+            throw error;
+          }
+        },
+
+        fileExists(filePath: string) {
+          try {
+            const exists = fs.existsSync(filePath);
+            console.log(`File ${filePath}: ${exists ? "EXISTS" : "NOT FOUND"}`);
+            return exists;
+          } catch (error) {
+            console.error(`❌ Error checking file existence:`, error);
+            return false;
+          }
+        },
+
+        async validateExcelStructure(filePath: string) {
+          try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+
+            const result = {
+              worksheetCount: workbook.worksheets.length,
+              worksheetNames: workbook.worksheets.map((ws) => ws.name),
+            };
+
+            console.log(`✓ Excel structure validated:`, result);
+            return result;
+          } catch (error) {
+            console.error("❌ Error validating Excel structure:", error);
+            throw error;
+          }
+        },
+
+        async validateBookColumns(filePath: string) {
+          try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+
+            const bookSheet = workbook.getWorksheet("Bücherliste");
+            if (!bookSheet) {
+              throw new Error("Bücherliste worksheet not found");
+            }
+
+            const headerRow = bookSheet.getRow(1);
+            const columns: string[] = [];
+
+            headerRow.eachCell({ includeEmpty: false }, (cell) => {
+              if (cell.value) {
+                columns.push(cell.value.toString());
+              }
+            });
+
+            console.log(
+              `✓ Book columns validated: ${columns.length} columns found`
+            );
+            console.log(`  Columns: ${columns.join(", ")}`);
+            return columns;
+          } catch (error) {
+            console.error("❌ Error validating book columns:", error);
+            throw error;
+          }
+        },
+
+        async validateUserColumns(filePath: string) {
+          try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+
+            const userSheet = workbook.getWorksheet("Userliste");
+            if (!userSheet) {
+              throw new Error("Userliste worksheet not found");
+            }
+
+            const headerRow = userSheet.getRow(1);
+            const columns: string[] = [];
+
+            headerRow.eachCell({ includeEmpty: false }, (cell) => {
+              if (cell.value) {
+                columns.push(cell.value.toString());
+              }
+            });
+
+            console.log(
+              `✓ User columns validated: ${columns.length} columns found`
+            );
+            console.log(`  Columns: ${columns.join(", ")}`);
+            return columns;
+          } catch (error) {
+            console.error("❌ Error validating user columns:", error);
+            throw error;
+          }
+        },
+
+        async validateExcelData(filePath: string) {
+          try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+
+            const bookSheet = workbook.getWorksheet("Bücherliste");
+            const userSheet = workbook.getWorksheet("Userliste");
+
+            if (!bookSheet || !userSheet) {
+              throw new Error("Required worksheets not found");
+            }
+
+            const result = {
+              booksRowCount: bookSheet.rowCount,
+              usersRowCount: userSheet.rowCount,
+            };
+
+            console.log(
+              `✓ Excel data validated: ${result.booksRowCount - 1} books, ${
+                result.usersRowCount - 1
+              } users`
+            );
+            return result;
+          } catch (error) {
+            console.error("❌ Error validating Excel data:", error);
+            throw error;
+          }
+        },
+
+        async validateDateFormats(filePath: string) {
+          try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+
+            const bookSheet = workbook.getWorksheet("Bücherliste");
+            const userSheet = workbook.getWorksheet("Userliste");
+
+            if (!bookSheet || !userSheet) {
+              throw new Error("Required worksheets not found");
+            }
+
+            const invalidDates: string[] = [];
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD format
+
+            // Check date columns in book sheet (German names)
+            const bookDateColumns = [
+              "Erzeugt am",
+              "Update am",
+              "Ausgeliehen am",
+              "Rückgabe am",
+            ];
+            const bookHeaderRow = bookSheet.getRow(1);
+            const bookColumnIndices: { [key: string]: number } = {};
+
+            bookHeaderRow.eachCell(
+              { includeEmpty: false },
+              (cell, colNumber) => {
+                const header = cell.value?.toString();
+                if (header && bookDateColumns.includes(header)) {
+                  bookColumnIndices[header] = colNumber;
+                }
+              }
+            );
+
+            bookSheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+              if (rowNumber === 1) return; // Skip header
+
+              Object.entries(bookColumnIndices).forEach(
+                ([header, colIndex]) => {
+                  const cell = row.getCell(colIndex);
+                  const value = cell.value?.toString();
+
+                  if (value && value.trim() !== "" && !dateRegex.test(value)) {
+                    invalidDates.push(
+                      `Book row ${rowNumber}, ${header}: ${value}`
+                    );
+                  }
+                }
+              );
+            });
+
+            // Check date columns in user sheet (German names)
+            const userDateColumns = ["Erzeugt am", "Update am"];
+            const userHeaderRow = userSheet.getRow(1);
+            const userColumnIndices: { [key: string]: number } = {};
+
+            userHeaderRow.eachCell(
+              { includeEmpty: false },
+              (cell, colNumber) => {
+                const header = cell.value?.toString();
+                if (header && userDateColumns.includes(header)) {
+                  userColumnIndices[header] = colNumber;
+                }
+              }
+            );
+
+            userSheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+              if (rowNumber === 1) return; // Skip header
+
+              Object.entries(userColumnIndices).forEach(
+                ([header, colIndex]) => {
+                  const cell = row.getCell(colIndex);
+                  const value = cell.value?.toString();
+
+                  if (value && value.trim() !== "" && !dateRegex.test(value)) {
+                    invalidDates.push(
+                      `User row ${rowNumber}, ${header}: ${value}`
+                    );
+                  }
+                }
+              );
+            });
+
+            const result = {
+              isValid: invalidDates.length === 0,
+              invalidDates: invalidDates,
+            };
+
+            if (result.isValid) {
+              console.log(`✓ Date formats validated: All dates valid`);
+            } else {
+              console.log(
+                `⚠ Date format issues found: ${invalidDates.length} invalid dates`
+              );
+            }
+
+            return result;
+          } catch (error) {
+            console.error("❌ Error validating date formats:", error);
+            throw error;
+          }
+        },
+
+        async checkRentalData(filePath: string) {
+          try {
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+
+            const bookSheet = workbook.getWorksheet("Bücherliste");
+            if (!bookSheet) {
+              throw new Error("Bücherliste worksheet not found");
+            }
+
+            const headerRow = bookSheet.getRow(1);
+            let rentalStatusIndex = 0;
+
+            headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+              if (cell.value?.toString() === "Ausleihstatus") {
+                rentalStatusIndex = colNumber;
+              }
+            });
+
+            let rentedBooksCount = 0;
+            let availableBooksCount = 0;
+
+            bookSheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+              if (rowNumber === 1) return; // Skip header
+
+              const statusCell = row.getCell(rentalStatusIndex);
+              const status = statusCell.value?.toString();
+
+              if (status === "rented") {
+                rentedBooksCount++;
+              } else if (status === "available") {
+                availableBooksCount++;
+              }
+            });
+
+            const result = {
+              rentedBooksCount,
+              availableBooksCount,
+            };
+
+            console.log(
+              `✓ Rental data checked: ${rentedBooksCount} rented, ${availableBooksCount} available`
+            );
+            return result;
+          } catch (error) {
+            console.error("❌ Error checking rental data:", error);
+            throw error;
           }
         },
       });
