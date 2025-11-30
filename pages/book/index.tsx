@@ -1,10 +1,10 @@
+import Layout from "@/components/layout/Layout";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-
-import Layout from "@/components/layout/Layout";
 import { useState } from "react";
 
 import { getAllBooks } from "@/entities/book";
@@ -241,7 +241,16 @@ export default function Books({
   );
 }
 
-export async function getServerSideProps() {
+export const getServerSideProps: GetServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
+  // Disable all caching
+  context.res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+  );
+  context.res.setHeader("Pragma", "no-cache");
+  context.res.setHeader("Expires", "0");
   const allBooks = await getAllBooks(prisma);
   const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
     ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
@@ -265,4 +274,4 @@ export async function getServerSideProps() {
   });
 
   return { props: { books, numberBooksToShow, maxBooks } };
-}
+};
