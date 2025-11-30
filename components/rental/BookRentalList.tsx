@@ -137,12 +137,18 @@ export default function BookRentalList({
   const ExtendedIcon = () => <UpdateIcon />;
 
   return (
-    <div>
+    <div data-cy="book_rental_list_container">
       <FormControl variant="standard">
-        <InputLabel htmlFor="book-search-input-label">Suche Buch</InputLabel>
+        <InputLabel
+          htmlFor="book-search-input-label"
+          data-cy="book_search_label"
+        >
+          Suche Buch
+        </InputLabel>
         <Input
           id="book-search-input"
           inputRef={searchFieldRef}
+          data-cy="book_search_input"
           startAdornment={
             <InputAdornment position="start">
               <MenuBookIcon />
@@ -152,7 +158,11 @@ export default function BookRentalList({
             bookSearchInput && (
               <InputAdornment position="end">
                 <Tooltip title="Suche löschen">
-                  <IconButton edge="end" onMouseDown={handleClear}>
+                  <IconButton
+                    edge="end"
+                    onMouseDown={handleClear}
+                    data-cy="book_search_clear_button"
+                  >
                     <ClearIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -166,7 +176,11 @@ export default function BookRentalList({
       </FormControl>
 
       {/* Use Stack instead of Grid for the vertical list to avoid spacing/overflow quirks */}
-      <Stack spacing={1} sx={{ px: 0.5, my: 0.5 }}>
+      <Stack
+        spacing={1}
+        sx={{ px: 0.5, my: 0.5 }}
+        data-cy="book_list_container"
+      >
         {renderedBooks.slice(0, 100).map((b: BookType) => {
           const allowExtendBookRent = extensionDueDate.isAfter(
             b.dueDate,
@@ -185,6 +199,7 @@ export default function BookRentalList({
                 // VERY IMPORTANT for iPad/Safari: do not clip trailing icons
                 overflow: "visible",
               }}
+              data-cy={`book_item_${b.id}`}
             >
               {/* HEADER ROW */}
               <Box
@@ -199,9 +214,14 @@ export default function BookRentalList({
                   flexWrap: "nowrap",
                   minWidth: 0,
                 }}
+                data-cy={`book_header_${b.id}`}
               >
                 {/* LEFT: title — grows, can truncate */}
-                <Typography sx={{ flex: "1 1 auto", minWidth: 0 }} noWrap>
+                <Typography
+                  sx={{ flex: "1 1 auto", minWidth: 0 }}
+                  noWrap
+                  data-cy={`book_title_${b.id}`}
+                >
                   {b.title}
                 </Typography>
 
@@ -217,6 +237,7 @@ export default function BookRentalList({
                     zIndex: 1,
                     overflow: "visible",
                   }}
+                  data-cy={`book_actions_${b.id}`}
                 >
                   {b.rentalStatus !== "available" && (
                     <Tooltip title={tooltip}>
@@ -229,6 +250,7 @@ export default function BookRentalList({
                             markBookTouched(b.id!);
                           }}
                           size="small"
+                          data-cy={`book_extend_button_${b.id}`}
                         >
                           <ExtendedIcon />
                         </IconButton>
@@ -245,6 +267,7 @@ export default function BookRentalList({
                         }}
                         aria-label="zurückgeben"
                         size="small"
+                        data-cy={`book_return_button_${b.id}`}
                       >
                         <ReturnedIcon />
                       </IconButton>
@@ -260,6 +283,7 @@ export default function BookRentalList({
                         }}
                         aria-label="ausleihen"
                         size="small"
+                        data-cy={`book_rent_button_${b.id}`}
                       >
                         <PlaylistAddIcon />
                       </IconButton>
@@ -279,8 +303,14 @@ export default function BookRentalList({
                   width: "100%",
                   minWidth: 0,
                 }}
+                data-cy={`book_subtitle_row_${b.id}`}
               >
-                <Typography sx={{ m: 0.5 }} variant="body2" noWrap>
+                <Typography
+                  sx={{ m: 0.5 }}
+                  variant="body2"
+                  noWrap
+                  data-cy={`book_subtitle_${b.id}`}
+                >
                   Untertitel: {b.subtitle}
                 </Typography>
               </Box>
@@ -296,8 +326,13 @@ export default function BookRentalList({
                   width: "100%",
                   minWidth: 0,
                 }}
+                data-cy={`book_info_row_${b.id}`}
               >
-                <Typography sx={{ m: 0.5 }} variant="body2">
+                <Typography
+                  sx={{ m: 0.5 }}
+                  variant="body2"
+                  data-cy={`book_info_${b.id}`}
+                >
                   Buch Nr. {b.id}
                   {!(
                     b.rentalStatus === "available" || b.rentalStatus === "lost"

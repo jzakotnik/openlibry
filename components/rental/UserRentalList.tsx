@@ -164,13 +164,14 @@ export default function UserRentalList({
   );
 
   return (
-    <div>
+    <div data-cy="user_rental_list_container">
       {" "}
       <Grid
         container
         alignItems="center"
         justifyContent="space-between"
         direction="row"
+        data-cy="user_search_header"
       >
         <Grid>
           <FormControl variant="standard">
@@ -186,6 +187,7 @@ export default function UserRentalList({
               id="user-search-input"
               autoFocus={true}
               inputRef={searchFieldRef}
+              data-cy="user_search_input"
               startAdornment={
                 <InputAdornment position="start">
                   <AccountCircle />
@@ -195,7 +197,11 @@ export default function UserRentalList({
                 userSearchInput && (
                   <InputAdornment position="end">
                     <Tooltip title="Suche löschen">
-                      <IconButton edge="end" onMouseDown={handleClear}>
+                      <IconButton
+                        edge="end"
+                        onMouseDown={handleClear}
+                        data-cy="user_search_clear_button"
+                      >
                         <ClearIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -209,7 +215,11 @@ export default function UserRentalList({
           </FormControl>
         </Grid>
         <Grid>
-          <Typography variant="caption" color="primary">
+          <Typography
+            variant="caption"
+            color="primary"
+            data-cy="user_selected_display"
+          >
             {userExpanded
               ? " Ausgewählt: " + getUserFromID(userExpanded).firstName
               : ""}
@@ -222,6 +232,7 @@ export default function UserRentalList({
               aria-label="search-settings"
               color="primary"
               onClick={() => setShowDetailSearch(!showDetailSearch)}
+              data-cy="user_search_settings_button"
             >
               {" "}
               <SettingsSuggestIcon />
@@ -245,11 +256,13 @@ export default function UserRentalList({
             expanded={userExpanded == u.id!}
             onChange={handleExpandedUser(u.id!)}
             sx={{ minWidth: 275 }}
+            data-cy={`user_accordion_${u.id}`}
           >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel1a-content"
               id="panel1a-header"
+              data-cy={`user_accordion_summary_${u.id}`}
               sx={{
                 // make the internal content a single centered row
                 "& .MuiAccordionSummary-content": {
@@ -274,6 +287,7 @@ export default function UserRentalList({
                   mb: 0, // avoid gutter pushing layout
                 }}
                 color="text.secondary"
+                data-cy={`user_name_${u.id}`}
               >
                 {u.firstName} {u.lastName}
                 {rentalsUser.length > 0
@@ -287,19 +301,21 @@ export default function UserRentalList({
               <Typography
                 sx={{ fontSize: 12, whiteSpace: "nowrap", mb: 0, mr: 1 }}
                 color="text.primary"
+                data-cy={`user_meta_${u.id}`}
               >
                 Nr. {u.id}, Klasse {u.schoolGrade}
               </Typography>
               <OverdueIcon rentalsUser={rentalsUser} />
             </AccordionSummary>
 
-            <AccordionDetails>
+            <AccordionDetails data-cy={`user_accordion_details_${u.id}`}>
               <Grid
                 container
                 direction="column"
                 alignItems="stretch"
                 justifyContent="flex-start"
                 sx={{ px: 1, my: 1 }}
+                data-cy={`user_rental_books_container_${u.id}`}
               >
                 {rentalsUser.map((r: RentalsUserType) => {
                   let allowExtendBookRent = extensionDays.isAfter(
@@ -312,7 +328,12 @@ export default function UserRentalList({
                   return (
                     <span key={"span" + r.id}>
                       {" "}
-                      <Paper elevation={0} key={r.id} sx={{ my: 1 }}>
+                      <Paper
+                        elevation={0}
+                        key={r.id}
+                        sx={{ my: 1 }}
+                        data-cy={`rental_book_item_${r.id}`}
+                      >
                         <Grid
                           container
                           direction="row"
@@ -336,14 +357,23 @@ export default function UserRentalList({
                                   });
                                 }}
                                 aria-label="zurückgeben"
+                                data-cy={`book_return_button_${r.id}`}
                               >
                                 <ReturnedIcon key={r.id} />
                               </IconButton>
                             </Tooltip>
                           </Grid>
                           <Grid size={{ xs: 8 }}>
-                            <Typography sx={{ m: 1 }}>{r.title},</Typography>
-                            <Typography variant="caption">
+                            <Typography
+                              sx={{ m: 1 }}
+                              data-cy={`rental_book_title_${r.id}`}
+                            >
+                              {r.title},
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              data-cy={`rental_book_details_${r.id}`}
+                            >
                               bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
                               {r.renewalCount}x verlängert
                             </Typography>
@@ -368,6 +398,7 @@ export default function UserRentalList({
                                         ...newbook,
                                       });
                                     }}
+                                    data-cy={`book_extend_button_${r.id}`}
                                   >
                                     <ExtendedIcon key={r.id} />
                                   </IconButton>

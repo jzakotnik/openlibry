@@ -176,10 +176,15 @@ export default function Rental({
         alignItems="flex-start"
         spacing={2}
         sx={{ my: 1 }}
+        data-cy="rental_page_container"
       >
         {/* Use sm instead of md so iPad (≥768px) shows two columns.
             Also allow overflow to ensure right-side icons are visible. */}
-        <Grid size={{ xs: 12, sm: 6 }} sx={{ overflow: "visible" }}>
+        <Grid
+          size={{ xs: 12, sm: 6 }}
+          sx={{ overflow: "visible" }}
+          data-cy="rental_user_column"
+        >
           <UserRentalList
             users={users}
             books={books}
@@ -192,7 +197,11 @@ export default function Rental({
             handleBookSearchSetFocus={handleBookSearchSetFocus}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} sx={{ overflow: "visible" }}>
+        <Grid
+          size={{ xs: 12, sm: 6 }}
+          sx={{ overflow: "visible" }}
+          data-cy="rental_book_column"
+        >
           <BookRentalList
             books={books}
             users={users} // to figure out the user name who rented
