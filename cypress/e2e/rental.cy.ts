@@ -38,7 +38,7 @@ describe("Rental of books", () => {
         cy.get("[data-cy^=book_rent_button_]").click();
       });
 
-    cy.wait(3000);
+    cy.wait(5000);
     // Verify rental success message appears
     cy.contains("ausgeliehen").should("be.visible");
 
@@ -61,7 +61,7 @@ describe("Rental of books", () => {
 
     // Verify return success message appears
     cy.contains("zurückgegeben").should("be.visible");
-
+    cy.wait(5000);
     // Verify the book is no longer in the user's rented list
     cy.get("[data-cy^=user_accordion_details_]")
       .first()

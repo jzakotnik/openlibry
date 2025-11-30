@@ -5,7 +5,7 @@ import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
-import { prisma } from "@/entities/db";
+import { prisma, reconnectPrisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import {
   convertDateToDayString,
@@ -16,6 +16,7 @@ import {
 import { getBookFromID } from "@/utils/getBookFromID";
 import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
+import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useSnackbar } from "notistack";
 import { useRef, useState } from "react";
@@ -220,7 +221,22 @@ export default function Rental({
   );
 }
 
-export async function getServerSideProps() {
+export const getServerSideProps: GetServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
+  // In test/dev environment, force fresh Prisma connection
+  if (process.env.NODE_ENV !== "production") {
+    await reconnectPrisma();
+  }
+
+  // Disable all caching
+  context.res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+  );
+  context.res.setHeader("Pragma", "no-cache");
+  context.res.setHeader("Expires", "0");
+
   const extensionDays = Number(process.env.EXTENSION_DURATION_DAYS) || 14;
   const bookSortBy = process.env.RENTAL_SORT_BOOKS || "title_asc";
 
@@ -265,4 +281,4 @@ export async function getServerSideProps() {
   });
 
   return { props: { books, users, rentals, extensionDays, bookSortBy } };
-}
+};
