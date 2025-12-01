@@ -29,6 +29,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env.test
 
 # vercel
 .vercel
@@ -132,10 +133,15 @@ importscripts/openbiblio/migrationFile/content/biblio_copy
 importscripts/openbiblio/migrationFile/content/biblio_field
 importscripts/openbiblio/migrationFile/content/biblio_status_hist
 importscripts/openbiblio/migrationFile/content/member
-prisma/database/dev_backup.db
-prisma/database/dev-mammolshain.db
-prisma/database/dev-testing.db
+
 public/~$hnung-template.docx
-prisma/database/
+prisma/database/*
+!prisma/database/automated-test-db-init.db
 
 cypress/screenshots
+
+.env.test
+cypress/videos/
+cypress/screenshots/
+
+

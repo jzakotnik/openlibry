@@ -5,12 +5,14 @@ interface HoldButtonProps {
   onClick: any;
   duration: number;
   buttonLabel: string;
+  "data-cy"?: string;
 }
 
 const HoldButton: React.FC<HoldButtonProps> = ({
   onClick,
   duration = 3,
   buttonLabel = "Löschen",
+  "data-cy": dataCy,
 }) => {
   const [isHolding, setIsHolding] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
@@ -65,6 +67,7 @@ const HoldButton: React.FC<HoldButtonProps> = ({
         onMouseLeave={stopHold}
         onTouchStart={startHold}
         onTouchEnd={stopHold}
+        data-cy={dataCy}
         sx={{
           position: "relative",
           width: "200px",

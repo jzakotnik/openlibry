@@ -224,7 +224,7 @@ export async function extendBook(
     const book = await getBook(client, bookid);
     if (!book?.dueDate) return; //you can't extend a book without a due date
     const updatedDueDate = dayjs(book?.dueDate).add(days, "day").toISOString();
-    client.book.update({
+    await client.book.update({
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
     });
@@ -343,11 +343,11 @@ export async function rentBook(
     client,
     "Rent book",
     "User id: " +
-    userid.toString() +
-    ", Book id: " +
-    bookid.toString() +
-    ", book title: " +
-    book?.title,
+      userid.toString() +
+      ", Book id: " +
+      bookid.toString() +
+      ", book title: " +
+      book?.title,
     bookid,
     userid
   );

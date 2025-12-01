@@ -125,9 +125,10 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
             mt: 5,
             p: 2,
           }}
+          data-cy="rentals-datagrid"
         >
           {error ? (
-            <Typography color="error">
+            <Typography color="error" data-cy="rentals-error">
               Fehler beim Laden der Daten: {error}
             </Typography>
           ) : reportDataAvailable ? (
@@ -144,7 +145,9 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
               //autoPageSize // Adjust page size based on container height
             />
           ) : (
-            <Typography>Keine Daten verfügbar</Typography>
+            <Typography data-cy="rentals-no-data">
+              Keine Daten verfügbar
+            </Typography>
           )}
         </Box>
       </ThemeProvider>

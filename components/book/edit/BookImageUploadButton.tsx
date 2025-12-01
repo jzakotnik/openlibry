@@ -71,7 +71,12 @@ const BookImageUploadButton = ({
 
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
-      <IconButton color="primary" aria-label="upload picture" component="label">
+      <IconButton
+        color="primary"
+        aria-label="upload picture"
+        component="label"
+        data-cy="upload-image-button"
+      >
         <PhotoCamera />
         <input
           id="upload-image"
@@ -79,6 +84,7 @@ const BookImageUploadButton = ({
           accept="image/*"
           type="file"
           onChange={handleChange}
+          data-cy="upload-image-input"
         />
       </IconButton>
     </Stack>

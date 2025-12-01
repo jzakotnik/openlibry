@@ -118,7 +118,7 @@ export default function BookSummaryCard({
           </Link>
           <Link href={`/reports/print?id=${book.id}`} passHref>
             <Tooltip title="Buchlabel drucken">
-              <Button size="small" data-cy="book_card_editbutton">
+              <Button size="small" data-cy="book_card_printbutton">
                 Drucken
               </Button>
             </Tooltip>

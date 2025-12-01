@@ -80,11 +80,12 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
   };
 
   return (
-    <AppBar position="static" color="secondary">
+    <AppBar position="static" color="secondary" data-cy="topbar">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <LibraryBooksIcon
             sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
+            data-cy="topbar_logo_desktop"
           />
           <Typography
             variant="h6"
@@ -99,6 +100,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
               color: "inherit",
               textDecoration: "none",
             }}
+            data-cy="topbar_title_desktop"
           >
             OpenLibry
           </Typography>
@@ -111,6 +113,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
               color="inherit"
+              data-cy="topbar_menu_button_mobile"
             >
               <MenuIcon />
             </IconButton>
@@ -131,11 +134,13 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
               sx={{
                 display: { xs: "block", md: "none" },
               }}
+              data-cy="topbar_menu_mobile"
             >
               {publicNavItems.map((page) => (
                 <MenuItem
                   key={page.title}
                   onClick={(event) => handleCloseNavMenu(event, page.slug)}
+                  data-cy={`topbar_menu_item_${page.slug.replace(/\//g, "_")}`}
                 >
                   <Typography textAlign="center">{page.title}</Typography>
                 </MenuItem>
@@ -144,6 +149,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
           </Box>
           <LibraryBooksIcon
             sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
+            data-cy="topbar_logo_mobile"
           />
           <Typography
             variant="h5"
@@ -160,6 +166,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
               color: "inherit",
               textDecoration: "none",
             }}
+            data-cy="topbar_title_mobile"
           >
             OpenLibry
           </Typography>
@@ -169,6 +176,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
                 key={page.title}
                 onClick={(event) => handleCloseNavMenu(event, page.slug)}
                 sx={{ my: 2, color: "white", display: "block" }}
+                data-cy={`topbar_nav_button_${page.slug.replace(/\//g, "_")}`}
               >
                 {page.title}
               </Button>
@@ -181,6 +189,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
                   sx={{ my: 2, color: "white", display: "block" }}
                   onClick={BackupFunc}
                   aria-label="Backup"
+                  data-cy="topbar_backup_button"
                 >
                   <CloudDownloadIcon />
                 </IconButton>
