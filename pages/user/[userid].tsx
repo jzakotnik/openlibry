@@ -10,6 +10,7 @@ import MuiAlert, { AlertProps } from "@mui/material/Alert";
 import { useRouter } from "next/router";
 import { forwardRef } from "react";
 
+import { prisma } from "@/entities/db";
 import {
   convertDateToDayString,
   extendDays,
@@ -17,7 +18,6 @@ import {
   replaceUserDateString,
   sameDay,
 } from "@/utils/dateutils";
-import { PrismaClient } from "@prisma/client";
 
 import UserEditForm from "@/components/user/UserEditForm";
 import { BookType } from "@/entities/BookType";
@@ -213,7 +213,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   );
   console.log("Delete safety seconds for the user", deleteSafetySeconds);
   if (!context.query.userid) return { props: {} };
-  const prisma = new PrismaClient();
 
   const dbuser = await getUser(
     prisma,
