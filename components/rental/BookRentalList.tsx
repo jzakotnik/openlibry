@@ -19,6 +19,7 @@ import {
 
 import dayjs from "dayjs";
 import "dayjs/locale/de";
+import debounce from "debounce";
 import itemsjs from "itemsjs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -69,10 +70,7 @@ export default function BookRentalList({
         id_desc: { field: "id", order: "desc" },
         title_asc: { field: "title", order: "asc" },
         title_desc: { field: "title", order: "desc" },
-      } as const satisfies Record<
-        "id_asc" | "id_desc" | "title_asc" | "title_desc",
-        Sorting<BookType>
-      >),
+      } as any),
     []
   );
 
@@ -88,9 +86,9 @@ export default function BookRentalList({
 
   // Stable search function (captures engine + sortBy)
   const searchBooks = useCallback(
-    (query: any) => {
+    (query: string) => {
       const found = searchEngine.search({
-        per_page: 20,
+        per_page: 100,
         sort: sortBy,
         query,
       });
@@ -99,10 +97,21 @@ export default function BookRentalList({
     [searchEngine, sortBy]
   );
 
-  // Run search whenever input text changes or engine/sort changes
+  // Create debounced search function
+  const debouncedSearch = useMemo(
+    () => debounce(searchBooks, 200),
+    [searchBooks]
+  );
+
+  // Run search whenever input text changes
   useEffect(() => {
-    searchBooks(bookSearchInput);
-  }, [bookSearchInput, searchBooks]);
+    debouncedSearch(bookSearchInput);
+
+    // Cleanup: cancel any pending debounced calls when component unmounts
+    return () => {
+      debouncedSearch.clear();
+    };
+  }, [bookSearchInput, debouncedSearch]);
 
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -114,8 +123,6 @@ export default function BookRentalList({
   ) => {
     const v = e.target.value;
     setBookSearchInput(v);
-    // optional immediate search (effect will also run)
-    //searchBooks(v);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {

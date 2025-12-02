@@ -32,6 +32,7 @@
     "cheerio": "^1.1.2",
     "csv-parse": "^6.1.0",
     "dayjs": "^1.11.13",
+    "debounce": "^3.0.0",
     "docxtemplater": "^3.65.2",
     "eslint-config-next": "^16.0.6",
     "eslint-plugin-cypress": "^5.1.0",
@@ -60,6 +61,7 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/debounce": "^1.2.4",
     "@types/file-saver": "^2.0.7",
     "@types/mocha": "^10.0.10",
     "@types/n3": "^1.26.0",
