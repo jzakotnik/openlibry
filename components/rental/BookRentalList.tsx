@@ -115,7 +115,7 @@ export default function BookRentalList({
     const v = e.target.value;
     setBookSearchInput(v);
     // optional immediate search (effect will also run)
-    searchBooks(v);
+    //searchBooks(v);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent): void => {
