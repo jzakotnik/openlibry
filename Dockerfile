@@ -1,20 +1,28 @@
 # ---- Base image versions ----
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # ---- Dependencies (cacheable, prod only) ----
 FROM base AS deps
-COPY package*.json ./
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install -g npm@11.6.4
+RUN echo "=== BUILDING WITH UPDATED DOCKERFILE ===" && npm --version
+RUN echo "=== FILES COPIED ===" && ls -la
 # Avoid dev deps here so Cypress doesn't run in this layer
-RUN npm ci --omit=dev
+RUN npm install --ignore-scripts
 
 # ---- Builder (needs dev deps, but skip Cypress binary) ----
 FROM base AS builder
 
 ENV CYPRESS_INSTALL_BINARY=0
-COPY package*.json ./
-RUN npm ci
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install -g npm@11.6.4
+RUN echo "=== BUILDING WITH UPDATED DOCKERFILE ===" && npm --version
+RUN echo "=== FILES COPIED ===" && ls -la
+RUN npm install --ignore-scripts
 COPY . .
 # Generate Prisma Client at build time
 RUN npx prisma generate
