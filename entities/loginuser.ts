@@ -13,6 +13,7 @@ export async function getLoginUser(client: PrismaClient, username: string) {
     ) {
       console.log("ERROR in retrieving login: ", e);
     }
+    console.log("ERROR in retrieving login with no known Prisma error: ", e);
     throw e;
   }
 }

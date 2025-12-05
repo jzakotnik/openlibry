@@ -17,9 +17,10 @@ import errorsplash from "./errorsplashscreen.jpg";
 
 export default function Error({
   csrfToken,
+  error,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   //const { data: session } = useSession();
-  //console.log("Session", session);
+  console.log("Auth error:", error);
 
   return (
     <Grid container component="main" sx={{ height: "100vh" }}>
@@ -34,7 +35,12 @@ export default function Error({
           backgroundPosition: "center",
         }}
       />
-      <Grid size={{ xs: 12, sm: 8, md: 5 }} component={Paper} elevation={6} square>
+      <Grid
+        size={{ xs: 12, sm: 8, md: 5 }}
+        component={Paper}
+        elevation={6}
+        square
+      >
         <Box
           sx={{
             my: 8,
@@ -48,7 +54,7 @@ export default function Error({
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" color="primary" variant="h5">
-            Falscher Nutzername oder Passwort, versuche es nochmal..
+            Login hat leider nicht funktioniert. Der Fehler ist: {error}
           </Typography>
           <Button href="/" variant="contained" color="primary">
             Login Seite
@@ -59,8 +65,10 @@ export default function Error({
   );
 }
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { error } = context.query;
   return {
     props: {
+      error: error ?? null,
       csrfToken: await getCsrfToken(context),
     },
   };
