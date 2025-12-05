@@ -2,11 +2,11 @@ import BookEditForm from "@/components/book/BookEditForm";
 import Layout from "@/components/layout/Layout";
 import { getAllTopics, getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
+import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
 import { convertStringToDay, replaceBookDateString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { PrismaClient } from "@prisma/client";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
 import { useSnackbar } from "notistack";
@@ -164,7 +164,6 @@ export default function BookDetail({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const prisma = new PrismaClient();
   const deleteSafetySeconds = parseInt(
     process.env.DELETE_SAFETY_SECONDS || "5",
     10

@@ -1,11 +1,11 @@
 import Layout from "@/components/layout/Layout";
+import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import Box from "@mui/material/Box";
 import { deDE as coreDeDE } from "@mui/material/locale";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 import { deDE } from "@mui/x-data-grid/locales";
-import { PrismaClient } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import { UserType } from "@/entities/UserType";
@@ -13,8 +13,6 @@ import { getAllUsers } from "@/entities/user";
 import { convertDateToDayString } from "@/utils/dateutils";
 import { Typography } from "@mui/material";
 import type {} from "@mui/x-data-grid/themeAugmentation";
-
-const prisma = new PrismaClient();
 
 const theme = createTheme(
   {

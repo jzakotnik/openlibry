@@ -3,6 +3,7 @@ import { getLoginUser } from "@/entities/loginuser";
 import { hashPassword } from "@/utils/hashPassword";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+
 export default NextAuth({
   session: {
     strategy: "jwt",
@@ -21,29 +22,33 @@ export default NextAuth({
       },
 
       async authorize(credentials, req) {
-        // Add logic here to look up the user from the credentials supplied
+        let retrievedUser;
 
-        /*console.log(
-          "Next-Auth - Request for login",
-          req.body!.user,
-          req.body!.password
-        );*/
+        try {
+          retrievedUser = await getLoginUser(prisma, req.body!.user);
+        } catch (error) {
+          console.error("Database connection error:", error);
+          throw new Error("User Datenbank nicht verfügbar");
+        }
 
-        const retrievedUser = await getLoginUser(prisma, req.body!.user);
-        const hashedPassword = hashPassword(req.body!.password);
-        const user = {
-          id: "0",
-          name: retrievedUser!.username.toString(),
-          email: retrievedUser!.email.toString(),
-          role: retrievedUser!.role.toString(),
-        };
-
-        if (retrievedUser && retrievedUser!.password === hashedPassword) {
-          console.log("Passing user token back to middleware", retrievedUser);
-          return user;
-        } else {
+        if (!retrievedUser) {
           return null;
         }
+
+        const hashedPassword = hashPassword(req.body!.password);
+
+        if (retrievedUser.password === hashedPassword) {
+          const user = {
+            id: "0",
+            name: retrievedUser.username.toString(),
+            email: retrievedUser.email.toString(),
+            role: retrievedUser.role.toString(),
+          };
+          console.log("Passing user token back to middleware", retrievedUser);
+          return user;
+        }
+
+        return null;
       },
     }),
   ],

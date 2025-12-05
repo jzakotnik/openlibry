@@ -1,5 +1,6 @@
 import { UserType } from "@/entities/UserType";
 import { Prisma, PrismaClient } from "@prisma/client";
+
 import { addAudit } from "./audit";
 
 export async function getUser(client: PrismaClient, id: number) {
@@ -58,7 +59,10 @@ export async function getAllUsersOrderById(client: PrismaClient) {
   }
 }
 
-export async function getAllUsersBySchoolGrade(client: PrismaClient, schoolGrade: string) {
+export async function getAllUsersBySchoolGrade(
+  client: PrismaClient,
+  schoolGrade: string
+) {
   try {
     return await client.user.findMany({
       where: { schoolGrade },
@@ -79,22 +83,26 @@ export async function getAllUsersBySchoolGrade(client: PrismaClient, schoolGrade
   }
 }
 
-export async function getUsersInIdRange(client: PrismaClient, startId: number, endId: number) {
+export async function getUsersInIdRange(
+  client: PrismaClient,
+  startId: number,
+  endId: number
+) {
   try {
     return await client.user.findMany({
       where: {
         AND: [
           {
             id: {
-              gte: startId
-            }
+              gte: startId,
+            },
           },
           {
             id: {
-              lte: endId
-            }
-          }
-        ]
+              lte: endId,
+            },
+          },
+        ],
       },
       orderBy: [
         {
@@ -113,23 +121,28 @@ export async function getUsersInIdRange(client: PrismaClient, startId: number, e
   }
 }
 
-export async function getUsersInIdRangeForSchoolgrade(client: PrismaClient, startId: number, endId: number, schoolGrade: string) {
+export async function getUsersInIdRangeForSchoolgrade(
+  client: PrismaClient,
+  startId: number,
+  endId: number,
+  schoolGrade: string
+) {
   try {
     return await client.user.findMany({
       where: {
         AND: [
           {
             id: {
-              gte: startId
-            }
+              gte: startId,
+            },
           },
           {
             id: {
-              lte: endId
-            }
+              lte: endId,
+            },
           },
-          { schoolGrade }
-        ]
+          { schoolGrade },
+        ],
       },
       orderBy: [
         {
@@ -161,8 +174,6 @@ export async function countUser(client: PrismaClient) {
     throw e;
   }
 }
-
-
 
 export async function addUser(client: PrismaClient, user: UserType) {
   try {

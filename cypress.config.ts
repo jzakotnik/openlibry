@@ -1,27 +1,26 @@
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
 import { defineConfig } from "cypress";
 import ExcelJS from "exceljs";
 import * as fs from "fs";
 import * as path from "path";
 
-let prisma: PrismaClient | null = null;
-
-function getPrismaClient() {
-  if (!prisma) {
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: `file:${path.join(
-            __dirname,
-            "prisma/database/automated-test-db.db"
-          )}`,
-        },
-      },
-    });
-  }
-  return prisma;
+declare global {
+  var prisma: PrismaClient | undefined;
 }
 
+// Create a separate Prisma client for Cypress tests
+let testPrisma: PrismaClient | null = null;
+
+function getPrismaClient() {
+  if (!testPrisma) {
+    const dbPath = path.join(__dirname, "prisma/database/automated-test-db.db");
+    // Use the url parameter instead of Database instance
+    const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
+    testPrisma = new PrismaClient({ adapter });
+  }
+  return testPrisma;
+}
 export default defineConfig({
   e2e: {
     experimentalRunAllSpecs: true,
@@ -47,9 +46,9 @@ export default defineConfig({
 
           try {
             // 1. Disconnect Prisma if connected
-            if (prisma) {
-              await prisma.$disconnect();
-              prisma = null;
+            if (testPrisma) {
+              await testPrisma.$disconnect();
+              testPrisma = null;
             }
 
             // 2. Verify source exists and has content
@@ -114,9 +113,9 @@ export default defineConfig({
 
           try {
             // 1. Disconnect Prisma if connected
-            if (prisma) {
-              await prisma.$disconnect();
-              prisma = null;
+            if (testPrisma) {
+              await testPrisma.$disconnect();
+              testPrisma = null;
             }
 
             // 2. Wait for file locks to release
@@ -139,9 +138,9 @@ export default defineConfig({
 
         async reconnectPrisma() {
           try {
-            if (prisma) {
-              await prisma.$disconnect();
-              prisma = null;
+            if (testPrisma) {
+              await testPrisma.$disconnect();
+              testPrisma = null;
             }
 
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -157,7 +156,6 @@ export default defineConfig({
             throw error;
           }
         },
-
         async verifyBook(bookId: number) {
           try {
             const client = getPrismaClient();
@@ -558,10 +556,10 @@ export default defineConfig({
         },
       });
 
-      // Clean up Prisma connection when Cypress closes
       on("after:run", async () => {
-        if (prisma) {
-          await prisma.$disconnect();
+        if (testPrisma) {
+          await testPrisma.$disconnect();
+          testPrisma = null;
           console.log("✓ Prisma disconnected after test run");
         }
       });
