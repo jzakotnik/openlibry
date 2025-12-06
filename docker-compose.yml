@@ -1,16 +1,17 @@
 services:
   openlibry:
-    container_name: openlibry
     build:
       context: .
-      target: runner
-    # Map host port -> container port (container listens on 3000)
+      dockerfile: Dockerfile
     ports:
-      - "${PORT:-3000}:3000"
-    # Pass all envs into the container too
-    env_file:
-      - ./.env
+      - "3000:3000"
     volumes:
+      # Persist SQLite database on the host
       - ./database:/app/database
-      - ./public/coverimages:/app/public/coverimages
+      # Persist migrations folder so new migrations can be applied
+      - ./prisma/migrations:/app/prisma/migrations:ro
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/database/dev.db
+      - AUTH_SECRET=${AUTH_SECRET:-changeme}
     restart: unless-stopped

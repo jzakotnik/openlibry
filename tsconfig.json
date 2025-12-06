@@ -30,7 +30,8 @@
     "openbiblio_migration/migrate.js",
     "pages/api/book/[id]",
     ".next/types/**/*.ts",
-    "cypress/support/commands.js"
+    "cypress/support/commands.js",
+    "prisma.config.mjs"
   ],
   "exclude": ["node_modules"]
 }

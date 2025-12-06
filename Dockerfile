@@ -43,6 +43,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+# Prisma 7 config file for CLI commands (migrate deploy, db push)
+COPY --from=builder /app/prisma.config.mjs ./
 
 # Ensure DB directory exists and fix perms
 RUN mkdir -p /app/database && chown -R node:node /app

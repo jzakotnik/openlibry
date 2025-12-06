@@ -5,7 +5,7 @@ DB_PATH="/app/database/dev.db"
 SCHEMA_DIR="/app/prisma"
 MIGRATIONS_DIR="$SCHEMA_DIR/migrations"
 
-echo "Database path $DATABASE_URL"
+echo "Database URL: $DATABASE_URL"
 
 # Ensure mount point exists and is writable
 mkdir -p /app/database
@@ -14,6 +14,7 @@ has_migrations() {
   [ -d "$MIGRATIONS_DIR" ] && [ -n "$(ls -A "$MIGRATIONS_DIR" 2>/dev/null)" ]
 }
 
+# Prisma 7 auto-detects prisma.config.ts - no flags needed
 # If DB file doesn't exist, create schema
 if [ ! -f "$DB_PATH" ]; then
   echo "No database found at $DB_PATH."
