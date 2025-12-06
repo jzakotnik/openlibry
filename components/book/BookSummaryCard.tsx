@@ -37,7 +37,8 @@ export default function BookSummaryCard({
   returnBook,
   showDetailsControl = true,
 }: BookSummaryCardPropType) {
-  const [src, setSrc] = useState("/coverimages/default.jpg");
+  //const [src, setSrc] = useState("/coverimages/default.jpg");
+  const [src, setSrc] = useState(`/api/images/${book.id}`);
 
   const selectedBook = book;
 
@@ -86,11 +87,12 @@ export default function BookSummaryCard({
           aria-label={`Open ${book.title ?? "book"}`}
         >
           <Image
-            src={`/api/images/${book.id}`}
+            src={src}
             alt={book.title ?? "Book cover"}
             fill
             sizes="(max-width: 600px) 100vw, 320px"
             style={{ objectFit: "cover" }}
+            onError={() => setSrc("/coverimages/default.jpg")}
           />
         </Link>
       </CardMedia>
