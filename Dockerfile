@@ -23,7 +23,7 @@ COPY package-lock.json ./
 RUN npm install -g npm@11.6.4
 RUN echo "=== BUILDING WITH UPDATED DOCKERFILE ===" && npm --version
 RUN echo "=== FILES COPIED ===" && ls -la
-RUN npm install --ignore-scripts
+RUN npm install 
 COPY . .
 # Generate Prisma Client at build time
 RUN npx prisma generate
