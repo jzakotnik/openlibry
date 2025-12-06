@@ -2,8 +2,7 @@
 set -e
 
 DB_PATH="/app/database/dev.db"
-SCHEMA_DIR="/app/prisma"
-MIGRATIONS_DIR="$SCHEMA_DIR/migrations"
+MIGRATIONS_DIR="/app/prisma/migrations"
 
 echo "Database URL: $DATABASE_URL"
 
@@ -14,8 +13,6 @@ has_migrations() {
   [ -d "$MIGRATIONS_DIR" ] && [ -n "$(ls -A "$MIGRATIONS_DIR" 2>/dev/null)" ]
 }
 
-# Prisma 7 auto-detects prisma.config.ts - no flags needed
-# If DB file doesn't exist, create schema
 if [ ! -f "$DB_PATH" ]; then
   echo "No database found at $DB_PATH."
 
@@ -27,12 +24,11 @@ if [ ! -f "$DB_PATH" ]; then
     npx prisma db push
   fi
 else
-  # DB exists. Apply pending migrations if any.
   if has_migrations; then
-    echo "Database exists. Applying pending migrations with: prisma migrate deploy"
+    echo "Database exists. Applying pending migrations..."
     npx prisma migrate deploy
   else
-    echo "Database exists and no migrations directory. Skipping schema sync."
+    echo "Database exists, no migrations. Skipping."
   fi
 fi
 

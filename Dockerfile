@@ -17,6 +17,7 @@ RUN npm install --ignore-scripts
 FROM base AS builder
 
 ENV CYPRESS_INSTALL_BINARY=0
+ENV DATABASE_URL="file:./dummy.db"
 COPY package.json ./
 COPY package-lock.json ./
 RUN npm install -g npm@11.6.4
