@@ -69,9 +69,32 @@ OpenLibry bietet eine durchdachte Kombination aus Funktionalität und Benutzerfr
 **Buch bearbeiten**
 ![Bücher Edit Screenshot](./doc/buchedit1.jpg)
 
+
+### Quickstart mit Docker:
+
+```
+docker run -d \
+  --name openlibry \
+  -p 3000:3000 \
+  -v $(pwd)/database:/app/database \
+  -v $(pwd)/prisma/migrations:/app/prisma/migrations:ro \
+  -v $(pwd)/coverimages:/app/public/coverimages \
+  -e NODE_ENV=production \
+  -e DATABASE_URL=file:/app/database/dev.db \
+  -e AUTH_SECRET=changeme \
+  -e COVERIMAGE_FILESTORAGE_PATH=/app/public/coverimages \
+  --restart unless-stopped \
+  jzakotnik/openlibry:release
+```
+
+Die Anwendung läuft auf `http://localhost:3000`.
+
+
+
 ---
 
 ## 💻 Installation
+
 
 ### Vorbereitung
 
