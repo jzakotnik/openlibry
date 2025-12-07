@@ -1,8 +1,6 @@
 services:
   openlibry:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: jzakotnik/openlibry:latest
     ports:
       - "3000:3000"
     volumes:
