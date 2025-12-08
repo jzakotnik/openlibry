@@ -153,9 +153,10 @@ export default function BookEditForm({
 
       if (response.ok && data.success) {
         setLoadingImage(Math.floor(Math.random() * 10000));
-        enqueueSnackbar("Cover wurde erfolgreich geladen.", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          `Cover wurde erfolgreich von ${data.source || "unbekannt"} geladen.`,
+          { variant: "success" }
+        );
       } else {
         enqueueSnackbar(data.error || "Cover konnte nicht gefunden werden.", {
           variant: "warning",

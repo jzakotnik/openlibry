@@ -1,6 +1,5 @@
 import { promises as fs } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import fetch from "node-fetch";
 import path from "path";
 
 export default async function handler(
@@ -23,55 +22,76 @@ export default async function handler(
     return res.status(400).json({ error: "Ungültige ISBN", success: false });
   }
 
-  // OpenLibrary cover API - M = medium size, L = large
-  const coverUrl = `https://covers.openlibrary.org/b/isbn/${cleanedIsbn}-M.jpg`;
+  // Try DNB first, then fallback to OpenLibrary
+  const coverSources = [
+    {
+      name: "DNB",
+      url: `https://portal.dnb.de/opac/mvb/cover?isbn=${cleanedIsbn}`,
+    },
+    {
+      name: "OpenLibrary",
+      url: `https://covers.openlibrary.org/b/isbn/${cleanedIsbn}-M.jpg`,
+    },
+  ];
 
-  try {
-    const response = await fetch(coverUrl, {
-      redirect: "follow",
-    });
+  for (const source of coverSources) {
+    try {
+      console.log(`Trying to fetch cover from ${source.name}: ${source.url}`);
 
-    // OpenLibrary returns a 1x1 pixel image if cover not found
-    // Check content-length to detect this
-    const contentLength = response.headers.get("content-length");
-    if (contentLength && parseInt(contentLength) < 1000) {
-      return res.status(404).json({
-        error: "Kein Cover gefunden für diese ISBN",
-        success: false,
+      const response = await fetch(source.url, {
+        redirect: "follow",
+        headers: {
+          "User-Agent": "OpenLibry/1.0",
+        },
       });
-    }
 
-    if (response.ok) {
-      const buffer = await response.buffer();
-
-      // Double-check: if buffer is too small, it's likely a placeholder
-      if (buffer.length < 1000) {
-        return res.status(404).json({
-          error: "Kein Cover gefunden für diese ISBN",
-          success: false,
-        });
+      if (!response.ok) {
+        console.log(`${source.name} returned status ${response.status}`);
+        continue;
       }
 
+      const contentType = response.headers.get("content-type");
+
+      // Check if we got an actual image
+      if (!contentType || !contentType.includes("image")) {
+        console.log(`${source.name} did not return an image: ${contentType}`);
+        continue;
+      }
+
+      // Use arrayBuffer() instead of buffer() for native fetch
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Check if buffer is too small (placeholder image)
+      if (buffer.length < 1000) {
+        console.log(
+          `${source.name} returned too small image (${buffer.length} bytes), likely placeholder`
+        );
+        continue;
+      }
+
+      // Save the cover
       const filePath = path.join(
         process.env.COVERIMAGE_FILESTORAGE_PATH!,
         `${bookId}.jpg`
       );
 
       await fs.writeFile(filePath, buffer);
-      console.log("Cover saved for book ID:", bookId);
+      console.log(`Cover saved from ${source.name} for book ID: ${bookId}`);
 
-      return res.status(200).json({ success: true });
+      return res.status(200).json({
+        success: true,
+        source: source.name,
+      });
+    } catch (error: any) {
+      console.error(`Error fetching from ${source.name}:`, error.message);
+      // Continue to next source
     }
-
-    return res.status(404).json({
-      error: "Cover konnte nicht geladen werden",
-      success: false,
-    });
-  } catch (error: any) {
-    console.error("Error fetching cover:", error);
-    return res.status(500).json({
-      error: error.message || "Fehler beim Laden des Covers",
-      success: false,
-    });
   }
+
+  // No cover found from any source
+  return res.status(404).json({
+    error: "Kein Cover gefunden bei DNB oder OpenLibrary",
+    success: false,
+  });
 }
