@@ -1,3 +1,4 @@
+import { fileTypeFromBuffer } from "file-type";
 import { promises as fs } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
@@ -61,6 +62,18 @@ export default async function handler(
       // Use arrayBuffer() instead of buffer() for native fetch
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+
+      // Validate actual file type using magic bytes
+      const fileType = await fileTypeFromBuffer(buffer);
+
+      if (!fileType || !fileType.mime.startsWith("image/")) {
+        console.log(
+          `${source.name} did not return a valid image (detected: ${
+            fileType?.mime ?? "unknown"
+          })`
+        );
+        continue;
+      }
 
       // Check if buffer is too small (placeholder image)
       if (buffer.length < 1000) {

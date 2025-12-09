@@ -37,6 +37,7 @@
     "eslint-plugin-cypress": "^5.1.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "file-type": "^21.1.1",
     "formidable": "^3.5.4",
     "itemsjs": "^2.1.25",
     "jsbarcode": "^3.12.1",
