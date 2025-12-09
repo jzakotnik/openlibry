@@ -27,7 +27,6 @@ type BookFormData = {
   otherPhysicalAttributes?: string;
   supplierComment?: string;
   physicalSize?: string;
-  coverFetched?: boolean; // indicates if cover was successfully fetched
 };
 
 // Helper: get values for a predicate
@@ -134,8 +133,6 @@ export default async function handler(
     return;
   }
 
-  let coverFetched = false;
-
   try {
     // 1. Search in DNB
     const dnbSearchUrl = `https://portal.dnb.de/opac/simpleSearch?query=${isbn}`;
@@ -155,7 +152,6 @@ export default async function handler(
     if (!turtleLink) {
       res.status(404).json({
         error: "RDF-Turtle-Link not found in DNB result.",
-        coverFetched,
       });
       return;
     }
@@ -194,14 +190,12 @@ export default async function handler(
       ),
       supplierComment: undefined,
       physicalSize: getFirstMatching(triples, P.physicalSize),
-      coverFetched, // include whether cover was fetched
     };
 
     res.status(200).json(bookData);
   } catch (err: any) {
     res.status(500).json({
       error: err.message || "Error fetching/parsing DNB data.",
-      coverFetched,
     });
   }
 }
