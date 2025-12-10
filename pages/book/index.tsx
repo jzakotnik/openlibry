@@ -64,7 +64,7 @@ export default function Books({
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
   const [bookCreating, setBookCreating] = useState(false);
-  const [searchResultNumber, setSearchResultNumber] = useState(0);
+  const [searchResultNumber, setSearchResultNumber] = useState(books.length);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
   // Update rendered books when fresh data arrives
