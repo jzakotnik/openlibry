@@ -24,7 +24,9 @@ export default async function handle(
       break;
 
     case "PUT":
-      if (!req.body) return res.status(404).end("No data provided");
+      if (!req.body) {
+        return res.status(400).json({ message: "Keine Daten übermittelt" });
+      }
       const bookdata = req.body as BookType;
       console.log("Handle book request ", bookdata);
       try {
@@ -32,9 +34,10 @@ export default async function handle(
         res.status(200).json(updateResult);
       } catch (error) {
         console.log(error);
-        res.status(400).json({ data: "ERROR DELETE: " + error });
+        res
+          .status(400)
+          .json({ message: "Fehler beim Speichern / Update: " + error });
       }
-
       break;
 
     case "GET":
