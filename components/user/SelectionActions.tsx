@@ -1,32 +1,51 @@
-import { IconButton, Tooltip } from "@mui/material";
+import palette from "@/styles/palette";
+import { alpha, IconButton, Tooltip } from "@mui/material";
+import { ReactNode } from "react";
 
-type SelectionActionsPropsType = {
-  checked: any;
-  action: any;
+interface SelectionActionsProps {
+  checked: Record<string, boolean>;
+  action: () => void;
   actionTitle: string;
-  icon: any;
-};
+  icon: ReactNode;
+  color?: "primary" | "error" | "warning";
+}
 
 export default function SelectionActions({
   checked,
   icon,
   action,
   actionTitle,
-}: SelectionActionsPropsType) {
-  const checkedItems = Object.values(checked).filter((item) => item != false);
-  if (checkedItems.length > 0) {
-    //console.log("Checked Items", checkedItems);
-    return (
-      <Tooltip title={actionTitle}>
-        <IconButton
-          type="button"
-          sx={{ p: "10px" }}
-          aria-label={actionTitle}
-          onClick={action}
-        >
-          {icon}{" "}
-        </IconButton>
-      </Tooltip>
-    );
-  } else return <div />;
+  color = "primary",
+}: SelectionActionsProps) {
+  const selectedCount = Object.values(checked).filter(Boolean).length;
+
+  if (selectedCount === 0) {
+    return null;
+  }
+
+  const colorMap = {
+    primary: palette.primary.main,
+    error: palette.error.main,
+    warning: palette.warning.main,
+  };
+
+  return (
+    <Tooltip title={actionTitle}>
+      <IconButton
+        onClick={action}
+        aria-label={actionTitle}
+        sx={{
+          p: "10px",
+          color: colorMap[color],
+          transition: "all 0.2s ease",
+          "&:hover": {
+            bgcolor: alpha(colorMap[color], 0.1),
+            transform: "scale(1.05)",
+          },
+        }}
+      >
+        {icon}
+      </IconButton>
+    </Tooltip>
+  );
 }
