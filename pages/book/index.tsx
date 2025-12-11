@@ -18,6 +18,8 @@ import { prisma, reconnectPrisma } from "@/entities/db";
 import { convertDateToDayString, currentTime } from "@/utils/dateutils";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
+import { useSnackbar } from "notistack";
+import { memo } from "react";
 
 const DEBOUNCE_MS = 100;
 
@@ -40,8 +42,45 @@ interface BookPropsType {
   _timestamp?: number;
 }
 
+interface DetailCardContainerProps {
+  renderedBooks: BookType[];
+  pageIndex: number;
+  numberBooksToShow: number;
+  gridItemProps: Record<string, number>;
+  onLoadMore: () => void;
+  onReturnBook: (id: number, userId: number) => void;
+}
+
 // Fetcher function for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const DetailCardContainer = memo(function DetailCardContainer({
+  renderedBooks,
+  pageIndex,
+  numberBooksToShow,
+  gridItemProps,
+  onLoadMore,
+  onReturnBook,
+}: DetailCardContainerProps) {
+  return (
+    <Grid container spacing={12} alignItems="stretch">
+      {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
+        <Grid style={{ display: "flex" }} {...gridItemProps} key={b.id}>
+          <BookSummaryCard
+            book={b}
+            returnBook={() => onReturnBook(b.id!, b.userId!)}
+          />
+        </Grid>
+      ))}
+      {renderedBooks.length - pageIndex > 0 && (
+        <Button onClick={onLoadMore}>
+          {"Weitere Bücher..." +
+            Math.max(0, renderedBooks.length - pageIndex).toString()}
+        </Button>
+      )}
+    </Grid>
+  );
+});
 
 export default function Books({
   books: initialBooks,
@@ -69,6 +108,8 @@ export default function Books({
   const [bookCreating, setBookCreating] = useState(false);
   const [searchResultNumber, setSearchResultNumber] = useState(books.length);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
+
+  const { enqueueSnackbar } = useSnackbar();
 
   // Memoize search engine - only rebuild when books data changes
   const searchEngine = useMemo(
@@ -123,16 +164,17 @@ export default function Books({
     }
   }, [books, bookSearchInput, searchBooks]);
 
-  if (isMobile) {
-    gridItemProps.sm = 12;
-    gridItemProps.md = 12;
-    gridItemProps.lg = 12;
-    gridItemProps.xl = 12;
-  }
+  const currentGridItemProps = useMemo(
+    () =>
+      isMobile
+        ? { xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }
+        : { xs: 12, sm: 12, md: 6, lg: 4, xl: 4 },
+    [isMobile]
+  );
 
-  const handleCreateNewBook = () => {
-    console.log("Creating a new book");
+  const handleCreateNewBook = useCallback(async () => {
     setBookCreating(true);
+
     const book: BookType = {
       title: "",
       subtitle: "",
@@ -144,22 +186,40 @@ export default function Books({
       dueDate: currentTime(),
     };
 
-    fetch("/api/book", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(book),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setBookCreating(false);
-        // Revalidate SWR cache after creating
-        mutate();
-        router.push("book/" + data.id);
-        console.log("Book created", data);
+    try {
+      const res = await fetch("/api/book", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(book),
       });
-  };
+
+      if (!res.ok) {
+        throw new Error(
+          `Fehler beim Erstellen: ${res.status} ${res.statusText}`
+        );
+      }
+
+      const data = await res.json();
+
+      if (!data.id) {
+        throw new Error("Keine Buch-ID in der Antwort erhalten");
+      }
+
+      mutate();
+      router.push("book/" + data.id);
+      enqueueSnackbar("Buch erfolgreich erstellt", { variant: "success" });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unbekannter Fehler";
+      enqueueSnackbar(`Buch konnte nicht erstellt werden: ${message}`, {
+        variant: "error",
+      });
+    } finally {
+      setBookCreating(false);
+    }
+  }, [mutate, router, enqueueSnackbar]);
 
   const handleCopyBook = (book: BookType) => {
     console.log("Creating a new book from an existing book");
@@ -231,27 +291,6 @@ export default function Books({
     console.log("Detail view render toggled", newView);
   };
 
-  const DetailCardContainer = ({ renderedBooks }: any) => {
-    return (
-      <Grid container spacing={12} alignItems="stretch">
-        {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
-          <Grid style={{ display: "flex" }} {...gridItemProps} key={b.id}>
-            <BookSummaryCard
-              book={b}
-              returnBook={() => handleReturnBook(b.id!, b.userId!)}
-            />
-          </Grid>
-        ))}
-        {renderedBooks.length - pageIndex > 0 && (
-          <Button onClick={() => setPageIndex(pageIndex + numberBooksToShow)}>
-            {"Weitere Bücher..." +
-              Math.max(0, renderedBooks.length - pageIndex).toString()}
-          </Button>
-        )}
-      </Grid>
-    );
-  };
-
   const SummaryRowContainer = ({ renderedBooks }: any) => (
     <Stack spacing={2} sx={{ width: "100%" }}>
       {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
@@ -270,6 +309,10 @@ export default function Books({
     </Stack>
   );
 
+  const handleLoadMore = useCallback(() => {
+    setPageIndex((prev) => prev + numberBooksToShow);
+  }, [numberBooksToShow]);
+
   return (
     <Layout>
       <ThemeProvider theme={theme}>
@@ -282,7 +325,14 @@ export default function Books({
           searchResultNumber={searchResultNumber}
         />
         {detailView ? (
-          <DetailCardContainer renderedBooks={renderedBooks} />
+          <DetailCardContainer
+            renderedBooks={renderedBooks}
+            pageIndex={pageIndex}
+            numberBooksToShow={numberBooksToShow}
+            gridItemProps={currentGridItemProps}
+            onLoadMore={handleLoadMore}
+            onReturnBook={handleReturnBook}
+          />
         ) : (
           <SummaryRowContainer renderedBooks={renderedBooks} />
         )}
