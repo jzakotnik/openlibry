@@ -13,7 +13,7 @@ import palette from "@/styles/palette";
 import { convertDateToDayString } from "@/utils/dateutils";
 import getMaxId from "@/utils/idhandling";
 import { increaseNumberInString } from "@/utils/increaseNumberInString";
-import { alpha, Box, Container, Stack, Typography } from "@mui/material";
+import { alpha, Box, Container, Stack } from "@mui/material";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
@@ -193,26 +193,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
                 justifyContent: "space-between",
                 gap: 2,
               }}
-            >
-              <Box>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 600,
-                    color: palette.primary.dark,
-                  }}
-                >
-                  Benutzerverwaltung
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: palette.text.secondary, mt: 0.5 }}
-                >
-                  {users.length} Benutzer
-                  {selectedCount > 0 && ` · ${selectedCount} ausgewählt`}
-                </Typography>
-              </Box>
-            </Box>
+            ></Box>
 
             {/* Search Bar */}
             <Box sx={{ display: "flex", justifyContent: "center" }}>
