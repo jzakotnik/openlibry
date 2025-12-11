@@ -3,9 +3,10 @@ import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import debounce from "debounce";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
@@ -17,6 +18,8 @@ import { prisma, reconnectPrisma } from "@/entities/db";
 import { convertDateToDayString, currentTime } from "@/utils/dateutils";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
+
+const DEBOUNCE_MS = 100;
 
 const gridItemProps = {
   xs: 12,
@@ -67,36 +70,64 @@ export default function Books({
   const [searchResultNumber, setSearchResultNumber] = useState(books.length);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
+  // Memoize search engine - only rebuild when books data changes
+  const searchEngine = useMemo(
+    () =>
+      itemsjs(books, {
+        searchableFields: [
+          "title",
+          "author",
+          "subtitle",
+          "searchableTopics",
+          "id",
+        ],
+      }),
+    [books]
+  );
+
+  const searchBooks = useCallback(
+    (searchString: string) => {
+      const foundBooks = searchEngine.search({
+        sort: "name_asc",
+        per_page: maxBooks,
+        query: searchString,
+      });
+
+      console.log("Found books", foundBooks);
+      setPageIndex(numberBooksToShow);
+      setRenderedBooks(foundBooks.data.items);
+      setSearchResultNumber(foundBooks.pagination.total);
+    },
+    [searchEngine, maxBooks, numberBooksToShow]
+  );
+
+  // Debounced search function - waits some milliseconds after last keystroke
+  const debouncedSearch = useMemo(
+    () => debounce((query: string) => searchBooks(query), DEBOUNCE_MS),
+    [searchBooks]
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.clear();
+    };
+  }, [debouncedSearch]);
+
   // Update rendered books when fresh data arrives
   useEffect(() => {
     setRenderedBooks(books);
+    setSearchResultNumber(books.length);
     if (bookSearchInput) {
       searchBooks(bookSearchInput);
     }
-  }, [books]);
+  }, [books, bookSearchInput, searchBooks]);
 
   if (isMobile) {
     gridItemProps.sm = 12;
     gridItemProps.md = 12;
     gridItemProps.lg = 12;
     gridItemProps.xl = 12;
-  }
-
-  const searchEngine = itemsjs(books, {
-    searchableFields: ["title", "author", "subtitle", "searchableTopics", "id"],
-  });
-
-  async function searchBooks(searchString: string) {
-    const foundBooks = searchEngine.search({
-      sort: "name_asc",
-      per_page: maxBooks,
-      query: searchString,
-    });
-
-    console.log("Found books", foundBooks);
-    setPageIndex(numberBooksToShow);
-    setRenderedBooks(foundBooks.data.items);
-    setSearchResultNumber(foundBooks.pagination.total);
   }
 
   const handleCreateNewBook = () => {
@@ -189,9 +220,8 @@ export default function Books({
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const searchString = e.target.value;
-    setPageIndex(numberBooksToShow);
-    searchBooks(searchString);
-    setBookSearchInput(searchString);
+    setBookSearchInput(searchString); // Update input immediately for responsive typing
+    debouncedSearch(searchString); // Debounce the actual search
   };
 
   const toggleView = () => {

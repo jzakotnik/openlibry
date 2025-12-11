@@ -166,8 +166,11 @@ const CoverModal = memo(function CoverModal({
           >
             <Image
               src={src}
-              alt={title}
+              alt={title ?? "Book cover"}
               fill
+              loading="lazy" // Only load when near viewport
+              placeholder="blur" // Show blur while loading
+              blurDataURL="/coverimages/default.jpg"
               sizes="(max-width: 600px) 85vw, (max-width: 900px) 70vw, 500px"
               style={{
                 objectFit: "contain",
