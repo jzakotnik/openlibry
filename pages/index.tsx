@@ -1,13 +1,9 @@
 import Layout from "@/components/layout/Layout";
-import TitleTile from "@/components/title/TitleTile";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
-import { Inter } from "next/font/google";
-
-import { publicNavItems } from "@/components/layout/navigationItems";
+import { publicNavItems } from "@/components/layout/NavigationItems";
+import NavTile from "@/components/title/NavTile";
+import palette from "@/styles/palette";
+import { alpha, Box, Container, Stack, Typography } from "@mui/material";
 import { useRouter } from "next/router";
-
-const inter = Inter({ subsets: ["latin"] });
 
 interface HomeProps {
   showBackupButton: boolean;
@@ -15,71 +11,109 @@ interface HomeProps {
 
 export default function Home({ showBackupButton }: HomeProps) {
   const router = useRouter();
-  const onClick = (e: any, slug: string) => {
-    console.log("Selected", slug);
+
+  const handleNavigation = (slug: string) => {
     router.push(slug);
   };
 
   return (
-    <div style={{ backgroundImage: `url(/splashbanner.jpg)` }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: `linear-gradient(135deg, ${alpha(
+          palette.primary.light,
+          0.1
+        )} 0%, ${alpha(palette.primary.main, 0.05)} 50%, ${alpha(
+          palette.background.default,
+          1
+        )} 100%)`,
+        backgroundImage: "url(/splashbanner.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundBlendMode: "overlay",
+      }}
+    >
       <Layout showBackupButton={showBackupButton}>
-        <Grid
-          container
-          alignItems="center"
-          direction="column"
-          sx={{
-            py: 4,
-          }}
-        >
-          <Grid>
-            <Typography
-              variant="h1"
-              id="title_headline"
-              data-cy="indexpage"
-              align="center"
-              sx={{ fontWeight: "bold", fontSize: 50 }}
+        <Container maxWidth="lg">
+          <Stack alignItems="center" spacing={6} sx={{ py: { xs: 4, md: 8 } }}>
+            {/* Hero Section */}
+            <Box
+              sx={{
+                textAlign: "center",
+                maxWidth: 700,
+              }}
             >
-              Open Libry - die <b>einfache</b> Bücherei Verwaltung
-            </Typography>
-          </Grid>
+              <Typography
+                variant="h2"
+                component="h1"
+                id="title_headline"
+                data-cy="indexpage"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
+                  color: palette.primary.dark,
+                  mb: 2,
+                  textShadow: `0 2px 20px ${alpha(
+                    palette.background.paper,
+                    0.8
+                  )}`,
+                }}
+              >
+                OpenLibry
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 400,
+                  fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                  color: palette.text.secondary,
+                  px: 2,
+                }}
+              >
+                Die <strong>einfache</strong> Büchereiverwaltung für Schulen
+              </Typography>
+            </Box>
 
-          <Grid container alignItems="center" sx={{ pt: 6, mt: 8 }}>
-            <Grid
-              container
-              direction="row"
-              alignItems="center"
-              justifyContent="center"
-              spacing={4}
-              sx={{ px: 10 }}
+            {/* Navigation Tiles */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
+                gap: 3,
+                mt: 4,
+              }}
             >
-              {publicNavItems.map((p) => {
-                return (
-                  <Grid
-                    key={p.slug}
-                    size={{ xs: 12, sm: 6, md: 3 }}
-                    justifyContent="center"
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      position: "relative",
-                      mb: 0,
-                      my: 5,
-                    }}
-                  >
-                    <TitleTile
-                      title={p.title}
-                      subtitle={p.subtitle}
-                      slug={p.slug}
-                      onClick={(e: any) => onClick(e, p.slug)}
-                    />
-                  </Grid>
-                );
-              })}
-            </Grid>
-          </Grid>
-        </Grid>
+              {publicNavItems.map((item) => (
+                <NavTile
+                  key={item.slug}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  slug={item.slug}
+                  icon={item.icon}
+                  onClick={() => handleNavigation(item.slug)}
+                />
+              ))}
+            </Box>
+
+            {/* Footer hint */}
+            <Typography
+              variant="caption"
+              sx={{
+                color: palette.text.disabled,
+                mt: 4,
+                textAlign: "center",
+              }}
+            >
+              Wähle einen Bereich um zu starten
+            </Typography>
+          </Stack>
+        </Container>
       </Layout>
-    </div>
+    </Box>
   );
 }
 

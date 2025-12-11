@@ -1,20 +1,32 @@
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Tooltip } from "@mui/material";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import { useTheme } from "@mui/material/styles";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
+import palette from "@/styles/palette";
+import {
+  CloudDownload,
+  LibraryBooks,
+  Menu as MenuIcon,
+} from "@mui/icons-material";
+import {
+  alpha,
+  AppBar,
+  Box,
+  Button,
+  Container,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Toolbar,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { useRouter } from "next/router";
-import * as React from "react";
-import { publicNavItems } from "./navigationItems";
+import { useState } from "react";
+import { publicNavItems } from "./NavigationItems";
 
 interface TopBarProps {
   showBackupButton?: boolean;
@@ -23,31 +35,21 @@ interface TopBarProps {
 export default function TopBar({ showBackupButton = true }: TopBarProps) {
   const router = useRouter();
   const theme = useTheme();
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
-    null
-  );
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
+  const handleNavigation = (slug: string) => {
+    setMobileMenuOpen(false);
+    router.push(slug);
   };
 
-  const handleCloseNavMenu = (
-    event: React.MouseEvent | React.SyntheticEvent,
-    page?: string
-  ) => {
-    if (page === "backdropClick" || !page) {
-      setAnchorElNav(null);
-    } else {
-      setAnchorElNav(null);
-      router.push(page);
-    }
+  const isActivePage = (slug: string) => {
+    return router.pathname === slug || router.pathname.startsWith(slug + "/");
   };
 
-  const BackupFunc = async () => {
+  const handleBackup = async () => {
     try {
-      const response = await fetch("/api/excel", {
-        method: "GET",
-      });
+      const response = await fetch("/api/excel", { method: "GET" });
 
       if (!response.ok) {
         throw new Error("Fehler beim Erstellen des Backups!");
@@ -56,17 +58,12 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
 
-      // Dynamically generate date string in yyyy-mm-dd format
       const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-      const dd = String(today.getDate()).padStart(2, "0");
-      const dateStr = `${yyyy}_${mm}_${dd}`;
-
-      // Use the date in the filename
+      const dateStr = `${today.getFullYear()}_${String(
+        today.getMonth() + 1
+      ).padStart(2, "0")}_${String(today.getDate()).padStart(2, "0")}`;
       const filename = `Backup_OpenLibry_${dateStr}.xlsx`;
 
-      // Trigger the download
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", filename);
@@ -80,124 +77,344 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
   };
 
   return (
-    <AppBar position="static" color="secondary" data-cy="topbar">
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
-          <LibraryBooksIcon
-            sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
-            data-cy="topbar_logo_desktop"
-          />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-            data-cy="topbar_title_desktop"
-          >
-            OpenLibry
-          </Typography>
+    <>
+      <AppBar
+        position="sticky"
+        elevation={0}
+        data-cy="topbar"
+        sx={{
+          background: `linear-gradient(135deg, ${palette.primary.main} 0%, ${
+            palette.primary.dark
+          } 50%, ${alpha(palette.primary.main, 0.95)} 100%)`,
+          backdropFilter: "blur(10px)",
+          borderBottom: `1px solid ${alpha(palette.primary.light, 0.2)}`,
+          boxShadow: `0 4px 30px ${alpha(palette.primary.dark, 0.3)}`,
+        }}
+      >
+        <Container maxWidth="xl">
+          <Toolbar disableGutters sx={{ minHeight: { xs: 64, md: 70 } }}>
+            {/* Logo & Brand - Desktop */}
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+              sx={{
+                display: { xs: "none", md: "flex" },
+                cursor: "pointer",
+                mr: 4,
+                "&:hover": {
+                  "& .logo-icon": {
+                    transform: "rotate(-10deg) scale(1.1)",
+                  },
+                },
+              }}
+              onClick={() => router.push("/")}
+            >
+              <Box
+                className="logo-icon"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 42,
+                  height: 42,
+                  borderRadius: 2,
+                  bgcolor: alpha("#ffffff", 0.15),
+                  border: `1px solid ${alpha("#ffffff", 0.2)}`,
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <LibraryBooks
+                  sx={{ fontSize: 24, color: "#ffffff" }}
+                  data-cy="topbar_logo_desktop"
+                />
+              </Box>
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: ".15rem",
+                  color: "#ffffff",
+                  textDecoration: "none",
+                }}
+                data-cy="topbar_title_desktop"
+              >
+                OpenLibry
+              </Typography>
+            </Stack>
 
-          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+            {/* Mobile Menu Button */}
             <IconButton
               size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
+              aria-label="Navigation öffnen"
+              onClick={() => setMobileMenuOpen(true)}
+              sx={{
+                display: { xs: "flex", md: "none" },
+                color: "#ffffff",
+                mr: 1,
+                "&:hover": {
+                  bgcolor: alpha("#ffffff", 0.1),
+                },
+              }}
               data-cy="topbar_menu_button_mobile"
             >
               <MenuIcon />
             </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
+
+            {/* Logo & Brand - Mobile */}
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
               sx={{
-                display: { xs: "block", md: "none" },
+                display: { xs: "flex", md: "none" },
+                flexGrow: 1,
+                cursor: "pointer",
               }}
-              data-cy="topbar_menu_mobile"
+              onClick={() => router.push("/")}
             >
-              {publicNavItems.map((page) => (
-                <MenuItem
-                  key={page.title}
-                  onClick={(event) => handleCloseNavMenu(event, page.slug)}
-                  data-cy={`topbar_menu_item_${page.slug.replace(/\//g, "_")}`}
-                >
-                  <Typography textAlign="center">{page.title}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
-          <LibraryBooksIcon
-            sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
-            data-cy="topbar_logo_mobile"
-          />
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href=""
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-            data-cy="topbar_title_mobile"
-          >
-            OpenLibry
-          </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {publicNavItems.map((page) => (
-              <Button
-                key={page.title}
-                onClick={(event) => handleCloseNavMenu(event, page.slug)}
-                sx={{ my: 2, color: "white", display: "block" }}
-                data-cy={`topbar_nav_button_${page.slug.replace(/\//g, "_")}`}
+              <LibraryBooks
+                sx={{ fontSize: 24, color: "#ffffff" }}
+                data-cy="topbar_logo_mobile"
+              />
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: ".1rem",
+                  color: "#ffffff",
+                }}
+                data-cy="topbar_title_mobile"
               >
-                {page.title}
-              </Button>
-            ))}
-          </Box>
-          {showBackupButton && (
-            <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
-              <Tooltip title="Download Backup als Excel">
+                OpenLibry
+              </Typography>
+            </Stack>
+
+            {/* Desktop Navigation */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: { xs: "none", md: "flex" },
+                gap: 0.5,
+              }}
+            >
+              {publicNavItems.map((page) => {
+                const isActive = isActivePage(page.slug);
+                return (
+                  <Button
+                    key={page.title}
+                    onClick={() => handleNavigation(page.slug)}
+                    data-cy={`topbar_nav_button_${page.slug.replace(
+                      /\//g,
+                      "_"
+                    )}`}
+                    sx={{
+                      px: 2,
+                      py: 1,
+                      color: "#ffffff",
+                      fontWeight: isActive ? 600 : 500,
+                      fontSize: "0.9rem",
+                      textTransform: "none",
+                      borderRadius: 2,
+                      position: "relative",
+                      bgcolor: isActive
+                        ? alpha("#ffffff", 0.15)
+                        : "transparent",
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        bottom: 6,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: isActive ? "60%" : "0%",
+                        height: 2,
+                        bgcolor: palette.primary.light,
+                        borderRadius: 1,
+                        transition: "width 0.3s ease",
+                      },
+                      "&:hover": {
+                        bgcolor: alpha("#ffffff", 0.1),
+                        "&::after": {
+                          width: "60%",
+                        },
+                      },
+                    }}
+                  >
+                    {page.title}
+                  </Button>
+                );
+              })}
+            </Box>
+
+            {/* Backup Button */}
+            {showBackupButton && (
+              <Tooltip title="Backup als Excel herunterladen">
                 <IconButton
-                  sx={{ my: 2, color: "white", display: "block" }}
-                  onClick={BackupFunc}
+                  onClick={handleBackup}
                   aria-label="Backup"
                   data-cy="topbar_backup_button"
+                  sx={{
+                    ml: 1,
+                    color: "#ffffff",
+                    bgcolor: alpha("#ffffff", 0.1),
+                    border: `1px solid ${alpha("#ffffff", 0.2)}`,
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      bgcolor: alpha("#ffffff", 0.2),
+                      transform: "translateY(-2px)",
+                      boxShadow: `0 4px 12px ${alpha(
+                        palette.primary.dark,
+                        0.4
+                      )}`,
+                    },
+                  }}
                 >
-                  <CloudDownloadIcon />
+                  <CloudDownload />
                 </IconButton>
               </Tooltip>
+            )}
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      {/* Mobile Drawer Menu */}
+      <Drawer
+        anchor="left"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        data-cy="topbar_menu_mobile"
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: palette.background.paper,
+            backgroundImage: `linear-gradient(180deg, ${alpha(
+              palette.primary.main,
+              0.03
+            )} 0%, transparent 100%)`,
+          },
+        }}
+      >
+        {/* Drawer Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: `linear-gradient(135deg, ${palette.primary.main} 0%, ${palette.primary.dark} 100%)`,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 44,
+                height: 44,
+                borderRadius: 2,
+                bgcolor: alpha("#ffffff", 0.15),
+                border: `1px solid ${alpha("#ffffff", 0.2)}`,
+              }}
+            >
+              <LibraryBooks sx={{ fontSize: 26, color: "#ffffff" }} />
             </Box>
-          )}
-        </Toolbar>
-      </Container>
-    </AppBar>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  color: "#ffffff",
+                  letterSpacing: ".1rem",
+                }}
+              >
+                OpenLibry
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: alpha("#ffffff", 0.7) }}
+              >
+                Bibliotheksverwaltung
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+
+        {/* Navigation Items */}
+        <List sx={{ px: 1, py: 2 }}>
+          {publicNavItems.map((page) => {
+            const isActive = isActivePage(page.slug);
+            return (
+              <ListItem key={page.title} disablePadding sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  onClick={() => handleNavigation(page.slug)}
+                  data-cy={`topbar_menu_item_${page.slug.replace(/\//g, "_")}`}
+                  sx={{
+                    borderRadius: 2,
+                    mx: 1,
+                    bgcolor: isActive
+                      ? alpha(palette.primary.main, 0.1)
+                      : "transparent",
+                    borderLeft: isActive
+                      ? `3px solid ${palette.primary.main}`
+                      : "3px solid transparent",
+                    "&:hover": {
+                      bgcolor: alpha(palette.primary.main, 0.08),
+                    },
+                  }}
+                >
+                  {page.icon && (
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: isActive
+                          ? palette.primary.main
+                          : palette.text.secondary,
+                      }}
+                    >
+                      {page.icon}
+                    </ListItemIcon>
+                  )}
+                  <ListItemText
+                    primary={page.title}
+                    primaryTypographyProps={{
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive
+                        ? palette.primary.main
+                        : palette.text.secondary,
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+        </List>
+
+        {/* Backup Button in Drawer */}
+        {showBackupButton && (
+          <Box sx={{ px: 2, pb: 2, mt: "auto" }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<CloudDownload />}
+              onClick={handleBackup}
+              sx={{
+                py: 1.5,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 500,
+                borderColor: alpha(palette.primary.main, 0.3),
+                color: palette.primary.main,
+                "&:hover": {
+                  borderColor: palette.primary.main,
+                  bgcolor: alpha(palette.primary.main, 0.05),
+                },
+              }}
+            >
+              Backup herunterladen
+            </Button>
+          </Box>
+        )}
+      </Drawer>
+    </>
   );
 }
