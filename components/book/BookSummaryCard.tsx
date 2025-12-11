@@ -25,11 +25,11 @@ import palette from "@/styles/palette";
 // Constants
 // =============================================================================
 
-const CARD_WIDTH = 180;
-const CARD_HEIGHT = 260;
+const CARD_WIDTH = 200;
+const CARD_HEIGHT = 290;
 const MAX_VISIBLE_TOPICS = 2;
 const BORDER_RADIUS = 16;
-const ICON_SIZE = 14;
+const ICON_SIZE = 16;
 const ACTION_BUTTON_SIZE = 28;
 const RETURN_BUTTON_SIZE = 26;
 
