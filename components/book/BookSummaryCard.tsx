@@ -176,7 +176,6 @@ const CoverModal = memo(function CoverModal({
                 objectFit: "contain",
                 backgroundColor: "#1a1a1a",
               }}
-              priority
             />
           </Box>
 

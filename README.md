@@ -58,16 +58,16 @@ OpenLibry bietet eine durchdachte Kombination aus Funktionalität und Benutzerfr
 ### Screenshots
 
 **Start-Screen**
-![Überblick Screenshot](./doc/titel1.jpg)
+![Überblick Screenshot](./doc/titel1.png)
 
 **Ausleih-Screen**
-![Leihe Screenshot](./doc/screen1.jpg)
+![Leihe Screenshot](./doc/screen1.png)
 
 **Bücherverwaltung**
-![Bücher Liste Screenshot](./doc/buch1.jpg)
+![Bücher Liste Screenshot](./doc/buch1.png)
 
 **Buch bearbeiten**
-![Bücher Edit Screenshot](./doc/buchedit1.jpg)
+![Bücher Edit Screenshot](./doc/buchedit1.png)
 
 
 ### Quickstart mit Docker:
