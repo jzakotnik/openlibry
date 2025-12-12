@@ -11,24 +11,31 @@ OpenLibry entstand aus dem Bedarf einer Grundschule, in der die veraltete OpenBi
 ## 📋 Navigation - Was möchten Sie tun?
 
 ### 🔍 [1. Mehr über die Software erfahren](#-software-info)
+
 Entdecken Sie die Features, sehen Sie Screenshots und verstehen Sie, wie OpenLibry funktioniert.
 
 ### 💻 [2. OpenLibry installieren](#-installation)
+
 Schritt-für-Schritt Anleitungen für verschiedene Installationsmethoden (Bare Metal, Docker, nginx).
 
 ### ⚙️ [3. Software konfigurieren](#%EF%B8%8F-konfiguration)
+
 Passen Sie OpenLibry an Ihre Bedürfnisse an - von Ausleihzeiten bis zu Bücherlabels.
 
 ### 📖 [4. Die Software benutzen](#-benutzung)
+
 Lernen Sie die tägliche Arbeit mit OpenLibry kennen - Ausleihe, Verwaltung, Reports.
 
 ### 🔄 [5. Daten importieren/exportieren](#-import--export)
+
 Importieren Sie bestehende Daten aus anderen Systemen oder erstellen Sie Backups.
 
 ### 🔧 [6. API & Entwicklung](#-api--entwicklung)
+
 Technische Informationen für Entwickler und API-Nutzung.
 
 ### 📧 [7. Kontakt & Unterstützung](#-kontakt--unterstützung)
+
 Hilfe erhalten, mitmachen oder das Projekt unterstützen.
 
 ---
@@ -69,10 +76,9 @@ OpenLibry bietet eine durchdachte Kombination aus Funktionalität und Benutzerfr
 **Buch bearbeiten**
 ![Bücher Edit Screenshot](./doc/buchedit1.png)
 
+### Quickstart mit Docker
 
-### Quickstart mit Docker:
-
-```
+```docker
 docker run -d \
   --name openlibry \
   -p 3000:3000 \
@@ -89,12 +95,9 @@ docker run -d \
 
 Die Anwendung läuft auf `http://localhost:3000`.
 
-
-
 ---
 
 ## 💻 Installation
-
 
 ### Vorbereitung
 
@@ -236,6 +239,7 @@ docker image rm openlibry
 Öffnen Sie `http://localhost:3000` im Browser.
 
 **Docker Speicherplatz-Management**: Bei vielen Experimenten können alte Images viel Speicherplatz belegen:
+
 - Builder-Dateien löschen: `docker builder prune`
 - Alle Images löschen: `docker image prune -a`
 
@@ -269,10 +273,12 @@ Bücherlabels sind für den Druck auf A4-Labelpapier optimiert. Größe und Inha
 
 Unterhalb des Barcodes wird automatisch die Buch-ID ausgegeben.
 
-**Beispiel-Konfiguration**: 
-```
+**Beispiel-Konfiguration**
+
+```json
 ["Titel: Book.title",10,"left"]
 ```
+
 Dies gibt "Titel: " gefolgt vom Buchtitel in Schriftgröße 10, linksbündig aus.
 
 ![Beispiel Bücherlabel](./doc/boocklabelSpacings.png)
@@ -287,10 +293,12 @@ Benutzerausweise werden ebenfalls auf DIN A4 gedruckt und können danach zugesch
 
 **Farbbalken**: Mit `USERLABEL_SEPARATE_COLORBAR` fügen Sie einen farbigen Balken unterhalb des Bildes ein (Größe in Pixeln).
 
-**Beispiel-Datenblock**:
-```
+**Beispiel-Datenblock**
+
+```json
 USERLABEL_LINE_1= ["User.firstName User.lastName","75%","3%","35vw","2pt","black",14]
 ```
+
 Erstellt einen Block mit 75% Abstand zum oberen Rand, 3% zum linken Rand, 35% relativer Breite, 2 Punkt Innenrand, schwarzer Schrift in Größe 14 mit Vor- und Nachname.
 
 **Barcode-Länge**: `BARCODE_MINCODELENGTH` setzt die minimale Barcodelänge für Bücher- und Nutzerausweise (wichtig für Scanner mit Mindestlängenanforderung).
@@ -364,11 +372,13 @@ In der Bücherverwaltung können Sie auch direkt ein einzelnes Label für ein Bu
 
 Auf der Reports-Seite erstellen Sie via `Excel Export` eine Excel-Datei mit zwei Blättern:
 
-**Userliste** enthält:
+**Userliste** enthält
+
 - Erzeugt am, Update am, Nummer, Nachname, Vorname, Klasse, Lehrkraft, Freigeschaltet, eMail
 
 **Bücherliste** enthält:
-- Mediennummer, Erzeugt am, Update am, Ausleihstatus, Ausgeliehen am, Rückgabe am, Anzahl Verlängerungen, Titel, Untertitel, Autor, Schlagworte, Bild, ISBN, Edition, Verlagsort, Seiten, Zusammenfassung, Min Spieler, Verlag, Merkmale, Beschaffung, Publikationsdatum, Abmessungen, Min Alter, Max Alter, Material, Preis, Links, Ausgeliehen von
+
+Mediennummer, Erzeugt am, Update am, Ausleihstatus, Ausgeliehen am, Rückgabe am, Anzahl Verlängerungen, Titel, Untertitel, Autor, Schlagworte, Bild, ISBN, Edition, Verlagsort, Seiten, Zusammenfassung, Min Spieler, Verlag, Merkmale, Beschaffung, Publikationsdatum, Abmessungen, Min Alter, Max Alter, Material, Preis, Links, Ausgeliehen von
 
 ### Excel Import
 
@@ -388,9 +398,10 @@ Detaillierte Informationen zum Import aus OpenBiblio und anderen Tools finden Si
 
 Wichtige Felder: id (Mediennummer), rentalStatus, rentedDate, dueDate, renewalCount, title, subtitle, author, topics, imageLink, isbn, editionDescription, publisherLocation, pages, summary, minPlayers, publisherName, otherPhysicalAttributes, supplierComment, publisherDate, physicalSize, minAge, maxAge, additionalMaterial, price, externalLinks.
 
-**Cover-Import**:
-- ISBN-Service: https://openlibrary.org/isbn/9780140328721
-- Cover: https://covers.openlibrary.org/13834659
+**Cover-Import**
+
+- ISBN-Service: [https://openlibrary.org/isbn/9780140328721](https://openlibrary.org/isbn/9780140328721)
+- Cover: [https://covers.openlibrary.org/13834659](https://covers.openlibrary.org/13834659)
 
 ---
 
@@ -401,7 +412,8 @@ Wichtige Felder: id (Mediennummer), rentalStatus, rentedDate, dueDate, renewalCo
 OpenLibry bietet eine REST-API für die Ressourcen `book` und `user` mit den Standard-HTTP-Operationen (GET, PUT, POST, DELETE).
 
 **Ausleihe**: Verknüpfung von User und Buch über:
-```
+
+```url
 http://localhost:3000/api/book/2001/user/1080
 ```
 
