@@ -1,20 +1,16 @@
+import palette from "@/styles/palette";
+import { GridView, QueueOutlined, Search, ViewList } from "@mui/icons-material";
 import {
+  alpha,
+  Box,
   Divider,
   IconButton,
   InputBase,
-  Paper,
   Tooltip,
   Typography,
 } from "@mui/material";
 
-import GridViewIcon from "@mui/icons-material/GridView";
-import QueueIcon from "@mui/icons-material/Queue";
-import SearchIcon from "@mui/icons-material/Search";
-import ViewListIcon from "@mui/icons-material/ViewList";
-
-import Grid from "@mui/material/Grid";
-
-interface BookSearchBarPropType {
+interface BookSearchBarProps {
   handleInputChange: React.ChangeEventHandler<
     HTMLTextAreaElement | HTMLInputElement
   >;
@@ -34,68 +30,120 @@ export default function BookSearchBar({
   detailView,
   searchResultNumber,
   showNewBookControl = true,
-}: BookSearchBarPropType) {
+}: BookSearchBarProps) {
   return (
-    <Grid
-      container
-      direction="row"
-      alignItems="center"
-      justifyContent="center"
-      sx={{ px: 10, my: 5 }}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        px: { xs: 2, md: 10 },
+        my: 4,
+      }}
     >
-      <Grid>
-        <Paper
-          component="form"
-          onSubmit={(e) => {
-            e.preventDefault(); // Kein reload der Seite
+      <Box
+        component="form"
+        onSubmit={(e) => e.preventDefault()}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.5,
+          px: 2,
+          py: 1,
+          width: "100%",
+          maxWidth: 500,
+          borderRadius: 3,
+          bgcolor: alpha(palette.background.paper, 0.9),
+          backdropFilter: "blur(12px)",
+          border: `1px solid ${alpha(palette.primary.main, 0.12)}`,
+          boxShadow: `0 4px 20px ${alpha(palette.primary.main, 0.08)}`,
+          transition: "all 0.3s ease",
+          "&:hover": {
+            border: `1px solid ${alpha(palette.primary.main, 0.25)}`,
+            boxShadow: `0 6px 24px ${alpha(palette.primary.main, 0.12)}`,
+          },
+          "&:focus-within": {
+            border: `1px solid ${palette.primary.main}`,
+            boxShadow: `0 6px 24px ${alpha(palette.primary.main, 0.15)}`,
+          },
+        }}
+      >
+        {/* View Toggle */}
+        <Tooltip title="Ansicht wechseln">
+          <IconButton
+            onClick={toggleView}
+            sx={{
+              color: palette.text.secondary,
+              "&:hover": {
+                bgcolor: alpha(palette.primary.main, 0.1),
+                color: palette.primary.main,
+              },
+            }}
+          >
+            {detailView ? <GridView /> : <ViewList />}
+          </IconButton>
+        </Tooltip>
+
+        {/* Search Icon & Input */}
+        <Search sx={{ color: palette.text.disabled, ml: 0.5 }} />
+        <InputBase
+          value={bookSearchInput}
+          onChange={handleInputChange}
+          placeholder="Buch suchen..."
+          data-cy="rental_input_searchbook"
+          inputProps={{
+            "aria-label": "search books",
           }}
           sx={{
-            p: "2px 4px",
-            display: "flex",
-            alignItems: "center",
-            width: 400,
+            flex: 1,
+            ml: 1,
+            "& input": {
+              py: 0.75,
+              "&::placeholder": {
+                color: palette.text.disabled,
+                opacity: 1,
+              },
+            },
           }}
-        >
-          <Tooltip title="Ansicht wechseln">
-            <IconButton
-              sx={{ p: "10px" }}
-              aria-label="menu"
-              onClick={toggleView}
-            >
-              {detailView ? <GridViewIcon /> : <ViewListIcon />}
-            </IconButton>
-          </Tooltip>
-          <InputBase
-            sx={{ ml: 1, flex: 1 }}
-            value={bookSearchInput}
-            onChange={handleInputChange}
-            placeholder="Buch suchen.."
-            inputProps={{ "aria-label": "search books" }}
-            data-cy="rental_input_searchbook"
-          />
-          <Tooltip title="Suche">
-            <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
-              <SearchIcon />
-            </IconButton>
-          </Tooltip>
-          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          {showNewBookControl ? (
+        />
+
+        {/* Result Count */}
+        {searchResultNumber > 0 && (
+          <Typography
+            variant="caption"
+            sx={{
+              color: palette.text.secondary,
+              bgcolor: alpha(palette.primary.main, 0.08),
+              px: 1,
+              py: 0.25,
+              borderRadius: 1,
+              fontWeight: 500,
+            }}
+          >
+            {searchResultNumber}
+          </Typography>
+        )}
+
+        {/* Create Book Button */}
+        {showNewBookControl && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
             <Tooltip title="Neues Buch erzeugen">
               <IconButton
-                color="primary"
-                data-cy="create_book_button"
-                sx={{ p: "10px" }}
-                aria-label="new-book"
                 onClick={handleNewBook}
+                data-cy="create_book_button"
+                sx={{
+                  color: palette.primary.main,
+                  "&:hover": {
+                    bgcolor: alpha(palette.primary.main, 0.1),
+                  },
+                }}
               >
-                <QueueIcon />
+                <QueueOutlined />
               </IconButton>
             </Tooltip>
-          ) : null}
-          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-          <Typography variant="caption">{searchResultNumber}</Typography>
-        </Paper>
-      </Grid>
-    </Grid>
+          </>
+        )}
+      </Box>
+    </Box>
   );
 }

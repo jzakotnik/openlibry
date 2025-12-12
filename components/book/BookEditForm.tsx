@@ -7,11 +7,19 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
+import ImageSearchIcon from "@mui/icons-material/ImageSearch";
 import PrintIcon from "@mui/icons-material/Print";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 
 import palette from "@/styles/palette";
-import { Divider, Grid, Link, Paper, Tooltip } from "@mui/material";
+import {
+  CircularProgress,
+  Divider,
+  Grid,
+  Link,
+  Paper,
+  Tooltip,
+} from "@mui/material";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
@@ -61,6 +69,7 @@ export default function BookEditForm({
   const [editable, setEditable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1); //key for changing image
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
+  const [fetchingCover, setFetchingCover] = useState(false);
   const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
@@ -84,7 +93,7 @@ export default function BookEditForm({
     }
     try {
       const response = await fetch(
-        `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`
+        `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`
       );
       if (!response.ok) {
         enqueueSnackbar(
@@ -98,9 +107,16 @@ export default function BookEditForm({
         ...book,
         ...data, // Merge the fields
       });
-      enqueueSnackbar("Stammdaten wurden erfolgreich ausgefüllt.", {
-        variant: "success",
-      });
+      if (data.coverFetched) {
+        setLoadingImage(Math.floor(Math.random() * 10000));
+        enqueueSnackbar("Stammdaten und Cover wurden erfolgreich geladen.", {
+          variant: "success",
+        });
+      } else {
+        enqueueSnackbar("Stammdaten wurden erfolgreich ausgefüllt.", {
+          variant: "success",
+        });
+      }
     } catch (e: any) {
       enqueueSnackbar(e?.message || "Fehler beim Laden der Buchdaten.", {
         variant: "error",
@@ -108,6 +124,52 @@ export default function BookEditForm({
     }
   };
   //End autofill stuff
+
+  // Fetch cover from ISBN
+  const handleFetchCover = async () => {
+    if (!book.isbn) {
+      enqueueSnackbar("Keine ISBN im Buch hinterlegt.", { variant: "warning" });
+      return;
+    }
+    if (!book.id) {
+      enqueueSnackbar("Buch muss zuerst gespeichert werden.", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
+    if (!cleanedIsbn) {
+      enqueueSnackbar("Die ISBN ist ungültig.", { variant: "warning" });
+      return;
+    }
+
+    setFetchingCover(true);
+    try {
+      const response = await fetch(
+        `/api/book/fetchCover?isbn=${cleanedIsbn}&bookId=${book.id}`
+      );
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setLoadingImage(Math.floor(Math.random() * 10000));
+        enqueueSnackbar(
+          `Cover wurde erfolgreich von ${data.source || "unbekannt"} geladen.`,
+          { variant: "success" }
+        );
+      } else {
+        enqueueSnackbar(data.error || "Cover konnte nicht gefunden werden.", {
+          variant: "warning",
+        });
+      }
+    } catch (e: any) {
+      enqueueSnackbar(e?.message || "Fehler beim Laden des Covers.", {
+        variant: "error",
+      });
+    } finally {
+      setFetchingCover(false);
+    }
+  };
 
   const toggleEditButton = () => {
     editable
@@ -464,10 +526,31 @@ export default function BookEditForm({
         >
           <Grid>
             <CoverImage />
-            <BookImageUploadButton
-              book={book}
-              setLoadingImage={setLoadingImage}
-            />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <BookImageUploadButton
+                book={book}
+                setLoadingImage={setLoadingImage}
+              />
+              <Tooltip title="Cover von ISBN laden (OpenLibrary)">
+                <span>
+                  <Button
+                    size="small"
+                    onClick={handleFetchCover}
+                    disabled={!book.isbn || !book.id || fetchingCover}
+                    startIcon={
+                      fetchingCover ? (
+                        <CircularProgress size={16} />
+                      ) : (
+                        <ImageSearchIcon />
+                      )
+                    }
+                    data-cy="fetch-cover-button"
+                  >
+                    {fetchingCover ? "Lädt..." : "Cover laden"}
+                  </Button>
+                </span>
+              </Tooltip>
+            </Box>
           </Grid>
           <Grid>
             <BookBarcode book={book} />

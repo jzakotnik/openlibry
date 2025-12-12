@@ -82,7 +82,6 @@ export default function BookDetail({
     const rentedDate = convertStringToDay(bookData.rentedDate as string);
     const dueDate = convertStringToDay(bookData.dueDate as string);
 
-    //we don't need to update the dates
     const { updatedAt, createdAt, ...savingBook } = bookData;
 
     try {
@@ -93,6 +92,16 @@ export default function BookDetail({
         },
         body: JSON.stringify({ ...savingBook, rentedDate, dueDate }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("ERROR while saving book", res.statusText, errorData);
+        enqueueSnackbar(
+          errorData.message || "Fehler beim Speichern des Buches",
+          { variant: "error" }
+        );
+        return;
+      }
 
       await res.json();
       enqueueSnackbar(`Buch ${bookData.title} gespeichert, gut gemacht!`);

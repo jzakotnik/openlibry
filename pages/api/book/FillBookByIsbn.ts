@@ -127,7 +127,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { isbn } = req.query;
+  const { isbn, bookId } = req.query;
   if (!isbn || typeof isbn !== "string") {
     res.status(400).json({ error: "Missing ISBN" });
     return;
@@ -150,9 +150,9 @@ export default async function handler(
       }
     });
     if (!turtleLink) {
-      res
-        .status(404)
-        .json({ error: "RDF-Turtle-Link not found in DNB result." });
+      res.status(404).json({
+        error: "RDF-Turtle-Link not found in DNB result.",
+      });
       return;
     }
     if (turtleLink.startsWith("/")) {
@@ -167,23 +167,17 @@ export default async function handler(
     const parser = new Parser();
     const triples = parser.parse(turtleText);
 
-    // Optional: log predicates for debugging
-    // triples.forEach(triple => console.log(triple.predicate.value, triple.object.value));
-
     // 5. Map predicates to form fields using robust extraction
     const bookData: BookFormData = {
       title: getFirstMatching(triples, P.title),
       author: getAllMatchingLiterals(triples, P.author).join(", "),
       subtitle: getFirstMatching(triples, P.subtitle),
-      //topics, //Dummy for eventual later changes, do not use without understanding (Fabian)
-      //topics: getAllMatching(triples, P.topics), //Dummy for eventual later changes, do not use without understanding (Fabian)
       summary: getFirstMatching(triples, P.summary),
       isbn: getFirstMatching(triples, P.isbn) || isbn,
-      editionDescription: undefined, // add mapping if needed
+      editionDescription: undefined,
       publisherName: getFirstMatching(triples, P.publisherName),
       publisherLocation: getFirstMatching(triples, P.publisherLocation),
       publisherDate: getFirstMatching(triples, P.publisherDate),
-      //pages: getFirstMatching(triples, P.pages), //Error because int is required, sometimes String is delivered
       minAge: getFirstMatching(triples, P.minAge),
       maxAge: undefined,
       price: getFirstMatching(triples, P.price),
@@ -200,8 +194,8 @@ export default async function handler(
 
     res.status(200).json(bookData);
   } catch (err: any) {
-    res
-      .status(500)
-      .json({ error: err.message || "Error fetching/parsing DNB data." });
+    res.status(500).json({
+      error: err.message || "Error fetching/parsing DNB data.",
+    });
   }
 }

@@ -157,6 +157,8 @@ export async function updateBook(
   id: number,
   book: BookType
 ) {
+  console.log("Updating book with book", book);
+  const { id: _id, userId: _userId, ...bookData } = book; //apparently in prisma 7, the id should not be included in the data itself
   try {
     await addAudit(
       client,
@@ -168,7 +170,7 @@ export async function updateBook(
       where: {
         id,
       },
-      data: { ...book },
+      data: { ...bookData },
     });
   } catch (e) {
     if (

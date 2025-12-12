@@ -47,7 +47,7 @@ export default async function handle(
           "default.jpg"
         );
         if (existsSync(filePath)) {
-          console.log("Reading cover file");
+          //console.log("Reading cover file");
           const imageFile = await fs.readFile(filePath);
           //console.log("Read image file", imageFile);
           res.setHeader("Content-Type", "image/jpg");
