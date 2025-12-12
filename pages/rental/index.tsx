@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
-import BookRentalList from "@/components/rental/BookRentalList";
-import UserRentalList from "@/components/rental/UserRentalList";
+import { BookPanel } from "@/components/rental/BookPanel";
+import { UserPanel } from "@/components/rental/UserPanel";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
@@ -14,12 +14,12 @@ import {
   sameDay,
 } from "@/utils/dateutils";
 import { getBookFromID } from "@/utils/getBookFromID";
+import { Box } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
 import { useSnackbar } from "notistack";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 
 interface RentalPropsType {
@@ -39,9 +39,15 @@ export default function Rental({
   extensionDays,
   bookSortBy,
 }: RentalPropsType) {
-  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
+
+  // Use state for due date calculation to avoid hydration mismatch
+  const [newDueDate, setNewDueDate] = useState<dayjs.Dayjs | null>(null);
+
+  useEffect(() => {
+    setNewDueDate(extendDays(new Date(), extensionDays));
+  }, [extensionDays]);
 
   const bookFocusRef = useRef<HTMLInputElement>(null);
   const handleBookSearchSetFocus = () => {
@@ -82,7 +88,8 @@ export default function Rental({
 
       await res.json();
       enqueueSnackbar(
-        `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`
+        `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`,
+        { variant: "success" }
       );
       handleBookSearchSetFocus();
     } catch (error) {
@@ -93,9 +100,9 @@ export default function Rental({
     }
   };
 
-  const newDueDate = extendDays(new Date(), extensionDays);
-
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
+    if (!newDueDate) return; // Guard for SSR
+
     const newbook = replaceBookStringDate(book) as any;
 
     if (sameDay(newbook.dueDate, newDueDate)) {
@@ -109,8 +116,8 @@ export default function Rental({
     newbook.renewalCount = newbook.renewalCount + 1;
     newbook.dueDate = newDueDate.toDate();
 
-    delete newbook.user; // not needed for update
-    delete newbook._id; // SWR helper id; not needed for update
+    delete newbook.user;
+    delete newbook._id;
 
     try {
       const res = await fetch(`/api/book/${bookid}`, {
@@ -130,7 +137,9 @@ export default function Rental({
       }
 
       await res.json();
-      enqueueSnackbar(`Buch - ${book.title} - verlängert`);
+      enqueueSnackbar(`Buch - ${book.title} - verlängert`, {
+        variant: "success",
+      });
       handleBookSearchSetFocus();
     } catch (error) {
       enqueueSnackbar(
@@ -158,7 +167,12 @@ export default function Rental({
       }
 
       await res.json();
-      enqueueSnackbar(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
+      enqueueSnackbar(
+        `Buch ${getBookFromID(bookid, books).title} ausgeliehen`,
+        {
+          variant: "success",
+        }
+      );
       handleBookSearchSetFocus();
     } catch (error) {
       enqueueSnackbar(
@@ -170,53 +184,94 @@ export default function Rental({
 
   return (
     <Layout>
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="flex-start"
-        spacing={2}
-        sx={{ my: 1 }}
-        data-cy="rental_page_container"
+      {/* Background with gradient */}
+      <Box
+        sx={{
+          minHeight: "calc(100vh - 64px)",
+          background:
+            "linear-gradient(135deg, #f0f7fa 0%, #e8f4f8 50%, #fff5e6 100%)",
+          position: "relative",
+          overflow: "hidden",
+          p: { xs: 1.5, sm: 2, md: 3 },
+        }}
       >
-        {/* Use sm instead of md so iPad (≥768px) shows two columns.
-            Also allow overflow to ensure right-side icons are visible. */}
+        {/* Decorative background elements */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: "-100px",
+            right: "-100px",
+            width: "400px",
+            height: "400px",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(161, 220, 248, 0.25) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-150px",
+            left: "-50px",
+            width: "300px",
+            height: "300px",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(215, 153, 0, 0.15) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Main two-column layout */}
         <Grid
-          size={{ xs: 12, sm: 6 }}
-          sx={{ overflow: "visible" }}
-          data-cy="rental_user_column"
+          container
+          spacing={{ xs: 2, md: 3 }}
+          sx={{ position: "relative", zIndex: 1 }}
+          data-cy="rental_page_container"
         >
-          <UserRentalList
-            users={users}
-            books={books}
-            rentals={rentals}
-            handleExtendBookButton={handleExtendBookButton}
-            handleReturnBookButton={handleReturnBookButton}
-            setUserExpanded={setUserExpanded}
-            userExpanded={userExpanded}
-            searchFieldRef={userFocusRef}
-            handleBookSearchSetFocus={handleBookSearchSetFocus}
-          />
+          {/* Left column: User selection */}
+          <Grid
+            size={{ xs: 12, sm: 6 }}
+            sx={{ overflow: "visible" }}
+            data-cy="rental_user_column"
+          >
+            <UserPanel
+              users={users}
+              books={books}
+              rentals={rentals}
+              handleExtendBookButton={handleExtendBookButton}
+              handleReturnBookButton={handleReturnBookButton}
+              setUserExpanded={setUserExpanded}
+              userExpanded={userExpanded}
+              searchFieldRef={userFocusRef}
+              handleBookSearchSetFocus={handleBookSearchSetFocus}
+            />
+          </Grid>
+
+          {/* Right column: Book search */}
+          <Grid
+            size={{ xs: 12, sm: 6 }}
+            sx={{ overflow: "visible" }}
+            data-cy="rental_book_column"
+          >
+            <BookPanel
+              books={books}
+              users={users}
+              handleExtendBookButton={handleExtendBookButton}
+              handleReturnBookButton={handleReturnBookButton}
+              handleRentBookButton={handleRentBookButton}
+              userExpanded={userExpanded}
+              searchFieldRef={bookFocusRef}
+              handleUserSearchSetFocus={handleUserSearchSetFocus}
+              extensionDueDate={newDueDate}
+              sortBy={
+                bookSortBy as "id_asc" | "id_desc" | "title_asc" | "title_desc"
+              }
+            />
+          </Grid>
         </Grid>
-        <Grid
-          size={{ xs: 12, sm: 6 }}
-          sx={{ overflow: "visible" }}
-          data-cy="rental_book_column"
-        >
-          <BookRentalList
-            books={books}
-            users={users} // to figure out the user name who rented
-            handleExtendBookButton={handleExtendBookButton}
-            handleReturnBookButton={handleReturnBookButton}
-            handleRentBookButton={handleRentBookButton}
-            userExpanded={userExpanded}
-            searchFieldRef={bookFocusRef}
-            handleUserSearchSetFocus={handleUserSearchSetFocus}
-            extensionDueDate={newDueDate}
-            sortBy={bookSortBy}
-          />
-        </Grid>
-      </Grid>
+      </Box>
     </Layout>
   );
 }
@@ -243,7 +298,7 @@ export const getServerSideProps: GetServerSideProps = async (
   const allUsers = await getAllUsers(prisma);
 
   const users = allUsers.map((u) => {
-    const newUser = { ...u } as any; // TODO: tighten type to convert Date -> string
+    const newUser = { ...u } as any;
     newUser.createdAt = convertDateToDayString(u.createdAt);
     newUser.updatedAt = convertDateToDayString(u.updatedAt);
     return newUser;
@@ -251,7 +306,6 @@ export const getServerSideProps: GetServerSideProps = async (
 
   const allRentals = await getRentedBooksWithUsers(prisma);
   const rentals = allRentals.map((r: any) => {
-    // calculate remaining days for the rental
     const due = dayjs(r.dueDate);
     const today = dayjs();
     const diff = today.diff(due, "days");
@@ -270,7 +324,7 @@ export const getServerSideProps: GetServerSideProps = async (
 
   const allBooks = await getAllBooks(prisma);
   const books = allBooks.map((b) => {
-    const newBook = { ...b } as any; // TODO: tighten type to convert Date -> string
+    const newBook = { ...b } as any;
     newBook.createdAt = convertDateToDayString(b.createdAt);
     newBook.updatedAt = convertDateToDayString(b.updatedAt);
     newBook.rentedDate = b.rentedDate
