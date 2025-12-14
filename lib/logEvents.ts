@@ -8,6 +8,8 @@ export const LogEvents = {
   BOOK_RENTED: "book.rented",
   BOOK_RETURNED: "book.returned",
   BOOK_EXTENDED: "book.extended",
+  BOOK_RENTAL_CHECKED: "book.rental.checked",
+  BOOK_RENTAL_REJECTED: "book.rental.rejected",
 
   // User operations
   USER_CREATED: "user.created",
@@ -47,6 +49,10 @@ export const LogEvents = {
 
   // Cover image operations
   COVER_UPLOADED: "cover.uploaded",
+  COVER_SERVED: "cover.served",
+  COVER_DEFAULT_SERVED: "cover.default.served",
+  COVER_NOT_FOUND: "cover.notfound",
+  COVER_LIST_RETRIEVED: "cover.list.retrieved",
   COVER_FETCHED_DNB: "cover.fetched.dnb",
   COVER_FETCHED_OPENLIBRARY: "cover.fetched.openlibrary",
   COVER_FETCH_FAILED: "cover.fetch.failed",
