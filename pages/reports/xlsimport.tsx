@@ -127,7 +127,7 @@ export default function XLSImport() {
       const booksJson: any[] = convertSheetToJson(worksheetBooks);
       logs.push(
         "Excel Bücher erfolgreich in JSON konvertiert: " +
-          booksJson.length +
+          (booksJson.length - 1) + //skip header line
           " Bücher gefunden"
       );
       setBookData(booksJson);
@@ -135,7 +135,7 @@ export default function XLSImport() {
       const usersJson: any[] = convertSheetToJson(worksheetUsers);
       logs.push(
         "Excel User erfolgreich in JSON konvertiert: " +
-          usersJson.length +
+          (usersJson.length - 1) + // skip the header line
           " User gefunden"
       );
       setUserData(usersJson);
