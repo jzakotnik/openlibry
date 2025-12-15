@@ -11,7 +11,8 @@ import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 
 export default async function handle(
   req: NextApiRequest,
@@ -23,7 +24,6 @@ export default async function handle(
         const fileName = "openlibry_export.xlsx";
 
         const allUsers = await getAllUsers(prisma);
-
         const users = allUsers.map((u) => {
           const newUser = { ...u } as any;
           newUser.createdAt = convertDateToDayString(u.createdAt);
@@ -48,19 +48,25 @@ export default async function handle(
         const usersheet = workbook.addWorksheet("Userliste");
 
         booksheet.columns = xlsbookcolumns;
-
         books.forEach((b: BookType) => {
           booksheet.addRow(b);
         });
 
         usersheet.columns = xlsusercolumns;
-
         users.forEach((u: UserType) => {
           usersheet.addRow(u);
         });
 
-        if (!books)
-          return res.status(400).json({ data: "ERROR: Books not found" });
+        businessLogger.info(
+          {
+            event: LogEvents.REPORT_EXCEL_EXPORTED,
+            bookCount: books.length,
+            userCount: users.length,
+            fileName,
+          },
+          "Excel export completed"
+        );
+
         res.writeHead(200, {
           "Content-Type":
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -69,23 +75,52 @@ export default async function handle(
         await workbook.xlsx.write(res);
         res.end();
       } catch (error) {
-        console.log(error);
+        errorLogger.error(
+          {
+            event: LogEvents.API_ERROR,
+            endpoint: "/api/excel",
+            method: "GET",
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+          "Failed to export Excel file"
+        );
         res.status(400).json({ data: "ERROR: " + error });
       }
       break;
+
     case "POST":
       const importLog = ["Starte den Transfer in die Datenbank"];
-      try {
-        // Extract import flags from request body
-        const importBooks = req.body.importBooks !== false; // default true
-        const importUsers = req.body.importUsers !== false; // default true
-        const dropBeforeImport = req.body.dropBeforeImport === true; // default false
 
-        const bookData = req.body.bookData?.slice(1) || []; // remove top header row
+      try {
+        const importBooks = req.body.importBooks !== false;
+        const importUsers = req.body.importUsers !== false;
+        const dropBeforeImport = req.body.dropBeforeImport === true;
+
+        const bookData = req.body.bookData?.slice(1) || [];
         const userData = req.body.userData?.slice(1) || [];
+
+        businessLogger.info(
+          {
+            event: LogEvents.IMPORT_EXCEL_STARTED,
+            importBooks,
+            importUsers,
+            dropBeforeImport,
+            bookCount: bookData.length,
+            userCount: userData.length,
+          },
+          "Excel import started"
+        );
 
         // Validation
         if (!importBooks && !importUsers) {
+          businessLogger.warn(
+            {
+              event: LogEvents.IMPORT_EXCEL_FAILED,
+              reason: "No import option selected",
+            },
+            "Excel import rejected - no import options"
+          );
           return res.status(400).json({
             data: "ERROR: Mindestens eine Import-Option (Bücher oder User) muss aktiviert sein",
             logs: importLog,
@@ -93,6 +128,13 @@ export default async function handle(
         }
 
         if (importBooks && bookData.length === 0) {
+          businessLogger.warn(
+            {
+              event: LogEvents.IMPORT_EXCEL_FAILED,
+              reason: "Books import enabled but no book data",
+            },
+            "Excel import rejected - missing book data"
+          );
           return res.status(400).json({
             data: "ERROR: Bücher-Import aktiviert, aber keine Bücher-Daten vorhanden",
             logs: importLog,
@@ -100,6 +142,13 @@ export default async function handle(
         }
 
         if (importUsers && userData.length === 0) {
+          businessLogger.warn(
+            {
+              event: LogEvents.IMPORT_EXCEL_FAILED,
+              reason: "Users import enabled but no user data",
+            },
+            "Excel import rejected - missing user data"
+          );
           return res.status(400).json({
             data: "ERROR: User-Import aktiviert, aber keine User-Daten vorhanden",
             logs: importLog,
@@ -109,30 +158,25 @@ export default async function handle(
         importLog.push(
           `Import-Einstellungen: Bücher=${importBooks}, User=${importUsers}, Vorher löschen=${dropBeforeImport}`
         );
-
         importLog.push(
-          "Header Zeilen aus Excel entfernt, damit bleiben " +
-            bookData.length +
-            " Bücher und " +
-            userData.length +
-            " User"
+          `Header Zeilen aus Excel entfernt, damit bleiben ${bookData.length} Bücher und ${userData.length} User`
         );
 
-        console.log(
-          "Received import xls, it contains so many books and users: ",
-          bookData.length,
-          userData.length
+        businessLogger.debug(
+          {
+            event: LogEvents.IMPORT_EXCEL_STARTED,
+            sampleBooks: bookData.slice(0, 2),
+            sampleUsers: userData.slice(0, 2),
+          },
+          "Excel import data sample"
         );
-        console.log("Example: ", bookData.slice(0, 5), userData.slice(0, 5));
 
-        // Create transaction array
         const transaction = [];
         let userImportedCount = 0;
         let bookImportedCount = 0;
 
-        // Add delete operations if dropBeforeImport is true
+        // Delete operations if dropBeforeImport is true
         if (dropBeforeImport) {
-          // Delete books first to avoid foreign key constraints
           if (importBooks) {
             transaction.push(prisma.book.deleteMany({}));
             importLog.push("Alle Bücher werden vor dem Import gelöscht");
@@ -141,9 +185,18 @@ export default async function handle(
             transaction.push(prisma.user.deleteMany({}));
             importLog.push("Alle User werden vor dem Import gelöscht");
           }
+
+          businessLogger.warn(
+            {
+              event: LogEvents.IMPORT_EXCEL_DROP_BEFORE,
+              dropBooks: importBooks,
+              dropUsers: importUsers,
+            },
+            "Excel import will delete existing data before import"
+          );
         }
 
-        // Import users first to satisfy foreign key constraints
+        // Import users first (foreign key constraints)
         if (importUsers && userData.length > 0) {
           userData.forEach((u: any) => {
             transaction.push(
@@ -208,7 +261,7 @@ export default async function handle(
           importLog.push("Bücher-Import übersprungen (Flag nicht gesetzt)");
         }
 
-        // Execute transaction if there are operations to perform
+        // Execute transaction
         if (transaction.length > 0) {
           importLog.push(
             "Transaction für alle Daten erzeugt, importiere jetzt"
@@ -219,8 +272,15 @@ export default async function handle(
           importLog.push("Keine Daten zum Importieren");
         }
 
-        console.log("Importing " + userImportedCount + " users");
-        console.log("Importing " + bookImportedCount + " books");
+        businessLogger.info(
+          {
+            event: LogEvents.IMPORT_EXCEL_COMPLETED,
+            usersImported: userImportedCount,
+            booksImported: bookImportedCount,
+            dropBeforeImport,
+          },
+          "Excel import completed successfully"
+        );
 
         res.status(200).json({
           result: "Imported dataset",
@@ -231,12 +291,32 @@ export default async function handle(
           logs: importLog,
         });
       } catch (error) {
-        console.log(error);
-        importLog.push("Fehler beim Import: " + (error as string).toString());
+        errorLogger.error(
+          {
+            event: LogEvents.IMPORT_EXCEL_FAILED,
+            endpoint: "/api/excel",
+            method: "POST",
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+          "Excel import failed"
+        );
+
+        importLog.push("Fehler beim Import: " + (error as Error).toString());
         res.status(400).json({ data: "ERROR: " + error, logs: importLog });
       }
       break;
+
     default:
+      errorLogger.warn(
+        {
+          event: LogEvents.API_ERROR,
+          endpoint: "/api/excel",
+          method: req.method,
+          reason: "Method not allowed",
+        },
+        "Unsupported HTTP method for Excel endpoint"
+      );
       res.status(405).end(`${req.method} Not Allowed`);
       break;
   }

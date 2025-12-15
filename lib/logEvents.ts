@@ -39,11 +39,13 @@ export const LogEvents = {
   REPORT_RENTALS_EXPORTED: "report.rentals.exported",
   REPORT_BOOKS_EXPORTED: "report.books.exported",
   REPORT_USERS_EXPORTED: "report.users.exported",
+  REPORT_EXCEL_EXPORTED: "report.excel.exported",
 
   // Import operations
   IMPORT_EXCEL_STARTED: "import.excel.started",
   IMPORT_EXCEL_COMPLETED: "import.excel.completed",
   IMPORT_EXCEL_FAILED: "import.excel.failed",
+  IMPORT_EXCEL_DROP_BEFORE: "import.excel.dropbefore",
   IMPORT_OPENBIBLIO_STARTED: "import.openbiblio.started",
   IMPORT_OPENBIBLIO_COMPLETED: "import.openbiblio.completed",
 
