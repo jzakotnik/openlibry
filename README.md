@@ -76,6 +76,10 @@ OpenLibry bietet eine durchdachte Kombination aus Funktionalität und Benutzerfr
 **Buch bearbeiten**
 ![Bücher Edit Screenshot](./doc/buchedit1.png)
 
+### Intro Video
+
+Ein 12-minütiges Intro-Video über die Bedienung gibts in diesem [YouTube Video](https://youtu.be/2UIFdA6Lqaw?si=5YP4eNZX5wCBMmBJ).
+
 ### Quickstart mit Docker
 
 ```docker
