@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import * as ExcelJS from "exceljs";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 const theme = createTheme({
   palette: {
@@ -79,27 +79,67 @@ export default function XLSImport() {
     );
   };
 
-  const convertSheetToJson = (worksheet: any) => {
+  const convertSheetToJson = useCallback((worksheet: ExcelJS.Worksheet) => {
     const json: any[] = [];
+
+    // Helper to extract actual value from cell (handles formulas)
+    const getCellValue = (cellValue: ExcelJS.CellValue): any => {
+      if (cellValue === null || cellValue === undefined) {
+        return cellValue;
+      }
+
+      // Check if it's a formula result object
+      if (typeof cellValue === "object" && "result" in cellValue) {
+        return (cellValue as ExcelJS.CellFormulaValue).result;
+      }
+
+      // Check if it's a rich text object
+      if (typeof cellValue === "object" && "richText" in cellValue) {
+        return (cellValue as ExcelJS.CellRichTextValue).richText
+          .map((rt) => rt.text)
+          .join("");
+      }
+
+      // Check if it's a hyperlink object
+      if (typeof cellValue === "object" && "hyperlink" in cellValue) {
+        return (
+          (cellValue as ExcelJS.CellHyperlinkValue).text ||
+          (cellValue as ExcelJS.CellHyperlinkValue).hyperlink
+        );
+      }
+
+      // Check if it's an error object
+      if (typeof cellValue === "object" && "error" in cellValue) {
+        return null; // or return the error code: (cellValue as ExcelJS.CellErrorValue).error
+      }
+
+      return cellValue;
+    };
+
     worksheet.eachRow(
       { includeEmpty: false },
-      (row: any, rowNumber: number) => {
+      (row: ExcelJS.Row, rowNumber: number) => {
         const rowValues = row.values as ExcelJS.CellValue[];
+
         if (rowNumber === 1) {
-          json.push(rowValues);
+          // Header row - extract plain values
+          const headers = rowValues.map((val) => getCellValue(val));
+          json.push(headers);
         } else {
+          // Data row
           const rowData: any = {};
           rowValues.forEach((value, index) => {
             if (json[0] && json[0][index]) {
-              rowData[json[0][index] as string] = value;
+              rowData[json[0][index] as string] = getCellValue(value);
             }
           });
           json.push(rowData);
         }
       }
     );
+
     return json;
-  };
+  }, []);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -109,7 +149,7 @@ export default function XLSImport() {
       console.log("Check file", event.target);
       const file = event.target.files ? event.target.files[0] : null;
       console.log("Uploading file", event.target.files);
-      logs.push("Datei wird geladen: " + file);
+      logs.push("Datei wird geladen: " + file?.name + ", " + file?.size);
       if (!file) return;
 
       const workbook = new ExcelJS.Workbook();
