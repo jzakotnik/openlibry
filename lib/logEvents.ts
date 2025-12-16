@@ -55,6 +55,8 @@ export const LogEvents = {
   COVER_DEFAULT_SERVED: "cover.default.served",
   COVER_NOT_FOUND: "cover.notfound",
   COVER_LIST_RETRIEVED: "cover.list.retrieved",
+  COVER_FETCH_STARTED: "cover.fetch.started",
+  COVER_FETCH_ATTEMPT: "cover.fetch.attempt",
   COVER_FETCHED_DNB: "cover.fetched.dnb",
   COVER_FETCHED_OPENLIBRARY: "cover.fetched.openlibrary",
   COVER_FETCH_FAILED: "cover.fetch.failed",
