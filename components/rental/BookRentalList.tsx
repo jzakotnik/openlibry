@@ -44,6 +44,9 @@ type Sorting<T> = {
   order: "asc" | "desc";
 };
 
+const ReturnedIcon = () => <ArrowCircleLeftIcon />;
+const ExtendedIcon = () => <UpdateIcon />;
+
 export default function BookRentalList({
   books,
   users,
@@ -132,9 +135,6 @@ export default function BookRentalList({
     const time = Date.now();
     setReturnedBooks((prev) => ({ ...prev, [id]: time }));
   };
-
-  const ReturnedIcon = () => <ArrowCircleLeftIcon />;
-  const ExtendedIcon = () => <UpdateIcon />;
 
   return (
     <div data-cy="book_rental_list_container">
