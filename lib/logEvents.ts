@@ -15,6 +15,7 @@ export const LogEvents = {
   USER_CREATED: "user.created",
   USER_UPDATED: "user.updated",
   USER_DELETED: "user.deleted",
+  USER_RETRIEVED: "user.retrieved",
 
   // Auth events
   LOGIN_SUCCESS: "auth.login.success",
