@@ -1,4 +1,6 @@
 import { BookType } from "@/entities/BookType";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { addAudit } from "./audit";
@@ -20,7 +22,14 @@ export async function getAllTopics(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getting all Books: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getAllTopics",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting all topics"
+      );
     }
     throw e;
   }
@@ -40,7 +49,14 @@ export async function getAllBooks(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getting all Books: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getAllBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting all books"
+      );
     }
     throw e;
   }
@@ -76,7 +92,14 @@ export async function getRentedBooksWithUsers(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getting all Books: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getRentedBooksWithUsers",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting rented books with users"
+      );
     }
     throw e;
   }
@@ -114,7 +137,15 @@ export async function getRentedBooksForUser(client: PrismaClient, id: number) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getting all Books: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getRentedBooksForUser",
+          userId: id,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting rented books for user"
+      );
     }
     throw e;
   }
@@ -128,14 +159,28 @@ export async function countBook(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in counting books: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "countBook",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error counting books"
+      );
     }
     throw e;
   }
 }
 
 export async function addBook(client: PrismaClient, book: BookType) {
-  console.log("Adding book", book);
+  businessLogger.debug(
+    {
+      event: LogEvents.BOOK_CREATED,
+      bookId: book.id,
+      title: book.title,
+    },
+    "Adding book"
+  );
   try {
     addAudit(client, "Add book", book.title, book.id);
     return await client.book.create({
@@ -146,7 +191,16 @@ export async function addBook(client: PrismaClient, book: BookType) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in creating a new book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "addBook",
+          bookId: book.id,
+          title: book.title,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error creating a new book"
+      );
     }
     throw e;
   }
@@ -157,7 +211,14 @@ export async function updateBook(
   id: number,
   book: BookType
 ) {
-  console.log("Updating book with book", book);
+  businessLogger.debug(
+    {
+      event: LogEvents.BOOK_UPDATED,
+      bookId: id,
+      title: book.title,
+    },
+    "Updating book"
+  );
   const { id: _id, userId: _userId, ...bookData } = book; //apparently in prisma 7, the id should not be included in the data itself
   try {
     await addAudit(
@@ -177,7 +238,16 @@ export async function updateBook(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in updating a book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "updateBook",
+          bookId: id,
+          title: book.title,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error updating a book"
+      );
     }
     throw e;
   }
@@ -196,7 +266,15 @@ export async function deleteBook(client: PrismaClient, id: number) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in deleting one book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "deleteBook",
+          bookId: id,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error deleting one book"
+      );
     }
     throw e;
   }
@@ -210,7 +288,14 @@ export async function deleteAllBooks(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in deleting all books: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "deleteAllBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error deleting all books"
+      );
     }
     throw e;
   }
@@ -241,7 +326,15 @@ export async function extendBook(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in extending a book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "extendBook",
+          bookId: bookid,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error extending a book"
+      );
     }
     throw e;
   }
@@ -252,7 +345,6 @@ export async function returnBook(client: PrismaClient, bookid: number) {
     //get the user for that book
     const book = (await getBook(client, bookid)) as BookType;
     if (!book.userId) {
-      console.log("ERROR in returning a book, this user does not have a book");
       return "ERROR in returning a book, this user does not have a book";
     }
     const userid = book.userId;
@@ -289,7 +381,15 @@ export async function returnBook(client: PrismaClient, bookid: number) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in returning a book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "returnBook",
+          bookId: bookid,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error returning a book"
+      );
     }
     throw e;
   }
@@ -302,7 +402,16 @@ export async function hasRentedBook(
 ) {
   try {
     const book = await client.book.findFirst({ where: { id: bookid } });
-    console.log("Rent check for ", userid, bookid, book);
+    businessLogger.debug(
+      {
+        event: LogEvents.BOOK_RENTAL_CHECKED,
+        userId: userid,
+        bookId: bookid,
+        rentalStatus: book?.rentalStatus,
+        bookUserId: book?.userId,
+      },
+      "Rent check performed"
+    );
     if (book?.userId == userid && book.rentalStatus == "rented") return true;
     else return false;
   } catch (e) {
@@ -310,7 +419,16 @@ export async function hasRentedBook(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getting status of a book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "hasRentedBook",
+          bookId: bookid,
+          userId: userid,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting status of a book"
+      );
     }
     throw e;
   }
@@ -329,7 +447,15 @@ export async function rentBook(
   const book = await getBook(client, bookid);
   try {
     if (book?.rentalStatus == "rented") {
-      console.log("ERROR in renting a book: It is rented already");
+      businessLogger.warn(
+        {
+          event: LogEvents.BOOK_RENTAL_REJECTED,
+          bookId: bookid,
+          userId: userid,
+          reason: "Book already rented",
+        },
+        "Attempted to rent already rented book"
+      );
       return "ERROR, book is rented";
     }
   } catch (e) {
@@ -337,7 +463,16 @@ export async function rentBook(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in renting a book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "rentBook",
+          bookId: bookid,
+          userId: userid,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error renting a book"
+      );
     }
     throw e;
   }
@@ -389,7 +524,16 @@ export async function rentBook(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in renting a book: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "rentBook",
+          bookId: bookid,
+          userId: userid,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error renting a book"
+      );
     }
     throw e;
   }

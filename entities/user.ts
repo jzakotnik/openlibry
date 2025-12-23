@@ -1,4 +1,6 @@
 import { UserType } from "@/entities/UserType";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import { addAudit } from "./audit";
@@ -11,7 +13,15 @@ export async function getUser(client: PrismaClient, id: number) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getUser: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getUser",
+          userId: id,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getUser"
+      );
     }
     throw e;
   }
@@ -34,7 +44,14 @@ export async function getAllUsers(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getAllUsers: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getAllUsers",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getAllUsers"
+      );
     }
     throw e;
   }
@@ -53,7 +70,14 @@ export async function getAllUsersOrderById(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getAllUsersOrderById: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getAllUsersOrderById",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getAllUsersOrderById"
+      );
     }
     throw e;
   }
@@ -77,7 +101,15 @@ export async function getAllUsersBySchoolGrade(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getAllUsersBySchoolGrade: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getAllUsersBySchoolGrade",
+          schoolGrade,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getAllUsersBySchoolGrade"
+      );
     }
     throw e;
   }
@@ -115,7 +147,16 @@ export async function getUsersInIdRange(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getAllUsersBySchoolGrade: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getUsersInIdRange",
+          startId,
+          endId,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getUsersInIdRange"
+      );
     }
     throw e;
   }
@@ -155,7 +196,17 @@ export async function getUsersInIdRangeForSchoolgrade(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in getAllUsersBySchoolGrade: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getUsersInIdRangeForSchoolgrade",
+          startId,
+          endId,
+          schoolGrade,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getUsersInIdRangeForSchoolgrade"
+      );
     }
     throw e;
   }
@@ -169,7 +220,14 @@ export async function countUser(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in count User: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "countUser",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in countUser"
+      );
     }
     throw e;
   }
@@ -194,7 +252,15 @@ export async function addUser(client: PrismaClient, user: UserType) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in adding User: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "addUser",
+          userId: user.id,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in adding User"
+      );
     }
     throw e;
   }
@@ -226,7 +292,15 @@ export async function updateUser(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in updating User: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "updateUser",
+          userId: id,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in updating User"
+      );
     }
     throw e;
   }
@@ -251,14 +325,28 @@ export async function increaseUserGrade(
     });
 
     const result = await client.$transaction(transaction);
-    console.log("Batch update database operation succeeded: ", result);
+    businessLogger.info(
+      {
+        event: LogEvents.USER_GRADE_BATCH_UPDATE,
+        userCount: newGrades.length,
+      },
+      "Batch update database operation succeeded"
+    );
     return result;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in updating batch grades for user : ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "increaseUserGrade",
+          userCount: newGrades.length,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in updating batch grades for user"
+      );
     }
     throw e;
   }
@@ -319,6 +407,13 @@ export async function deleteManyUsers(
   });
 
   const result = await client.$transaction(transaction);
-  console.log("Batch delete user database operation succeeded: ", result);
+  businessLogger.info(
+    {
+      event: LogEvents.USER_BATCH_DELETE,
+      userCount: ids.length,
+      userIds: ids,
+    },
+    "Batch delete user database operation succeeded"
+  );
   return result;
 }

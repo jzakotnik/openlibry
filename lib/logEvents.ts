@@ -16,6 +16,8 @@ export const LogEvents = {
   USER_UPDATED: "user.updated",
   USER_DELETED: "user.deleted",
   USER_RETRIEVED: "user.retrieved",
+  USER_GRADE_BATCH_UPDATE: "user.grade.batch.update",
+  USER_BATCH_DELETE: "user.batch.delete",
 
   // Auth events
   LOGIN_SUCCESS: "auth.login.success",
@@ -65,6 +67,7 @@ export const LogEvents = {
   // System events
   API_ERROR: "api.error",
   DB_ERROR: "db.error",
+  DB_RECONNECTED: "db.reconnected",
   STARTUP: "system.startup",
   SHUTDOWN: "system.shutdown",
 } as const;

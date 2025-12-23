@@ -1,4 +1,6 @@
 // @/entities/db.ts (or wherever your prisma client is defined)
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
 const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! });
@@ -19,9 +21,21 @@ export async function reconnectPrisma() {
     await prisma.$disconnect();
     await new Promise((resolve) => setTimeout(resolve, 100));
     await prisma.$connect();
-    console.log("✓ Prisma reconnected");
+    businessLogger.info(
+      {
+        event: LogEvents.DB_RECONNECTED,
+      },
+      "Prisma reconnected"
+    );
   } catch (error) {
-    console.error("❌ Error reconnecting Prisma:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.DB_ERROR,
+        operation: "reconnectPrisma",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error reconnecting Prisma"
+    );
     throw error;
   }
 }
