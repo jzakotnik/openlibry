@@ -84,7 +84,7 @@ export default function Audit({ audits }: AuditPropsType) {
     }
   }, [audits]);
 
-  console.log("Audits received: ", reportDataAvailable, audits);
+  //console.log("Audits received: ", reportDataAvailable, audits);
 
   return (
     <Layout>

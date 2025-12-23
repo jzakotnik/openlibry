@@ -81,6 +81,8 @@ export const LogEvents = {
   DB_RECONNECTED: "db.reconnected",
   STARTUP: "system.startup",
   SHUTDOWN: "system.shutdown",
+  // Page loads
+  PAGE_LOAD: "page.load",
 } as const;
 
 export type LogEvent = (typeof LogEvents)[keyof typeof LogEvents];
