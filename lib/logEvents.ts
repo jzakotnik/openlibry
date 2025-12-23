@@ -13,13 +13,20 @@ export const LogEvents = {
 
   // User operations
   USER_CREATED: "user.created",
+  USER_CREATE_ATTEMPT: "user.create.attempt",
   USER_UPDATED: "user.updated",
   USER_DELETED: "user.deleted",
   USER_RETRIEVED: "user.retrieved",
+  USER_GRADE_BATCH_UPDATE: "user.grade.batch.update",
+  USER_BATCH_DELETE: "user.batch.delete",
 
   // Auth events
   LOGIN_SUCCESS: "auth.login.success",
   LOGIN_FAILED: "auth.login.failed",
+  LOGIN_CHECK: "auth.login.check",
+  LOGIN_USER_CREATE_ATTEMPT: "loginuser.create.attempt",
+  LOGIN_USER_CREATED: "loginuser.created",
+  LOGIN_USER_CREATE_FAILED: "loginuser.create.failed",
 
   // ISBN lookup operations
   ISBN_LOOKUP_STARTED: "isbn.lookup.started",
@@ -61,12 +68,21 @@ export const LogEvents = {
   COVER_FETCHED_DNB: "cover.fetched.dnb",
   COVER_FETCHED_OPENLIBRARY: "cover.fetched.openlibrary",
   COVER_FETCH_FAILED: "cover.fetch.failed",
+  //manual upload events
+  COVER_UPLOAD_ERROR: "cover.upload.error",
+  COVER_UPLOAD_FIELD: "cover.upload.field",
+  COVER_UPLOAD_PROCESSING: "cover.upload.processing",
+  COVER_UPLOAD_RECEIVED: "cover.upload.received",
+  COVER_UPLOAD_PROGRESS: "cover.upload.progress",
 
   // System events
   API_ERROR: "api.error",
   DB_ERROR: "db.error",
+  DB_RECONNECTED: "db.reconnected",
   STARTUP: "system.startup",
   SHUTDOWN: "system.shutdown",
+  // Page loads
+  PAGE_LOAD: "page.load",
 } as const;
 
 export type LogEvent = (typeof LogEvents)[keyof typeof LogEvents];

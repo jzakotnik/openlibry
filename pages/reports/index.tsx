@@ -12,6 +12,8 @@ import TagCloudDashboard from "@/components/reports/TagCloud";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger } from "@/lib/logger";
 import { convertDateToDayString } from "@/utils/dateutils";
 import {
   Autocomplete,
@@ -486,17 +488,14 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
 
 export async function getServerSideProps() {
   const allUsers = await getAllUsers(prisma);
-  console.log("Reports page - loaded Users");
   const users = allUsers.map((u) => {
     const newUser = { ...u } as any; //define a better type there with conversion of Date to string
     newUser.createdAt = convertDateToDayString(u.createdAt);
     newUser.updatedAt = convertDateToDayString(u.updatedAt);
     return newUser;
   });
-  console.log("Reports page - converted Users");
 
   const allBooks = await getAllBooks(prisma);
-  console.log("Reports page - loaded Books");
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
@@ -505,12 +504,10 @@ export async function getServerSideProps() {
       ? convertDateToDayString(b.rentedDate)
       : "";
     newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-    //temp TODO
     return newBook;
   });
-  console.log("Reports page - converted Books");
+
   const allRentals = await getRentedBooksWithUsers(prisma);
-  console.log("Reports page - Rentals calculated");
   const rentals = allRentals.map((r) => {
     //calculate remaining days for the rental
     const due = dayjs(r.dueDate);
@@ -529,8 +526,16 @@ export async function getServerSideProps() {
     };
   });
 
-  //console.log(allRentals);
+  businessLogger.debug(
+    {
+      event: LogEvents.PAGE_LOAD,
+      page: "/reports",
+      userCount: users.length,
+      bookCount: books.length,
+      rentalCount: rentals.length,
+    },
+    "Reports page loaded"
+  );
 
-  // Pass data to the page via props
   return { props: { users, books, rentals } };
 }

@@ -1,3 +1,5 @@
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 export async function getLastAudit(client: PrismaClient) {
@@ -12,7 +14,14 @@ export async function getLastAudit(client: PrismaClient) {
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in get Audit Log: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getLastAudit",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in get Audit Log"
+      );
     }
     throw e;
   }
@@ -34,7 +43,15 @@ export async function getAllAudit(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in get Audit Log: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getAllAudit",
+          take,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in get Audit Log"
+      );
     }
     throw e;
   }
@@ -61,7 +78,17 @@ export async function addAudit(
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
     ) {
-      console.log("ERROR in adding User: ", e);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "addAudit",
+          eventType,
+          bookid,
+          userid,
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in adding Audit"
+      );
     }
     throw e;
   }

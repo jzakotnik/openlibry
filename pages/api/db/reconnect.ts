@@ -1,4 +1,6 @@
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -23,11 +25,25 @@ export default async function handler(
     // Test the connection with a simple query
     await prisma.$queryRaw`SELECT 1`;
 
-    console.log("✓ Database reconnected successfully");
+    businessLogger.info(
+      {
+        event: LogEvents.DB_RECONNECTED,
+        endpoint: "/api/test/reconnect",
+      },
+      "Database reconnected successfully"
+    );
 
     return res.status(200).json({ success: true, message: "Reconnected" });
   } catch (error) {
-    console.error("Error reconnecting database:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.DB_ERROR,
+        endpoint: "/api/test/reconnect",
+        operation: "reconnect",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error reconnecting database"
+    );
     return res.status(500).json({ error: String(error) });
   }
 }
