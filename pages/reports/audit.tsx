@@ -11,6 +11,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import HistoryIcon from "@mui/icons-material/History";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+import PersonIcon from "@mui/icons-material/Person";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
+import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import SearchIcon from "@mui/icons-material/Search";
 import UpdateIcon from "@mui/icons-material/Update";
 import {
@@ -118,6 +122,39 @@ function parseEventContent(
       sentence = `Buch #${eventContent} wurde gelöscht`;
       break;
 
+    // User events
+    case "add user": {
+      const userNameMatch = eventContent.match(/^\d+,\s*(.+)$/);
+      if (userNameMatch) {
+        sentence = `Neuer Benutzer "${userNameMatch[1]}" wurde angelegt`;
+      } else {
+        sentence = `Neuer Benutzer wurde angelegt`;
+      }
+      break;
+    }
+
+    case "update user": {
+      const userNameMatch = eventContent.match(/^\d+,\s*(.+)$/);
+      if (userNameMatch) {
+        sentence = `Benutzer "${userNameMatch[1]}" wurde aktualisiert`;
+      } else {
+        sentence = `Benutzer #${eventContent} wurde aktualisiert`;
+      }
+      break;
+    }
+
+    case "delete user":
+      sentence = `Benutzer #${eventContent} wurde gelöscht`;
+      break;
+
+    case "disable user":
+      sentence = `Benutzer #${eventContent} wurde deaktiviert`;
+      break;
+
+    case "enable user":
+      sentence = `Benutzer #${eventContent} wurde aktiviert`;
+      break;
+
     default:
       sentence = `${eventType}: ${eventContent}`;
   }
@@ -142,6 +179,17 @@ function getEventIcon(eventType: string): {
       return { icon: <EditIcon />, color: "#0288d1" };
     case "delete book":
       return { icon: <DeleteIcon />, color: "#d32f2f" };
+    // User events
+    case "add user":
+      return { icon: <PersonAddIcon />, color: "#9c27b0" };
+    case "update user":
+      return { icon: <PersonIcon />, color: "#0288d1" };
+    case "delete user":
+      return { icon: <PersonRemoveIcon />, color: "#d32f2f" };
+    case "disable user":
+      return { icon: <PersonOffIcon />, color: "#f57c00" };
+    case "enable user":
+      return { icon: <PersonAddIcon />, color: "#388e3c" };
     default:
       return { icon: <HistoryIcon />, color: "#757575" };
   }
