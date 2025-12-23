@@ -1,161 +1,189 @@
+// pages/api/report/reminder.ts
 import { getRentedBooksWithUsers } from "@/entities/book";
-
+import { prisma } from "@/entities/db";
+import dayjs from "dayjs";
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
+import { NextApiRequest, NextApiResponse } from "next";
 import { join } from "path";
 import PizZip from "pizzip";
 
-import { convertDateToDayString } from "@/utils/dateutils";
-import dayjs from "dayjs";
-import { NextApiRequest, NextApiResponse } from "next";
+// Configuration with proper typing
+const config = {
+  schoolName: process.env.SCHOOL_NAME || "Schule",
+  responsibleName: process.env.REMINDER_RESPONSIBLE_NAME || "Schulbücherei",
+  responsibleEmail: process.env.REMINDER_RESPONSIBLE_EMAIL || "info@email.de",
+  renewalCount: parseInt(process.env.REMINDER_RENEWAL_COUNT || "5", 10),
+  templatePath: process.env.REMINDER_TEMPLATE_DOC || "mahnung-template.docx",
+} as const;
 
-import { prisma } from "@/entities/db";
+// Types
+interface RentalWithUser {
+  id: number;
+  title: string;
+  author: string;
+  rentedDate: Date;
+  dueDate: Date;
+  lastName?: string;
+  firstName?: string;
+  remainingDays: number;
+  renewalCount: number;
+  userid?: number;
+  schoolGrade?: string;
+  price?: string;
+}
 
-const SCHOOL_NAME = process.env.SCHOOL_NAME || "Schule";
-const REMINDER_RESPONSIBLE_NAME =
-  process.env.REMINDER_RESPONSIBLE_NAME || "Schulbücherei";
-const REMINDER_RESPONSIBLE_EMAIL =
-  process.env.REMINDER_RESPONSIBLE_EMAIL || "info@email.de";
-const REMINDER_RENEWAL_COUNT = process.env.REMINDER_RENEWAL_COUNT || 5;
+interface BookEntry {
+  title: string;
+  author: string;
+  rentedDate: string;
+  dueDate: string;
+  bookId: number;
+}
 
-//example structure
-/*
-const replacemenetVariables = {
-  alleMahnungen: [
-    {
-      school_name: SCHOOL_NAME,
-      responsible_name: REMINDER_RESPONSIBLE_NAME,
-      responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
-    },
-    {
-      school_name: SCHOOL_NAME,
-      responsible_name: REMINDER_RESPONSIBLE_NAME,
-      responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
-    },
-  ],
-};
-*/
-const replacemenetVariables = {
-  alleMahnungen: [] as any,
-};
+interface MahnungEntry {
+  school_name: string;
+  responsible_name: string;
+  responsible_contact_email: string;
+  overdue_username: string;
+  schoolGrade: string;
+  book_list: BookEntry[];
+  reminder_min_count: number;
+}
 
-console.log("Template replacement", replacemenetVariables);
+// Lazy template loading with caching
+let cachedTemplate: Buffer | null = null;
 
-const template = fs.readFileSync(
-  join(process.cwd(), "/public/" + process.env.REMINDER_TEMPLATE_DOC)
-);
-//console.log("Template", template);
+function getTemplate(): Buffer {
+  if (!cachedTemplate) {
+    const fullPath = join(process.cwd(), "public", config.templatePath);
+    if (!fs.existsSync(fullPath)) {
+      throw new Error(`Template not found: ${fullPath}`);
+    }
+    cachedTemplate = fs.readFileSync(fullPath);
+  }
+  return cachedTemplate;
+}
 
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  switch (req.method) {
-    case "GET":
-      // delete last call data
-      //TODO: what happens with calls from multiple clients?
-      replacemenetVariables.alleMahnungen.length = 0;
-      console.log("Printing reminder letters via API");
-      try {
-        //const allbooks = (await getAllBooks(prisma)) as Array<BookType>;
-        //calculate the rental information
-        const allRentals = await getRentedBooksWithUsers(prisma);
-        const rentals = allRentals.map((r: any) => {
-          //calculate remaining days for the rental
-          const due = dayjs(r.dueDate);
-          const today = dayjs();
-          const diff = today.diff(due, "days");
-          //console.log("Fetching rental", r);
-          return {
-            id: r.id,
-            title: r.title,
-            author: r.author,
-            rentedDate: r.rentedDate,
-            lastName: r.user?.lastName,
-            firstName: r.user?.firstName,
-            remainingDays: diff,
-            dueDate: convertDateToDayString(due.toDate()),
-            renewalCount: r.renewalCount,
-            userid: r.user?.id,
-            schoolGrade: r.user?.schoolGrade,
-          };
-        });
-        //TODO this can be optimized to one step with the retrieval of all rentals, but it's easier to read for now
-        const overdueRentals = rentals.filter(
-          (r) => r.renewalCount >= REMINDER_RENEWAL_COUNT && r.remainingDays > 0
-        );
-        //cluster overdue books by the user for the overdue notices
-        const overDueRentalsByUser = overdueRentals.reduce((acc: any, curr) => {
-          const { userid, ...rest } = curr; // Extract id and keep the rest
-          acc[userid] ? acc[userid].push(rest) : (acc[userid] = [rest]);
-          return acc;
-        }, {});
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: `${req.method} Not Allowed` });
+  }
 
-        console.log("Rentals", overDueRentalsByUser);
+  try {
+    const allRentals = await getRentedBooksWithUsers(prisma);
 
-        //map overdueRentals to the docxtemplater template
-        Object.keys(overDueRentalsByUser).map((userID) => {
-          /*console.log(
-            "Overdue books: ",
-            overDueRentalsByUser[userID].map((b: any) => b.title)
-          );*/
+    if (!allRentals || allRentals.length === 0) {
+      return res.status(404).json({ error: "No rentals found" });
+    }
 
-          replacemenetVariables.alleMahnungen.push({
-            school_name: SCHOOL_NAME,
-            responsible_name: REMINDER_RESPONSIBLE_NAME,
-            responsible_contact_email: REMINDER_RESPONSIBLE_EMAIL,
-            overdue_username:
-              overDueRentalsByUser[userID][0].firstName +
-              " " +
-              overDueRentalsByUser[userID][0].lastName,
-            schoolGrade: overDueRentalsByUser[userID][0].schoolGrade,
-            book_list: overDueRentalsByUser[userID].map((b: any) => {
-              return {
-                title: b.title,
-                author: b.author,
-                rentedDate: dayjs(b.rentedDate).format("DD.MM.YYYY"),
-              };
-            }),
-            reminder_min_count: REMINDER_RENEWAL_COUNT,
-          });
-        });
-        console.log("Variables for docxtemplater", replacemenetVariables);
+    // Transform rentals with calculated fields
+    const rentals: RentalWithUser[] = allRentals.map((r: any) => {
+      const due = dayjs(r.dueDate);
+      const today = dayjs();
+      return {
+        id: r.id,
+        title: r.title,
+        author: r.author,
+        rentedDate: r.rentedDate,
+        dueDate: r.dueDate,
+        lastName: r.user?.lastName,
+        firstName: r.user?.firstName,
+        remainingDays: today.diff(due, "days"),
+        renewalCount: r.renewalCount,
+        userid: r.user?.id,
+        schoolGrade: r.user?.schoolGrade,
+        price: r.price,
+      };
+    });
 
-        try {
-          //let data = await template.arrayBuffer();
-          const zip = new PizZip(template);
-          const templateDoc = new Docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true,
-          });
+    // Filter overdue books meeting criteria
+    const overdueRentals = rentals.filter(
+      (r) => r.renewalCount >= config.renewalCount && r.remainingDays > 0
+    );
 
-          templateDoc.render(replacemenetVariables);
-          const generatedDoc = templateDoc.getZip().generate({
-            type: "nodebuffer",
-            mimeType:
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            compression: "DEFLATE",
-          });
-          console.log("Generated doc", generatedDoc);
-          res.writeHead(200, {
-            "Content-Type": "application/msword",
-          });
+    if (overdueRentals.length === 0) {
+      return res.status(200).json({
+        message: "No overdue books matching reminder criteria",
+        criteria: { minRenewalCount: config.renewalCount },
+      });
+    }
 
-          res.status(200).send(generatedDoc);
-        } catch (error) {
-          console.log("Error: " + error);
-        }
+    // Group by user
+    const rentalsByUser = overdueRentals.reduce<
+      Record<number, RentalWithUser[]>
+    >((acc, rental) => {
+      const userId = rental.userid;
+      if (userId === undefined) return acc;
 
-        if (!allRentals)
-          return res.status(400).json({ data: "ERROR: Books  not found" });
-      } catch (error) {
-        console.log(error);
-        res.status(400).json({ data: "ERROR: " + error });
+      if (!acc[userId]) {
+        acc[userId] = [];
       }
-      break;
+      acc[userId].push(rental);
+      return acc;
+    }, {});
 
-    default:
-      res.status(405).end(`${req.method} Not Allowed`);
-      break;
+    // Build template data
+    const mahnungen: MahnungEntry[] = [];
+
+    for (const [userId, books] of Object.entries(rentalsByUser)) {
+      const firstBook = books[0];
+
+      mahnungen.push({
+        school_name: config.schoolName,
+        responsible_name: config.responsibleName,
+        responsible_contact_email: config.responsibleEmail,
+        overdue_username: `${firstBook.firstName || ""} ${
+          firstBook.lastName || ""
+        }`.trim(),
+        schoolGrade: firstBook.schoolGrade || "",
+        reminder_min_count: config.renewalCount,
+        book_list: books.map((b) => ({
+          title: b.title,
+          author: b.author,
+          rentedDate: dayjs(b.rentedDate).format("DD.MM.YYYY"),
+          dueDate: dayjs(b.dueDate).format("DD.MM.YYYY"),
+          bookId: b.id,
+        })),
+      });
+    }
+
+    // Generate document
+    const template = getTemplate();
+    const zip = new PizZip(template);
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+    });
+
+    doc.render({ alleMahnungen: mahnungen });
+
+    const generatedDoc = doc.getZip().generate({
+      type: "nodebuffer",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      compression: "DEFLATE",
+    });
+
+    // Send response with proper headers
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="mahnungen-${dayjs().format("YYYY-MM-DD")}.docx"`
+    );
+
+    return res.status(200).send(generatedDoc);
+  } catch (error) {
+    console.error("Reminder generation failed:", error);
+    return res.status(500).json({
+      error: "Failed to generate reminder document",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }
