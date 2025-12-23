@@ -211,7 +211,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     process.env.DELETE_SAFETY_SECONDS || "3",
     10
   );
-  console.log("Delete safety seconds for the user", deleteSafetySeconds);
+  //console.log("Delete safety seconds for the user", deleteSafetySeconds);
   if (!context.query.userid) return { props: {} };
 
   const dbuser = await getUser(
