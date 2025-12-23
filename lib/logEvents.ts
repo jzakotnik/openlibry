@@ -22,6 +22,7 @@ export const LogEvents = {
   // Auth events
   LOGIN_SUCCESS: "auth.login.success",
   LOGIN_FAILED: "auth.login.failed",
+  LOGIN_CHECK: "auth.login.check",
 
   // ISBN lookup operations
   ISBN_LOOKUP_STARTED: "isbn.lookup.started",
@@ -63,6 +64,12 @@ export const LogEvents = {
   COVER_FETCHED_DNB: "cover.fetched.dnb",
   COVER_FETCHED_OPENLIBRARY: "cover.fetched.openlibrary",
   COVER_FETCH_FAILED: "cover.fetch.failed",
+  //manual upload events
+  COVER_UPLOAD_ERROR: "cover.upload.error",
+  COVER_UPLOAD_FIELD: "cover.upload.field",
+  COVER_UPLOAD_PROCESSING: "cover.upload.processing",
+  COVER_UPLOAD_RECEIVED: "cover.upload.received",
+  COVER_UPLOAD_PROGRESS: "cover.upload.progress",
 
   // System events
   API_ERROR: "api.error",

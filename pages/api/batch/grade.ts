@@ -1,7 +1,8 @@
-import { increaseUserGrade } from "@/entities/user";
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { prisma } from "@/entities/db";
+import { increaseUserGrade } from "@/entities/user";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handle(
   req: NextApiRequest,
@@ -18,7 +19,15 @@ export default async function handle(
 
         res.status(200).json(updateResult);
       } catch (error) {
-        console.log(error);
+        errorLogger.error(
+          {
+            event: LogEvents.USER_GRADE_BATCH_UPDATE,
+            endpoint: "/api/user/grade",
+            method: "POST",
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Error updating user grades"
+        );
         res.status(400).json({ data: "ERROR DELETE: " + error });
       }
       break;

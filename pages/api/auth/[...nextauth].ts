@@ -1,5 +1,7 @@
 import { prisma } from "@/entities/db";
 import { getLoginUser } from "@/entities/loginuser";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { hashPassword } from "@/utils/hashPassword";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -27,7 +29,14 @@ export default NextAuth({
         try {
           retrievedUser = await getLoginUser(prisma, req.body!.user);
         } catch (error) {
-          console.error("Database connection error:", error);
+          errorLogger.error(
+            {
+              event: LogEvents.LOGIN_FAILED,
+              username: req.body?.user,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            "Database connection error during login"
+          );
           throw new Error("User Datenbank nicht verfügbar");
         }
 
@@ -44,7 +53,14 @@ export default NextAuth({
             email: retrievedUser.email.toString(),
             role: retrievedUser.role.toString(),
           };
-          console.log("Passing user token back to middleware", retrievedUser);
+          businessLogger.info(
+            {
+              event: LogEvents.LOGIN_SUCCESS,
+              username: retrievedUser.username,
+              role: retrievedUser.role,
+            },
+            "User login successful"
+          );
           return user;
         }
 

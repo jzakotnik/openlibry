@@ -1,7 +1,8 @@
-import { deleteManyUsers } from "@/entities/user";
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { prisma } from "@/entities/db";
+import { deleteManyUsers } from "@/entities/user";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handle(
   req: NextApiRequest,
@@ -18,7 +19,15 @@ export default async function handle(
 
         res.status(200).json(updateResult);
       } catch (error) {
-        console.log(error);
+        errorLogger.error(
+          {
+            event: LogEvents.USER_BATCH_DELETE,
+            endpoint: "/api/user/deletemany",
+            method: "DELETE",
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Error deleting multiple users"
+        );
         res.status(400).json({ data: "ERROR DELETE: " + error });
       }
       break;
