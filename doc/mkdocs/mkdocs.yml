@@ -1,0 +1,142 @@
+site_name: OpenLibry Dokumentation
+site_url: https://docs.openlibry.de
+site_description: Die freie Software für Schulbibliotheken
+site_author: OpenLibry Community
+repo_url: https://github.com/jzakotnik/openlibry
+repo_name: jzakotnik/openlibry
+edit_uri: edit/main/docs/
+
+copyright: "&copy; 2024 OpenLibry - MIT Lizenz"
+
+theme:
+  name: material
+  language: de
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  palette:
+    - scheme: default
+      primary: teal
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Dunkles Design aktivieren
+    - scheme: slate
+      primary: teal
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Helles Design aktivieren
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang: de
+  - tags
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jzakotnik/openlibry
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:info@openlibry.de
+  generator: false
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+
+nav:
+  - Start: index.md
+  - Erste Schritte:
+      - getting-started/index.md
+      - Einführung: getting-started/introduction.md
+      - Schnellstart: getting-started/quickstart.md
+      - Voraussetzungen: getting-started/requirements.md
+      - Erste Einrichtung: getting-started/first-steps.md
+  - Installation:
+      - installation/index.md
+      - Docker: installation/container.md
+      - Bare Metal: installation/ohne-container.md
+      - SSL und Proxy Konfiguration: installation/nginx-ssl.md
+      - Updates: installation/upgrading.md
+  - Benutzerhandbuch:
+      - user-guide/index.md
+      - Ausleihe: user-guide/lending.md
+      - Bücherverwaltung: user-guide/book-management.md
+      - Nutzerverwaltung: user-guide/user-management.md
+      - Reports & Labels: user-guide/reports.md
+      - Tipps & Tricks: user-guide/tips-tricks.md
+  - Daten importieren:
+      - import/index.md
+      - Excel Import: import/excel-generic.md
+      - Meine Bibliothek App: import/meine-bibliothek.md
+      - OpenBiblio Migration: import/openbiblio.md
+      - ISBN & Cover-Suche: import/isbn-lookup.md
+      - API Import: import/api-import.md
+  - Daten exportieren:
+      - export/index.md
+      - Excel Export: export/excel-export.md
+      - Backup & Restore: export/backup-restore.md
+  - Konfiguration:
+      - configuration/index.md
+      - Umgebungsvariablen: configuration/environment-variables.md
+      - Bücherlabels: configuration/book-labels.md
+      - Benutzerausweise: configuration/user-cards.md
+      - Mahnschreiben: configuration/reminders.md
+      - Antolin: configuration/antolin.md
+      - Authentifizierung: configuration/authentication.md
+  - Fehlerbehebung:
+      - troubleshooting/index.md
+      - Docker Probleme: troubleshooting/docker-issues.md
+      - Datenbank: troubleshooting/database-issues.md
+      - Performance: troubleshooting/performance.md
+  - Entwicklung:
+      - development/index.md
+      - Architektur: development/architecture.md
+      - API-Referenz: development/api-reference.md
+      - Lokale Entwicklung: development/local-development.md
+      - Tests: development/testing.md
+      - Beitragen: development/contributing.md
+  - Referenz:
+      - reference/index.md
+      - Changelog: reference/changelog.md
+      - Datenmodell: reference/data-model.md
+      - Glossar: reference/glossary.md
+      - Credits: reference/credits.md
