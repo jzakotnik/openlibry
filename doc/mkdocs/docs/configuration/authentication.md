@@ -92,11 +92,11 @@ Zum manuellen Ausloggen: Klicke auf deinen Benutzernamen → Logout.
 ## Sicherheitstipps
 
 1. **Starke Passwörter** verwenden
-2. **HTTPS** nutzen (siehe [nginx-Installation](../installation/nginx-pm2.md))
+2. **HTTPS** nutzen (siehe [nginx-Installation](../installation/nginx-ssl.md))
 3. **AUTH_SECRET** sicher aufbewahren
 4. Bei Verdacht auf Kompromittierung: AUTH_SECRET ändern
 
 ## Nächste Schritte
 
 - [Erste Einrichtung](../getting-started/first-steps.md)
-- [nginx & HTTPS](../installation/nginx-pm2.md)
+- [nginx & HTTPS](../installation/nginx-ssl.md)

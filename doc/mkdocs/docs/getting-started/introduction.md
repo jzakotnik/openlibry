@@ -85,19 +85,19 @@ Das bedeutet:
 
 Hier passiert die tägliche Arbeit – Nutzer scannen, Bücher scannen, fertig.
 
-![Ausleih-Screen](../assets/screen1.jpg)
+![Ausleih-Screen](../assets/screen1.png)
 
 ### Bücherverwaltung
 
 Alle Bücher auf einen Blick, mit Suche und Filtern.
 
-![Bücherverwaltung](../assets/buch1.jpg)
+![Bücherverwaltung](../assets/buch1.png)
 
 ### Buch bearbeiten
 
 Detailansicht mit allen Feldern – nur ausfüllen, was du brauchst.
 
-![Buch bearbeiten](../assets/buchedit1.jpg)
+![Buch bearbeiten](../assets/buchedit1.png)
 
 ## Nächste Schritte
 

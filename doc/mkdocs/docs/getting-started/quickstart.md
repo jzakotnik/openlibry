@@ -107,8 +107,8 @@ rm -rf database/
 Du hast OpenLibry ausprobiert und bist überzeugt? Super!
 
 - [Voraussetzungen](requirements.md) – Was du für eine richtige Installation brauchst
-- [Docker-Installation](../installation/docker.md) – Produktive Docker-Installation
-- [Bare Metal](../installation/bare-metal.md) – Installation ohne Docker (z.B. Raspberry Pi)
+- [Docker-Installation](../installation/container.md) – Produktive Docker-Installation
+- [Bare Metal](../installation/ohne-container.md) – Installation ohne Docker (z.B. Raspberry Pi)
 - [Erste Einrichtung](first-steps.md) – Deine Bibliothek einrichten
 
 !!! tip "Daten behalten"

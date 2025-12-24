@@ -219,4 +219,4 @@ Stelle sicher, dass die `Upgrade` und `Connection` Header in der Konfiguration g
 ## Nächste Schritte
 
 - [Konfiguration](../configuration/index.md) – Labels, Mahnungen, etc.
-- [Monitoring](../operations/monitoring.md) – Logs und Überwachung
+

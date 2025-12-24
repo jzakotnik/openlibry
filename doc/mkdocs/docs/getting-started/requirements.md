@@ -75,7 +75,7 @@ Wenn du OpenLibry von überall erreichen willst:
 - SSL-Zertifikat (Let's Encrypt ist kostenlos)
 - Port-Weiterleitung oder Hosting bei einem Provider
 
-Siehe [Installation mit nginx](../installation/nginx-pm2.md) für Details.
+Siehe [Installation mit nginx](../installation/nginx-ssl.md) für Details.
 
 ## Browser
 
