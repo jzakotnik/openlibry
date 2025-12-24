@@ -140,7 +140,7 @@ pm2 delete openlibry
 
 ## Port-Freigabe
 
-Damit andere Geräte im Netzwerk auf OpenLibry zugreifen können, muss Port 3000 freigegeben sein:
+Falls eine Firewall installiert ist, muss Port 3000 freigegeben sein:
 
 ```bash
 # Mit ufw (Ubuntu)

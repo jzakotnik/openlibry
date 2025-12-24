@@ -55,6 +55,7 @@ OpenLibry ist perfekt für:
 
 Ehrlichkeit ist wichtig. OpenLibry ist **nicht** gedacht für:
 
+- **Einfache lokale Anwendung** also z.B. simple Anwendung in Windows. OpenLibry ist eine web-basierte Anwendung auf einem Server.
 - **Große Bibliotheken** mit zehntausenden Büchern (es funktioniert, aber es gibt bessere Tools dafür)
 - **Komplexe Workflows** mit Vormerkungen, Gebühren, etc.
 - **Mehrere Standorte** mit zentraler Verwaltung
@@ -74,7 +75,7 @@ Falls es dich interessiert – OpenLibry basiert auf modernen Technologien:
 
 Das bedeutet:
 
-- ✅ Läuft auf einem einfachen Raspberry Pi
+- ✅ Läuft auf einem einfachen Server, sogar Raspberry Pi
 - ✅ Keine separate Datenbank-Installation nötig
 - ✅ Die Daten liegen in einer einzigen Datei
 - ✅ Einfache Backups

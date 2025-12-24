@@ -6,7 +6,7 @@ Was brauchst du, um OpenLibry zu betreiben? Die gute Nachricht: Nicht viel!
 
 ### Minimal (zum Testen)
 
-- Jeder einigermaßen aktuelle Computer
+- Jeder einigermaßen aktuelle Computer, der als Server für die OpebnLibry Webseite läuft
 - 512 MB RAM
 - 500 MB Festplatte
 
@@ -41,7 +41,7 @@ Du brauchst nur:
 
 Das war's! Docker kümmert sich um alles andere.
 
-### Ohne Docker (Bare Metal)
+### Ohne Docker ("Bare Metal" Server)
 
 - **Node.js** – Version 18 oder neuer (LTS empfohlen)
 - **npm** – Kommt mit Node.js
@@ -56,7 +56,7 @@ Optional:
 
 ### Lokaler Betrieb
 
-Wenn OpenLibry nur auf einem Computer läuft, brauchst du nichts Besonderes.
+Wenn OpenLibry nur auf einem Computer läuft, brauchst du nichts Besonderes - Du kannst die Webseite direkt im Browser öffnen auf dem gleichen Computer.
 
 ### Im Schulnetzwerk
 

@@ -16,7 +16,7 @@ OpenLibry entstand aus einer echten Notwendigkeit: Eine Grundschule brauchte ein
 
     Ausleihe und Rückgabe sind auf minimale Maus- und Tastatureingaben optimiert. Perfekt für den Einsatz mit Barcodescannern.
 
--   :material-cellphone-tablet:{ .lg .middle } **Überall nutzbar**
+-   :material-cloud-circle-outline:{ .lg .middle } **Überall nutzbar**
 
     ---
 
