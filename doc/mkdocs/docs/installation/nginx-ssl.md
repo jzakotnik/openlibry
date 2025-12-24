@@ -17,6 +17,8 @@ Internet → nginx (Port 443, HTTPS) → OpenLibry (Port 3000)
 
 nginx nimmt Anfragen aus dem Internet entgegen, terminiert SSL und leitet sie an OpenLibry weiter.
 
+![OpenLibry Installation Architektur](../assets/openlibryinstall.png)
+
 ## Schritt 1: nginx installieren
 
 ```bash
