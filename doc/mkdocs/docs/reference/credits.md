@@ -2,10 +2,6 @@
 
 OpenLibry ist ein Open-Source-Projekt, das von vielen Menschen ermöglicht wird.
 
-## Entwicklung
-
-- **Jure Zakotnik** – Hauptentwickler
-- Community-Beiträge via GitHub
 
 ## Open Source Komponenten
 
@@ -21,6 +17,7 @@ OpenLibry verwendet:
 Danke an alle, die das Projekt unterstützen:
 
 - Schulen, die OpenLibry einsetzen
+- Contributor auf Github
 - Ehrenamtliche in Schulbibliotheken
 - Ko-Fi-Unterstützer
 
