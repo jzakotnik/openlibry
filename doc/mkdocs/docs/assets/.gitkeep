@@ -1,13 +1,1 @@
 # Assets Directory
-
-Place your images here:
-- titel1.jpg (Start-Screen screenshot)
-- screen1.jpg (Ausleih-Screen screenshot)
-- buch1.jpg (Bücherverwaltung screenshot)
-- buchedit1.jpg (Buch bearbeiten screenshot)
-- openlibryinstall.png (Architecture diagram)
-- logo.png (OpenLibry logo for docs)
-- favicon.ico (Favicon)
-- sample_export.xlsx (Example Excel file)
-
-Copy these from your existing doc/ folder in the OpenLibry repository.

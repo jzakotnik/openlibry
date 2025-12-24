@@ -85,58 +85,58 @@ markdown_extensions:
 nav:
   - Start: index.md
   - Erste Schritte:
-    - getting-started/index.md
-    - Einführung: getting-started/introduction.md
-    - Schnellstart: getting-started/quickstart.md
-    - Voraussetzungen: getting-started/requirements.md
-    - Erste Einrichtung: getting-started/first-steps.md
+      - getting-started/index.md
+      - Einführung: getting-started/introduction.md
+      - Schnellstart: getting-started/quickstart.md
+      - Voraussetzungen: getting-started/requirements.md
+      - Erste Einrichtung: getting-started/first-steps.md
   - Installation:
-    - installation/index.md
-    - Docker: installation/docker.md
-    - Bare Metal: installation/bare-metal.md
-    - nginx & pm2: installation/nginx-pm2.md
-    - Updates: installation/upgrading.md
+      - installation/index.md
+      - Docker: installation/container.md
+      - Bare Metal: installation/ohne-container.md
+      - SSL und Proxy Konfiguration: installation/nginx-ssl.md
+      - Updates: installation/upgrading.md
   - Benutzerhandbuch:
-    - user-guide/index.md
-    - Ausleihe: user-guide/lending.md
-    - Bücherverwaltung: user-guide/book-management.md
-    - Nutzerverwaltung: user-guide/user-management.md
-    - Reports & Labels: user-guide/reports.md
-    - Tipps & Tricks: user-guide/tips-tricks.md
+      - user-guide/index.md
+      - Ausleihe: user-guide/lending.md
+      - Bücherverwaltung: user-guide/book-management.md
+      - Nutzerverwaltung: user-guide/user-management.md
+      - Reports & Labels: user-guide/reports.md
+      - Tipps & Tricks: user-guide/tips-tricks.md
   - Daten importieren:
-    - import/index.md
-    - Excel Import: import/excel-generic.md
-    - Meine Bibliothek App: import/meine-bibliothek.md
-    - OpenBiblio Migration: import/openbiblio.md
-    - ISBN & Cover-Suche: import/isbn-lookup.md
-    - API Import: import/api-import.md
+      - import/index.md
+      - Excel Import: import/excel-generic.md
+      - Meine Bibliothek App: import/meine-bibliothek.md
+      - OpenBiblio Migration: import/openbiblio.md
+      - ISBN & Cover-Suche: import/isbn-lookup.md
+      - API Import: import/api-import.md
   - Daten exportieren:
-    - export/index.md
-    - Excel Export: export/excel-export.md
-    - Backup & Restore: export/backup-restore.md
+      - export/index.md
+      - Excel Export: export/excel-export.md
+      - Backup & Restore: export/backup-restore.md
   - Konfiguration:
-    - configuration/index.md
-    - Umgebungsvariablen: configuration/environment-variables.md
-    - Bücherlabels: configuration/book-labels.md
-    - Benutzerausweise: configuration/user-cards.md
-    - Mahnschreiben: configuration/reminders.md
-    - Antolin: configuration/antolin.md
-    - Authentifizierung: configuration/authentication.md
+      - configuration/index.md
+      - Umgebungsvariablen: configuration/environment-variables.md
+      - Bücherlabels: configuration/book-labels.md
+      - Benutzerausweise: configuration/user-cards.md
+      - Mahnschreiben: configuration/reminders.md
+      - Antolin: configuration/antolin.md
+      - Authentifizierung: configuration/authentication.md
   - Fehlerbehebung:
-    - troubleshooting/index.md
-    - Docker Probleme: troubleshooting/docker-issues.md
-    - Datenbank: troubleshooting/database-issues.md
-    - Performance: troubleshooting/performance.md
+      - troubleshooting/index.md
+      - Docker Probleme: troubleshooting/docker-issues.md
+      - Datenbank: troubleshooting/database-issues.md
+      - Performance: troubleshooting/performance.md
   - Entwicklung:
-    - development/index.md
-    - Architektur: development/architecture.md
-    - API-Referenz: development/api-reference.md
-    - Lokale Entwicklung: development/local-development.md
-    - Tests: development/testing.md
-    - Beitragen: development/contributing.md
+      - development/index.md
+      - Architektur: development/architecture.md
+      - API-Referenz: development/api-reference.md
+      - Lokale Entwicklung: development/local-development.md
+      - Tests: development/testing.md
+      - Beitragen: development/contributing.md
   - Referenz:
-    - reference/index.md
-    - Changelog: reference/changelog.md
-    - Datenmodell: reference/data-model.md
-    - Glossar: reference/glossary.md
-    - Credits: reference/credits.md
+      - reference/index.md
+      - Changelog: reference/changelog.md
+      - Datenmodell: reference/data-model.md
+      - Glossar: reference/glossary.md
+      - Credits: reference/credits.md

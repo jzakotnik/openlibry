@@ -4,7 +4,7 @@
 
 OpenLibry ist eine moderne, kostenlose Software zur Verwaltung von Schulbibliotheken. Sie wurde entwickelt, um den Alltag in kleinen Bibliotheken einfacher zu machen – besonders dort, wo ehrenamtliche Helfer wie Eltern die Ausleihe betreuen.
 
-![OpenLibry Start-Screen](../assets/titel1.jpg)
+![OpenLibry Start-Screen](../assets/titel1.png)
 
 ## Die Geschichte dahinter
 

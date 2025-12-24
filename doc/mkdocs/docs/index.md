@@ -2,7 +2,7 @@
 
 **OpenLibry** ist die freie, moderne Software für Schulbibliotheken. Entwickelt für den Alltag, in dem ehrenamtliche Helfer Bücher verleihen, Kinder stöbern und alles schnell gehen muss.
 
-![OpenLibry Screenshot](assets/titel1.jpg)
+![OpenLibry Screenshot](assets/titel1.png)
 
 ## Was macht OpenLibry besonders?
 
