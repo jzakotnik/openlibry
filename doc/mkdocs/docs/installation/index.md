@@ -1,83 +1,89 @@
 # Installation
 
-Es gibt mehrere Wege, OpenLibry zu installieren. Welcher passt zu dir?
+OpenLibry lässt sich flexibel installieren. Zwei Fragen helfen bei der Entscheidung:
 
-## Übersicht der Methoden
+## 1. Wie soll OpenLibry laufen?
 
-| Methode | Schwierigkeit | Empfohlen für |
-|---------|---------------|---------------|
-| [Docker](docker.md) | ⭐ Einfach | Die meisten Nutzer |
-| [Bare Metal](bare-metal.md) | ⭐⭐ Mittel | Raspberry Pi, volle Kontrolle |
-| [nginx & pm2](nginx-pm2.md) | ⭐⭐⭐ Fortgeschritten | Produktivbetrieb mit HTTPS |
+| Methode | Beschreibung | Empfohlen für |
+|---------|--------------|---------------|
+| [Container (Docker)](container.md) | Alles in einem Image verpackt | Schneller Start, einfache Updates |
+| [Ohne Container](ohne-container.md) | Node.js direkt auf dem System | Raspberry Pi, volle Kontrolle |
 
-## Welche Methode soll ich wählen?
+## 2. Wie greifst du darauf zu?
 
-### Docker (Empfohlen)
+| Zugriff | URL-Beispiel | Wann sinnvoll |
+|---------|--------------|---------------|
+| Direkt | `http://192.168.1.50:3000` | Internes Schulnetz |
+| Mit nginx + SSL | `https://bibliothek.schule.de` | Zugriff über Internet |
 
-**Wähle Docker, wenn:**
+## Die 4 Kombinationen
 
-- Du OpenLibry schnell zum Laufen bringen willst
-- Du keine Lust auf Abhängigkeiten hast
-- Du regelmäßige Updates willst
-- Du Docker bereits kennst oder lernen möchtest
-
-**Vorteile:**
-
-- ✅ Ein Befehl zum Starten
-- ✅ Keine Konflikte mit anderen Programmen
-- ✅ Einfache Updates
-- ✅ Funktioniert überall gleich
-
-[→ Docker-Installation](docker.md)
-
-### Bare Metal
-
-**Wähle Bare Metal, wenn:**
-
-- Du einen Raspberry Pi nutzen willst
-- Du volle Kontrolle über alle Komponenten brauchst
-- Docker auf deinem System nicht läuft
-- Du die Software verstehen und anpassen willst
-
-**Vorteile:**
-
-- ✅ Direkter Zugriff auf alle Dateien
-- ✅ Kein Docker-Overhead
-- ✅ Ideal für Raspberry Pi
-- ✅ Maximale Flexibilität
-
-[→ Bare Metal Installation](bare-metal.md)
-
-### nginx & pm2
-
-**Wähle diese Methode, wenn:**
-
-- Du OpenLibry über das Internet erreichbar machen willst
-- Du HTTPS mit eigenem Zertifikat brauchst
-- Du mehrere Instanzen auf einem Server betreiben willst
-- Du einen "richtigen" Server hast
-
-**Vorteile:**
-
-- ✅ HTTPS mit Let's Encrypt
-- ✅ Eigene Domain möglich
-- ✅ Professionelles Setup
-- ✅ Mehrere Instanzen möglich
-
-[→ Installation mit nginx & pm2](nginx-pm2.md)
+|  | Direkt (http, Port 3000) | Mit nginx + SSL (https) |
+|--|--------------------------|-------------------------|
+| **Container** | Einfachste Option | Produktiv mit Domain |
+| **Ohne Container** | Raspberry Pi, volle Kontrolle | Produktiv ohne Docker |
 
 ## Schnellentscheidung
 
 ```mermaid
 graph TD
     A[Start] --> B{Docker verfügbar?}
-    B -->|Ja| C{Brauche ich HTTPS?}
-    B -->|Nein| D[Bare Metal]
-    C -->|Nein| E[Docker]
-    C -->|Ja| F{Eigener Server?}
-    F -->|Ja| G[nginx & pm2]
-    F -->|Nein| E
+    B -->|Ja| C[Container-Installation]
+    B -->|Nein| D[Ohne-Container-Installation]
+    C --> E{Über Internet erreichbar?}
+    D --> E
+    E -->|Ja| F[+ nginx & SSL Add-on]
+    E -->|Nein| G[Fertig!]
+    F --> G
 ```
+
+## Welche Methode passt zu dir?
+
+### Container (Docker) — Empfohlen
+
+**Wähle Docker, wenn:**
+
+- Du OpenLibry schnell zum Laufen bringen willst
+- Du keine Lust auf Abhängigkeiten hast
+- Du regelmäßige Updates willst
+
+**Vorteile:**
+
+- Ein Befehl zum Starten
+- Keine Konflikte mit anderen Programmen
+- Einfache Updates
+- Funktioniert überall gleich
+
+[→ Container-Installation](container.md)
+
+### Ohne Container (Node.js direkt)
+
+**Wähle diese Methode, wenn:**
+
+- Du einen Raspberry Pi nutzen willst
+- Du volle Kontrolle über alle Komponenten brauchst
+- Docker auf deinem System nicht läuft
+
+**Vorteile:**
+
+- Direkter Zugriff auf alle Dateien
+- Kein Docker-Overhead
+- Ideal für Raspberry Pi
+- Maximale Flexibilität
+
+[→ Installation ohne Container](ohne-container.md)
+
+### nginx & SSL — Add-on
+
+**Füge nginx hinzu, wenn:**
+
+- OpenLibry über das Internet erreichbar sein soll
+- Du HTTPS mit eigenem Zertifikat brauchst
+- Du eine eigene Domain hast
+
+Dieses Add-on funktioniert mit **beiden** Installationsmethoden.
+
+[→ nginx & SSL einrichten](nginx-ssl.md)
 
 ## Nach der Installation
 
@@ -89,7 +95,7 @@ Egal welche Methode du wählst, danach geht's weiter mit:
 
 ## Hilfe bei Problemen
 
-Etwas funktioniert nicht? Schau hier:
+Etwas funktioniert nicht?
 
 - [Fehlerbehebung](../troubleshooting/index.md)
 - [Docker-Probleme](../troubleshooting/docker-issues.md)
