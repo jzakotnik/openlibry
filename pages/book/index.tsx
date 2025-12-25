@@ -15,7 +15,7 @@ import BookSummaryRow from "@/components/book/BookSummaryRow";
 import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
-import { convertDateToDayString, currentTime } from "@/utils/dateutils";
+import { convertDateToDayString, currentTime } from "@/lib/utils/dateutils";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
 import { useSnackbar } from "notistack";

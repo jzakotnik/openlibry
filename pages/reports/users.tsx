@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 
 import { UserType } from "@/entities/UserType";
 import { getAllUsers } from "@/entities/user";
-import { convertDateToDayString } from "@/utils/dateutils";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { Typography } from "@mui/material";
 import type {} from "@mui/x-data-grid/themeAugmentation";
 

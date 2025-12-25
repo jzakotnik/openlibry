@@ -27,7 +27,8 @@ import {
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useEffect } from "react";
-import { filterUsers } from "../../utils/searchUtils";
+
+import { filterUsers } from "@/lib/utils/searchUtils";
 
 type OverdueStatus = "overdue" | "warning" | "ok";
 

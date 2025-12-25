@@ -20,7 +20,7 @@ import { DnbSruService } from "@/lib/isbn-services/DnbSruService";
 import { GoogleBooksService } from "@/lib/isbn-services/GoogleBooksService";
 import { IsbnSearchService } from "@/lib/isbn-services/IsbnSearchService";
 import { OpenLibraryService } from "@/lib/isbn-services/OpenLibraryService";
-
+import logger from "@/lib/logger";
 /**
  * Ordered list of services to try.
  * Add, remove, or reorder services here to change lookup behavior.
@@ -50,42 +50,82 @@ export default async function handler(
   try {
     // Try each service in order until we get valid data
     for (const service of SERVICES) {
-      console.log(
-        `[FillBookByIsbn] Trying ${service.name} for ISBN ${isbn}...`
+      logger.debug(
+        {
+          category: "business",
+          event: "isbn.lookup.trying",
+          isbn,
+          service: service.name,
+        },
+        `Trying ${service.name} for ISBN ${isbn}`
       );
 
       const bookData = await service.fetch(isbn);
 
       if (isValidBookData(bookData)) {
-        console.log(
-          `[FillBookByIsbn] Found via ${service.name}: ${bookData.title}`
-        );
-
-        // Normalize data before returning, for example if "608 pages" is returned, we need int "608"
+        // Normalize data before returning
+        const pagesNum = extractPageNumber(bookData.pages);
         const normalizedData = {
           ...bookData,
           title: cleanTitle(bookData.title),
           subtitle: cleanTitle(bookData.subtitle),
-          pages: extractPageNumber(bookData.pages),
+          pages: pagesNum ? pagesNum : null,
           _source: service.name, // Include source for debugging
         };
+
+        logger.debug(
+          {
+            category: "business",
+            event: "isbn.lookup.found",
+            isbn,
+            service: service.name,
+            title: normalizedData.title,
+          },
+          `Found via ${service.name}: ${normalizedData.title}`
+        );
 
         res.status(200).json(normalizedData);
         return;
       }
 
-      console.log(`[FillBookByIsbn] No results from ${service.name}`);
+      logger.debug(
+        {
+          category: "business",
+          event: "isbn.lookup.notfound",
+          isbn,
+          service: service.name,
+        },
+        `No results from ${service.name}`
+      );
     }
 
     // No results from any service
     const serviceNames = SERVICES.map((s) => s.name).join(", ");
+    logger.info(
+      {
+        category: "business",
+        event: "isbn.lookup.failed",
+        isbn,
+        services: serviceNames,
+      },
+      `Book not found in any catalog for ISBN ${isbn}`
+    );
     res.status(404).json({
       error: `Book not found in any catalog (${serviceNames}).`,
     });
-  } catch (err: any) {
-    console.error("[FillBookByIsbn] Unexpected error:", err);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    logger.error(
+      {
+        category: "error",
+        event: "isbn.lookup.error",
+        isbn,
+        error: errorMessage,
+      },
+      `Unexpected error during ISBN lookup: ${errorMessage}`
+    );
     res.status(500).json({
-      error: err.message || "Error fetching book data.",
+      error: errorMessage || "Error fetching book data.",
     });
   }
 }

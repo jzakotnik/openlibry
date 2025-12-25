@@ -3,7 +3,7 @@ import { addUser, getAllUsers } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
-import { replaceUsersDateString } from "@/utils/dateutils";
+import { replaceUsersDateString } from "@/lib/utils/dateutils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {

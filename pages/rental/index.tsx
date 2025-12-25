@@ -12,8 +12,8 @@ import {
   extendDays,
   replaceBookStringDate,
   sameDay,
-} from "@/utils/dateutils";
-import { getBookFromID } from "@/utils/getBookFromID";
+} from "@/lib/utils/dateutils";
+import { getBookFromID } from "@/lib/utils/getBookFromID";
 import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";

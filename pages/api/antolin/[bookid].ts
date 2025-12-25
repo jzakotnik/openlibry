@@ -1,7 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { getBook } from "@/entities/book";
 import { prisma } from "@/entities/db";
-import { createAntolinSearchEngine } from "@/utils/antolinIndex";
+import { createAntolinSearchEngine } from "@/lib/utils/antolinIndex";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const removeDuplicates = (searchResults: any) => {

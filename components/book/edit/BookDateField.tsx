@@ -6,7 +6,10 @@ import "dayjs/locale/de";
 
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
-import { convertDateToDayString, convertStringToDay } from "@/utils/dateutils";
+import {
+  convertDateToDayString,
+  convertStringToDay,
+} from "@/lib/utils/dateutils";
 import { Dayjs } from "dayjs";
 import { Dispatch } from "react";
 
@@ -33,7 +36,10 @@ const BookDateField = ({
   book,
 }: BookDateFieldProps): React.ReactElement<any> => {
   return (
-    <Grid size={{ xs: 12, sm: 6 }} data-cy={"book_" + fieldType + "_datepicker"}>
+    <Grid
+      size={{ xs: 12, sm: 6 }}
+      data-cy={"book_" + fieldType + "_datepicker"}
+    >
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
         <DesktopDatePicker
           label={(translations["books"] as any)[fieldType]}

@@ -9,7 +9,7 @@ import { errorLogger } from "@/lib/logger";
 import {
   convertDateToDayString,
   replaceUsersDateString,
-} from "@/utils/dateutils";
+} from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
