@@ -7,11 +7,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import ImageIcon from "@mui/icons-material/Image";
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import SaveIcon from "@mui/icons-material/Save";
 import UndoIcon from "@mui/icons-material/Undo";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Card,
@@ -53,7 +56,41 @@ interface ScannedEntry {
   bookData: Partial<BookType>;
   errorMessage?: string;
   isEditing?: boolean;
+  coverUrl?: string; // URL to the cover image from OpenLibrary
+  hasCover?: boolean; // Whether a cover was found
+  coverBlob?: Blob; // The actual cover image data for upload
 }
+
+// OpenLibrary cover URL builder
+const getOpenLibraryCoverUrl = (isbn: string, size: "S" | "M" | "L" = "M") => {
+  return `https://covers.openlibrary.org/b/isbn/${isbn}-${size}.jpg`;
+};
+
+// Check if a cover exists at OpenLibrary
+const checkCoverExists = async (
+  isbn: string
+): Promise<{ exists: boolean; blob?: Blob }> => {
+  try {
+    const url = getOpenLibraryCoverUrl(isbn, "M");
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return { exists: false };
+    }
+
+    const blob = await response.blob();
+
+    // OpenLibrary returns a 1x1 pixel image if no cover exists
+    // Check if the image is larger than ~100 bytes (1x1 pixel images are tiny)
+    if (blob.size < 100) {
+      return { exists: false };
+    }
+
+    return { exists: true, blob };
+  } catch {
+    return { exists: false };
+  }
+};
 
 // Sound feedback utility
 const playSound = (type: "success" | "error" | "scan") => {
@@ -168,8 +205,11 @@ export default function BatchScan() {
     setIsbnInput("");
     inputRef.current?.focus();
 
-    // Fetch book data
-    const bookData = await fetchBookData(cleanedIsbn);
+    // Fetch book data and cover in parallel
+    const [bookData, coverResult] = await Promise.all([
+      fetchBookData(cleanedIsbn),
+      checkCoverExists(cleanedIsbn),
+    ]);
 
     setEntries((prev) =>
       prev.map((entry) =>
@@ -186,6 +226,11 @@ export default function BatchScan() {
                     rentalStatus: "available",
                     renewalCount: 0,
                   },
+              coverUrl: coverResult.exists
+                ? getOpenLibraryCoverUrl(cleanedIsbn, "M")
+                : undefined,
+              hasCover: coverResult.exists,
+              coverBlob: coverResult.blob,
             }
           : entry
       )
@@ -193,7 +238,10 @@ export default function BatchScan() {
 
     if (bookData) {
       playSound("success");
-      enqueueSnackbar(`"${bookData.title}" gefunden`, { variant: "success" });
+      const coverInfo = coverResult.exists ? " (mit Cover)" : "";
+      enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
+        variant: "success",
+      });
     } else {
       playSound("error");
       enqueueSnackbar(
@@ -261,7 +309,10 @@ export default function BatchScan() {
         )
       );
 
-      const bookData = await fetchBookData(isbn);
+      const [bookData, coverResult] = await Promise.all([
+        fetchBookData(isbn),
+        checkCoverExists(isbn),
+      ]);
 
       setEntries((prev) =>
         prev.map((entry) =>
@@ -272,6 +323,11 @@ export default function BatchScan() {
                 bookData: bookData
                   ? { ...bookData, isbn }
                   : { ...entry.bookData },
+                coverUrl: coverResult.exists
+                  ? getOpenLibraryCoverUrl(isbn, "M")
+                  : undefined,
+                hasCover: coverResult.exists,
+                coverBlob: coverResult.blob,
               }
             : entry
         )
@@ -287,6 +343,26 @@ export default function BatchScan() {
     },
     [fetchBookData, enqueueSnackbar]
   );
+
+  // Upload cover image for a book
+  const uploadCover = async (
+    bookId: number,
+    coverBlob: Blob
+  ): Promise<boolean> => {
+    try {
+      const formData = new FormData();
+      formData.set("cover", coverBlob, "cover.jpg");
+
+      const response = await fetch(`/api/book/cover/${bookId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
 
   // Import all valid entries to database
   const handleImport = useCallback(async () => {
@@ -308,9 +384,15 @@ export default function BatchScan() {
     setIsImporting(true);
     setImportProgress(0);
 
-    const results: { success: number; failed: number; ids: number[] } = {
+    const results: {
+      success: number;
+      failed: number;
+      coversUploaded: number;
+      ids: number[];
+    } = {
       success: 0,
       failed: 0,
+      coversUploaded: 0,
       ids: [],
     };
 
@@ -353,6 +435,14 @@ export default function BatchScan() {
           results.success++;
           results.ids.push(data.id);
 
+          // Upload cover if available
+          if (entry.hasCover && entry.coverBlob && data.id) {
+            const coverUploaded = await uploadCover(data.id, entry.coverBlob);
+            if (coverUploaded) {
+              results.coversUploaded++;
+            }
+          }
+
           // Remove successfully imported entry
           setEntries((prev) => prev.filter((e) => e.id !== entry.id));
         } else {
@@ -369,8 +459,12 @@ export default function BatchScan() {
 
     if (results.success > 0) {
       playSound("success");
+      const coverInfo =
+        results.coversUploaded > 0
+          ? ` (${results.coversUploaded} Cover hochgeladen)`
+          : "";
       enqueueSnackbar(
-        `${results.success} Buch/Bücher erfolgreich importiert!`,
+        `${results.success} Buch/Bücher erfolgreich importiert!${coverInfo}`,
         { variant: "success" }
       );
     }
@@ -406,6 +500,7 @@ export default function BatchScan() {
     ).length;
     const notFound = entries.filter((e) => e.status === "not_found").length;
     const loading = entries.filter((e) => e.status === "loading").length;
+    const withCover = entries.filter((e) => e.hasCover).length;
     const readyToImport = entries.filter(
       (e) =>
         (e.status === "found" || e.status === "edited") &&
@@ -413,7 +508,7 @@ export default function BatchScan() {
         e.bookData.author
     ).length;
 
-    return { total, found, notFound, loading, readyToImport };
+    return { total, found, notFound, loading, withCover, readyToImport };
   }, [entries]);
 
   return (
@@ -485,6 +580,15 @@ export default function BatchScan() {
                   variant="outlined"
                   size="small"
                 />
+                {stats.withCover > 0 && (
+                  <Chip
+                    icon={<ImageIcon />}
+                    label={`Mit Cover: ${stats.withCover}`}
+                    color="info"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
                 {stats.loading > 0 && (
                   <Chip
                     icon={<HourglassEmptyIcon />}
@@ -651,6 +755,11 @@ function BatchScanEntryCard({
                 Suche in Datenbank...
               </Typography>
             )}
+            {entry.hasCover && (
+              <Tooltip title="Cover verfügbar">
+                <ImageIcon color="info" fontSize="small" />
+              </Tooltip>
+            )}
           </Stack>
           <Stack direction="row" spacing={1}>
             {entry.status === "not_found" && (
@@ -692,177 +801,255 @@ function BatchScanEntryCard({
           <>
             {/* Preview/Edit Mode */}
             <Collapse in={!entry.isEditing}>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Titel
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {entry.bookData.title || (
-                      <em style={{ color: "red" }}>Nicht angegeben</em>
-                    )}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Autor
-                  </Typography>
-                  <Typography variant="body1">
-                    {entry.bookData.author || (
-                      <em style={{ color: "red" }}>Nicht angegeben</em>
-                    )}
-                  </Typography>
-                </Grid>
-                {entry.bookData.publisherName && (
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                {/* Cover Image Preview */}
+                <Box
+                  sx={{
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: { xs: "center", sm: "flex-start" },
+                  }}
+                >
+                  {entry.hasCover && entry.coverUrl ? (
+                    <Avatar
+                      variant="rounded"
+                      src={entry.coverUrl}
+                      alt="Cover"
+                      sx={{
+                        width: 80,
+                        height: 120,
+                        bgcolor: theme.palette.grey[200],
+                      }}
+                    >
+                      <ImageIcon />
+                    </Avatar>
+                  ) : (
+                    <Avatar
+                      variant="rounded"
+                      sx={{
+                        width: 80,
+                        height: 120,
+                        bgcolor: theme.palette.grey[100],
+                      }}
+                    >
+                      <ImageNotSupportedIcon color="disabled" />
+                    </Avatar>
+                  )}
+                </Box>
+
+                {/* Book Details */}
+                <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Typography variant="body2" color="text.secondary">
-                      Verlag
+                      Titel
                     </Typography>
-                    <Typography variant="body1">
-                      {entry.bookData.publisherName}
+                    <Typography variant="body1" fontWeight={500}>
+                      {entry.bookData.title || (
+                        <em style={{ color: "red" }}>Nicht angegeben</em>
+                      )}
                     </Typography>
                   </Grid>
-                )}
-                {entry.bookData.publisherDate && (
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Typography variant="body2" color="text.secondary">
-                      Jahr
+                      Autor
                     </Typography>
                     <Typography variant="body1">
-                      {entry.bookData.publisherDate}
+                      {entry.bookData.author || (
+                        <em style={{ color: "red" }}>Nicht angegeben</em>
+                      )}
                     </Typography>
                   </Grid>
-                )}
-              </Grid>
+                  {entry.bookData.publisherName && (
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Verlag
+                      </Typography>
+                      <Typography variant="body1">
+                        {entry.bookData.publisherName}
+                      </Typography>
+                    </Grid>
+                  )}
+                  {entry.bookData.publisherDate && (
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Jahr
+                      </Typography>
+                      <Typography variant="body1">
+                        {entry.bookData.publisherDate}
+                      </Typography>
+                    </Grid>
+                  )}
+                </Grid>
+              </Stack>
             </Collapse>
 
             {/* Edit Mode */}
             <Collapse in={entry.isEditing}>
               <Divider sx={{ my: 2 }} />
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Titel *"
-                    value={entry.bookData.title || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(entry.id, "title", e.target.value)
-                    }
-                    error={!entry.bookData.title}
-                    helperText={!entry.bookData.title && "Titel erforderlich"}
-                  />
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                {/* Cover Image Preview in Edit Mode */}
+                <Box
+                  sx={{
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: { xs: "center", sm: "flex-start" },
+                  }}
+                >
+                  {entry.hasCover && entry.coverUrl ? (
+                    <Avatar
+                      variant="rounded"
+                      src={entry.coverUrl}
+                      alt="Cover"
+                      sx={{
+                        width: 80,
+                        height: 120,
+                        bgcolor: theme.palette.grey[200],
+                      }}
+                    >
+                      <ImageIcon />
+                    </Avatar>
+                  ) : (
+                    <Avatar
+                      variant="rounded"
+                      sx={{
+                        width: 80,
+                        height: 120,
+                        bgcolor: theme.palette.grey[100],
+                      }}
+                    >
+                      <ImageNotSupportedIcon color="disabled" />
+                    </Avatar>
+                  )}
+                </Box>
+
+                {/* Edit Fields */}
+                <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Titel *"
+                      value={entry.bookData.title || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(entry.id, "title", e.target.value)
+                      }
+                      error={!entry.bookData.title}
+                      helperText={!entry.bookData.title && "Titel erforderlich"}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Autor *"
+                      value={entry.bookData.author || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(entry.id, "author", e.target.value)
+                      }
+                      error={!entry.bookData.author}
+                      helperText={
+                        !entry.bookData.author && "Autor erforderlich"
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Untertitel"
+                      value={entry.bookData.subtitle || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(entry.id, "subtitle", e.target.value)
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Verlag"
+                      value={entry.bookData.publisherName || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(
+                          entry.id,
+                          "publisherName",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Verlagsort"
+                      value={entry.bookData.publisherLocation || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(
+                          entry.id,
+                          "publisherLocation",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Erscheinungsjahr"
+                      value={entry.bookData.publisherDate || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(
+                          entry.id,
+                          "publisherDate",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Seiten"
+                      type="number"
+                      value={entry.bookData.pages || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(
+                          entry.id,
+                          "pages",
+                          parseInt(e.target.value) || 0
+                        )
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Preis"
+                      value={entry.bookData.price || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(entry.id, "price", e.target.value)
+                      }
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Zusammenfassung"
+                      multiline
+                      rows={2}
+                      value={entry.bookData.summary || ""}
+                      onChange={(e) =>
+                        onUpdateBookData(entry.id, "summary", e.target.value)
+                      }
+                    />
+                  </Grid>
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Autor *"
-                    value={entry.bookData.author || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(entry.id, "author", e.target.value)
-                    }
-                    error={!entry.bookData.author}
-                    helperText={!entry.bookData.author && "Autor erforderlich"}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Untertitel"
-                    value={entry.bookData.subtitle || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(entry.id, "subtitle", e.target.value)
-                    }
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Verlag"
-                    value={entry.bookData.publisherName || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(
-                        entry.id,
-                        "publisherName",
-                        e.target.value
-                      )
-                    }
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Verlagsort"
-                    value={entry.bookData.publisherLocation || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(
-                        entry.id,
-                        "publisherLocation",
-                        e.target.value
-                      )
-                    }
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Erscheinungsjahr"
-                    value={entry.bookData.publisherDate || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(
-                        entry.id,
-                        "publisherDate",
-                        e.target.value
-                      )
-                    }
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Seiten"
-                    type="number"
-                    value={entry.bookData.pages || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(
-                        entry.id,
-                        "pages",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Preis"
-                    value={entry.bookData.price || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(entry.id, "price", e.target.value)
-                    }
-                  />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Zusammenfassung"
-                    multiline
-                    rows={2}
-                    value={entry.bookData.summary || ""}
-                    onChange={(e) =>
-                      onUpdateBookData(entry.id, "summary", e.target.value)
-                    }
-                  />
-                </Grid>
-              </Grid>
+              </Stack>
             </Collapse>
           </>
         )}
