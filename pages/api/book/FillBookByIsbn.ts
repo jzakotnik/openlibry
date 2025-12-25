@@ -61,7 +61,7 @@ export default async function handler(
           `[FillBookByIsbn] Found via ${service.name}: ${bookData.title}`
         );
 
-        // Normalize data before returning
+        // Normalize data before returning, for example if "608 pages" is returned, we need int "608"
         const normalizedData = {
           ...bookData,
           title: cleanTitle(bookData.title),
