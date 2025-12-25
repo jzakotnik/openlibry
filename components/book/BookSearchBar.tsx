@@ -1,5 +1,11 @@
 import palette from "@/styles/palette";
-import { GridView, QueueOutlined, Search, ViewList } from "@mui/icons-material";
+import {
+  Add,
+  GridView,
+  QueueOutlined,
+  Search,
+  ViewList,
+} from "@mui/icons-material";
 import {
   alpha,
   Box,
@@ -9,6 +15,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import Link from "next/link";
 
 interface BookSearchBarProps {
   handleInputChange: React.ChangeEventHandler<
@@ -138,8 +145,29 @@ export default function BookSearchBar({
                   },
                 }}
               >
-                <QueueOutlined />
+                <Add />
               </IconButton>
+            </Tooltip>
+          </>
+        )}
+        {/* Create Book Button */}
+        {showNewBookControl && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+            <Tooltip title="Viele Bücher importieren">
+              <Link href={`book/batchscan`} passHref style={{ flex: 1 }}>
+                <IconButton
+                  data-cy="batchscan_button"
+                  sx={{
+                    color: palette.primary.main,
+                    "&:hover": {
+                      bgcolor: alpha(palette.primary.main, 0.1),
+                    },
+                  }}
+                >
+                  <QueueOutlined />
+                </IconButton>
+              </Link>
             </Tooltip>
           </>
         )}
