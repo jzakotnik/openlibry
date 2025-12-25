@@ -121,15 +121,45 @@ export default function BookRentalList({
     //searchBooks(v);
   };
 
-  const handleKeyUp = (e: React.KeyboardEvent): void => {
-    if (e.key === "Escape") {
-      if (bookSearchInput === "") {
-        handleUserSearchSetFocus();
-      } else {
-        setBookSearchInput("");
+  const handleKeyUp = useCallback(
+    (e: React.KeyboardEvent): void => {
+      if (e.key === "Escape") {
+        if (bookSearchInput === "") {
+          handleUserSearchSetFocus();
+        } else {
+          setBookSearchInput("");
+        }
       }
-    }
-  };
+
+      // Barcode scanner support: Enter key triggers rent
+      if (e.key === "Enter" && userExpanded) {
+        const trimmedInput = bookSearchInput.trim();
+        const bookId = parseInt(trimmedInput, 10);
+
+        // Find book by ID (exact match)
+        const book = books.find((b) => b.id === bookId);
+
+        if (book && book.rentalStatus === "available") {
+          handleRentBookButton(book.id!, userExpanded);
+          setBookSearchInput("");
+        } else if (book && book.rentalStatus !== "available") {
+          // Book exists but is already rented - optionally show feedback
+          console.log(`Book ${bookId} is already rented`);
+          // You could add a snackbar/toast notification here
+        } else {
+          // Book not found - optionally show feedback
+          console.log(`Book ${bookId} not found`);
+        }
+      }
+    },
+    [
+      bookSearchInput,
+      handleUserSearchSetFocus,
+      userExpanded,
+      books,
+      handleRentBookButton,
+    ]
+  );
 
   const markBookTouched = (id: number) => {
     const time = Date.now();
