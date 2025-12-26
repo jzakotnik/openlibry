@@ -1,12 +1,12 @@
 site_name: OpenLibry Dokumentation
-site_url: https://docs.openlibry.de
+site_url: https://openlibry.de/site/
 site_description: Die freie Software für Schulbibliotheken
 site_author: OpenLibry Community
 repo_url: https://github.com/jzakotnik/openlibry
 repo_name: jzakotnik/openlibry
 edit_uri: edit/main/docs/
 
-copyright: "&copy; 2024 OpenLibry - MIT Lizenz"
+copyright: "&copy; 2025 OpenLibry - MIT Lizenz"
 
 theme:
   name: material
