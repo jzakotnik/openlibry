@@ -18,5 +18,11 @@
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
-  }
+  },
+  "yaml.customTags": [
+    "!python/name scalar",
+    "!python/name:pymdownx.superfences.fence_code_format scalar",
+    "!python/name:material.extensions.emoji.twemoji scalar",
+    "!python/name:material.extensions.emoji.to_svg scalar"
+  ]
 }
