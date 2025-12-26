@@ -17,7 +17,7 @@ import {
   replaceBookStringDate,
   replaceUserDateString,
   sameDay,
-} from "@/utils/dateutils";
+} from "@/lib/utils/dateutils";
 
 import UserEditForm from "@/components/user/UserEditForm";
 import { BookType } from "@/entities/BookType";

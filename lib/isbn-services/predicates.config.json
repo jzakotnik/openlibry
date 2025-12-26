@@ -33,9 +33,15 @@
   "isbn": [
     "http://purl.org/ontology/bibo/isbn13",
     "http://purl.org/ontology/bibo/isbn10",
+    "http://purl.org/ontology/bibo/isbn",
     "http://purl.org/ontology/bibo/gtin14",
     "http://rdaregistry.info/Elements/u/P60059",
-    "http://schema.org/isbn"
+    "http://schema.org/isbn",
+    "http://iflastandards.info/ns/isbd/elements/P1004"
+  ],
+  "isbnFallback": [
+    "http://purl.org/dc/terms/identifier",
+    "http://purl.org/dc/elements/1.1/identifier"
   ],
   "editionDescription": ["http://purl.org/ontology/bibo/edition"],
   "publisherName": [

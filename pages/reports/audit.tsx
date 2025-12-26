@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import { AuditType } from "@/entities/AuditType";
 import { getAllAudit } from "@/entities/audit";
-import { convertDateToTimeString } from "@/utils/dateutils";
+import { convertDateToTimeString } from "@/lib/utils/dateutils";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
 import DeleteIcon from "@mui/icons-material/Delete";

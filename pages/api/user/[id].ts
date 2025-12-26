@@ -1,6 +1,6 @@
 import { UserType } from "@/entities/UserType";
 import { deleteUser, getUser, updateUser } from "@/entities/user";
-import { replaceUserDateString } from "@/utils/dateutils";
+import { replaceUserDateString } from "@/lib/utils/dateutils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";

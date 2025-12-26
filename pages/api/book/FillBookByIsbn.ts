@@ -1,201 +1,131 @@
-import * as cheerio from "cheerio";
-import { Parser } from "n3";
+/**
+ * FillBookByIsbn API Handler
+ *
+ * Main entry point for ISBN lookup. Queries multiple external sources
+ * in a cascading fallback pattern until book data is found.
+ *
+ * Usage: GET /api/books/fillBookByIsbn?isbn=978-3-548-06923-4
+ */
+
+import type { IsbnLookupService } from "@/lib/isbn-services/types";
+import {
+  cleanTitle,
+  extractPageNumber,
+  isValidBookData,
+} from "@/lib/isbn-services/types";
 import type { NextApiRequest, NextApiResponse } from "next";
-import fetch from "node-fetch";
 
-// this is the config file for all the sources of the ISBN autofill
-import predicateConfig from "./predicates.config.json";
+import { DnbScrapingService } from "@/lib/isbn-services/DnbScrapingService";
+import { DnbSruService } from "@/lib/isbn-services/DnbSruService";
+import { GoogleBooksService } from "@/lib/isbn-services/GoogleBooksService";
+import { IsbnSearchService } from "@/lib/isbn-services/IsbnSearchService";
+import { OpenLibraryService } from "@/lib/isbn-services/OpenLibraryService";
+import logger from "@/lib/logger";
+/**
+ * Ordered list of services to try.
+ * Add, remove, or reorder services here to change lookup behavior.
+ */
+const SERVICES: IsbnLookupService[] = [
+  DnbSruService, // 1. DNB SRU API - best for German books
+  GoogleBooksService, // 2. Google Books - good international coverage
+  OpenLibraryService, // 3. Open Library - free, open source
+  IsbnSearchService, // 4. ISBNSearch.org - web scraping fallback
+  DnbScrapingService, // 5. DNB Portal - last resort for German books
+];
 
-type BookFormData = {
-  title?: string;
-  author?: string;
-  subtitle?: string;
-  topics?: string;
-  summary?: string;
-  isbn?: string;
-  editionDescription?: string;
-  publisherName?: string;
-  publisherLocation?: string;
-  publisherDate?: string;
-  pages?: string;
-  minAge?: string;
-  maxAge?: string;
-  price?: string;
-  externalLinks?: string;
-  additionalMaterial?: string;
-  minPlayers?: string;
-  otherPhysicalAttributes?: string;
-  supplierComment?: string;
-  physicalSize?: string;
-};
-
-// Helper: get values for a predicate
-function getPredicateValues(pred: string, triples: any[]): string[] {
-  return triples
-    .filter((triple) => triple.predicate.value.endsWith(pred))
-    .map((triple) => triple.object.value)
-    .filter((val) => typeof val === "string");
-}
-
-function getPredicateValue(pred: string, triples: any[]): string | undefined {
-  return getPredicateValues(pred, triples)[0];
-}
-
-// Predicate mapping loaded from JSON
-const P = predicateConfig as Record<string, string[]>;
-
-// Utility: get first or all objects for a set of predicates
-function getFirstMatching(
-  triples: any[],
-  predicates: string[]
-): string | undefined {
-  // Check full predicate URIs
-  for (const pred of predicates) {
-    const found = triples.find((triple) => triple.predicate.value === pred);
-    if (found) return found.object.value;
-  }
-  // Fallback: check for endsWith last part (localName)
-  for (const pred of predicates) {
-    const localName = pred.split(/[\/#]/).pop();
-    const found = triples.find(
-      (triple) =>
-        triple.predicate.value.endsWith("/" + localName) ||
-        triple.predicate.value.endsWith("#" + localName)
-    );
-    if (found) return found.object.value;
-  }
-  return undefined;
-}
-
-function getAllMatching(triples: any[], predicates: string[]): string[] {
-  // All values for all predicates (full URIs and localName fallback)
-  const values = [];
-  for (const pred of predicates) {
-    values.push(
-      ...triples
-        .filter((triple) => triple.predicate.value === pred)
-        .map((triple) => triple.object.value)
-    );
-    const localName = pred.split(/[\/#]/).pop();
-    values.push(
-      ...triples
-        .filter(
-          (triple) =>
-            triple.predicate.value.endsWith("/" + localName) ||
-            triple.predicate.value.endsWith("#" + localName)
-        )
-        .map((triple) => triple.object.value)
-    );
-  }
-  // Remove duplicates
-  return Array.from(new Set(values));
-}
-
-function getAllMatchingLiterals(
-  triples: any[],
-  predicates: string[]
-): string[] {
-  const values = [];
-  for (const pred of predicates) {
-    values.push(
-      ...triples
-        .filter(
-          (triple) =>
-            triple.predicate.value === pred &&
-            typeof triple.object.value === "string" &&
-            !/^https?:\/\//.test(triple.object.value)
-        )
-        .map((triple) => triple.object.value)
-    );
-    const localName = pred.split(/[\/#]/).pop();
-    values.push(
-      ...triples
-        .filter(
-          (triple) =>
-            (triple.predicate.value.endsWith("/" + localName) ||
-              triple.predicate.value.endsWith("#" + localName)) &&
-            typeof triple.object.value === "string" &&
-            !/^https?:\/\//.test(triple.object.value)
-        )
-        .map((triple) => triple.object.value)
-    );
-  }
-  return Array.from(new Set(values));
-}
-
+/**
+ * API Handler
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { isbn, bookId } = req.query;
+  const { isbn } = req.query;
+
   if (!isbn || typeof isbn !== "string") {
-    res.status(400).json({ error: "Missing ISBN" });
+    res.status(400).json({ error: "Missing ISBN parameter" });
     return;
   }
 
   try {
-    // 1. Search in DNB
-    const dnbSearchUrl = `https://portal.dnb.de/opac/simpleSearch?query=${isbn}`;
-    const searchResp = await fetch(dnbSearchUrl);
-    const searchHtml = await searchResp.text();
+    // Try each service in order until we get valid data
+    for (const service of SERVICES) {
+      logger.debug(
+        {
+          category: "business",
+          event: "isbn.lookup.trying",
+          isbn,
+          service: service.name,
+        },
+        `Trying ${service.name} for ISBN ${isbn}`
+      );
 
-    // 2. Parse HTML for Turtle link
-    const $ = cheerio.load(searchHtml);
-    let turtleLink = "";
-    $("a").each((i, el) => {
-      if (
-        $(el).text().includes("RDF (Turtle)-Repräsentation dieses Datensatzes")
-      ) {
-        turtleLink = $(el).attr("href") ?? "";
+      const bookData = await service.fetch(isbn);
+
+      if (isValidBookData(bookData)) {
+        // Normalize data before returning
+        const pagesNum = extractPageNumber(bookData.pages);
+        const normalizedData = {
+          ...bookData,
+          title: cleanTitle(bookData.title),
+          subtitle: cleanTitle(bookData.subtitle),
+          pages: pagesNum ? pagesNum : null,
+          _source: service.name, // Include source for debugging
+        };
+
+        logger.debug(
+          {
+            category: "business",
+            event: "isbn.lookup.found",
+            isbn,
+            service: service.name,
+            title: normalizedData.title,
+          },
+          `Found via ${service.name}: ${normalizedData.title}`
+        );
+
+        res.status(200).json(normalizedData);
+        return;
       }
+
+      logger.debug(
+        {
+          category: "business",
+          event: "isbn.lookup.notfound",
+          isbn,
+          service: service.name,
+        },
+        `No results from ${service.name}`
+      );
+    }
+
+    // No results from any service
+    const serviceNames = SERVICES.map((s) => s.name).join(", ");
+    logger.info(
+      {
+        category: "business",
+        event: "isbn.lookup.failed",
+        isbn,
+        services: serviceNames,
+      },
+      `Book not found in any catalog for ISBN ${isbn}`
+    );
+    res.status(404).json({
+      error: `Book not found in any catalog (${serviceNames}).`,
     });
-    if (!turtleLink) {
-      res.status(404).json({
-        error: "RDF-Turtle-Link not found in DNB result.",
-      });
-      return;
-    }
-    if (turtleLink.startsWith("/")) {
-      turtleLink = "https://portal.dnb.de" + turtleLink;
-    }
-
-    // 3. Download Turtle file
-    const turtleResp = await fetch(turtleLink);
-    const turtleText = await turtleResp.text();
-
-    // 4. Parse Turtle file with N3
-    const parser = new Parser();
-    const triples = parser.parse(turtleText);
-
-    // 5. Map predicates to form fields using robust extraction
-    const bookData: BookFormData = {
-      title: getFirstMatching(triples, P.title),
-      author: getAllMatchingLiterals(triples, P.author).join(", "),
-      subtitle: getFirstMatching(triples, P.subtitle),
-      summary: getFirstMatching(triples, P.summary),
-      isbn: getFirstMatching(triples, P.isbn) || isbn,
-      editionDescription: undefined,
-      publisherName: getFirstMatching(triples, P.publisherName),
-      publisherLocation: getFirstMatching(triples, P.publisherLocation),
-      publisherDate: getFirstMatching(triples, P.publisherDate),
-      minAge: getFirstMatching(triples, P.minAge),
-      maxAge: undefined,
-      price: getFirstMatching(triples, P.price),
-      externalLinks: getAllMatching(triples, P.externalLinks).join(", "),
-      additionalMaterial: undefined,
-      minPlayers: undefined,
-      otherPhysicalAttributes: getFirstMatching(
-        triples,
-        P.otherPhysicalAttributes
-      ),
-      supplierComment: undefined,
-      physicalSize: getFirstMatching(triples, P.physicalSize),
-    };
-
-    res.status(200).json(bookData);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    logger.error(
+      {
+        category: "error",
+        event: "isbn.lookup.error",
+        isbn,
+        error: errorMessage,
+      },
+      `Unexpected error during ISBN lookup: ${errorMessage}`
+    );
     res.status(500).json({
-      error: err.message || "Error fetching/parsing DNB data.",
+      error: errorMessage || "Error fetching book data.",
     });
   }
 }

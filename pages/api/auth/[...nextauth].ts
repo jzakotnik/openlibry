@@ -2,7 +2,7 @@ import { prisma } from "@/entities/db";
 import { getLoginUser } from "@/entities/loginuser";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
-import { hashPassword } from "@/utils/hashPassword";
+import { hashPassword } from "@/lib/utils/hashPassword";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 

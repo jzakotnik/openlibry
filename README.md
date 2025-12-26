@@ -10,7 +10,7 @@ OpenLibry entstand aus dem Bedarf einer Grundschule, in der die veraltete OpenBi
 
 ## 📋 Navigation - Was möchten Sie tun?
 
-### 🔍 [1. Mehr über die Software erfahren](#-software-info)
+### 🔍 [1. Mehr über die Software erfahren](https://openlibry.de/site/)
 
 Entdecken Sie die Features, sehen Sie Screenshots und verstehen Sie, wie OpenLibry funktioniert.
 

@@ -2,7 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
-import { convertDateToDayString } from "@/utils/dateutils";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import { deDE as coreDeDE } from "@mui/material/locale";

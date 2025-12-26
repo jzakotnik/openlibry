@@ -4,7 +4,10 @@ import { getAllTopics, getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
-import { convertStringToDay, replaceBookDateString } from "@/utils/dateutils";
+import {
+  convertStringToDay,
+  replaceBookDateString,
+} from "@/lib/utils/dateutils";
 import { Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/router";

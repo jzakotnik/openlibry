@@ -1,6 +1,6 @@
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import { hasOverdueBooks } from "@/utils/hasOverdueBooks";
+import { hasOverdueBooks } from "@/lib/utils/hasOverdueBooks";
 
 export function searchAndRemoveKlasse(inputString: string) {
   // Create a regex pattern to find "klasse?" followed by a number

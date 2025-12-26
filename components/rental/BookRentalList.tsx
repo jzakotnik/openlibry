@@ -24,7 +24,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import userNameForBook from "@/utils/userNameForBook";
+import userNameForBook from "@/lib/utils/userNameForBook";
 
 interface BookPropsType {
   books: Array<BookType>;

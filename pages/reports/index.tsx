@@ -14,7 +14,7 @@ import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger } from "@/lib/logger";
-import { convertDateToDayString } from "@/utils/dateutils";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
   Autocomplete,
   Button,

@@ -6,8 +6,8 @@ import { getAllUsers } from "@/entities/user";
 import {
   convertDateToDayString,
   convertDayToISOString,
-} from "@/utils/dateutils";
-import { xlsbookcolumns, xlsusercolumns } from "@/utils/xlsColumnsMapping";
+} from "@/lib/utils/dateutils";
+import { xlsbookcolumns, xlsusercolumns } from "@/lib/utils/xlsColumnsMapping";
 import Excel from "exceljs";
 import type { NextApiRequest, NextApiResponse } from "next";
 

@@ -2,7 +2,7 @@ import { prisma } from "@/entities/db";
 import { addLoginUser } from "@/entities/loginuser";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
-import { hashPassword } from "@/utils/hashPassword";
+import { hashPassword } from "@/lib/utils/hashPassword";
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 

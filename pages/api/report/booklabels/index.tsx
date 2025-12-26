@@ -1,7 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
-import { chunkArray } from "@/utils/chunkArray";
-import { currentTime } from "@/utils/dateutils";
+import { chunkArray } from "@/lib/utils/chunkArray";
+import { currentTime } from "@/lib/utils/dateutils";
 import ReactPDF, {
   Canvas,
   Document,
@@ -77,8 +77,7 @@ const BOOKLABEL_PRINT_LABEL_FRAME: boolean = process.env
   ? JSON.parse(process.env.BOOKLABEL_PRINT_LABEL_FRAME)
   : false;
 
-const BOOKLABEL_LINE_BELOW_1_LENGTH = process.env
-  .BOOKLABEL_LINE_BELOW_1_LENGTH
+const BOOKLABEL_LINE_BELOW_1_LENGTH = process.env.BOOKLABEL_LINE_BELOW_1_LENGTH
   ? parseInt(process.env.BOOKLABEL_LINE_BELOW_1_LENGTH)
   : 30;
 
@@ -229,8 +228,8 @@ const replacePlaceholder = (input: string, book: any): string => {
       const replacedShortened =
         replaced.length > BOOKLABEL_MAX_AUTHORLINE_LENGTH
           ? replaced
-            .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
-            .concat("...")
+              .substring(0, BOOKLABEL_MAX_AUTHORLINE_LENGTH - 3)
+              .concat("...")
           : replaced;
 
       return propertyIsAuthor ? replacedShortened : replaced;
@@ -255,19 +254,24 @@ const replacePlaceholder = (input: string, book: any): string => {
       if (!original.includes("firstTopic")) return original;
 
       // Teilen der Topics in ein Array und Trim
-      const topics: string[] = book.topics ? book.topics.split(";").map((topic: string) => topic.trim()) : [];
+      const topics: string[] = book.topics
+        ? book.topics.split(";").map((topic: string) => topic.trim())
+        : [];
 
       // Erstellen einer durch Kommas getrennten Liste von Topics
       const combinedTopics = topics.join(", ");
 
       // Ersetzen aller Vorkommen von "firstTopic" im Originaltext durch die kombinierten Topics
-      const allReplacedTopics = original.replaceAll("firstTopic", combinedTopics);
+      const allReplacedTopics = original.replaceAll(
+        "firstTopic",
+        combinedTopics
+      );
 
       const replacedShortened =
         allReplacedTopics.length > BOOKLABEL_LINE_BELOW_1_LENGTH
           ? allReplacedTopics
-            .substring(0, BOOKLABEL_LINE_BELOW_1_LENGTH - 3)
-            .concat("...")
+              .substring(0, BOOKLABEL_LINE_BELOW_1_LENGTH - 3)
+              .concat("...")
           : allReplacedTopics;
 
       return replacedShortened;
@@ -315,19 +319,19 @@ const generateBarcode = async (
       const barId =
         process.env.BARCODE_MINCODELENGTH != null
           ? b
-            .id!.toString()
-            .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
+              .id!.toString()
+              .padStart(parseInt(process.env.BARCODE_MINCODELENGTH))
           : b.id!.toString();
       const png =
         BOOKLABEL_BARCODE_PLACEHOLDER == "barcode"
           ? await bwipjs.toBuffer({
-            bcid: BOOKLABEL_BARCODE_VERSION,
-            text: barId,
-            scale: 3,
-            height: 10,
-            includetext: true,
-            textxalign: "center",
-          })
+              bcid: BOOKLABEL_BARCODE_VERSION,
+              text: barId,
+              scale: 3,
+              height: 10,
+              includetext: true,
+              textxalign: "center",
+            })
           : schoollogo;
       const pos = {
         left:
@@ -474,16 +478,16 @@ export default async function handle(
         const idFilter: number[] =
           "id" in req.query
             ? (Array.isArray(req.query.id) ? req.query.id : [req.query.id]).map(
-              (e) => parseInt(e as string, 10)
-            )
+                (e) => parseInt(e as string, 10)
+              )
             : [];
 
         const ignoreLabelFields: number[] =
           "block" in req.query
             ? (Array.isArray(req.query.block)
-              ? req.query.block
-              : [req.query.block]
-            ).map((e) => parseInt(e as string, 10))
+                ? req.query.block
+                : [req.query.block]
+              ).map((e) => parseInt(e as string, 10))
             : [];
 
         console.log("Filter string", topicFilter, idFilter);
@@ -501,21 +505,24 @@ export default async function handle(
           );
         */
 
-
         const books = allbooks
           .filter((b: BookType) => {
             // Überprüfen, ob b.topics existiert und eine Zeichenkette ist
-            if (typeof b.topics !== 'string' || !b.topics.trim()) {
+            if (typeof b.topics !== "string" || !b.topics.trim()) {
               return false; // b.topics existiert nicht oder ist ein leerer String
             }
             // Wenn keine Filter vorhanden sind, alle Bücher zurückgeben
             if (topicsArray.length === 0) return true;
 
             // Teilen der Buch-Topics in ein Array
-            const bookTopicsArray = b.topics.split(";").map(topic => topic.trim().toLowerCase());
+            const bookTopicsArray = b.topics
+              .split(";")
+              .map((topic) => topic.trim().toLowerCase());
 
             // Überprüfen auf exakte Übereinstimmung der Topics
-            return topicsArray.some(topic => bookTopicsArray.includes(topic.toLocaleLowerCase()));
+            return topicsArray.some((topic) =>
+              bookTopicsArray.includes(topic.toLocaleLowerCase())
+            );
             //return topicsArray.some(topic => b.topics!.toLowerCase().includes(topic.toLocaleLowerCase())); //Funktioniert fast
           })
           .filter((b: BookType) =>
@@ -524,7 +531,9 @@ export default async function handle(
 
         // Fehlerfall, wenn keine Bücher gefunden wurden
         if (!books || books.length === 0) {
-          return res.status(400).json({ data: "ERROR: No books matching search criteria" });
+          return res
+            .status(400)
+            .json({ data: "ERROR: No books matching search criteria" });
         }
 
         // Index-range selection (start/end)
@@ -544,19 +553,19 @@ export default async function handle(
 
         const printableByIndex = hasIndexRange
           ? (() => {
-            if (rawStartIndex > rawEndIndex) {
+              if (rawStartIndex > rawEndIndex) {
+                console.log(
+                  "Those fools got start and end mixed up again, not ok for this universe..."
+                );
+              }
+              const sliced = books.slice(startIndex, endIndex);
               console.log(
-                "Those fools got start and end mixed up again, not ok for this universe..."
+                "Printing labels for books in Indexrange",
+                startIndex,
+                endIndex
               );
-            }
-            const sliced = books.slice(startIndex, endIndex);
-            console.log(
-              "Printing labels for books in Indexrange",
-              startIndex,
-              endIndex
-            );
-            return sliced;
-          })()
+              return sliced;
+            })()
           : null;
 
         // ID-range selection (startId/endId)
@@ -576,21 +585,21 @@ export default async function handle(
 
         const printableById = hasIdRange
           ? (() => {
-            if (rawStartId > rawEndId) {
+              if (rawStartId > rawEndId) {
+                console.log(
+                  "Those fools got startId and endId mixed up again..."
+                );
+              }
+              if (books.length > 0 && startId > books[0].id!) {
+                console.log("Selecting outside of the ID range used");
+              }
               console.log(
-                "Those fools got startId and endId mixed up again..."
+                "Printing labels for books in ID range",
+                startId,
+                endId
               );
-            }
-            if (books.length > 0 && startId > books[0].id!) {
-              console.log("Selecting outside of the ID range used");
-            }
-            console.log(
-              "Printing labels for books in ID range",
-              startId,
-              endId
-            );
-            return books.filter((b) => b.id! >= startId && b.id! <= endId!);
-          })()
+              return books.filter((b) => b.id! >= startId && b.id! <= endId!);
+            })()
           : null;
 
         const printableBooks = printableByIndex ?? printableById ?? books;

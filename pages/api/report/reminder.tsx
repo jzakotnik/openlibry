@@ -5,7 +5,7 @@ import fs from "fs";
 import { join } from "path";
 import PizZip from "pizzip";
 
-import { convertDateToDayString } from "@/utils/dateutils";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 

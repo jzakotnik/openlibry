@@ -28,11 +28,11 @@ import {
 import OverdueIcon from "./OverdueIcon";
 
 import { RentalsUserType } from "@/entities/RentalsUserType";
-import { extendDays } from "@/utils/dateutils";
+import { extendDays } from "@/lib/utils/dateutils";
 
+import { booksForUser, filterUsers } from "@/lib/utils/searchUtils";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
-import { booksForUser, filterUsers } from "../../utils/searchUtils";
 import RentSearchParams from "./RentSearchParams";
 
 type UserPropsType = {

@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { getAllBooks } from "@/entities/book";
 
-import { convertDateToDayString } from "@/utils/dateutils";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 
 import { BookType } from "@/entities/BookType";
 
