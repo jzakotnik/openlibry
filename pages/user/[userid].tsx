@@ -233,7 +233,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   //TODO fix the type for book incl user
 
-  console.log("User, Books", user, allBooks);
+  //console.log("User, Books", user, allBooks);
   const books = allBooks.map((b: BookType) => {
     const newBook = { ...b } as any; //define a better type there with conversion of Date to string
     newBook.createdAt = convertDateToDayString(b.createdAt);
