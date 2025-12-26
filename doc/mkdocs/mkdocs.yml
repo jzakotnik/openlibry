@@ -100,6 +100,7 @@ nav:
       - user-guide/index.md
       - Ausleihe: user-guide/lending.md
       - Bücherverwaltung: user-guide/book-management.md
+      - Stapelerfassung: user-guide/batch-scanning.md
       - Nutzerverwaltung: user-guide/user-management.md
       - Reports & Labels: user-guide/reports.md
       - Tipps & Tricks: user-guide/tips-tricks.md
@@ -130,6 +131,7 @@ nav:
   - Entwicklung:
       - development/index.md
       - Architektur: development/architecture.md
+      - ISBN-Lookup: development/architecture-isbn-services.md
       - API-Referenz: development/api-reference.md
       - Lokale Entwicklung: development/local-development.md
       - Tests: development/testing.md

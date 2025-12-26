@@ -29,6 +29,7 @@ OpenLibry ist perfekt für:
 - Cover-Bilder hinzufügen (automatisch per ISBN möglich)
 - Schlagworte für einfaches Filtern
 - Barcode-Etiketten drucken
+- Stapel-Erfassung mit Barcode Scanner und ISBN Lookup
 
 ### Nutzer verwalten
 
