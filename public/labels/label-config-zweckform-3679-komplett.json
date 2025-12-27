@@ -1,0 +1,51 @@
+{
+  "templateId": "zweckform-3679",
+  "name": "Grundschule Mammolshain - 3679 Komplett",
+  "type": "single",
+  "created": "2024-12-26T20:30:00.000Z",
+  "modified": "2024-12-26T20:30:00.000Z",
+  "sections": {
+    "back": {
+      "widthMm": 97,
+      "orientation": "horizontal",
+      "zones": [
+        {
+          "id": "zone-1",
+          "heightPercent": 20,
+          "field": "libraryName",
+          "fontSize": 11,
+          "alignment": "center"
+        },
+        {
+          "id": "zone-2",
+          "heightPercent": 18,
+          "field": "title",
+          "fontSize": 10,
+          "alignment": "left",
+          "maxLength": 50
+        },
+        {
+          "id": "zone-3",
+          "heightPercent": 15,
+          "field": "author",
+          "fontSize": 9,
+          "alignment": "left"
+        },
+        {
+          "id": "zone-4",
+          "heightPercent": 32,
+          "field": "barcode",
+          "fontSize": 8,
+          "alignment": "center"
+        },
+        {
+          "id": "zone-5",
+          "heightPercent": 15,
+          "field": "publisherDate",
+          "fontSize": 8,
+          "alignment": "center"
+        }
+      ]
+    }
+  }
+}

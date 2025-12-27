@@ -1,0 +1,63 @@
+{
+  "templateId": "zweckform-c32010",
+  "name": "Grundschule Mammolshain - Standard",
+  "type": "wraparound",
+  "created": "2024-12-26T20:00:00.000Z",
+  "modified": "2024-12-26T20:15:00.000Z",
+  "sections": {
+    "spine": {
+      "widthMm": 20,
+      "orientation": "vertical",
+      "zones": [
+        {
+          "id": "zone-1",
+          "heightPercent": 40,
+          "field": "author",
+          "fontSize": 9,
+          "alignment": "top",
+          "maxLength": 20
+        },
+        {
+          "id": "zone-2",
+          "heightPercent": 50,
+          "field": "title",
+          "fontSize": 9,
+          "alignment": "center",
+          "maxLength": 25
+        },
+        {
+          "id": "zone-3",
+          "heightPercent": 10,
+          "field": null
+        }
+      ]
+    },
+    "back": {
+      "widthMm": 50,
+      "orientation": "horizontal",
+      "zones": [
+        {
+          "id": "zone-1",
+          "heightPercent": 25,
+          "field": "libraryName",
+          "fontSize": 10,
+          "alignment": "center"
+        },
+        {
+          "id": "zone-2",
+          "heightPercent": 50,
+          "field": "barcode",
+          "fontSize": 8,
+          "alignment": "center"
+        },
+        {
+          "id": "zone-3",
+          "heightPercent": 25,
+          "field": "publisherDate",
+          "fontSize": 8,
+          "alignment": "center"
+        }
+      ]
+    }
+  }
+}

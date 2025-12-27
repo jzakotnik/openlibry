@@ -1,0 +1,147 @@
+{
+  "version": "1.0.0",
+  "description": "Label template measurements for OpenLibry - defines sheet layout and label dimensions only",
+
+  "templates": [
+    {
+      "id": "zweckform-3679",
+      "name": "Zweckform 3679",
+      "productCode": "3679",
+      "description": "Adressaufkleber mit ultragrip, 97x55mm, 10 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 11.0,
+        "marginLeft": 8.5,
+        "rows": 5,
+        "columns": 2,
+        "spacingHorizontal": 0,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 97.0,
+        "height": 55.0
+      }
+    },
+    {
+      "id": "zweckform-c32010",
+      "name": "Zweckform C32010",
+      "productCode": "C32010",
+      "description": "Universal-Etiketten, 70x37mm, 24 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 15.0,
+        "marginLeft": 7.0,
+        "rows": 8,
+        "columns": 3,
+        "spacingHorizontal": 2.5,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 70.0,
+        "height": 37.0
+      }
+    },
+    {
+      "id": "zweckform-l4736",
+      "name": "Zweckform L4736",
+      "productCode": "L4736",
+      "description": "Ordnerrücken-Etiketten, 61x192mm, 4 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 10.0,
+        "marginLeft": 7.0,
+        "rows": 4,
+        "columns": 1,
+        "spacingHorizontal": 0,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 61.0,
+        "height": 192.0
+      }
+    },
+    {
+      "id": "zweckform-l6011",
+      "name": "Zweckform L6011",
+      "productCode": "L6011",
+      "description": "Extra starke Etiketten, 96x50.8mm, 10 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 18.0,
+        "marginLeft": 9.0,
+        "rows": 5,
+        "columns": 2,
+        "spacingHorizontal": 0,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 96.0,
+        "height": 50.8
+      }
+    },
+    {
+      "id": "zweckform-l7171",
+      "name": "Zweckform L7171",
+      "productCode": "L7171",
+      "description": "Universal-Etiketten, 99.1x42.3mm, 12 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 21.5,
+        "marginLeft": 5.95,
+        "rows": 6,
+        "columns": 2,
+        "spacingHorizontal": 0,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 99.1,
+        "height": 42.3
+      }
+    },
+    {
+      "id": "zweckform-l7651",
+      "name": "Zweckform L7651",
+      "productCode": "L7651",
+      "description": "Mini-Etiketten, 38.1x21.2mm, 65 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 10.7,
+        "marginLeft": 6.35,
+        "rows": 13,
+        "columns": 5,
+        "spacingHorizontal": 2.54,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 38.1,
+        "height": 21.2
+      }
+    },
+    {
+      "id": "avery-l7160",
+      "name": "Avery L7160",
+      "productCode": "L7160",
+      "description": "Adress-Etiketten, 63.5x38.1mm, 21 per sheet",
+      "sheet": {
+        "width": 210,
+        "height": 297,
+        "marginTop": 15.5,
+        "marginLeft": 7.0,
+        "rows": 7,
+        "columns": 3,
+        "spacingHorizontal": 2.5,
+        "spacingVertical": 0
+      },
+      "label": {
+        "width": 63.5,
+        "height": 38.1
+      }
+    }
+  ]
+}
