@@ -5,15 +5,14 @@
 
 import { LabelPreview } from "@/components/labels/LabelPreview";
 import { SectionConfiguration } from "@/components/labels/SectionConfiguration";
+import type { LabelConfig, LabelTemplate } from "@/entities/LabelTypes";
 import {
   createDefaultConfig,
   generateConfigFileName,
   serializeConfig,
   validateConfig,
 } from "@/lib/utils/labelConfigUtils";
-import type { LabelConfig, LabelTemplate } from "@/types/LabelTypes";
 import DownloadIcon from "@mui/icons-material/Download";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import SaveIcon from "@mui/icons-material/Save";
 import {
   Alert,
@@ -86,17 +85,6 @@ export const LabelConfigurationPage: React.FC = () => {
     setSelectedTemplateId(templateId);
   };
 
-  const handleResetConfig = () => {
-    if (currentTemplate) {
-      setConfig(createDefaultConfig(currentTemplate));
-      setSnackbar({
-        open: true,
-        message: "Konfiguration zurückgesetzt",
-        severity: "success",
-      });
-    }
-  };
-
   const handleSave = () => {
     if (!config) return;
 
@@ -148,15 +136,7 @@ export const LabelConfigurationPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Label-Konfiguration
-      </Typography>
-      <Typography variant="body1" color="text.secondary" paragraph>
-        Wählen Sie ein Etikettenprodukt und konfigurieren Sie die Felder für
-        Ihre Bücherlabels.
-      </Typography>
-
+    <Container maxWidth={false} sx={{ py: 4, px: 3 }}>
       {/* Template Selection */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <FormControl fullWidth>
@@ -196,80 +176,71 @@ export const LabelConfigurationPage: React.FC = () => {
         <>
           <Grid container spacing={3}>
             {/* Left Panel: Configuration */}
-            <Grid>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Typography variant="h6">Konfiguration</Typography>
+            <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {/* Spine Section */}
+                {config.sections.spine && (
+                  <SectionConfiguration
+                    section={config.sections.spine}
+                    sectionType="spine"
+                    title="Rücken (Vertikal)"
+                    onChange={(updated) =>
+                      setConfig({
+                        ...config,
+                        sections: { ...config.sections, spine: updated },
+                      })
+                    }
+                  />
+                )}
+
+                {/* Back Section */}
+                {config.sections.back && (
+                  <SectionConfiguration
+                    section={config.sections.back}
+                    sectionType={
+                      config.type === "wraparound" ? "back" : "single"
+                    }
+                    title={
+                      config.type === "wraparound"
+                        ? "Rückseite (Horizontal)"
+                        : "Label (Horizontal)"
+                    }
+                    onChange={(updated) =>
+                      setConfig({
+                        ...config,
+                        sections: { ...config.sections, back: updated },
+                      })
+                    }
+                  />
+                )}
+
+                {/* Save Button */}
                 <Button
-                  size="small"
-                  startIcon={<RestartAltIcon />}
-                  onClick={handleResetConfig}
-                  variant="outlined"
+                  variant="contained"
+                  size="large"
+                  startIcon={<SaveIcon />}
+                  onClick={handleSave}
+                  fullWidth
                 >
-                  Zurücksetzen
+                  Konfiguration speichern
                 </Button>
               </Box>
-
-              {/* Spine Section */}
-              {config.sections.spine && (
-                <SectionConfiguration
-                  section={config.sections.spine}
-                  sectionType="spine"
-                  title="Rücken (Vertikal)"
-                  onChange={(updated) =>
-                    setConfig({
-                      ...config,
-                      sections: { ...config.sections, spine: updated },
-                    })
-                  }
-                />
-              )}
-
-              {/* Back Section */}
-              {config.sections.back && (
-                <SectionConfiguration
-                  section={config.sections.back}
-                  sectionType={config.type === "wraparound" ? "back" : "single"}
-                  title={
-                    config.type === "wraparound"
-                      ? "Rückseite (Horizontal)"
-                      : "Label (Horizontal)"
-                  }
-                  onChange={(updated) =>
-                    setConfig({
-                      ...config,
-                      sections: { ...config.sections, back: updated },
-                    })
-                  }
-                />
-              )}
             </Grid>
 
-            {/* Right Panel: Preview */}
-            <Grid>
-              <LabelPreview config={config} template={currentTemplate} />
+            {/* Right Panel: Preview - fills remaining space */}
+            <Grid size={{ xs: 12, md: 8, lg: 9 }}>
+              <Box
+                sx={{
+                  position: "sticky",
+                  top: 16,
+                  height: "calc(100vh - 80px)",
+                  minHeight: 600,
+                }}
+              >
+                <LabelPreview config={config} template={currentTemplate} />
+              </Box>
             </Grid>
           </Grid>
-
-          {/* Save Button */}
-          <Box
-            sx={{ mt: 3, display: "flex", justifyContent: "center", gap: 2 }}
-          >
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<SaveIcon />}
-              onClick={handleSave}
-            >
-              Konfiguration speichern
-            </Button>
-          </Box>
         </>
       )}
 

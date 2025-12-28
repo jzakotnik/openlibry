@@ -3,7 +3,7 @@
  * Configures all zones in a section (spine or back)
  */
 
-import type { Section, Zone } from "@/types/LabelTypes";
+import type { Section, Zone } from "@/entities/LabelTypes";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { Box, Button, Divider, Paper, Typography } from "@mui/material";

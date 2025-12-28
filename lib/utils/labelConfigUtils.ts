@@ -8,7 +8,7 @@ import type {
   LabelTemplate,
   Section,
   Zone,
-} from "@/types/LabelTypes";
+} from "@/entities/LabelTypes";
 
 // ============================================================================
 // Template Detection - Determine label type and sections

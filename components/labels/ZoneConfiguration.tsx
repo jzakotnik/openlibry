@@ -3,16 +3,13 @@
  * Configures a single zone (field, font size, alignment)
  */
 
-import type { Alignment, FieldType, Zone } from "@/types/LabelTypes";
-import { FIELD_DEFINITIONS, getFieldDefinition } from "@/types/LabelTypes";
+import type { FieldType, Zone } from "@/entities/LabelTypes";
+import { FIELD_DEFINITIONS, getFieldDefinition } from "@/entities/LabelTypes";
 import {
   Box,
   FormControl,
-  FormControlLabel,
   InputLabel,
   MenuItem,
-  Radio,
-  RadioGroup,
   Select,
   Slider,
   TextField,
@@ -23,14 +20,12 @@ import React from "react";
 interface ZoneConfigurationProps {
   zone: Zone;
   sectionType: "spine" | "back" | "single";
-  orientation: "vertical" | "horizontal";
   onChange: (updatedZone: Zone) => void;
 }
 
 export const ZoneConfiguration: React.FC<ZoneConfigurationProps> = ({
   zone,
   sectionType,
-  orientation,
   onChange,
 }) => {
   const fieldDef = getFieldDefinition(zone.field || "none");
@@ -52,10 +47,6 @@ export const ZoneConfiguration: React.FC<ZoneConfigurationProps> = ({
 
   const handleFontSizeChange = (newSize: number) => {
     onChange({ ...zone, fontSize: newSize });
-  };
-
-  const handleAlignmentChange = (newAlignment: Alignment) => {
-    onChange({ ...zone, alignment: newAlignment });
   };
 
   const handleMaxLengthChange = (newMaxLength: number) => {
@@ -104,58 +95,6 @@ export const ZoneConfiguration: React.FC<ZoneConfigurationProps> = ({
             </Box>
           )}
 
-          {/* Alignment */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" gutterBottom>
-              Ausrichtung
-            </Typography>
-            <RadioGroup
-              row
-              value={zone.alignment || "left"}
-              onChange={(e) =>
-                handleAlignmentChange(e.target.value as Alignment)
-              }
-            >
-              {orientation === "horizontal" ? (
-                <>
-                  <FormControlLabel
-                    value="left"
-                    control={<Radio size="small" />}
-                    label="Links"
-                  />
-                  <FormControlLabel
-                    value="center"
-                    control={<Radio size="small" />}
-                    label="Mitte"
-                  />
-                  <FormControlLabel
-                    value="right"
-                    control={<Radio size="small" />}
-                    label="Rechts"
-                  />
-                </>
-              ) : (
-                <>
-                  <FormControlLabel
-                    value="top"
-                    control={<Radio size="small" />}
-                    label="Oben"
-                  />
-                  <FormControlLabel
-                    value="center"
-                    control={<Radio size="small" />}
-                    label="Mitte"
-                  />
-                  <FormControlLabel
-                    value="bottom"
-                    control={<Radio size="small" />}
-                    label="Unten"
-                  />
-                </>
-              )}
-            </RadioGroup>
-          </Box>
-
           {/* Max Length (for text fields) */}
           {zone.field !== "barcode" &&
             [
@@ -179,15 +118,6 @@ export const ZoneConfiguration: React.FC<ZoneConfigurationProps> = ({
                 inputProps={{ min: 5, max: 100 }}
               />
             )}
-
-          {/* Field Description */}
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", mt: 1 }}
-          >
-            {fieldDef.description}
-          </Typography>
         </>
       )}
     </Box>

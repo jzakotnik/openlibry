@@ -3,12 +3,12 @@
  * Visual preview of configured label with sample data
  */
 
+import type { LabelConfig, LabelTemplate } from "@/entities/LabelTypes";
 import {
   getFieldValue,
   SAMPLE_BOOKS,
   type SampleBookData,
 } from "@/lib/utils/labelConfigUtils";
-import type { LabelConfig, LabelTemplate } from "@/types/LabelTypes";
 import {
   Box,
   FormControl,
@@ -16,10 +16,9 @@ import {
   MenuItem,
   Paper,
   Select,
-  Slider,
   Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface LabelPreviewProps {
   config: LabelConfig;
@@ -30,12 +29,46 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
   config,
   template,
 }) => {
-  const [selectedBook, setSelectedBook] = React.useState<SampleBookData>(
+  const [selectedBook, setSelectedBook] = useState<SampleBookData>(
     SAMPLE_BOOKS[0]
   );
-  const [scale, setScale] = React.useState<number>(2);
+  const [scale, setScale] = useState<number>(1);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const labelWidthPx = template.label.width * scale;
+  // Calculate total label dimensions in mm
+  const totalLabelWidthMm =
+    (config.sections.spine?.widthMm || 0) +
+    (config.sections.back?.widthMm || 0);
+  const totalLabelHeightMm = template.label.height;
+
+  // Auto-calculate scale to fit container
+  useEffect(() => {
+    const calculateScale = () => {
+      if (!containerRef.current) return;
+
+      const containerWidth = containerRef.current.clientWidth - 64;
+      const containerHeight = containerRef.current.clientHeight - 64;
+
+      if (containerWidth <= 0 || containerHeight <= 0) return;
+
+      const scaleX = containerWidth / totalLabelWidthMm;
+      const scaleY = containerHeight / totalLabelHeightMm;
+
+      // Use the smaller scale to fit both dimensions
+      const fitScale = Math.min(scaleX, scaleY);
+      setScale(Math.max(fitScale, 1));
+    };
+
+    calculateScale();
+
+    const resizeObserver = new ResizeObserver(calculateScale);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, [totalLabelWidthMm, totalLabelHeightMm]);
+
   const labelHeightPx = template.label.height * scale;
 
   const renderZoneContent = (
@@ -59,7 +92,6 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
       return (
         <Box sx={{ textAlign: "center", py: 0.5 }}>
           <svg width="100%" height="40" style={{ maxWidth: "80%" }}>
-            {/* Simple barcode representation */}
             {Array.from({ length: 20 }, (_, i) => (
               <rect
                 key={i}
@@ -89,7 +121,6 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
         : "left";
 
     if (orientation === "vertical") {
-      // Vertical text (rotated)
       return (
         <Box
           sx={{
@@ -186,7 +217,6 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
           );
         })}
 
-        {/* Section label overlay */}
         <Typography
           variant="caption"
           sx={{
@@ -207,13 +237,21 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
   };
 
   return (
-    <Paper elevation={2} sx={{ p: 2 }}>
+    <Paper
+      elevation={2}
+      sx={{
+        p: 2,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Typography variant="h6" gutterBottom>
         Vorschau
       </Typography>
 
       {/* Controls */}
-      <Box sx={{ mb: 3, display: "flex", gap: 2, flexDirection: "column" }}>
+      <Box sx={{ mb: 2 }}>
         <FormControl size="small" fullWidth>
           <InputLabel>Testbuch</InputLabel>
           <Select
@@ -231,37 +269,24 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
             ))}
           </Select>
         </FormControl>
-
-        <Box>
-          <Typography variant="body2" gutterBottom>
-            Skalierung: {scale}x
-          </Typography>
-          <Slider
-            value={scale}
-            min={1}
-            max={4}
-            step={0.5}
-            marks
-            onChange={(_, value) => setScale(value as number)}
-            valueLabelDisplay="auto"
-            size="small"
-          />
-        </Box>
       </Box>
 
       {/* Label Preview */}
       <Box
+        ref={containerRef}
         sx={{
+          flex: 1,
           display: "flex",
+          alignItems: "center",
           justifyContent: "center",
-          p: 2,
+          p: 3,
           backgroundColor: "#f5f5f5",
           borderRadius: 1,
-          overflow: "auto",
+          overflow: "hidden",
+          minHeight: 0,
         }}
       >
         <Box sx={{ display: "flex", position: "relative" }}>
-          {/* Spine section (if wraparound) */}
           {config.sections.spine &&
             renderSection(
               "spine",
@@ -269,7 +294,6 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
               config.sections.spine.orientation
             )}
 
-          {/* Back section */}
           {config.sections.back &&
             renderSection(
               "back",
@@ -277,7 +301,6 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
               config.sections.back.orientation
             )}
 
-          {/* Fold line indicator for wraparound */}
           {config.type === "wraparound" && config.sections.spine && (
             <Box
               sx={{
@@ -323,7 +346,8 @@ export const LabelPreview: React.FC<LabelPreviewProps> = ({
               | Rücken: {config.sections.spine.widthMm}mm | Rückseite:{" "}
               {config.sections.back.widthMm}mm
             </>
-          )}
+          )}{" "}
+        | Skalierung: {scale.toFixed(1)}x
       </Typography>
     </Paper>
   );
