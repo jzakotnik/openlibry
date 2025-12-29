@@ -145,5 +145,6 @@ cypress/screenshots
 cypress/videos/
 cypress/screenshots/
 
-
 doc/mkdocs/site/
+public/labels/
+!public/labels/label-templates.json
