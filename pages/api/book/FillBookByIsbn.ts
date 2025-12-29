@@ -70,7 +70,7 @@ export default async function handler(
           title: cleanTitle(bookData.title),
           subtitle: cleanTitle(bookData.subtitle),
           pages: pagesNum ? pagesNum : null,
-          _source: service.name, // Include source for debugging
+          //_source: service.name, // Include source for debugging
         };
 
         logger.debug(
