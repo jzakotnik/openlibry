@@ -23,22 +23,21 @@ sudo apt install curl git -y
 
 ## Schritt 2: Node.js installieren
 
-Wir nutzen den Node Version Manager (nvm) für eine saubere Installation:
+OpenLibry benötigt **Node.js 20.19+ oder 22+**. Wir installieren Node.js über das NodeSource-Repository:
 
 ```bash
-# nvm installieren
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+# NodeSource Repository hinzufügen (Node 22 LTS)
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 
-# Terminal neu starten oder:
-source ~/.bashrc
-
-# Node.js LTS installieren
-nvm install --lts
+# Node.js installieren
+sudo apt-get install -y nodejs
 
 # Prüfen
 node --version
 npm --version
 ```
+
+Node sollte Version 22.x anzeigen.
 
 ## Schritt 3: OpenLibry herunterladen
 
@@ -64,10 +63,19 @@ Wichtige Einstellungen:
 ```env
 AUTH_ENABLED=false
 NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
+NEXTAUTH_URL=http://localhost:3000
 DATABASE_URL=file:./database/dev.db
 ```
 
-**Tipp**: Generiere einen sicheren NEXTAUTH_SECRET mit `openssl rand -base64 32`.
+**Hinweise:**
+
+- Generiere einen sicheren `NEXTAUTH_SECRET` mit `openssl rand -base64 32`
+- Falls du OpenLibry über eine andere Adresse erreichst (z.B. IP-Adresse im Netzwerk oder Domain), passe `NEXTAUTH_URL` entsprechend an:
+  ```env
+  NEXTAUTH_URL=http://192.168.1.100:3000
+  # oder mit Domain:
+  NEXTAUTH_URL=https://bibliothek.meine-schule.de
+  ```
 
 ## Schritt 5: Abhängigkeiten installieren
 
@@ -80,6 +88,10 @@ Auf einem Raspberry Pi kann das einige Minuten dauern.
 ## Schritt 6: Datenbank einrichten
 
 ```bash
+# Prisma Client generieren
+npx prisma generate
+
+# Datenbank-Schema anwenden
 npx prisma db push
 ```
 
@@ -99,7 +111,7 @@ Für den Dauerbetrieb nutzen wir pm2 als Prozess-Manager:
 
 ```bash
 # pm2 global installieren
-npm install -g pm2
+sudo npm install -g pm2
 
 # Produktions-Build erstellen
 npm run build
@@ -178,7 +190,8 @@ git pull
 # Abhängigkeiten aktualisieren
 npm install
 
-# Datenbank-Schema aktualisieren
+# Prisma Client neu generieren und Datenbank-Schema aktualisieren
+npx prisma generate
 npx prisma db push
 
 # Neu bauen und starten
