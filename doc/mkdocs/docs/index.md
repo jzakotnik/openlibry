@@ -10,29 +10,29 @@ OpenLibry entstand aus einer echten Notwendigkeit: Eine Grundschule brauchte ein
 
 <div class="grid cards" markdown>
 
--   :material-gesture-tap-button:{ .lg .middle } **Wenige Klicks**
+- :material-gesture-tap-button:{ .lg .middle } **Wenige Klicks**
 
-    ---
+  ***
 
-    Ausleihe und Rückgabe sind auf minimale Maus- und Tastatureingaben optimiert. Perfekt für den Einsatz mit Barcodescannern.
+  Ausleihe und Rückgabe sind auf minimale Maus- und Tastatureingaben optimiert. Perfekt für den Einsatz mit Barcodescannern.
 
--   :material-cloud-circle-outline:{ .lg .middle } **Überall nutzbar**
+- :material-cloud-circle-outline:{ .lg .middle } **Überall nutzbar**
 
-    ---
+  ***
 
-    Läuft auf Computer, Tablet und Smartphone. Die Oberfläche passt sich automatisch an.
+  Läuft auf Computer, Tablet und Smartphone. Die Oberfläche passt sich automatisch an.
 
--   :material-cloud-off:{ .lg .middle } **Deine Daten**
+- :material-cloud-off:{ .lg .middle } **Deine Daten**
 
-    ---
+  ***
 
-    Läuft auf deinem eigenen Server oder Raspberry Pi. Keine Cloud, keine Abhängigkeiten.
+  Läuft auf deinem eigenen Server oder Raspberry Pi. Keine Cloud, keine Abhängigkeiten.
 
--   :material-open-source-initiative:{ .lg .middle } **Open Source**
+- :material-open-source-initiative:{ .lg .middle } **Open Source**
 
-    ---
+  ***
 
-    Kostenlos und frei. Der Quellcode ist auf GitHub verfügbar.
+  Kostenlos und frei. Der Quellcode ist auf GitHub verfügbar.
 
 </div>
 
@@ -43,7 +43,7 @@ Du willst OpenLibry einfach mal ausprobieren? Mit Docker geht's am schnellsten:
 ```bash
 docker run -d -p 3000:3000 \
   -v $(pwd)/database:/app/database \
-  -e AUTH_SECRET=changeme \
+  -e NEXTAUTH_SECRET=changeme \
   jzakotnik/openlibry:release
 ```
 
@@ -53,15 +53,15 @@ docker run -d -p 3000:3000 \
 
 ## Navigation
 
-| Du willst... | Dann schau hier |
-|--------------|-----------------|
-| OpenLibry ausprobieren | [Schnellstart](getting-started/quickstart.md) |
-| OpenLibry installieren | [Installation](installation/index.md) |
-| Die Software konfigurieren | [Konfiguration](configuration/index.md) |
-| Daten aus einem anderen System importieren | [Import](import/index.md) |
-| Die tägliche Arbeit verstehen | [Benutzerhandbuch](user-guide/index.md) |
-| Ein Problem lösen | [Fehlerbehebung](troubleshooting/index.md) |
-| Am Projekt mitarbeiten | [Entwicklung](development/index.md) |
+| Du willst...                               | Dann schau hier                               |
+| ------------------------------------------ | --------------------------------------------- |
+| OpenLibry ausprobieren                     | [Schnellstart](getting-started/quickstart.md) |
+| OpenLibry installieren                     | [Installation](installation/index.md)         |
+| Die Software konfigurieren                 | [Konfiguration](configuration/index.md)       |
+| Daten aus einem anderen System importieren | [Import](import/index.md)                     |
+| Die tägliche Arbeit verstehen              | [Benutzerhandbuch](user-guide/index.md)       |
+| Ein Problem lösen                          | [Fehlerbehebung](troubleshooting/index.md)    |
+| Am Projekt mitarbeiten                     | [Entwicklung](development/index.md)           |
 
 ## Hilfe & Kontakt
 
@@ -73,4 +73,4 @@ docker run -d -p 3000:3000 \
 ---
 
 !!! tip "Gefällt dir OpenLibry?"
-    Du kannst das Projekt unterstützen, indem du es weiterempfiehlst, Fehler meldest oder sogar Code beiträgst. Jede Hilfe ist willkommen! ❤️
+Du kannst das Projekt unterstützen, indem du es weiterempfiehlst, Fehler meldest oder sogar Code beiträgst. Jede Hilfe ist willkommen! ❤️

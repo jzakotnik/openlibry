@@ -11,5 +11,5 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=file:/app/database/dev.db
-      - AUTH_SECRET=${AUTH_SECRET:-changeme}
+      - NEXTAUTH_SECRET=${AUTH_SECRET:-changeme}
     restart: unless-stopped

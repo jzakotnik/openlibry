@@ -67,7 +67,7 @@ AUTH_SECRET=dein-geheimer-schluessel-hier
 DATABASE_URL=file:./database/dev.db
 ```
 
-**Tipp**: Generiere einen sicheren AUTH_SECRET mit `openssl rand -base64 32`.
+**Tipp**: Generiere einen sicheren NEXTAUTH_SECRET mit `openssl rand -base64 32`.
 
 ## Schritt 5: Abhängigkeiten installieren
 

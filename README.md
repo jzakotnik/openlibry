@@ -91,7 +91,7 @@ docker run -d \
   -v $(pwd)/coverimages:/app/public/coverimages \
   -e NODE_ENV=production \
   -e DATABASE_URL=file:/app/database/dev.db \
-  -e AUTH_SECRET=changeme \
+  -e NEXTAUTH_SECRET=changeme \
   -e COVERIMAGE_FILESTORAGE_PATH=/app/public/coverimages \
   --restart unless-stopped \
   jzakotnik/openlibry:release
@@ -181,7 +181,7 @@ sudo apt-get install git-all
 ```bash
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update 
+sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker ${USER}
 sudo systemctl is-active docker
@@ -212,7 +212,7 @@ docker build --no-cache -t openlibry:latest .
 Ideal zum Ausprobieren ohne dauerhafte Installation:
 
 ```bash
-docker run --rm -p 3000:3000 -v "$(pwd)/database:/app/database" -e AUTH_SECRET="someSecret" -e DATABASE_URL="file:/app/database/dev.db" jzakotnik/openlibry:latest
+docker run --rm -p 3000:3000 -v "$(pwd)/database:/app/database" -e NEXTAUTH_SECRET="someSecret" -e DATABASE_URL="file:/app/database/dev.db" jzakotnik/openlibry:latest
 ```
 
 Öffnen Sie `http://localhost:3000` im Browser. Beenden Sie mit Strg+C. Optional können Sie das Image danach löschen: `docker image rm openlibry`
@@ -280,7 +280,7 @@ Unterhalb des Barcodes wird automatisch die Buch-ID ausgegeben.
 **Beispiel-Konfiguration**
 
 ```json
-["Titel: Book.title",10,"left"]
+["Titel: Book.title", 10, "left"]
 ```
 
 Dies gibt "Titel: " gefolgt vom Buchtitel in Schriftgröße 10, linksbündig aus.

@@ -34,7 +34,7 @@ Du brauchst Docker auf deinem Computer. Falls noch nicht installiert:
 ```bash
 docker run -d -p 3000:3000 \
   -v $(pwd)/database:/app/database \
-  -e AUTH_SECRET=changeme \
+  -e NEXTAUTH_SECRET=changeme \
   jzakotnik/openlibry:release
 ```
 
@@ -42,7 +42,7 @@ docker run -d -p 3000:3000 \
     - `docker run -d` – Startet einen Container im Hintergrund
     - `-p 3000:3000` – Macht Port 3000 erreichbar
     - `-v $(pwd)/database:/app/database` – Speichert die Datenbank lokal
-    - `-e AUTH_SECRET=changeme` – Setzt ein Geheimnis für die Authentifizierung
+    - `-e NEXTAUTH_SECRET=changeme` – Setzt ein Geheimnis für die Authentifizierung
     - `jzakotnik/openlibry:release` – Das offizielle OpenLibry-Image
 
 ## OpenLibry öffnen

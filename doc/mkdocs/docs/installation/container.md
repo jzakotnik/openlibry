@@ -56,7 +56,7 @@ DATABASE_URL=file:/app/database/dev.db
 EOF
 ```
 
-**Tipp**: Generiere einen sicheren AUTH_SECRET mit `openssl rand -base64 32`.
+**Tipp**: Generiere einen sicheren NEXTAUTH_SECRET mit `openssl rand -base64 32`.
 
 ## Schritt 3: OpenLibry starten
 

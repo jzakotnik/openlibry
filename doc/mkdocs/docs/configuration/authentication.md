@@ -46,7 +46,7 @@ Aktuell können weitere Benutzer nur über den gleichen Weg angelegt werden:
 !!! info "Geplantes Feature"
     Eine Benutzerverwaltung im Admin-Bereich ist für zukünftige Versionen geplant.
 
-## AUTH_SECRET
+## NEXTAUTH_SECRET
 
 Das `AUTH_SECRET` ist ein geheimer Schlüssel für die Session-Verwaltung:
 
@@ -94,7 +94,7 @@ Zum manuellen Ausloggen: Klicke auf deinen Benutzernamen → Logout.
 1. **Starke Passwörter** verwenden
 2. **HTTPS** nutzen (siehe [nginx-Installation](../installation/nginx-ssl.md))
 3. **AUTH_SECRET** sicher aufbewahren
-4. Bei Verdacht auf Kompromittierung: AUTH_SECRET ändern
+4. Bei Verdacht auf Kompromittierung: NEXTAUTH_SECRET ändern
 
 ## Nächste Schritte
 

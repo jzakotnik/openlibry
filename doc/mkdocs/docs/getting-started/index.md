@@ -9,7 +9,7 @@ Wenn du OpenLibry einfach mal sehen willst, ohne viel zu installieren:
 ```bash
 docker run -d -p 3000:3000 \
   -v $(pwd)/database:/app/database \
-  -e AUTH_SECRET=changeme \
+  -e NEXTAUTH_SECRET=changeme \
   jzakotnik/openlibry:release
 ```
 
