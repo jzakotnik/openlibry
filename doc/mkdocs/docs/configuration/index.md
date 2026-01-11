@@ -49,7 +49,7 @@ MAX_EXTENSIONS=2             # Max. Anzahl Verlängerungen
 
 # Authentifizierung
 AUTH_ENABLED=true            # Login erforderlich?
-AUTH_SECRET=geheim123        # Geheimnis für Sessions
+NEXTAUTH_SECRET=geheim123        # Geheimnis für Sessions
 
 # Schule
 SCHOOL_NAME="Meine Schule"   # Name auf Dokumenten

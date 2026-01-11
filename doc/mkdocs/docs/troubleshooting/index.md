@@ -8,7 +8,7 @@ Etwas funktioniert nicht? Hier findest du Lösungen für häufige Probleme.
 |---------|--------|
 | OpenLibry startet nicht | [Docker-Probleme](docker-issues.md) |
 | Seite lädt nicht | Port prüfen, Firewall, Logs checken |
-| Login funktioniert nicht | `AUTH_SECRET` prüfen, neu starten |
+| Login funktioniert nicht | `NEXTAUTH_SECRET` prüfen, neu starten |
 | Datenbank-Fehler | [Datenbank-Probleme](database-issues.md) |
 | Alles ist langsam | [Performance](performance.md) |
 

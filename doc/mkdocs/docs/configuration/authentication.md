@@ -48,10 +48,10 @@ Aktuell können weitere Benutzer nur über den gleichen Weg angelegt werden:
 
 ## NEXTAUTH_SECRET
 
-Das `AUTH_SECRET` ist ein geheimer Schlüssel für die Session-Verwaltung:
+Das `NEXTAUTH_SECRET` ist ein geheimer Schlüssel für die Session-Verwaltung:
 
 ```env
-AUTH_SECRET=einLangerZufälligerString123!
+NEXTAUTH_SECRET=einLangerZufälligerString123!
 ```
 
 **Wichtig:**
@@ -93,7 +93,7 @@ Zum manuellen Ausloggen: Klicke auf deinen Benutzernamen → Logout.
 
 1. **Starke Passwörter** verwenden
 2. **HTTPS** nutzen (siehe [nginx-Installation](../installation/nginx-ssl.md))
-3. **AUTH_SECRET** sicher aufbewahren
+3. **NEXTAUTH_SECRET** sicher aufbewahren
 4. Bei Verdacht auf Kompromittierung: NEXTAUTH_SECRET ändern
 
 ## Nächste Schritte

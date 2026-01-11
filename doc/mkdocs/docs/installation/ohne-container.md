@@ -63,7 +63,7 @@ Wichtige Einstellungen:
 
 ```env
 AUTH_ENABLED=false
-AUTH_SECRET=dein-geheimer-schluessel-hier
+NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
 DATABASE_URL=file:./database/dev.db
 ```
 

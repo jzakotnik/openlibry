@@ -17,11 +17,11 @@ DATABASE_URL=file:./database/dev.db
 | Variable | Beschreibung | Standard |
 |----------|--------------|----------|
 | `AUTH_ENABLED` | Login erforderlich? | `true` |
-| `AUTH_SECRET` | Geheimnis für Session-Tokens | *(muss gesetzt werden)* |
+| `NEXTAUTH_SECRET` | Geheimnis für Session-Tokens | *(muss gesetzt werden)* |
 
 ```env
 AUTH_ENABLED=true
-AUTH_SECRET=einLangesZufälligesGeheimnis123!
+NEXTAUTH_SECRET=einLangesZufälligesGeheimnis123!
 ```
 
 !!! warning "AUTH_SECRET"
@@ -136,7 +136,7 @@ DATABASE_URL=file:./database/dev.db
 
 # Authentifizierung
 AUTH_ENABLED=true
-AUTH_SECRET=meinSuperGeheimesPasswort123!
+NEXTAUTH_SECRET=meinSuperGeheimesPasswort123!
 
 # Ausleihzeiten
 RENTAL_DURATION_DAYS=21

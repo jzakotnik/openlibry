@@ -51,7 +51,7 @@ cd ~/openlibry
 # Environment-Datei anlegen
 cat > .env << 'EOF'
 AUTH_ENABLED=false
-AUTH_SECRET=dein-geheimer-schluessel-hier
+NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
 DATABASE_URL=file:/app/database/dev.db
 EOF
 ```
