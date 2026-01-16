@@ -82,16 +82,11 @@ export default async function handle(
   const filePath = path.join(basePath, fileName);
   const defaultFilePath = path.join(basePath, "default.jpg");
 
-  // Determine which file to serve
-  let targetPath: string;
-  let isDefault = false;
+  // Check file existence upfront
+  const customCoverExists = existsSync(filePath);
+  const defaultCoverExists = existsSync(defaultFilePath);
 
-  if (existsSync(filePath)) {
-    targetPath = filePath;
-  } else if (existsSync(defaultFilePath)) {
-    targetPath = defaultFilePath;
-    isDefault = true;
-  } else {
+  if (!customCoverExists && !defaultCoverExists) {
     errorLogger.warn(
       {
         event: LogEvents.COVER_NOT_FOUND,
@@ -105,6 +100,9 @@ export default async function handle(
       data: "ERROR: No cover image available",
     });
   }
+
+  const isDefault = !customCoverExists;
+  const targetPath = customCoverExists ? filePath : defaultFilePath;
 
   try {
     const stat = statSync(targetPath);
@@ -129,15 +127,15 @@ export default async function handle(
       return res.status(304).end();
     }
 
+    // Cache for 1 year for custom covers, 1 day for default
+    // Custom covers change rarely; default might be updated
+    const maxAge = isDefault ? 86400 : 31536000;
+
     // Set caching headers
     res.setHeader("Content-Type", "image/jpeg");
     res.setHeader("Content-Length", stat.size);
     res.setHeader("ETag", `"${etag}"`);
     res.setHeader("Last-Modified", stat.mtime.toUTCString());
-
-    // Cache for 1 year for custom covers, 1 day for default
-    // Custom covers change rarely; default might be updated
-    const maxAge = isDefault ? 86400 : 31536000;
     res.setHeader(
       "Cache-Control",
       `public, max-age=${maxAge}, stale-while-revalidate=86400`
