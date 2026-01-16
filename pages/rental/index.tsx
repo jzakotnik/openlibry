@@ -259,12 +259,12 @@ export const getServerSideProps: GetServerSideProps = async (
     return {
       id: r.id,
       title: r.title,
-      lastName: r.user?.lastName,
-      firstName: r.user?.firstName,
+      lastName: r.user?.lastName ?? null,
+      firstName: r.user?.firstName ?? null,
       remainingDays: diff,
       dueDate: convertDateToDayString(due.toDate()),
       renewalCount: r.renewalCount,
-      userid: r.user?.id,
+      userid: r.user?.id ?? null,
     };
   });
 
