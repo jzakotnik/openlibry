@@ -48,11 +48,21 @@ sudo systemctl is-active docker
 mkdir -p ~/openlibry
 cd ~/openlibry
 
+# Volumes anlegen
+mkdir -p ~/openlibry/images
+sudo chown 1000:1000 ~/openlibry/images
+mkdir -p ~/openlibry/database
+sudo chown 1000:1000 ~/openlibry/database
+
+
+
 # Environment-Datei anlegen
 cat > .env << 'EOF'
 AUTH_ENABLED=false
 NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
 DATABASE_URL=file:/app/database/dev.db
+SECURITY_HEADERS=insecure
+COVERIMAGE_FILESTORAGE_PATH=/app/images
 EOF
 ```
 
@@ -67,6 +77,7 @@ Ideal zum Ausprobieren – Container wird nach Beenden gelöscht:
 ```bash
 docker run --rm -p 3000:3000 \
   -v "$(pwd)/database:/app/database" \
+  -v "$(pwd)/images:/app/images" \
   --env-file .env \
   jzakotnik/openlibry:latest
 ```
@@ -87,10 +98,13 @@ services:
       - "3000:3000"
     volumes:
       - ./database:/app/database
+      - ./images:/app/images
       - ./public/logo.png:/app/public/logo.png
       - ./public/mahnung-template.docx:/app/public/mahnung-template.docx
     env_file:
       - .env
+    environment:
+      - COVERIMAGE_FILESTORAGE_PATH=/app/images
 ```
 
 Starten:
