@@ -99,8 +99,6 @@ services:
     volumes:
       - ./database:/app/database
       - ./images:/app/images
-      - ./public/logo.png:/app/public/logo.png
-      - ./public/mahnung-template.docx:/app/public/mahnung-template.docx
     env_file:
       - .env
     environment:
