@@ -75,7 +75,7 @@ docker run --rm -p 3000:3000 \
   -v "$(pwd)/database:/app/database" \
   -v "$(pwd)/images:/app/images" \
   --env-file .env \
-  jzakotnik/openlibry:latest
+  jzakotnik/openlibry:release
 ```
 
 Öffne `http://localhost:3000` im Browser. Mit `Strg+C` beenden.

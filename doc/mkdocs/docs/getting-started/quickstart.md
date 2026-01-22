@@ -37,8 +37,8 @@ mkdir -p ~/openlibry
 cd ~/openlibry
 
 # Volumes anlegen
-mkdir -p database coverimages
-sudo chown -R 1000:1000 database coverimages
+mkdir -p database images
+sudo chown -R 1000:1000 database images
 
 # Environment-Datei anlegen
 cat > .env << 'EOF'
@@ -49,6 +49,7 @@ SECURITY_HEADERS=insecure
 COVERIMAGE_FILESTORAGE_PATH=/app/images
 EOF
 ```
+
 Und starte OpenLibry damit:
 
 ```bash
