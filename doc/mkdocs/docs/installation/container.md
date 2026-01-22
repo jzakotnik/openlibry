@@ -49,8 +49,8 @@ mkdir -p ~/openlibry
 cd ~/openlibry
 
 # Volumes anlegen
-mkdir -p database coverimages
-sudo chown -R 1000:1000 database coverimages
+mkdir -p database images
+sudo chown -R 1000:1000 database images
 
 # Environment-Datei anlegen
 cat > .env << 'EOF'
@@ -91,7 +91,7 @@ Erstelle eine `.env` Datei im openlibry folder, entweder über diesen [Link](htt
 #############################################
 
 # 🗄️ Database connection string (SQLite in this example)
-DATABASE_URL="file:./dev.db"
+DATABASE_URL=file:/app/database/dev.db
 
 # 🔐 Authentication: URLs for NextAuth (used for callbacks and redirects)
 NEXTAUTH_URL=http://localhost:3000
@@ -105,7 +105,7 @@ AUTH_ENABLED=false
 
 # 📁 Path where uploaded cover images are stored (without trailing /)
 # Example below works inside the Docker container
-COVERIMAGE_FILESTORAGE_PATH=/app/public/coverimages
+COVERIMAGE_FILESTORAGE_PATH=/app/images
 
 # ⏱️ Session timeout (in seconds) for user inactivity before automatic logout
 LOGIN_SESSION_TIMEOUT=3600
@@ -247,7 +247,7 @@ Erstelle eine `docker-compose.yml`:
 ```yaml
 services:
   openlibry:
-    image: jzakotnik/openlibry:latest
+    image: jzakotnik/openlibry:release
     container_name: openlibry
     restart: unless-stopped
     ports:

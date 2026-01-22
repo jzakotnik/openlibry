@@ -29,12 +29,33 @@ Du brauchst Docker auf deinem Computer. Falls noch nicht installiert:
 
 ## OpenLibry starten
 
-Öffne ein Terminal und führe diesen Befehl aus:
+Öffne ein Terminal und führe diesen Befehl aus um die Daten-Ordner zu erzeugen
 
 ```bash
-docker run -d -p 3000:3000 \
-  -v $(pwd)/database:/app/database \
-  -e NEXTAUTH_SECRET=changeme \
+# Verzeichnis erstellen
+mkdir -p ~/openlibry
+cd ~/openlibry
+
+# Volumes anlegen
+mkdir -p database coverimages
+sudo chown -R 1000:1000 database coverimages
+
+# Environment-Datei anlegen
+cat > .env << 'EOF'
+AUTH_ENABLED=false
+NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
+DATABASE_URL=file:/app/database/dev.db
+SECURITY_HEADERS=insecure
+COVERIMAGE_FILESTORAGE_PATH=/app/images
+EOF
+```
+Und starte OpenLibry damit:
+
+```bash
+docker run --rm -p 3000:3000 \
+  -v "$(pwd)/database:/app/database" \
+  -v "$(pwd)/images:/app/images" \
+  --env-file .env \
   jzakotnik/openlibry:release
 ```
 
@@ -42,7 +63,6 @@ docker run -d -p 3000:3000 \
     - `docker run -d` – Startet einen Container im Hintergrund
     - `-p 3000:3000` – Macht Port 3000 erreichbar
     - `-v $(pwd)/database:/app/database` – Speichert die Datenbank lokal
-    - `-e NEXTAUTH_SECRET=changeme` – Setzt ein Geheimnis für die Authentifizierung
     - `jzakotnik/openlibry:release` – Das offizielle OpenLibry-Image
 
 ## OpenLibry öffnen
