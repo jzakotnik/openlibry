@@ -18,6 +18,7 @@ public/coverimages
 !public/coverimages/default*
 !public/userlabeltemplate*
 !public/schullogo*
+!public/mahnung-template*
 public/antolin
 /backups
 /prisma/database
