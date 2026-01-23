@@ -14,23 +14,23 @@ OpenLibry entstand aus dem Bedarf einer Grundschule, in der die veraltete OpenBi
 
 Entdecken Sie die Features, sehen Sie Screenshots und verstehen Sie, wie OpenLibry funktioniert.
 
-### 💻 [2. OpenLibry installieren](#-installation)
+### 💻 2. [OpenLibry installieren](https://openlibry.de/site/installation/)
 
-Schritt-für-Schritt Anleitungen für verschiedene Installationsmethoden (Bare Metal, Docker, nginx).
+[Hier](https://openlibry.de/site/installation/) ist Schritt-für-Schritt Anleitungen für verschiedene Installationsmethoden (Bare Metal, Docker, nginx)
 
-### ⚙️ [3. Software konfigurieren](#%EF%B8%8F-konfiguration)
+### ⚙️ [3. Software konfigurieren](https://openlibry.de/site/configuration/)
 
 Passen Sie OpenLibry an Ihre Bedürfnisse an - von Ausleihzeiten bis zu Bücherlabels.
 
-### 📖 [4. Die Software benutzen](#-benutzung)
+### 📖 [4. Die Software benutzen](https://openlibry.de/site/user-guide/)
 
 Lernen Sie die tägliche Arbeit mit OpenLibry kennen - Ausleihe, Verwaltung, Reports.
 
-### 🔄 [5. Daten importieren/exportieren](#-import--export)
+### 🔄 [5. Daten importieren/exportieren](https://openlibry.de/site/import/)
 
 Importieren Sie bestehende Daten aus anderen Systemen oder erstellen Sie Backups.
 
-### 🔧 [6. API & Entwicklung](#-api--entwicklung)
+### 🔧 [6. API & Entwicklung](https://openlibry.de/site/development/)
 
 Technische Informationen für Entwickler und API-Nutzung.
 
@@ -80,184 +80,6 @@ OpenLibry bietet eine durchdachte Kombination aus Funktionalität und Benutzerfr
 
 Ein 12-minütiges Intro-Video über die Bedienung gibts in diesem [YouTube Video](https://youtu.be/2UIFdA6Lqaw?si=5YP4eNZX5wCBMmBJ).
 
-### Quickstart mit Docker
-
-```docker
-docker run -d \
-  --name openlibry \
-  -p 3000:3000 \
-  -v $(pwd)/database:/app/database \
-  -v $(pwd)/prisma/migrations:/app/prisma/migrations:ro \
-  -v $(pwd)/coverimages:/app/public/coverimages \
-  -e NODE_ENV=production \
-  -e DATABASE_URL=file:/app/database/dev.db \
-  -e NEXTAUTH_SECRET=changeme \
-  -e COVERIMAGE_FILESTORAGE_PATH=/app/public/coverimages \
-  --restart unless-stopped \
-  jzakotnik/openlibry:release
-```
-
-Die Anwendung läuft auf `http://localhost:3000`.
-
----
-
-## 💻 Installation
-
-### Vorbereitung
-
-Kopieren Sie zunächst das Beispiel-Environment-File und konfigurieren Sie es:
-
-```bash
-cp .env_example .env
-```
-
-**Wichtig**: Setzen Sie `AUTH_ENABLED` zunächst auf `false`, um sich beim ersten Login ohne Authentifizierung anmelden zu können. Nach der Registrierung des ersten Users über `https://<domain>/auth/register` setzen Sie den Wert auf `true`.
-
-### Option 1: Bare Metal Installation (z.B. Raspberry Pi)
-
-Für eine lokale Installation ohne Docker folgen Sie diesen Schritten:
-
-```bash
-# System aktualisieren
-sudo apt-get update
-sudo apt-get upgrade
-
-# Curl installieren (falls nicht vorhanden)
-apt install curl
-
-# Node Version Manager installieren
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-
-# Node.js installieren (nach Neustart des Terminals)
-nvm install --lts
-
-# Git installieren (falls nicht vorhanden)
-sudo apt-get install git-all
-
-# Repository klonen
-git clone https://github.com/jzakotnik/openlibry.git
-cd openlibry
-
-# Environment-File vorbereiten
-cp .env_example .env
-nano .env  # Anpassungen vornehmen
-
-# Node-Pakete installieren
-npm install
-
-# Leere Datenbank erstellen
-npx prisma db push
-
-# OpenLibry starten
-npm run dev
-```
-
-Achten Sie darauf, dass der entsprechende Port freigegeben und über den Browser zugänglich ist.
-
-### Option 2: Docker Installation
-
-#### Vorarbeiten
-
-```bash
-# System aktualisieren
-sudo apt-get update
-sudo apt-get upgrade
-
-# Curl installieren (falls nicht vorhanden)
-sudo apt install curl
-
-# Node Version Manager installieren
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-
-# Node.js installieren (nach Terminal-Neustart)
-nvm install --lts
-
-# Git installieren (falls nicht vorhanden)
-sudo apt-get install git-all
-```
-
-#### Docker selbst installieren
-
-```bash
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo usermod -aG docker ${USER}
-sudo systemctl is-active docker
-```
-
-**Wichtig**: Nach der Installation ist ein Neustart erforderlich, damit die Gruppenänderungen aktiv werden.
-
-#### OpenLibry vorbereiten
-
-```bash
-# Repository klonen
-git clone https://github.com/jzakotnik/openlibry.git
-cd openlibry
-
-# Environment-File erstellen
-cp .env_example .env
-```
-
-Bearbeiten Sie die `.env`-Datei und hinterlegen Sie Ihre Logos und das Mahnungs-Template im `public`-Ordner. Orientieren Sie sich dabei an den Beispieldateien.
-
-```bash
-# Docker-Image erstellen
-docker build --no-cache -t openlibry:latest .
-```
-
-#### Variante A: Sandbox-Modus (zum Testen)
-
-Ideal zum Ausprobieren ohne dauerhafte Installation:
-
-```bash
-docker run --rm -p 3000:3000 -v "$(pwd)/database:/app/database" -e NEXTAUTH_SECRET="someSecret" -e DATABASE_URL="file:/app/database/dev.db" jzakotnik/openlibry:latest
-```
-
-Öffnen Sie `http://localhost:3000` im Browser. Beenden Sie mit Strg+C. Optional können Sie das Image danach löschen: `docker image rm openlibry`
-
-**Hinweis**: Im `./database`-Ordner wird eine Datenbankdatei angelegt. Falls dieser nicht erstellt werden kann, passen Sie die Berechtigungen an:
-
-```bash
-docker run --rm --entrypoint sh jzakotnik/openlibry:latest -c 'id -u'
-sudo chown 1000:1000 database
-```
-
-#### Variante B: Dauerhafte Installation
-
-Für den produktiven Einsatz mit automatischem Neustart:
-
-```bash
-# Container starten (startet automatisch nach Neustart/Absturz)
-docker compose up
-
-# Bei Bedarf manuell stoppen
-docker stop openlibry
-
-# Container und Image komplett entfernen
-docker rm openlibry
-docker image rm openlibry
-```
-
-Öffnen Sie `http://localhost:3000` im Browser.
-
-**Docker Speicherplatz-Management**: Bei vielen Experimenten können alte Images viel Speicherplatz belegen:
-
-- Builder-Dateien löschen: `docker builder prune`
-- Alle Images löschen: `docker image prune -a`
-
-### Option 3: Installation mit nginx und pm2
-
-Eine detaillierte Anleitung für die Konfiguration mit dem Webserver nginx auf einer Subdomain finden Sie [hier](./doc/WebServerInstall.md).
-
-### Ersten Benutzer anlegen
-
-Nach der Installation:
-
-1. Setzen Sie `AUTH_ENABLED` in `.env` auf `false`
-2. Rufen Sie `/auth/register` auf und erstellen Sie einen User
-3. Setzen Sie `AUTH_ENABLED` auf `true`
 
 ---
 
@@ -325,32 +147,6 @@ OpenLibry durchsucht die Datenbank nach Übereinstimmungen bei Autor und Titel.
 
 ---
 
-## 📖 Benutzung
-
-### Ausleihe
-
-Der Ausleih-Screen ist für Barcodescanner optimiert:
-
-**Workflow**: Der Fokus liegt initial auf dem Benutzersuchfeld. Scannen Sie den Benutzerbarcode (der Scanner sollte einen Enter-Befehl senden - meist Standardeinstellung). Der Nutzer wird automatisch ausgeklappt, und Sie können Bücher manuell zurückgeben.
-
-**Buchausleihe**: Der Fokus springt automatisch zur Büchersuche. Scannen Sie das zu leihende Buch und bestätigen Sie die Ausleihe. Nach dem Vorgang wird das Suchfeld automatisch markiert, sodass Sie direkt das nächste Buch scannen können.
-
-**Tastatursteuerung**: Mit ESC löschen Sie den Suchfeldinhalt. Ein zweites ESC springt zurück zur Nutzersuche.
-
-**Verlängerung**: Bücher können per Klick verlängert werden, sofern die maximale Ausleihzeit noch nicht erreicht ist.
-
-### Benutzerverwaltung
-
-In der Nutzerverwaltung verwalten Sie alle Leiher. Sie können mehrere Nutzer markieren und gemeinsam löschen.
-
-**Klassenerhöhung**: Zum Schuljahreswechsel erhöhen Sie die Klassenstufe einfach durch Markierung der betroffenen Nutzer und Klick auf `+1`. Der Zahlenanteil im Klassennamen wird automatisch erhöht.
-
-![Nutzerverwaltung - Klasse erhöhen](./doc/NutzerScreen.png)
-
-### Bücherlabel drucken
-
-Nach der Konfiguration (siehe [Konfiguration](#bücherlabel-konfigurieren)) drucken Sie Labels unter "REPORTS":
-
 **Auswahlmöglichkeiten**:
 
 1. **Neueste Labels**: Geben Sie die Anzahl ein - OpenLibry wählt rückwärts von der höchsten ID
@@ -370,19 +166,6 @@ In der Bücherverwaltung können Sie auch direkt ein einzelnes Label für ein Bu
 
 ---
 
-## 🔄 Import & Export
-
-### Excel Export
-
-Auf der Reports-Seite erstellen Sie via `Excel Export` eine Excel-Datei mit zwei Blättern:
-
-**Userliste** enthält
-
-- Erzeugt am, Update am, Nummer, Nachname, Vorname, Klasse, Lehrkraft, Freigeschaltet, eMail
-
-**Bücherliste** enthält:
-
-Mediennummer, Erzeugt am, Update am, Ausleihstatus, Ausgeliehen am, Rückgabe am, Anzahl Verlängerungen, Titel, Untertitel, Autor, Schlagworte, Bild, ISBN, Edition, Verlagsort, Seiten, Zusammenfassung, Min Spieler, Verlag, Merkmale, Beschaffung, Publikationsdatum, Abmessungen, Min Alter, Max Alter, Material, Preis, Links, Ausgeliehen von
 
 ### Excel Import
 
@@ -409,23 +192,6 @@ Wichtige Felder: id (Mediennummer), rentalStatus, rentedDate, dueDate, renewalCo
 
 ---
 
-## 🔧 API & Entwicklung
-
-### REST-API
-
-OpenLibry bietet eine REST-API für die Ressourcen `book` und `user` mit den Standard-HTTP-Operationen (GET, PUT, POST, DELETE).
-
-**Ausleihe**: Verknüpfung von User und Buch über:
-
-```url
-http://localhost:3000/api/book/2001/user/1080
-```
-
-**Verwendung**: Die API eignet sich für automatisierten Import von Usern/Büchern aus anderen Programmen.
-
-Weitere Beispiele finden Sie im [docs-Ordner](./doc/sampleAPIRequests/).
-
----
 
 ## 📧 Kontakt & Unterstützung
 
