@@ -36,7 +36,7 @@ docker run --rm -p 3000:3000 \
   -e NEXTAUTH_SECRET=wunschpunsch \
   -e SECURITY_HEADERS=insecure \
   -e COVERIMAGE_FILESTORAGE_PATH=/app/database \
-  jzakotnik/openlibry:latest
+  jzakotnik/openlibry:release
 ```
 
 !!! info "Was macht dieser Befehl?"
