@@ -92,7 +92,7 @@ export default function Books({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // SWR hook to fetch fresh data
-  const { data: freshData, mutate } = useSWR("/api/books/all", fetcher, {
+  const { data: freshData, mutate } = useSWR("/api/book", fetcher, {
     fallbackData: { books: initialBooks },
     refreshInterval: 0, // Only refresh on demand, not automatically
     revalidateOnFocus: true, // Revalidate when window gains focus
@@ -123,7 +123,7 @@ export default function Books({
           "id",
         ],
       }),
-    [books]
+    [books],
   );
 
   const searchBooks = useCallback(
@@ -139,13 +139,13 @@ export default function Books({
       setRenderedBooks(foundBooks.data.items);
       setSearchResultNumber(foundBooks.pagination.total);
     },
-    [searchEngine, maxBooks, numberBooksToShow]
+    [searchEngine, maxBooks, numberBooksToShow],
   );
 
   // Debounced search function - waits some milliseconds after last keystroke
   const debouncedSearch = useMemo(
     () => debounce((query: string) => searchBooks(query), DEBOUNCE_MS),
-    [searchBooks]
+    [searchBooks],
   );
 
   // Cleanup debounce on unmount
@@ -169,7 +169,7 @@ export default function Books({
       isMobile
         ? { xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }
         : { xs: 12, sm: 12, md: 6, lg: 4, xl: 4 },
-    [isMobile]
+    [isMobile],
   );
 
   const handleCreateNewBook = useCallback(async () => {
@@ -197,7 +197,7 @@ export default function Books({
 
       if (!res.ok) {
         throw new Error(
-          `Fehler beim Erstellen: ${res.status} ${res.statusText}`
+          `Fehler beim Erstellen: ${res.status} ${res.statusText}`,
         );
       }
 
@@ -277,7 +277,7 @@ export default function Books({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     const searchString = e.target.value;
     setBookSearchInput(searchString); // Update input immediately for responsive typing
@@ -342,7 +342,7 @@ export default function Books({
 }
 
 export const getServerSideProps: GetServerSideProps = async (
-  context: GetServerSidePropsContext
+  context: GetServerSidePropsContext,
 ) => {
   // In test/dev environment, force fresh Prisma connection
   if (process.env.NODE_ENV !== "production") {
@@ -352,7 +352,7 @@ export const getServerSideProps: GetServerSideProps = async (
   // Disable all caching
   context.res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
   );
   context.res.setHeader("Pragma", "no-cache");
   context.res.setHeader("Expires", "0");
