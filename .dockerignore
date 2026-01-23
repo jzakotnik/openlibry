@@ -19,3 +19,5 @@ node_modules
 database/*.db
 database/*.sqlite
 .env
+.env*
+public/coverimages
