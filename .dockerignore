@@ -21,3 +21,4 @@ database/*.sqlite
 .env
 .env*
 public/coverimages
+/backups
