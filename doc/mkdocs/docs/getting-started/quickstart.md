@@ -29,48 +29,29 @@ Du brauchst Docker auf deinem Computer. Falls noch nicht installiert:
 
 ## OpenLibry starten
 
-Öffne ein Terminal und führe diesen Befehl aus um die Daten-Ordner zu erzeugen
-
-```bash
-# Verzeichnis erstellen
-mkdir -p ~/openlibry
-cd ~/openlibry
-
-# Volumes anlegen
-mkdir -p database images
-sudo chown -R 1000:1000 database images
-
-# Environment-Datei anlegen
-cat > .env << 'EOF'
-AUTH_ENABLED=false
-NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
-DATABASE_URL=file:/app/database/dev.db
-SECURITY_HEADERS=insecure
-COVERIMAGE_FILESTORAGE_PATH=/app/images
-EOF
-```
-
-Und starte OpenLibry damit:
-
+Öffne ein Terminal und führe folgende Befehle aus:
 ```bash
 docker run --rm -p 3000:3000 \
-  -v "$(pwd)/database:/app/database" \
-  -v "$(pwd)/images:/app/images" \
-  --env-file .env \
-  jzakotnik/openlibry:release
+  --name openlibry \
+  -e NEXTAUTH_SECRET=wunschpunsch \
+  -e SECURITY_HEADERS=insecure \
+  -e COVERIMAGE_FILESTORAGE_PATH=/app/database \
+  jzakotnik/openlibry:latest
 ```
 
 !!! info "Was macht dieser Befehl?"
-    - `docker run -d` – Startet einen Container im Hintergrund
+    - `--rm` – Entfernt den Container automatisch beim Beenden
     - `-p 3000:3000` – Macht Port 3000 erreichbar
-    - `-v $(pwd)/database:/app/database` – Speichert die Datenbank lokal
+    - `-e ...` – Setzt temporäre Umgebungsvariablen für die Konfiguration
     - `jzakotnik/openlibry:release` – Das offizielle OpenLibry-Image
+
+Achtung, das ist keine permanente Installation sondern nur eine temporäre "Spiel-Installation". Wenn der Docker Container beendet wird, sind auch die Daten weg.
 
 ## OpenLibry öffnen
 
 Öffne deinen Browser und gehe zu:
 
-**[http://localhost:3000](http://localhost:3000)**
+**[http://localhost:3000](http://localhost:3000)** oder zu der Domain/IP wo es installiert ist
 
 🎉 **Geschafft!** Du solltest jetzt die OpenLibry-Startseite sehen.
 
@@ -106,6 +87,8 @@ docker run --rm -p 3000:3000 \
 
 ### OpenLibry stoppen
 
+In der Testinstallation kann man den Docker container mit `Ctrl-C` beenden oder:
+
 ```bash
 docker stop $(docker ps -q --filter ancestor=jzakotnik/openlibry:release)
 ```
@@ -132,5 +115,3 @@ Du hast OpenLibry ausprobiert und bist überzeugt? Super!
 - [Bare Metal](../installation/ohne-container.md) – Installation ohne Docker (z.B. Raspberry Pi)
 - [Erste Einrichtung](first-steps.md) – Deine Bibliothek einrichten
 
-!!! tip "Daten behalten"
-    Die Datenbank liegt im `database/`-Ordner. Wenn du diesen Ordner behältst, bleiben deine Daten auch nach einem Neustart erhalten.
