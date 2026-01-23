@@ -18,3 +18,4 @@ node_modules
 *.log
 database/*.db
 database/*.sqlite
+.env
