@@ -51,7 +51,7 @@ const DEFAULT_BOOKLABEL_MAX_AUTHORLINE_LENGTH = 19;
 const DEFAULT_BOOKLABEL_LINE_BELOW_1_LENGTH = 30;
 
 // Logo default
-const DEFAULT_BOOKLABEL_LOGO = "school_logo.png";
+const DEFAULT_BOOKLABEL_LOGO = "schullogo.jpg";
 
 // Default line configurations (format: [content, fontSize, alignment])
 const DEFAULT_BOOKLABEL_AUTHORLINE = ["Book.author", 8, "left"];

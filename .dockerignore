@@ -15,6 +15,9 @@ node_modules
 # Runtime Data (generated at runtime)
 # ================================
 public/coverimages
+!public/coverimages/default*
+!public/userlabeltemplate*
+!public/schullogo*
 public/antolin
 /backups
 /prisma/database

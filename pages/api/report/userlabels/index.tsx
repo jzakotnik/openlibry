@@ -27,10 +27,16 @@ var fs = require("fs");
 // =============================================================================
 // Default configuration values (matching documentation in environment-variables.md)
 // =============================================================================
-const DEFAULT_USERLABEL_IMAGE = "ausweis_hintergrund.png";
+const DEFAULT_USERLABEL_IMAGE = "userlabeltemplate.jpg";
 const DEFAULT_USERLABEL_WIDTH = "42vw";
 const DEFAULT_USERLABEL_PER_PAGE = 6;
-const DEFAULT_USERLABEL_BARCODE = ["10%", "60%", "30%", "15%", "code128"];
+const DEFAULT_USERLABEL_BARCODE: [string, string, string, string, string] = [
+  "80%",
+  "63%",
+  "3cm",
+  "1.6cm",
+  "code128",
+];
 const DEFAULT_BARCODE_MINCODELENGTH = 4;
 
 // Default user label lines if none configured in environment
