@@ -1,24 +1,58 @@
+# ================================
+# Dependencies & Build Artifacts
+# ================================
 node_modules
-npm-debug.log
+.next
+.next/cache
+
+# ================================
+# Environment & Secrets
+# ================================
+.env
+.env*
+
+# ================================
+# Runtime Data (generated at runtime)
+# ================================
+public/coverimages
+/backups
+/prisma/database
+database/*.db
+database/*.sqlite
+
+# ================================
+# Version Control
+# ================================
+.git
+.gitignore
+
+# ================================
+# Docker Files (prevent recursion)
+# ================================
 Dockerfile*
 docker-compose*
 .dockerignore
-.git
-.gitignore
+
+# ================================
+# IDE & OS Files
+# ================================
+.vscode
+.DS_Store
+*.swp
+
+# ================================
+# Documentation
+# ================================
 README.md
 LICENSE
-.vscode
-.next
-*.swp
-/scripts
-node_modules
-.next/cache
-.git
-.DS_Store
+
+# ================================
+# Logs
+# ================================
 *.log
-database/*.db
-database/*.sqlite
-.env
-.env*
-public/coverimages
-/backups
+npm-debug.log
+
+# ================================
+# Scripts (dev/deployment only)
+# ================================
+/scripts

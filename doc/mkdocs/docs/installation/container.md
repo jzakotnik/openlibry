@@ -2,7 +2,7 @@
 
 Diese Anleitung führt dich durch die Installation von OpenLibry mit Docker. Am Ende läuft OpenLibry unter `http://localhost:3000` oder auf dem entsprechenden host wie `http://raspberrypi:3000`. 
 
-**Willst du HTTPS mit eigener Domain?** Folge erst dieser Anleitung, dann [nginx & SSL](nginx-ssl.md).
+**Willst du HTTPS mit eigener Domain?** In dem Fall ist es sinnvoll einen Reverse Proxy zu nutzen, der die SSL Verbindung aufbaut und sie an den OpenLibry Server weiterleitet. Folge erst dieser Anleitung, und danach [nginx & SSL](nginx-ssl.md).
 
 ## Voraussetzungen
 
@@ -41,48 +41,19 @@ docker --version
 sudo systemctl is-active docker
 ```
 
-## Schritt 2: OpenLibry vorbereiten
+## Schritt 2: OpenLibry vorbereiten und konfigurieren
+
+Im Unterschied zur temporären Installation werden im Server Ordner für die Datenbank un die Cover angelegt, die auch verbleiben, wenn der Docker Container gelöscht oder geupdatet wird. Diese müssen entsprechende Zugangsrechte haben, damit der Docker Daemon diese nutzen kann. Falls was nicht funktioniert sind es in 90% der Fälle ein Permission Problem.
 
 ```bash
 # Verzeichnis erstellen
 mkdir -p ~/openlibry
 cd ~/openlibry
 
-# Volumes anlegen
+# Volumes anlegen, node user ist typischerweise uid 1000, nicht root!
 mkdir -p database images
 sudo chown -R 1000:1000 database images
-
-# Environment-Datei anlegen
-cat > .env << 'EOF'
-AUTH_ENABLED=false
-NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
-DATABASE_URL=file:/app/database/dev.db
-SECURITY_HEADERS=insecure
-COVERIMAGE_FILESTORAGE_PATH=/app/images
-EOF
 ```
-
-**Tipp**: Generiere einen sicheren NEXTAUTH_SECRET mit `openssl rand -base64 32`.
-
-## Schritt 3: OpenLibry starten
-
-### Variante A: Zum Testen (Sandbox)
-
-Ideal zum Ausprobieren – Container wird nach Beenden gelöscht:
-
-```bash
-docker run --rm -p 3000:3000 \
-  -v "$(pwd)/database:/app/database" \
-  -v "$(pwd)/images:/app/images" \
-  --env-file .env \
-  jzakotnik/openlibry:release
-```
-
-Öffne `http://localhost:3000` im Browser. Mit `Strg+C` beenden.
-
-### Variante B: Dauerhaft (Produktiv)
-
-In dieser Variante wird der Container beim Restart des Servers automatisch gestartet. Außerdem sind alle relevanten Konfigurationen hinterlegt, z.B. der Schulname etc.
 
 Erstelle eine `.env` Datei im openlibry folder, entweder über diesen [Link](https://github.com/jzakotnik/openlibry/blob/main/.env_example) oder manuell:
 ```sh
