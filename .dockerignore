@@ -15,6 +15,7 @@ node_modules
 # Runtime Data (generated at runtime)
 # ================================
 public/coverimages
+public/antolin
 /backups
 /prisma/database
 database/*.db
