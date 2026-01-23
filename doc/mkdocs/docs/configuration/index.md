@@ -49,13 +49,15 @@ MAX_EXTENSIONS=2             # Max. Anzahl Verlängerungen
 
 # Authentifizierung
 AUTH_ENABLED=true            # Login erforderlich?
-NEXTAUTH_SECRET=geheim123        # Geheimnis für Sessions
+NEXTAUTH_SECRET=geheim123        # Kennwort, das intern für die Verschlüsselung der Sessions verwendet wird
 
 # Schule
-SCHOOL_NAME="Meine Schule"   # Name auf Dokumenten
+SCHOOL_NAME="Meine Schule"   # Name der Schule auf Ausweisen und Dokumenten
 ```
 
 ## Nächste Schritte
+
+Es gibt viele Konfigurationseinstellungen die man vornehmen kann, in diesen Kapiteln werden diese beschrieben
 
 - [Alle Umgebungsvariablen](environment-variables.md)
 - [Bücherlabels anpassen](book-labels.md)
