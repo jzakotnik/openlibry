@@ -76,6 +76,54 @@ const DenseTable = React.memo(({ data }: DenseTableProps) => {
 
 DenseTable.displayName = "DenseTable";
 
+// Helper to safely parse ID from Excel (handles "001" string format)
+const parseId = (value: any): number | undefined => {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  const parsed = parseInt(String(value), 10);
+  return isNaN(parsed) ? undefined : parsed;
+};
+
+// Helper to safely parse integers with default value
+const parseIntOrDefault = (value: any, defaultValue: number = 0): number => {
+  if (value === undefined || value === null || value === "") {
+    return defaultValue;
+  }
+  const parsed = parseInt(String(value), 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+};
+
+// Normalize book data before sending to API
+const normalizeBookData = (data: any[]): any[] => {
+  if (data.length <= 1) return data; // Only header or empty
+
+  const [headers, ...rows] = data;
+  const normalizedRows = rows.map((row: any) => ({
+    ...row,
+    // Convert ID from string "001" to number 1
+    Mediennummer: parseId(row["Mediennummer"]),
+    // Default renewalCount to 0 if not specified
+    "Anzahl Verlängerungen": parseIntOrDefault(row["Anzahl Verlängerungen"], 0),
+  }));
+
+  return [headers, ...normalizedRows];
+};
+
+// Normalize user data before sending to API
+const normalizeUserData = (data: any[]): any[] => {
+  if (data.length <= 1) return data; // Only header or empty
+
+  const [headers, ...rows] = data;
+  const normalizedRows = rows.map((row: any) => ({
+    ...row,
+    // Convert ID from string "001" to number 1
+    Nummer: parseId(row["Nummer"]),
+  }));
+
+  return [headers, ...normalizedRows];
+};
+
 export default function XLSImport() {
   const [bookData, setBookData] = useState<any[]>([]);
   const [userData, setUserData] = useState<any[]>([]);
@@ -161,14 +209,14 @@ export default function XLSImport() {
           });
           json.push(rowData);
         }
-      }
+      },
     );
 
     return json;
   }, []);
 
   const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const logs: string[] = [];
     setIsLoading(true);
@@ -182,7 +230,7 @@ export default function XLSImport() {
       }
 
       logs.push(
-        `Datei wird geladen: ${file.name}, ${(file.size / 1024).toFixed(1)} KB`
+        `Datei wird geladen: ${file.name}, ${(file.size / 1024).toFixed(1)} KB`,
       );
 
       const workbook = new ExcelJS.Workbook();
@@ -225,7 +273,7 @@ export default function XLSImport() {
 
       setExcelLoaded(true);
       logs.push(
-        "✓ Excel Import erledigt, Daten können in die Datenbank importiert werden."
+        "✓ Excel Import erledigt, Daten können in die Datenbank importiert werden.",
       );
       setImportLog(logs);
     } catch (e: any) {
@@ -243,9 +291,13 @@ export default function XLSImport() {
     setIsImporting(true);
     setImportSuccess(null);
 
+    // Normalize data before sending to API
+    const normalizedBookData = importBooks ? normalizeBookData(bookData) : [];
+    const normalizedUserData = importUsers ? normalizeUserData(userData) : [];
+
     const payload = {
-      bookData: importBooks ? bookData : [],
-      userData: importUsers ? userData : [],
+      bookData: normalizedBookData,
+      userData: normalizedUserData,
       importBooks: importBooks && canImportBooks,
       importUsers: importUsers && canImportUsers,
       dropBeforeImport,
@@ -355,7 +407,7 @@ export default function XLSImport() {
                         sx={{ mr: 1 }}
                         color="inherit"
                       />
-                      Importiere...
+                      Importiere....
                     </>
                   ) : (
                     "In die Datenbank importieren"
@@ -440,8 +492,8 @@ export default function XLSImport() {
                   {importBooks && importUsers
                     ? "Bücher und User"
                     : importBooks
-                    ? "Bücher"
-                    : "User"}{" "}
+                      ? "Bücher"
+                      : "User"}{" "}
                   in der Datenbank werden vor dem Import gelöscht!
                 </Alert>
               )}
@@ -480,10 +532,10 @@ export default function XLSImport() {
                     color: line.startsWith("❌")
                       ? "error.main"
                       : line.startsWith("✓")
-                      ? "success.main"
-                      : line.startsWith("⚠️")
-                      ? "warning.main"
-                      : "text.primary",
+                        ? "success.main"
+                        : line.startsWith("⚠️")
+                          ? "warning.main"
+                          : "text.primary",
                   }}
                 >
                   {line}
