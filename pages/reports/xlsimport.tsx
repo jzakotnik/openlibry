@@ -407,7 +407,7 @@ export default function XLSImport() {
                         sx={{ mr: 1 }}
                         color="inherit"
                       />
-                      Importiere...
+                      Importiere....
                     </>
                   ) : (
                     "In die Datenbank importieren"
