@@ -77,11 +77,15 @@ function generateHtmlResponse(data: HealthCheckResponse): string {
       if (typeof value === "object" && value !== null) {
         const obj = value as Record<string, unknown>;
 
-        // Folder status objects
-        if ("exists" in obj && "writable" in obj) {
+        // Folder status objects (with optional fileCount)
+        if ("exists" in obj && "writable" in obj && !("configured" in obj)) {
           const exists = obj.exists ? "✓ vorhanden" : "✗ fehlt";
           const writable = obj.writable ? ", beschreibbar" : "";
-          return `${exists}${writable}`;
+          const fileCount =
+            typeof obj.fileCount === "number"
+              ? ` (${obj.fileCount.toLocaleString("de-DE")} Bilder)`
+              : "";
+          return `${exists}${writable}${fileCount}`;
         }
 
         // File status objects
@@ -121,6 +125,8 @@ function generateHtmlResponse(data: HealthCheckResponse): string {
         database: "Datenbank",
         public: "Public-Ordner",
         prisma: "Prisma-Ordner",
+        covers: "Cover-Bilder",
+        fileCount: "Anzahl Bilder",
       };
       return labels[key] || key;
     };
@@ -695,37 +701,99 @@ export default async function handle(
 
   // 3. Check required folders
   const requiredFolders = [
-    { name: "database", path: path.dirname(dbPath) },
-    { name: "public", path: path.join(process.cwd(), "public") },
-    { name: "prisma", path: path.join(process.cwd(), "prisma") },
+    { name: "database", path: path.dirname(dbPath), mustBeWritable: true },
+    {
+      name: "public",
+      path: path.join(process.cwd(), "public"),
+      mustBeWritable: false,
+    },
+    {
+      name: "prisma",
+      path: path.join(process.cwd(), "prisma"),
+      mustBeWritable: false,
+    },
   ];
 
-  const folderResults: Record<string, { exists: boolean; writable: boolean }> =
-    {};
+  // Add cover images folder if configured
+  const coverImagePath = process.env.COVERIMAGE_FILESTORAGE_PATH;
+  if (coverImagePath) {
+    requiredFolders.push({
+      name: "covers",
+      path: coverImagePath,
+      mustBeWritable: true,
+    });
+  }
+
+  const folderResults: Record<
+    string,
+    { exists: boolean; writable: boolean; fileCount?: number }
+  > = {};
   const folderIssues: string[] = [];
 
   for (const folder of requiredFolders) {
     const check = checkPath(folder.path, "directory");
-    folderResults[folder.name] = {
+    const result: { exists: boolean; writable: boolean; fileCount?: number } = {
       exists: check.exists,
       writable: check.writable || false,
     };
 
+    // Count files in covers folder
+    if (folder.name === "covers" && check.exists) {
+      try {
+        const files = fs.readdirSync(folder.path);
+        const imageFiles = files.filter((f) =>
+          /\.(jpg|jpeg|png|gif|webp)$/i.test(f),
+        );
+        result.fileCount = imageFiles.length;
+      } catch {
+        // Ignore counting errors
+      }
+    }
+
+    folderResults[folder.name] = result;
+
     if (!check.exists) {
       folderIssues.push(`${folder.name}: nicht gefunden`);
-    } else if (!check.writable && folder.name === "database") {
-      // Only database folder needs to be writable
+    } else if (!check.writable && folder.mustBeWritable) {
       folderIssues.push(`${folder.name}: nicht beschreibbar`);
     }
   }
 
-  if (folderIssues.length > 0) {
+  // Warn if cover path is not configured (this is optional, not an error)
+  if (!coverImagePath) {
+    folderResults["covers"] = {
+      exists: false,
+      writable: false,
+    };
+    // Don't add to folderIssues - missing cover path is just informational
+  }
+
+  // Separate critical issues from warnings
+  const criticalFolderIssues = folderIssues.filter(
+    (issue) => !issue.startsWith("covers:"),
+  );
+  const coverIssues = folderIssues.filter((issue) =>
+    issue.startsWith("covers:"),
+  );
+
+  if (criticalFolderIssues.length > 0) {
     response.checks.folders = {
       status: "error",
-      message: `Probleme mit Verzeichnissen: ${folderIssues.join(", ")}`,
+      message: `Probleme mit Verzeichnissen: ${criticalFolderIssues.join(", ")}`,
       details: folderResults,
     };
     response.status = "error";
+  } else if (coverIssues.length > 0 || !coverImagePath) {
+    response.checks.folders = {
+      status: "warning",
+      message: !coverImagePath
+        ? "COVERIMAGE_FILESTORAGE_PATH nicht konfiguriert - Cover-Bilder werden nicht funktionieren"
+        : `Cover-Verzeichnis: ${coverIssues.join(", ")}`,
+      details: folderResults,
+    };
+    if (response.status === "ok") {
+      response.status = "warning";
+    }
   } else {
     response.checks.folders = {
       status: "ok",
