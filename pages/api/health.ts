@@ -28,6 +28,469 @@ interface HealthCheckResponse {
   };
 }
 
+// Generate styled HTML output
+function generateHtmlResponse(data: HealthCheckResponse): string {
+  const statusColors = {
+    ok: { bg: "#10b981", text: "#065f46", light: "#d1fae5" },
+    warning: { bg: "#f59e0b", text: "#92400e", light: "#fef3c7" },
+    error: { bg: "#ef4444", text: "#991b1b", light: "#fee2e2" },
+  };
+
+  const statusIcons = {
+    ok: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+    warning: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+    error: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+  };
+
+  const statusLabels = {
+    ok: "Alles in Ordnung",
+    warning: "Warnungen vorhanden",
+    error: "Fehler erkannt",
+  };
+
+  const checkLabels: Record<string, { title: string; icon: string }> = {
+    database: {
+      title: "Datenbank",
+      icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>`,
+    },
+    data: {
+      title: "Datenbestand",
+      icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
+    },
+    folders: {
+      title: "Verzeichnisse",
+      icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
+    },
+    files: {
+      title: "Dateien",
+      icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`,
+    },
+  };
+
+  const mainColor = statusColors[data.status];
+
+  const renderDetails = (details?: Record<string, unknown>): string => {
+    if (!details) return "";
+
+    const formatValue = (key: string, value: unknown): string => {
+      // Handle nested objects with specific formatting
+      if (typeof value === "object" && value !== null) {
+        const obj = value as Record<string, unknown>;
+
+        // Folder status objects
+        if ("exists" in obj && "writable" in obj) {
+          const exists = obj.exists ? "✓ vorhanden" : "✗ fehlt";
+          const writable = obj.writable ? ", beschreibbar" : "";
+          return `${exists}${writable}`;
+        }
+
+        // File status objects
+        if ("exists" in obj && "configured" in obj) {
+          const status = obj.exists ? "✓ vorhanden" : "✗ fehlt";
+          const configured = obj.configured ? " (konfiguriert)" : " (Standard)";
+          return `${status}${configured}`;
+        }
+
+        // Generic object - format as key-value pairs
+        return Object.entries(obj)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(", ");
+      }
+
+      // Format numbers with German locale
+      if (typeof value === "number") {
+        return value.toLocaleString("de-DE");
+      }
+
+      // Boolean values
+      if (typeof value === "boolean") {
+        return value ? "Ja" : "Nein";
+      }
+
+      return String(value);
+    };
+
+    const getKeyLabel = (key: string): string => {
+      const labels: Record<string, string> = {
+        path: "Pfad",
+        books: "Bücher",
+        users: "Nutzer",
+        loginUsers: "Login-Benutzer",
+        error: "Fehler",
+        databaseUrl: "Datenbank-URL",
+        database: "Datenbank",
+        public: "Public-Ordner",
+        prisma: "Prisma-Ordner",
+      };
+      return labels[key] || key;
+    };
+
+    return `
+      <div class="details">
+        ${Object.entries(details)
+          .map(
+            ([key, value]) => `
+          <div class="detail-row">
+            <span class="detail-key">${getKeyLabel(key)}:</span>
+            <span class="detail-value">${formatValue(key, value)}</span>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    `;
+  };
+
+  const renderCheck = (key: string, check: CheckResult): string => {
+    const colors = statusColors[check.status];
+    const label = checkLabels[key] || { title: key, icon: "" };
+    return `
+      <div class="check-card">
+        <div class="check-header">
+          <div class="check-icon" style="color: ${colors.bg}">
+            ${label.icon}
+          </div>
+          <div class="check-title">${label.title}</div>
+          <div class="status-badge" style="background: ${colors.light}; color: ${colors.text}">
+            ${statusIcons[check.status]}
+            <span>${check.status.toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="check-message">${check.message}</div>
+        ${renderDetails(check.details)}
+      </div>
+    `;
+  };
+
+  return `<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenLibry Health Check</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f1c2e 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .logo svg {
+      width: 48px;
+      height: 48px;
+      color: #60a5fa;
+    }
+
+    .logo-text {
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    .main-status {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: ${mainColor.light};
+      color: ${mainColor.bg};
+    }
+
+    .status-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .status-info h1 {
+      font-size: 1.5rem;
+      color: ${mainColor.text};
+      margin-bottom: 0.25rem;
+    }
+
+    .status-info p {
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .meta-info {
+      display: flex;
+      gap: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 1rem;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .meta-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+    }
+
+    .meta-value {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .checks-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .check-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .check-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .check-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .check-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .check-title {
+      font-weight: 600;
+      font-size: 1rem;
+      flex-grow: 1;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.025em;
+    }
+
+    .status-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .check-message {
+      color: #4b5563;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .details {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+    }
+
+    .detail-row {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.25rem 0;
+    }
+
+    .detail-key {
+      color: #6b7280;
+      min-width: 100px;
+    }
+
+    .detail-value {
+      color: #111827;
+      word-break: break-all;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1rem;
+      }
+
+      .meta-info {
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .status-header {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span class="logo-text">OpenLibry</span>
+      </div>
+      <p class="subtitle">Installation Health Check</p>
+    </header>
+
+    <div class="main-status">
+      <div class="status-header">
+        <div class="status-icon">
+          ${statusIcons[data.status]}
+        </div>
+        <div class="status-info">
+          <h1>${statusLabels[data.status]}</h1>
+          <p>Systemstatus zum ${new Date(data.timestamp).toLocaleString("de-DE")}</p>
+        </div>
+      </div>
+      <div class="meta-info">
+        <div class="meta-item">
+          <span class="meta-label">Version</span>
+          <span class="meta-value">${data.version || "unbekannt"}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Umgebung</span>
+          <span class="meta-value">${data.environment.nodeEnv}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Authentifizierung</span>
+          <span class="meta-value">${data.environment.authEnabled ? "Aktiviert" : "Deaktiviert"}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="checks-grid">
+      ${Object.entries(data.checks)
+        .map(([key, check]) => renderCheck(key, check))
+        .join("")}
+    </div>
+
+    <footer class="footer">
+      <button class="refresh-btn" onclick="location.reload()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        Aktualisieren
+      </button>
+      <p style="margin-top: 1rem;">
+        <a href="/api/health">JSON-Ausgabe</a> · 
+        <a href="https://github.com/jzakotnik/openlibry" target="_blank">GitHub</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>`;
+}
+
 // Helper to check if a path exists and is accessible
 function checkPath(
   filePath: string,
@@ -85,7 +548,7 @@ function getDatabasePath(): string {
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse<HealthCheckResponse | { error: string }>,
+  res: NextApiResponse<HealthCheckResponse | { error: string } | string>,
 ) {
   // Only allow GET requests
   if (req.method !== "GET") {
@@ -357,6 +820,18 @@ export default async function handle(
       : response.status === "warning"
         ? 200
         : 200;
+
+  // Check if HTML output is requested
+  const wantsHtml =
+    req.query.html !== undefined ||
+    req.query.format === "html" ||
+    (req.headers.accept?.includes("text/html") &&
+      !req.headers.accept?.includes("application/json"));
+
+  if (wantsHtml) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(httpStatus).send(generateHtmlResponse(response));
+  }
 
   return res.status(httpStatus).json(response);
 }
