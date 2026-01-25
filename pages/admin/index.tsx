@@ -328,8 +328,41 @@ export default function AdminPage() {
           alignItems="center"
           justifyContent="space-between"
           mb={4}
-        ></Stack>
-
+        ></Stack>{" "}
+        {/* Quick Actions */}
+        <Typography variant="h6" fontWeight={600} mb={2}>
+          Schnellaktionen
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <ActionCard
+              title="Excel-Backup"
+              description="Alle Daten als Excel herunterladen"
+              icon={CloudDownload}
+              onClick={handleBackup}
+              color="#10b981"
+              loading={backupLoading}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <ActionCard
+              title="System-Health"
+              description="Detaillierte Systemdiagnose"
+              icon={HealthAndSafety}
+              onClick={() => router.push("/admin/health")}
+              color="#6366f1"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <ActionCard
+              title="Einstellungen"
+              description="Konfiguration anzeigen"
+              icon={Settings}
+              onClick={() => router.push("/admin/settings")}
+              color="#8b5cf6"
+            />
+          </Grid>
+        </Grid>
         {/* Health Status Banner */}
         <Paper
           sx={{
@@ -411,42 +444,6 @@ export default function AdminPage() {
             </Stack>
           ) : null}
         </Paper>
-
-        {/* Quick Actions */}
-        <Typography variant="h6" fontWeight={600} mb={2}>
-          Schnellaktionen
-        </Typography>
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <ActionCard
-              title="Excel-Backup"
-              description="Alle Daten als Excel herunterladen"
-              icon={CloudDownload}
-              onClick={handleBackup}
-              color="#10b981"
-              loading={backupLoading}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <ActionCard
-              title="System-Health"
-              description="Detaillierte Systemdiagnose"
-              icon={HealthAndSafety}
-              onClick={() => router.push("/admin/health")}
-              color="#6366f1"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <ActionCard
-              title="Einstellungen"
-              description="Konfiguration anzeigen"
-              icon={Settings}
-              onClick={() => router.push("/admin/settings")}
-              color="#8b5cf6"
-            />
-          </Grid>
-        </Grid>
-
         {data && (
           <>
             {/* Statistics */}
