@@ -60,7 +60,11 @@ Erstelle eine `.env` Datei im openlibry folder, entweder über diesen [Link](htt
 wget -O .env https://raw.githubusercontent.com/jzakotnik/openlibry/main/.env_example
 ``` 
 
-In der `.env` Datei ist die Konfiguration gespeichert, z.B. welche Domain, wie die Anmeldung aussieht oder wie die Schule heisst. Du kannst diese jederzeit anpassen und den Container danach neu starten. 
+In der `.env` Datei ist die Konfiguration gespeichert, z.B. welche Domain, wie die Anmeldung aussieht oder wie die Schule heisst. Du kannst diese jederzeit anpassen und den Container danach neu starten. Falls Du Authentifizierung mit Login verwendest musst Du die entsprechende Domain hier einsetzen:
+```
+NEXTAUTH_URL=http://<domain>:3000
+```
+damit die URL nach dem Login korrekt aufgerufen wird.
 
 
 Erstelle eine `docker-compose.yml`:
