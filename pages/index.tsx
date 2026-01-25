@@ -6,10 +6,10 @@ import { alpha, Box, Container, Stack, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 
 interface HomeProps {
-  showBackupButton: boolean;
+  showAdminButton: boolean;
 }
 
-export default function Home({ showBackupButton }: HomeProps) {
+export default function Home({ showAdminButton }: HomeProps) {
   const router = useRouter();
 
   const handleNavigation = (slug: string) => {
@@ -22,10 +22,10 @@ export default function Home({ showBackupButton }: HomeProps) {
         minHeight: "100vh",
         background: `linear-gradient(135deg, ${alpha(
           palette.primary.light,
-          0.1
+          0.1,
         )} 0%, ${alpha(palette.primary.main, 0.05)} 50%, ${alpha(
           palette.background.default,
-          1
+          1,
         )} 100%)`,
         backgroundImage: "url(/splashbanner.jpg)",
         backgroundSize: "cover",
@@ -33,7 +33,7 @@ export default function Home({ showBackupButton }: HomeProps) {
         backgroundBlendMode: "overlay",
       }}
     >
-      <Layout showBackupButton={showBackupButton}>
+      <Layout showAdminButton={showAdminButton}>
         <Container maxWidth="lg">
           <Stack alignItems="center" spacing={6} sx={{ py: { xs: 4, md: 8 } }}>
             {/* Hero Section */}
@@ -55,7 +55,7 @@ export default function Home({ showBackupButton }: HomeProps) {
                   mb: 2,
                   textShadow: `0 2px 20px ${alpha(
                     palette.background.paper,
-                    0.8
+                    0.8,
                   )}`,
                 }}
               >
@@ -118,12 +118,17 @@ export default function Home({ showBackupButton }: HomeProps) {
 }
 
 export async function getServerSideProps() {
-  const showBackupButton =
-    parseInt(process.env.BACKUP_BUTTON_SWITCH || "1", 10) === 1;
+  const showAdminButton =
+    parseInt(
+      process.env.BACKUP_BUTTON_SWITCH ||
+        process.env.ADMIN_BUTTON_SWITCH ||
+        "1",
+      10,
+    ) === 1; //keep backup button env for backwards compatibility
 
   return {
     props: {
-      showBackupButton,
+      showAdminButton,
     },
   };
 }

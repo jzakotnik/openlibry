@@ -27,16 +27,10 @@ export default withAuth(
       requestHeaders.set(
         "Content-Security-Policy",
         // Replace newline characters and spaces
-        cspHeader.replace(/\s{2,}/g, " ").trim()
+        cspHeader.replace(/\s{2,}/g, " ").trim(),
       );
     }
-    if (req.nextUrl.pathname == "/admin") {
-      ////console.log("Admin page fetched");
 
-      return new NextResponse("No admin", {
-        status: 400,
-      });
-    }
     return NextResponse.next({
       headers: requestHeaders,
       request: {
@@ -78,5 +72,5 @@ export default withAuth(
         return true;
       },
     },
-  }
+  },
 );

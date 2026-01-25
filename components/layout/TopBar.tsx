@@ -1,6 +1,6 @@
 import palette from "@/styles/palette";
 import {
-  CloudDownload,
+  AdminPanelSettings,
   LibraryBooks,
   Menu as MenuIcon,
 } from "@mui/icons-material";
@@ -29,10 +29,10 @@ import { useState } from "react";
 import { publicNavItems } from "./NavigationItems";
 
 interface TopBarProps {
-  showBackupButton?: boolean;
+  showAdminButton?: boolean;
 }
 
-export default function TopBar({ showBackupButton = true }: TopBarProps) {
+export default function TopBar({ showAdminButton = true }: TopBarProps) {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -47,33 +47,8 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
     return router.pathname === slug || router.pathname.startsWith(slug + "/");
   };
 
-  const handleBackup = async () => {
-    try {
-      const response = await fetch("/api/excel", { method: "GET" });
-
-      if (!response.ok) {
-        throw new Error("Fehler beim Erstellen des Backups!");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const today = new Date();
-      const dateStr = `${today.getFullYear()}_${String(
-        today.getMonth() + 1
-      ).padStart(2, "0")}_${String(today.getDate()).padStart(2, "0")}`;
-      const filename = `Backup_OpenLibry_${dateStr}.xlsx`;
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err: any) {
-      alert(err.message || "Fehler beim Backup-Download!");
-    }
+  const handleAdminClick = () => {
+    router.push("/admin");
   };
 
   return (
@@ -208,7 +183,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
                     onClick={() => handleNavigation(page.slug)}
                     data-cy={`topbar_nav_button_${page.slug.replace(
                       /\//g,
-                      "_"
+                      "_",
                     )}`}
                     sx={{
                       px: 2,
@@ -248,17 +223,19 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
               })}
             </Box>
 
-            {/* Backup Button */}
-            {showBackupButton && (
-              <Tooltip title="Backup als Excel herunterladen">
+            {/* Admin Button */}
+            {showAdminButton && (
+              <Tooltip title="Administration">
                 <IconButton
-                  onClick={handleBackup}
-                  aria-label="Backup"
-                  data-cy="topbar_backup_button"
+                  onClick={handleAdminClick}
+                  aria-label="Administration"
+                  data-cy="topbar_admin_button"
                   sx={{
                     ml: 1,
                     color: "#ffffff",
-                    bgcolor: alpha("#ffffff", 0.1),
+                    bgcolor: isActivePage("/admin")
+                      ? alpha("#ffffff", 0.2)
+                      : alpha("#ffffff", 0.1),
                     border: `1px solid ${alpha("#ffffff", 0.2)}`,
                     transition: "all 0.2s ease",
                     "&:hover": {
@@ -266,12 +243,12 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
                       transform: "translateY(-2px)",
                       boxShadow: `0 4px 12px ${alpha(
                         palette.primary.dark,
-                        0.4
+                        0.4,
                       )}`,
                     },
                   }}
                 >
-                  <CloudDownload />
+                  <AdminPanelSettings />
                 </IconButton>
               </Tooltip>
             )}
@@ -291,7 +268,7 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
             bgcolor: palette.background.paper,
             backgroundImage: `linear-gradient(180deg, ${alpha(
               palette.primary.main,
-              0.03
+              0.03,
             )} 0%, transparent 100%)`,
           },
         }}
@@ -389,28 +366,33 @@ export default function TopBar({ showBackupButton = true }: TopBarProps) {
           })}
         </List>
 
-        {/* Backup Button in Drawer */}
-        {showBackupButton && (
+        {/* Admin Button in Drawer */}
+        {showAdminButton && (
           <Box sx={{ px: 2, pb: 2, mt: "auto" }}>
             <Button
               fullWidth
-              variant="outlined"
-              startIcon={<CloudDownload />}
-              onClick={handleBackup}
+              variant={isActivePage("/admin") ? "contained" : "outlined"}
+              startIcon={<AdminPanelSettings />}
+              onClick={() => handleNavigation("/admin")}
+              data-cy="topbar_menu_item_admin"
               sx={{
                 py: 1.5,
                 borderRadius: 2,
                 textTransform: "none",
                 fontWeight: 500,
                 borderColor: alpha(palette.primary.main, 0.3),
-                color: palette.primary.main,
+                color: isActivePage("/admin")
+                  ? "#ffffff"
+                  : palette.primary.main,
                 "&:hover": {
                   borderColor: palette.primary.main,
-                  bgcolor: alpha(palette.primary.main, 0.05),
+                  bgcolor: isActivePage("/admin")
+                    ? palette.primary.dark
+                    : alpha(palette.primary.main, 0.05),
                 },
               }}
             >
-              Backup herunterladen
+              Administration
             </Button>
           </Box>
         )}

@@ -45,6 +45,12 @@ sudo systemctl is-active docker
 
 Im Unterschied zur temporären Installation werden im Server Ordner für die Datenbank un die Cover angelegt, die auch verbleiben, wenn der Docker Container gelöscht oder geupdatet wird. Diese müssen entsprechende Zugangsrechte haben, damit der Docker Daemon diese nutzen kann. Falls was nicht funktioniert sind es in 90% der Fälle ein Permission Problem.
 
+Der Weg der Daten ist also intern für den Server anders als er von außen auf dem Docker Host zu sehen ist.
+![Docker Volumes Intro](../assets/dockerVolumesIntro.png)
+
+Deshalb diese Ordner erstellen:
+
+
 ```bash
 # Verzeichnis erstellen
 mkdir -p ~/openlibry
@@ -60,7 +66,11 @@ Erstelle eine `.env` Datei im openlibry folder, entweder über diesen [Link](htt
 wget -O .env https://raw.githubusercontent.com/jzakotnik/openlibry/main/.env_example
 ``` 
 
-In der `.env` Datei ist die Konfiguration gespeichert, z.B. welche Domain, wie die Anmeldung aussieht oder wie die Schule heisst. Du kannst diese jederzeit anpassen und den Container danach neu starten. 
+In der `.env` Datei ist die Konfiguration gespeichert, z.B. welche Domain, wie die Anmeldung aussieht oder wie die Schule heisst. Du kannst diese jederzeit anpassen und den Container danach neu starten. Falls Du Authentifizierung mit Login verwendest musst Du die entsprechende Domain hier einsetzen:
+```
+NEXTAUTH_URL=http://<domain>:3000
+```
+damit die URL nach dem Login korrekt aufgerufen wird.
 
 
 Erstelle eine `docker-compose.yml`:
