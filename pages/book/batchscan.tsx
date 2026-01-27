@@ -48,6 +48,9 @@ import {
   useState,
 } from "react";
 
+import { playSound } from "@/lib/utils/audioutils";
+import { generateId } from "@/lib/utils/idutils";
+
 // Status types for each scanned entry
 type ScanStatus = "loading" | "found" | "not_found" | "edited" | "error";
 
@@ -94,49 +97,6 @@ const checkCoverExists = async (
     return { exists: false };
   }
 };
-
-// Sound feedback utility
-const playSound = (type: "success" | "error" | "scan") => {
-  if (typeof window === "undefined") return;
-
-  try {
-    const audioContext = new (
-      window.AudioContext || (window as any).webkitAudioContext
-    )();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    switch (type) {
-      case "success":
-        oscillator.frequency.value = 800;
-        oscillator.type = "sine";
-        gainNode.gain.value = 0.1;
-        break;
-      case "error":
-        oscillator.frequency.value = 300;
-        oscillator.type = "square";
-        gainNode.gain.value = 0.1;
-        break;
-      case "scan":
-        oscillator.frequency.value = 1200;
-        oscillator.type = "sine";
-        gainNode.gain.value = 0.05;
-        break;
-    }
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-  } catch {
-    // Audio not supported, silently ignore
-  }
-};
-
-// Generate unique ID for entries
-const generateId = () =>
-  `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 export default function BatchScan() {
   const theme = useTheme();
