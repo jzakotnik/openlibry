@@ -368,9 +368,7 @@ export default function BatchScan() {
   const handleImport = useCallback(async () => {
     const validEntries = entries.filter(
       (e) =>
-        (e.status === "found" || e.status === "edited") &&
-        e.bookData.title &&
-        e.bookData.author,
+        (e.status === "found" || e.status === "edited") && e.bookData.title,
     );
 
     if (validEntries.length === 0) {
@@ -516,16 +514,12 @@ export default function BatchScan() {
     const withCover = entries.filter((e) => e.hasCover).length;
     const readyToImport = entries.filter(
       (e) =>
-        (e.status === "found" || e.status === "edited") &&
-        e.bookData.title &&
-        e.bookData.author,
+        (e.status === "found" || e.status === "edited") && e.bookData.title,
     ).length;
     const readyToImportBooks = entries
       .filter(
         (e) =>
-          (e.status === "found" || e.status === "edited") &&
-          e.bookData.title &&
-          e.bookData.author,
+          (e.status === "found" || e.status === "edited") && e.bookData.title,
       )
       .reduce((sum, e) => sum + e.quantity, 0);
 
@@ -760,7 +754,7 @@ function BatchScanEntryCard({
     }
   };
 
-  const isValid = entry.bookData.title && entry.bookData.author;
+  const isValid = entry.bookData.title;
 
   return (
     <Card
@@ -1044,10 +1038,6 @@ function BatchScanEntryCard({
                       value={entry.bookData.author || ""}
                       onChange={(e) =>
                         onUpdateBookData(entry.id, "author", e.target.value)
-                      }
-                      error={!entry.bookData.author}
-                      helperText={
-                        !entry.bookData.author && "Autor erforderlich"
                       }
                     />
                   </Grid>
