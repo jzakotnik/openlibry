@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { BookType } from "@/entities/BookType";
 import { currentTime } from "@/lib/utils/dateutils";
+import AddIcon from "@mui/icons-material/Add";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -10,6 +11,7 @@ import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import ImageIcon from "@mui/icons-material/Image";
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import RemoveIcon from "@mui/icons-material/Remove";
 import SaveIcon from "@mui/icons-material/Save";
 import UndoIcon from "@mui/icons-material/Undo";
 import {
@@ -59,6 +61,7 @@ interface ScannedEntry {
   coverUrl?: string; // URL to the cover image from OpenLibrary
   hasCover?: boolean; // Whether a cover was found
   coverBlob?: Blob; // The actual cover image data for upload
+  quantity: number; // Number of copies to import
 }
 
 // OpenLibrary cover URL builder
@@ -68,7 +71,7 @@ const getOpenLibraryCoverUrl = (isbn: string, size: "S" | "M" | "L" = "M") => {
 
 // Check if a cover exists at OpenLibrary
 const checkCoverExists = async (
-  isbn: string
+  isbn: string,
 ): Promise<{ exists: boolean; blob?: Blob }> => {
   try {
     const url = getOpenLibraryCoverUrl(isbn, "M");
@@ -82,7 +85,7 @@ const checkCoverExists = async (
 
     // OpenLibrary returns a 1x1 pixel image if no cover exists
     // Check if the image is larger than ~100 bytes (1x1 pixel images are tiny)
-    if (blob.size < 100) {
+    if (blob.size < 1000) {
       return { exists: false };
     }
 
@@ -97,8 +100,9 @@ const playSound = (type: "success" | "error" | "scan") => {
   if (typeof window === "undefined") return;
 
   try {
-    const audioContext = new (window.AudioContext ||
-      (window as any).webkitAudioContext)();
+    const audioContext = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
@@ -158,7 +162,7 @@ export default function BatchScan() {
 
       try {
         const response = await fetch(
-          `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`
+          `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`,
         );
         if (!response.ok) {
           return null;
@@ -168,7 +172,7 @@ export default function BatchScan() {
         return null;
       }
     },
-    []
+    [],
   );
 
   // Handle ISBN scan/input
@@ -182,10 +186,23 @@ export default function BatchScan() {
       return;
     }
 
-    // Check for duplicates
-    if (entries.some((e) => e.isbn === cleanedIsbn)) {
-      enqueueSnackbar("Diese ISBN wurde bereits gescannt", { variant: "info" });
-      playSound("error");
+    // Check for existing entry with same ISBN
+    const existingEntry = entries.find((e) => e.isbn === cleanedIsbn);
+
+    if (existingEntry) {
+      // Increment quantity of existing entry (preserves any manual edits)
+      setEntries((prev) =>
+        prev.map((entry) =>
+          entry.isbn === cleanedIsbn
+            ? { ...entry, quantity: entry.quantity + 1 }
+            : entry,
+        ),
+      );
+      playSound("scan");
+      enqueueSnackbar(
+        `"${existingEntry.bookData.title || cleanedIsbn}" - jetzt ${existingEntry.quantity + 1} Exemplare`,
+        { variant: "success" },
+      );
       setIsbnInput("");
       inputRef.current?.focus();
       return;
@@ -193,12 +210,13 @@ export default function BatchScan() {
 
     playSound("scan");
 
-    // Add entry with loading status
+    // Add new entry with loading status
     const newEntry: ScannedEntry = {
       id: generateId(),
       isbn: cleanedIsbn,
       status: "loading",
       bookData: { isbn: cleanedIsbn },
+      quantity: 1,
     };
 
     setEntries((prev) => [newEntry, ...prev]);
@@ -232,8 +250,8 @@ export default function BatchScan() {
               hasCover: coverResult.exists,
               coverBlob: coverResult.blob,
             }
-          : entry
-      )
+          : entry,
+      ),
     );
 
     if (bookData) {
@@ -248,7 +266,7 @@ export default function BatchScan() {
         "ISBN nicht in Datenbank gefunden - manuelle Eingabe möglich",
         {
           variant: "warning",
-        }
+        },
       );
     }
   }, [isbnInput, entries, fetchBookData, enqueueSnackbar]);
@@ -268,7 +286,7 @@ export default function BatchScan() {
       enqueueSnackbar("Eintrag gelöscht", { variant: "info" });
       inputRef.current?.focus();
     },
-    [enqueueSnackbar]
+    [enqueueSnackbar],
   );
 
   // Toggle edit mode for an entry
@@ -277,8 +295,8 @@ export default function BatchScan() {
       prev.map((entry) =>
         entry.id === id
           ? { ...entry, isEditing: !entry.isEditing, status: "edited" }
-          : entry
-      )
+          : entry,
+      ),
     );
   }, []);
 
@@ -293,20 +311,42 @@ export default function BatchScan() {
                 bookData: { ...entry.bookData, [field]: value },
                 status: "edited",
               }
-            : entry
-        )
+            : entry,
+        ),
       );
     },
-    []
+    [],
   );
+
+  // Update quantity for an entry
+  const handleUpdateQuantity = useCallback((id: string, delta: number) => {
+    setEntries((prev) =>
+      prev.map((entry) => {
+        if (entry.id !== id) return entry;
+        const newQuantity = Math.max(1, entry.quantity + delta);
+        return { ...entry, quantity: newQuantity };
+      }),
+    );
+  }, []);
+
+  // Set quantity directly for an entry
+  const handleSetQuantity = useCallback((id: string, quantity: number) => {
+    setEntries((prev) =>
+      prev.map((entry) => {
+        if (entry.id !== id) return entry;
+        const newQuantity = Math.max(1, quantity);
+        return { ...entry, quantity: newQuantity };
+      }),
+    );
+  }, []);
 
   // Retry fetching data for an entry
   const handleRetry = useCallback(
     async (id: string, isbn: string) => {
       setEntries((prev) =>
         prev.map((entry) =>
-          entry.id === id ? { ...entry, status: "loading" } : entry
-        )
+          entry.id === id ? { ...entry, status: "loading" } : entry,
+        ),
       );
 
       const [bookData, coverResult] = await Promise.all([
@@ -329,8 +369,8 @@ export default function BatchScan() {
                 hasCover: coverResult.exists,
                 coverBlob: coverResult.blob,
               }
-            : entry
-        )
+            : entry,
+        ),
       );
 
       if (bookData) {
@@ -341,13 +381,13 @@ export default function BatchScan() {
         enqueueSnackbar("Weiterhin nicht gefunden", { variant: "warning" });
       }
     },
-    [fetchBookData, enqueueSnackbar]
+    [fetchBookData, enqueueSnackbar],
   );
 
   // Upload cover image for a book
   const uploadCover = async (
     bookId: number,
-    coverBlob: Blob
+    coverBlob: Blob,
   ): Promise<boolean> => {
     try {
       const formData = new FormData();
@@ -370,16 +410,19 @@ export default function BatchScan() {
       (e) =>
         (e.status === "found" || e.status === "edited") &&
         e.bookData.title &&
-        e.bookData.author
+        e.bookData.author,
     );
 
     if (validEntries.length === 0) {
       enqueueSnackbar(
         "Keine gültigen Einträge zum Importieren (Titel und Autor erforderlich)",
-        { variant: "warning" }
+        { variant: "warning" },
       );
       return;
     }
+
+    // Calculate total books to import (sum of quantities)
+    const totalBooks = validEntries.reduce((sum, e) => sum + e.quantity, 0);
 
     setIsImporting(true);
     setImportProgress(0);
@@ -396,63 +439,69 @@ export default function BatchScan() {
       ids: [],
     };
 
-    for (let i = 0; i < validEntries.length; i++) {
-      const entry = validEntries[i];
+    let processedBooks = 0;
 
-      const book: BookType = {
-        title: entry.bookData.title || "",
-        subtitle: entry.bookData.subtitle || "",
-        author: entry.bookData.author || "",
-        renewalCount: 0,
-        rentalStatus: "available",
-        topics: entry.bookData.topics || ";",
-        rentedDate: currentTime(),
-        dueDate: currentTime(),
-        isbn: entry.bookData.isbn,
-        publisherName: entry.bookData.publisherName,
-        publisherLocation: entry.bookData.publisherLocation,
-        publisherDate: entry.bookData.publisherDate,
-        pages: entry.bookData.pages,
-        summary: entry.bookData.summary,
-        minAge: entry.bookData.minAge,
-        maxAge: entry.bookData.maxAge,
-        price: entry.bookData.price,
-        externalLinks: entry.bookData.externalLinks,
-        physicalSize: entry.bookData.physicalSize,
-        otherPhysicalAttributes: entry.bookData.otherPhysicalAttributes,
-        editionDescription: entry.bookData.editionDescription,
-      };
+    for (const entry of validEntries) {
+      // Import each copy of this book
+      for (let copyIndex = 0; copyIndex < entry.quantity; copyIndex++) {
+        const book: BookType = {
+          title: entry.bookData.title || "",
+          subtitle: entry.bookData.subtitle || "",
+          author: entry.bookData.author || "",
+          renewalCount: 0,
+          rentalStatus: "available",
+          topics: entry.bookData.topics || ";",
+          rentedDate: currentTime(),
+          dueDate: currentTime(),
+          isbn: entry.bookData.isbn,
+          publisherName: entry.bookData.publisherName,
+          publisherLocation: entry.bookData.publisherLocation,
+          publisherDate: entry.bookData.publisherDate,
+          pages: entry.bookData.pages,
+          summary: entry.bookData.summary,
+          minAge: entry.bookData.minAge,
+          maxAge: entry.bookData.maxAge,
+          price: entry.bookData.price,
+          externalLinks: entry.bookData.externalLinks,
+          physicalSize: entry.bookData.physicalSize,
+          otherPhysicalAttributes: entry.bookData.otherPhysicalAttributes,
+          editionDescription: entry.bookData.editionDescription,
+        };
 
-      try {
-        const response = await fetch("/api/book", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(book),
-        });
+        try {
+          const response = await fetch("/api/book", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(book),
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          results.success++;
-          results.ids.push(data.id);
+          if (response.ok) {
+            const data = await response.json();
+            results.success++;
+            results.ids.push(data.id);
 
-          // Upload cover if available
-          if (entry.hasCover && entry.coverBlob && data.id) {
-            const coverUploaded = await uploadCover(data.id, entry.coverBlob);
-            if (coverUploaded) {
-              results.coversUploaded++;
+            // Upload cover for each copy (each book has its own ID)
+            if (entry.hasCover && entry.coverBlob && data.id) {
+              const coverUploaded = await uploadCover(data.id, entry.coverBlob);
+              if (coverUploaded) {
+                results.coversUploaded++;
+              }
             }
+          } else {
+            results.failed++;
           }
-
-          // Remove successfully imported entry
-          setEntries((prev) => prev.filter((e) => e.id !== entry.id));
-        } else {
+        } catch {
           results.failed++;
         }
-      } catch {
-        results.failed++;
+
+        processedBooks++;
+        setImportProgress((processedBooks / totalBooks) * 100);
       }
 
-      setImportProgress(((i + 1) / validEntries.length) * 100);
+      // Remove successfully imported entry (all copies done)
+      if (results.failed === 0 || results.success > 0) {
+        setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+      }
     }
 
     setIsImporting(false);
@@ -465,7 +514,7 @@ export default function BatchScan() {
           : "";
       enqueueSnackbar(
         `${results.success} Buch/Bücher erfolgreich importiert!${coverInfo}`,
-        { variant: "success" }
+        { variant: "success" },
       );
     }
 
@@ -474,7 +523,7 @@ export default function BatchScan() {
         `${results.failed} Buch/Bücher konnten nicht importiert werden`,
         {
           variant: "error",
-        }
+        },
       );
     }
 
@@ -494,10 +543,14 @@ export default function BatchScan() {
 
   // Stats for the summary bar
   const stats = useMemo(() => {
-    const total = entries.length;
+    const totalEntries = entries.length;
+    const totalBooks = entries.reduce((sum, e) => sum + e.quantity, 0);
     const found = entries.filter(
-      (e) => e.status === "found" || e.status === "edited"
+      (e) => e.status === "found" || e.status === "edited",
     ).length;
+    const foundBooks = entries
+      .filter((e) => e.status === "found" || e.status === "edited")
+      .reduce((sum, e) => sum + e.quantity, 0);
     const notFound = entries.filter((e) => e.status === "not_found").length;
     const loading = entries.filter((e) => e.status === "loading").length;
     const withCover = entries.filter((e) => e.hasCover).length;
@@ -505,10 +558,28 @@ export default function BatchScan() {
       (e) =>
         (e.status === "found" || e.status === "edited") &&
         e.bookData.title &&
-        e.bookData.author
+        e.bookData.author,
     ).length;
+    const readyToImportBooks = entries
+      .filter(
+        (e) =>
+          (e.status === "found" || e.status === "edited") &&
+          e.bookData.title &&
+          e.bookData.author,
+      )
+      .reduce((sum, e) => sum + e.quantity, 0);
 
-    return { total, found, notFound, loading, withCover, readyToImport };
+    return {
+      totalEntries,
+      totalBooks,
+      found,
+      foundBooks,
+      notFound,
+      loading,
+      withCover,
+      readyToImport,
+      readyToImportBooks,
+    };
   }, [entries]);
 
   return (
@@ -537,7 +608,7 @@ export default function BatchScan() {
                   </InputAdornment>
                 ),
               }}
-              helperText="Drücken Sie Enter oder klicken Sie auf 'Hinzufügen' nach dem Scannen"
+              helperText="Gleiche ISBN mehrfach scannen erhöht die Anzahl"
             />
             <Button
               variant="contained"
@@ -562,13 +633,13 @@ export default function BatchScan() {
             >
               <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
                 <Chip
-                  label={`Gesamt: ${stats.total}`}
+                  label={`Einträge: ${stats.totalEntries} (${stats.totalBooks} Bücher)`}
                   variant="outlined"
                   size="small"
                 />
                 <Chip
                   icon={<CheckCircleIcon />}
-                  label={`Gefunden: ${stats.found}`}
+                  label={`Gefunden: ${stats.found} (${stats.foundBooks} Bücher)`}
                   color="success"
                   variant="outlined"
                   size="small"
@@ -619,12 +690,12 @@ export default function BatchScan() {
                     )
                   }
                   onClick={handleImport}
-                  disabled={isImporting || stats.readyToImport === 0}
+                  disabled={isImporting || stats.readyToImportBooks === 0}
                   data-cy="batch-scan-import-button"
                 >
                   {isImporting
                     ? "Importiere..."
-                    : `${stats.readyToImport} Bücher importieren`}
+                    : `${stats.readyToImportBooks} Bücher importieren`}
                 </Button>
               </Stack>
             </Stack>
@@ -661,6 +732,8 @@ export default function BatchScan() {
                 onDelete={handleDelete}
                 onToggleEdit={handleToggleEdit}
                 onUpdateBookData={handleUpdateBookData}
+                onUpdateQuantity={handleUpdateQuantity}
+                onSetQuantity={handleSetQuantity}
                 onRetry={handleRetry}
               />
             ))}
@@ -679,8 +752,10 @@ interface BatchScanEntryCardProps {
   onUpdateBookData: (
     id: string,
     field: keyof BookType,
-    value: string | number
+    value: string | number,
   ) => void;
+  onUpdateQuantity: (id: string, delta: number) => void;
+  onSetQuantity: (id: string, quantity: number) => void;
   onRetry: (id: string, isbn: string) => void;
 }
 
@@ -689,6 +764,8 @@ function BatchScanEntryCard({
   onDelete,
   onToggleEdit,
   onUpdateBookData,
+  onUpdateQuantity,
+  onSetQuantity,
   onRetry,
 }: BatchScanEntryCardProps) {
   const theme = useTheme();
@@ -761,7 +838,69 @@ function BatchScanEntryCard({
               </Tooltip>
             )}
           </Stack>
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            {/* Quantity Controls */}
+            {entry.status !== "loading" && (
+              <Stack
+                direction="row"
+                spacing={0.5}
+                alignItems="center"
+                sx={{
+                  bgcolor: theme.palette.grey[100],
+                  borderRadius: 1,
+                  px: 1,
+                  py: 0.5,
+                }}
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => onUpdateQuantity(entry.id, -1)}
+                  disabled={entry.quantity <= 1}
+                  sx={{ p: 0.5 }}
+                >
+                  <RemoveIcon fontSize="small" />
+                </IconButton>
+                <TextField
+                  size="small"
+                  type="number"
+                  value={entry.quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    if (!isNaN(val)) {
+                      onSetQuantity(entry.id, val);
+                    }
+                  }}
+                  inputProps={{
+                    min: 1,
+                    style: {
+                      textAlign: "center",
+                      width: 40,
+                      padding: "4px",
+                    },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { border: "none" },
+                    },
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={() => onUpdateQuantity(entry.id, 1)}
+                  sx={{ p: 0.5 }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ ml: 0.5 }}
+                >
+                  {entry.quantity === 1 ? "Exemplar" : "Exemplare"}
+                </Typography>
+              </Stack>
+            )}
+
             {entry.status === "not_found" && (
               <Tooltip title="Erneut suchen">
                 <IconButton
@@ -973,7 +1112,7 @@ function BatchScanEntryCard({
                         onUpdateBookData(
                           entry.id,
                           "publisherName",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                     />
@@ -988,7 +1127,7 @@ function BatchScanEntryCard({
                         onUpdateBookData(
                           entry.id,
                           "publisherLocation",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                     />
@@ -1003,7 +1142,7 @@ function BatchScanEntryCard({
                         onUpdateBookData(
                           entry.id,
                           "publisherDate",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                     />
@@ -1019,7 +1158,7 @@ function BatchScanEntryCard({
                         onUpdateBookData(
                           entry.id,
                           "pages",
-                          parseInt(e.target.value) || 0
+                          parseInt(e.target.value) || 0,
                         )
                       }
                     />
