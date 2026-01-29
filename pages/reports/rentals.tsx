@@ -3,13 +3,23 @@ import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
-import { Typography } from "@mui/material";
+import { Download, PictureAsPdf } from "@mui/icons-material";
+import { Button, Stack, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import { deDE as coreDeDE } from "@mui/material/locale";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 import { deDE } from "@mui/x-data-grid/locales";
+import {
+  Document,
+  Page,
+  pdf,
+  StyleSheet,
+  Text,
+  View,
+} from "@react-pdf/renderer";
 import dayjs from "dayjs";
+import Excel from "exceljs";
 import { useEffect, useState } from "react";
 
 const theme = createTheme(
@@ -19,7 +29,7 @@ const theme = createTheme(
     },
   },
   deDE,
-  coreDeDE
+  coreDeDE,
 );
 
 interface RentalData {
@@ -52,6 +62,342 @@ function getWidth(columnName: string = ""): number {
   return COLUMN_WIDTHS[columnName] ?? DEFAULT_COLUMN_WIDTH;
 }
 
+// =============================================================================
+// PDF Styles
+// =============================================================================
+
+const pdfStyles = StyleSheet.create({
+  page: {
+    padding: 30,
+    fontSize: 10,
+    fontFamily: "Helvetica",
+  },
+  header: {
+    marginBottom: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: "#1976d2",
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1976d2",
+  },
+  subtitle: {
+    fontSize: 10,
+    color: "#666",
+    marginTop: 4,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 10,
+    padding: 8,
+    backgroundColor: "#f5f5f5",
+  },
+  sectionTitleOverdue: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 10,
+    padding: 8,
+    backgroundColor: "#ffebee",
+    color: "#c62828",
+  },
+  table: {
+    width: "100%",
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#1976d2",
+    color: "#fff",
+    fontWeight: "bold",
+    padding: 6,
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    padding: 6,
+  },
+  tableRowOverdue: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ffcdd2",
+    padding: 6,
+    backgroundColor: "#fff5f5",
+  },
+  colId: { width: "8%" },
+  colTitle: { width: "28%", paddingRight: 4 },
+  colAuthor: { width: "18%", paddingRight: 4 },
+  colName: { width: "18%", paddingRight: 4 },
+  colGrade: { width: "8%" },
+  colDue: { width: "12%" },
+  colDays: { width: "8%", textAlign: "right" },
+  headerText: { color: "#fff", fontWeight: "bold" },
+  overdueText: { color: "#c62828" },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 30,
+    right: 30,
+    fontSize: 8,
+    color: "#999",
+    textAlign: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    paddingTop: 10,
+  },
+  emptyMessage: {
+    padding: 20,
+    textAlign: "center",
+    color: "#666",
+    fontStyle: "italic",
+  },
+});
+
+// =============================================================================
+// PDF Document Component
+// =============================================================================
+
+interface RentalsPdfProps {
+  overdueRentals: RentalData[];
+  regularRentals: RentalData[];
+  columns: any[];
+}
+
+const RentalsPdfDocument = ({
+  overdueRentals,
+  regularRentals,
+  columns,
+}: RentalsPdfProps) => {
+  const today = new Date().toLocaleDateString("de-DE");
+
+  const getColumnHeader = (field: string) => {
+    const col = columns.find((c) => c.field === field);
+    return col?.headerName || field;
+  };
+
+  const TableHeader = () => (
+    <View style={pdfStyles.tableHeader}>
+      <Text style={[pdfStyles.colId, pdfStyles.headerText]}>
+        {getColumnHeader("id")}
+      </Text>
+      <Text style={[pdfStyles.colTitle, pdfStyles.headerText]}>
+        {getColumnHeader("title")}
+      </Text>
+      <Text style={[pdfStyles.colName, pdfStyles.headerText]}>Name</Text>
+      <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
+        {getColumnHeader("schoolGrade")}
+      </Text>
+      <Text style={[pdfStyles.colDue, pdfStyles.headerText]}>
+        {getColumnHeader("dueDate")}
+      </Text>
+      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>
+        {getColumnHeader("remainingDays")}
+      </Text>
+    </View>
+  );
+
+  const TableRow = ({
+    row,
+    isOverdue,
+  }: {
+    row: RentalData;
+    isOverdue: boolean;
+  }) => (
+    <View style={isOverdue ? pdfStyles.tableRowOverdue : pdfStyles.tableRow}>
+      <Text style={pdfStyles.colId}>{row.id}</Text>
+      <Text style={pdfStyles.colTitle}>
+        {String(row.title || "").substring(0, 35)}
+      </Text>
+      <Text style={pdfStyles.colName}>
+        {`${row.lastName || ""}, ${row.firstName || ""}`.substring(0, 20)}
+      </Text>
+      <Text style={pdfStyles.colGrade}>{row.schoolGrade || ""}</Text>
+      <Text style={pdfStyles.colDue}>{row.dueDate}</Text>
+      <Text
+        style={
+          isOverdue
+            ? [pdfStyles.colDays, pdfStyles.overdueText]
+            : pdfStyles.colDays
+        }
+      >
+        {row.remainingDays}
+      </Text>
+    </View>
+  );
+
+  return (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        {/* Header */}
+        <View style={pdfStyles.header}>
+          <Text style={pdfStyles.title}>Ausleihübersicht</Text>
+          <Text style={pdfStyles.subtitle}>
+            Erstellt am {today} •{" "}
+            {overdueRentals.length + regularRentals.length} Ausleihen gesamt
+          </Text>
+        </View>
+
+        {/* Overdue Section */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitleOverdue}>
+            ⚠ Überfällige Ausleihen ({overdueRentals.length})
+          </Text>
+          {overdueRentals.length > 0 ? (
+            <View style={pdfStyles.table}>
+              <TableHeader />
+              {overdueRentals.map((row) => (
+                <TableRow key={row.id} row={row} isOverdue={true} />
+              ))}
+            </View>
+          ) : (
+            <Text style={pdfStyles.emptyMessage}>
+              Keine überfälligen Ausleihen
+            </Text>
+          )}
+        </View>
+
+        {/* Regular Rentals Section */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>
+            Aktuelle Ausleihen ({regularRentals.length})
+          </Text>
+          {regularRentals.length > 0 ? (
+            <View style={pdfStyles.table}>
+              <TableHeader />
+              {regularRentals.map((row) => (
+                <TableRow key={row.id} row={row} isOverdue={false} />
+              ))}
+            </View>
+          ) : (
+            <Text style={pdfStyles.emptyMessage}>
+              Keine aktuellen Ausleihen
+            </Text>
+          )}
+        </View>
+
+        {/* Footer */}
+        <Text style={pdfStyles.footer}>
+          OpenLibry • Ausleihbericht vom {today}
+        </Text>
+      </Page>
+    </Document>
+  );
+};
+
+/**
+ * Export data to PDF and trigger download
+ */
+async function exportToPdf(columns: any[], rows: RentalData[]) {
+  // Split into overdue and regular
+  const overdueRentals = rows
+    .filter((r) => r.remainingDays < 0)
+    .sort((a, b) => a.remainingDays - b.remainingDays); // Most overdue first
+
+  const regularRentals = rows
+    .filter((r) => r.remainingDays >= 0)
+    .sort((a, b) => a.remainingDays - b.remainingDays); // Soonest due first
+
+  // Generate PDF blob
+  const blob = await pdf(
+    <RentalsPdfDocument
+      overdueRentals={overdueRentals}
+      regularRentals={regularRentals}
+      columns={columns}
+    />,
+  ).toBlob();
+
+  // Download
+  const today = new Date().toISOString().split("T")[0];
+  const filename = `ausleihen_${today}.pdf`;
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/**
+ * Export data to Excel and trigger download
+ */
+async function exportToExcel(columns: any[], rows: any[]) {
+  const workbook = new Excel.Workbook();
+  workbook.creator = "OpenLibry";
+  workbook.created = new Date();
+
+  const sheet = workbook.addWorksheet("Ausleihen");
+
+  // Set up columns from DataGrid columns
+  sheet.columns = columns
+    .filter((col) => col.field !== "__check__")
+    .map((col) => ({
+      header: col.headerName || col.field,
+      key: col.field,
+      width: Math.max(col.width / 7, 10),
+    }));
+
+  // Style header row
+  const headerRow = sheet.getRow(1);
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4472C4" },
+    };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+  });
+  headerRow.height = 22;
+
+  // Add data rows
+  rows.forEach((row) => {
+    const excelRow = sheet.addRow(row);
+
+    // Highlight overdue rows (negative remaining days)
+    if (row.remainingDays < 0) {
+      excelRow.eachCell((cell) => {
+        cell.font = { color: { argb: "FFCC0000" } };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFCE4D6" },
+        };
+      });
+    }
+  });
+
+  // Add autofilter
+  if (rows.length > 0) {
+    sheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: rows.length + 1, column: columns.length },
+    };
+  }
+
+  // Freeze header row
+  sheet.views = [{ state: "frozen", ySplit: 1 }];
+
+  // Generate file and download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const today = new Date().toISOString().split("T")[0];
+  const filename = `ausleihen_${today}.xlsx`;
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
 export default function Rentals({ rentals, error }: RentalsPropsType) {
   const [reportData, setReportData] = useState<{
     columns: any[];
@@ -60,7 +406,6 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
   const [reportDataAvailable, setReportDataAvailable] = useState(false);
 
   useEffect(() => {
-    // Handle error state
     if (error || !rentals) {
       setReportDataAvailable(false);
       return;
@@ -74,7 +419,6 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
         const fields = Object.keys(colTitles);
 
         const columns = fields.map((f: string) => {
-          // Safe translation lookup with fallback
           const rentalTranslations = translations?.rentals;
           const fieldTranslation =
             rentalTranslations && typeof rentalTranslations === "object"
@@ -89,7 +433,6 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
         });
 
         const rows = rentals.map((r: RentalData) => {
-          // Safe rental status translation
           const statusTranslations = translations?.rentalStatus;
           const translatedStatus =
             statusTranslations &&
@@ -115,6 +458,14 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
     }
   }, [rentals, error]);
 
+  const handleExcelExport = () => {
+    exportToExcel(reportData.columns, reportData.rows);
+  };
+
+  const handlePdfExport = () => {
+    exportToPdf(reportData.columns, reportData.rows);
+  };
+
   return (
     <Layout>
       <ThemeProvider theme={theme}>
@@ -132,18 +483,38 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
               Fehler beim Laden der Daten: {error}
             </Typography>
           ) : reportDataAvailable ? (
-            <DataGrid
-              autoHeight
-              columns={reportData.columns}
-              rows={reportData.rows}
-              initialState={{
-                pagination: {
-                  paginationModel: { pageSize: 25 },
-                },
-              }}
-              pageSizeOptions={[25, 50, 80]}
-              //autoPageSize // Adjust page size based on container height
-            />
+            <>
+              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Download />}
+                  onClick={handleExcelExport}
+                  data-cy="rentals-excel-export"
+                >
+                  Excel Export
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<PictureAsPdf />}
+                  onClick={handlePdfExport}
+                  data-cy="rentals-pdf-export"
+                >
+                  PDF Export
+                </Button>
+              </Stack>
+              <DataGrid
+                autoHeight
+                columns={reportData.columns}
+                rows={reportData.rows}
+                initialState={{
+                  pagination: {
+                    paginationModel: { pageSize: 25 },
+                  },
+                }}
+                pageSizeOptions={[25, 50, 80]}
+              />
+            </>
           ) : (
             <Typography data-cy="rentals-no-data">
               Keine Daten verfügbar
@@ -169,10 +540,9 @@ export async function getServerSideProps() {
     }
 
     const rentals = allRentals.map((r) => {
-      // Safe date handling
       const due = r.dueDate ? dayjs(r.dueDate) : dayjs();
       const today = dayjs();
-      const diff = due.diff(today, "days"); // Fixed: was today.diff(due)
+      const diff = due.diff(today, "days");
 
       return {
         id: r.id,
@@ -189,7 +559,7 @@ export async function getServerSideProps() {
 
     return {
       props: {
-        rentals: JSON.parse(JSON.stringify(rentals)), // Ensure serialization
+        rentals: JSON.parse(JSON.stringify(rentals)),
       },
     };
   } catch (error) {
