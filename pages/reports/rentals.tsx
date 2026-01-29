@@ -493,6 +493,10 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
     exportToPdf(reportData.columns, reportData.rows);
   };
 
+  const overdueCount = reportData.rows.filter(
+    (r) => r.remainingDays < 0,
+  ).length;
+
   return (
     <Layout>
       <ThemeProvider theme={theme}>
@@ -511,24 +515,43 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
             </Typography>
           ) : reportDataAvailable ? (
             <>
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<Download />}
-                  onClick={handleExcelExport}
-                  data-cy="rentals-excel-export"
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ mb: 2 }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: overdueCount > 0 ? "#c62828" : "#2e7d32",
+                    fontWeight: "bold",
+                  }}
+                  data-cy="rentals-overdue-count"
                 >
-                  Excel Export
-                </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<PictureAsPdf />}
-                  onClick={handlePdfExport}
-                  data-cy="rentals-pdf-export"
-                >
-                  PDF Export
-                </Button>
+                  {overdueCount > 0
+                    ? `⚠ ${overdueCount} Buch${overdueCount !== 1 ? "er" : ""} überfällig`
+                    : "✓ Keine überfälligen Bücher"}
+                </Typography>
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    variant="contained"
+                    startIcon={<Download />}
+                    onClick={handleExcelExport}
+                    data-cy="rentals-excel-export"
+                  >
+                    Excel Export
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<PictureAsPdf />}
+                    onClick={handlePdfExport}
+                    data-cy="rentals-pdf-export"
+                  >
+                    PDF Export
+                  </Button>
+                </Stack>
               </Stack>
               <DataGrid
                 autoHeight
