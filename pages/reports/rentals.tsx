@@ -69,42 +69,45 @@ function getWidth(columnName: string = ""): number {
 const pdfStyles = StyleSheet.create({
   page: {
     padding: 30,
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica",
   },
   header: {
     marginBottom: 20,
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: "#1976d2",
-    paddingBottom: 10,
+    paddingBottom: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#1976d2",
   },
   subtitle: {
     fontSize: 10,
     color: "#666",
-    marginTop: 4,
+    marginTop: 6,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 8,
     padding: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#e3f2fd",
+    color: "#1565c0",
+    borderRadius: 2,
   },
   sectionTitleOverdue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 8,
     padding: 8,
     backgroundColor: "#ffebee",
     color: "#c62828",
+    borderRadius: 2,
   },
   table: {
     width: "100%",
@@ -112,32 +115,39 @@ const pdfStyles = StyleSheet.create({
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#1976d2",
-    color: "#fff",
-    fontWeight: "bold",
-    padding: 6,
+    padding: 8,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
-    padding: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: "#ffffff",
   },
   tableRowOverdue: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#ffcdd2",
-    padding: 6,
-    backgroundColor: "#fff5f5",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: "#fff8f8",
   },
-  colId: { width: "8%" },
-  colTitle: { width: "28%", paddingRight: 4 },
-  colAuthor: { width: "18%", paddingRight: 4 },
-  colName: { width: "18%", paddingRight: 4 },
-  colGrade: { width: "8%" },
-  colDue: { width: "12%" },
-  colDays: { width: "8%", textAlign: "right" },
+  tableRowAlt: {
+    backgroundColor: "#fafafa",
+  },
+  colId: { width: "7%" },
+  colTitle: { width: "25%", paddingRight: 4 },
+  colName: { width: "16%", paddingRight: 4 },
+  colGrade: { width: "7%" },
+  colDue: { width: "11%" },
+  colDays: { width: "22%" },
+  colRenewal: { width: "12%", textAlign: "center" },
   headerText: { color: "#fff", fontWeight: "bold" },
-  overdueText: { color: "#c62828" },
+  overdueText: { color: "#c62828", fontWeight: "bold" },
+  okText: { color: "#2e7d32" },
   footer: {
     position: "absolute",
     bottom: 30,
@@ -195,11 +205,22 @@ const RentalsPdfDocument = ({
       <Text style={[pdfStyles.colDue, pdfStyles.headerText]}>
         {getColumnHeader("dueDate")}
       </Text>
-      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>
-        {getColumnHeader("remainingDays")}
+      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>Verzug</Text>
+      <Text style={[pdfStyles.colRenewal, pdfStyles.headerText]}>
+        {getColumnHeader("renewalCount")}
       </Text>
     </View>
   );
+
+  const formatRemainingDays = (days: number): string => {
+    if (days < 0) {
+      return `${Math.abs(days)} Tag${Math.abs(days) !== 1 ? "e" : ""} überfällig`;
+    } else if (days === 0) {
+      return "Heute fällig";
+    } else {
+      return `noch ${days} Tag${days !== 1 ? "e" : ""}`;
+    }
+  };
 
   const TableRow = ({
     row,
@@ -211,10 +232,10 @@ const RentalsPdfDocument = ({
     <View style={isOverdue ? pdfStyles.tableRowOverdue : pdfStyles.tableRow}>
       <Text style={pdfStyles.colId}>{row.id}</Text>
       <Text style={pdfStyles.colTitle}>
-        {String(row.title || "").substring(0, 35)}
+        {String(row.title || "").substring(0, 30)}
       </Text>
       <Text style={pdfStyles.colName}>
-        {`${row.lastName || ""}, ${row.firstName || ""}`.substring(0, 20)}
+        {`${row.lastName || ""}, ${row.firstName || ""}`.substring(0, 18)}
       </Text>
       <Text style={pdfStyles.colGrade}>{row.schoolGrade || ""}</Text>
       <Text style={pdfStyles.colDue}>{row.dueDate}</Text>
@@ -222,10 +243,13 @@ const RentalsPdfDocument = ({
         style={
           isOverdue
             ? [pdfStyles.colDays, pdfStyles.overdueText]
-            : pdfStyles.colDays
+            : [pdfStyles.colDays, pdfStyles.okText]
         }
       >
-        {row.remainingDays}
+        {formatRemainingDays(row.remainingDays)}
+      </Text>
+      <Text style={pdfStyles.colRenewal}>
+        {row.renewalCount > 0 ? `${row.renewalCount}x` : "-"}
       </Text>
     </View>
   );
@@ -239,6 +263,9 @@ const RentalsPdfDocument = ({
           <Text style={pdfStyles.subtitle}>
             Erstellt am {today} •{" "}
             {overdueRentals.length + regularRentals.length} Ausleihen gesamt
+            {overdueRentals.length > 0
+              ? ` • davon ${overdueRentals.length} überfällig`
+              : ""}
           </Text>
         </View>
 
@@ -361,7 +388,7 @@ async function exportToExcel(columns: any[], rows: any[]) {
     // Highlight overdue rows (negative remaining days)
     if (row.remainingDays < 0) {
       excelRow.eachCell((cell) => {
-        cell.font = { color: { argb: "FFCC0000" } };
+        cell.font = { color: { argb: "FFCC0000" }, bold: true };
         cell.fill = {
           type: "pattern",
           pattern: "solid",
