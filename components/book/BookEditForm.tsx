@@ -79,12 +79,18 @@ export default function BookEditForm({
   const [isbnInput, setIsbnInput] = useState("");
 
   const handleAutoFillFromISBN = async () => {
-    if (!isbnInput) {
+    if (!(isbnInput || book.isbn)) {
       enqueueSnackbar("Bitte geben Sie eine ISBN ein.", { variant: "warning" });
       return;
     }
+    if (!isbnInput || book.isbn) {
+      enqueueSnackbar(
+        "Es wird die bereits eingegebene ISBN für die Suche verwendet.",
+        { variant: "warning" },
+      );
+    }
     // Remove all non-digit characters from the input
-    const cleanedIsbn = isbnInput.replace(/\D/g, "");
+    const cleanedIsbn = (isbnInput || book.isbn || "").replace(/\D/g, "");
     if (!cleanedIsbn) {
       enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
         variant: "warning",
@@ -93,12 +99,12 @@ export default function BookEditForm({
     }
     try {
       const response = await fetch(
-        `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`
+        `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`,
       );
       if (!response.ok) {
         enqueueSnackbar(
           "Stammdaten wurden leider nicht gefunden mit dieser ISBN..",
-          { variant: "error" }
+          { variant: "error" },
         );
         return;
       }
@@ -147,7 +153,7 @@ export default function BookEditForm({
     setFetchingCover(true);
     try {
       const response = await fetch(
-        `/api/book/fetchCover?isbn=${cleanedIsbn}&bookId=${book.id}`
+        `/api/book/fetchCover?isbn=${cleanedIsbn}&bookId=${book.id}`,
       );
       const data = await response.json();
 
@@ -155,7 +161,7 @@ export default function BookEditForm({
         setLoadingImage(Math.floor(Math.random() * 10000));
         enqueueSnackbar(
           `Cover wurde erfolgreich von ${data.source || "unbekannt"} geladen.`,
-          { variant: "success" }
+          { variant: "success" },
         );
       } else {
         enqueueSnackbar(data.error || "Cover konnte nicht gefunden werden.", {
