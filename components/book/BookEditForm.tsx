@@ -53,6 +53,14 @@ type BookEditFormPropType = {
   cancelAction?: () => void;
   /** Optional flag to show saving state */
   isSaving?: boolean;
+  /** Cover preview URL for new books (blob URL from memory) */
+  coverPreviewUrl?: string;
+  /** Whether autofill has been attempted (to show appropriate placeholder) */
+  autofillAttempted?: boolean;
+  /** External autofill handler for new books (fetches data + cover) */
+  onAutoFill?: (isbn: string) => Promise<void>;
+  /** External autofill loading state */
+  isAutoFilling?: boolean;
 };
 
 export default function BookEditForm({
@@ -66,20 +74,29 @@ export default function BookEditForm({
   isNewBook = false,
   cancelAction,
   isSaving = false,
+  coverPreviewUrl,
+  autofillAttempted = false,
+  onAutoFill,
+  isAutoFilling: externalIsAutoFilling,
 }: BookEditFormPropType) {
   // For new books, always start in edit mode
-  const [editable, setEditable] = useState(isNewBook ? true : true);
+  const [editable, setEditable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1);
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const [fetchingCover, setFetchingCover] = useState(false);
-  const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
   const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   const { enqueueSnackbar } = useSnackbar();
 
+  // Use external loading state if provided, otherwise internal
+  const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
+
   /**
-   * Handle auto-fill from ISBN - uses book.isbn directly (unified field)
+   * Handle auto-fill from ISBN
+   * For new books: delegates to external handler (which also fetches cover)
+   * For existing books: uses internal logic
    */
   const handleAutoFillFromISBN = useCallback(async () => {
     if (!book.isbn) {
@@ -87,7 +104,13 @@ export default function BookEditForm({
       return;
     }
 
-    // Remove all non-digit and non-X characters from the input
+    // For new books, use external handler if provided
+    if (isNewBook && onAutoFill) {
+      await onAutoFill(book.isbn);
+      return;
+    }
+
+    // Internal logic for existing books
     const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
       enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
@@ -96,14 +119,10 @@ export default function BookEditForm({
       return;
     }
 
-    setIsAutoFilling(true);
+    setInternalIsAutoFilling(true);
 
     try {
-      // Build API URL - for new books, don't pass bookId
-      const apiUrl = isNewBook
-        ? `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`
-        : `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`;
-
+      const apiUrl = `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`;
       const response = await fetch(apiUrl);
 
       if (!response.ok) {
@@ -116,11 +135,10 @@ export default function BookEditForm({
 
       const data = await response.json();
 
-      // Merge fetched data with existing book data, keeping the ISBN
       setBookData({
         ...book,
         ...data,
-        isbn: cleanedIsbn, // Ensure ISBN is always set
+        isbn: cleanedIsbn,
       });
 
       if (data.coverFetched) {
@@ -138,19 +156,19 @@ export default function BookEditForm({
         variant: "error",
       });
     } finally {
-      setIsAutoFilling(false);
+      setInternalIsAutoFilling(false);
     }
-  }, [book, setBookData, isNewBook, enqueueSnackbar]);
+  }, [book, setBookData, isNewBook, onAutoFill, enqueueSnackbar]);
 
   /**
-   * Fetch cover from ISBN (for existing books)
+   * Fetch cover from ISBN (for existing books only)
    */
   const handleFetchCover = useCallback(async () => {
     if (!book.isbn) {
       enqueueSnackbar("Keine ISBN im Buch hinterlegt.", { variant: "warning" });
       return;
     }
-    if (!book.id && !isNewBook) {
+    if (!book.id) {
       enqueueSnackbar("Buch muss zuerst gespeichert werden.", {
         variant: "warning",
       });
@@ -188,7 +206,7 @@ export default function BookEditForm({
     } finally {
       setFetchingCover(false);
     }
-  }, [book.isbn, book.id, isNewBook, enqueueSnackbar]);
+  }, [book.isbn, book.id, enqueueSnackbar]);
 
   const toggleEditButton = () => {
     editable
@@ -201,9 +219,40 @@ export default function BookEditForm({
     setAntolinDetailsDialog(true);
   };
 
+  /**
+   * Cover image component - handles both new books (preview URL) and existing books (API)
+   */
   const CoverImage = () => {
-    // For new books without an ID, show a placeholder
-    if (isNewBook && !book.id) {
+    // For new books with a cover preview from memory
+    if (isNewBook && coverPreviewUrl) {
+      return (
+        <img
+          src={coverPreviewUrl}
+          width="200"
+          height="auto"
+          alt="Cover Vorschau"
+          data-cy="book-cover-preview"
+          style={{
+            border: "1px solid #ddd",
+            maxHeight: 280,
+            objectFit: "contain",
+          }}
+        />
+      );
+    }
+
+    // For new books - show status-based placeholder
+    if (isNewBook) {
+      let message = "ISBN eingeben und 'Ausfüllen' klicken";
+      let color = "text.secondary";
+
+      if (isAutoFilling) {
+        message = "Cover wird gesucht...";
+      } else if (autofillAttempted && !coverPreviewUrl) {
+        message = "Kein Cover gefunden";
+        color = "warning.main";
+      }
+
       return (
         <Box
           sx={{
@@ -214,15 +263,18 @@ export default function BookEditForm({
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "#f5f5f5",
+            textAlign: "center",
+            p: 2,
           }}
         >
-          <Typography variant="body2" color="text.secondary">
-            Cover nach Speichern verfügbar
+          <Typography variant="body2" color={color}>
+            {message}
           </Typography>
         </Box>
       );
     }
 
+    // For existing books - load from API
     return (
       <img
         src={`/api/images/${book.id}?${loadingImage}`}
@@ -346,7 +398,7 @@ export default function BookEditForm({
         </Grid>
       </Grid>
 
-      {/* ISBN Lookup Section - Now at the top with unified ISBN field */}
+      {/* ISBN Lookup Section - At the top with unified ISBN field */}
       <Divider sx={{ mb: 3, mt: 2 }}>
         <Typography variant="body1" color={palette.info.main}>
           ISBN & Stammdaten
@@ -373,7 +425,7 @@ export default function BookEditForm({
 
         {/* Autofill Button */}
         <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-          <Tooltip title="Stammdaten mit ISBN in Datenbanken suchen (DNB, Google Books, OpenLibrary)">
+          <Tooltip title="Stammdaten und Cover mit ISBN suchen (DNB, Google Books, OpenLibrary)">
             <span>
               <Button
                 variant="outlined"
@@ -398,7 +450,7 @@ export default function BookEditForm({
         {/* Fetch Cover Button (only for existing books) */}
         {!isNewBook && (
           <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Tooltip title="Cover von ISBN laden (wenn verfügbar)">
+            <Tooltip title="Cover von ISBN laden (OpenLibrary)">
               <span>
                 <Button
                   variant="outlined"
@@ -676,6 +728,24 @@ export default function BookEditForm({
                   setLoadingImage={setLoadingImage}
                 />
               </Box>
+            )}
+            {isNewBook && coverPreviewUrl && (
+              <Typography
+                variant="caption"
+                color="success.main"
+                sx={{ display: "block", mt: 1, textAlign: "center" }}
+              >
+                ✓ Cover wird beim Speichern hochgeladen
+              </Typography>
+            )}
+            {isNewBook && autofillAttempted && !coverPreviewUrl && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mt: 1, textAlign: "center" }}
+              >
+                Cover kann nach Speichern manuell hochgeladen werden
+              </Typography>
             )}
           </Grid>
           {!isNewBook && (

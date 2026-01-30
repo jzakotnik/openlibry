@@ -35,43 +35,24 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
 
-    // Click the create new book button
+    // Click the create new book button - now navigates to /book/new
     cy.get("[data-cy=create_book_button]").click();
 
-    // Wait for the edit form to be visible (new book creation redirects to edit page)
+    // Should be on the new book page
+    cy.url().should("include", "/book/new");
+
+    // Wait for the edit form to be visible
     cy.get("[data-cy=book-edit-form]").should("be.visible");
 
     // Intercept the ISBN autofill API call
     cy.intercept("GET", "/api/book/FillBookByIsbn?isbn=*").as("fillByIsbn");
 
-    // Enter ISBN in the autofill input field
-    // The ISBN autofill input uses variant="outlined" and size="small"
-    // while the book's ISBN field uses variant="standard"
-    // NOTE: Consider adding data-cy="isbn-autofill-input" to BookEditForm.tsx
-    cy.get("body").then(($body) => {
-      if ($body.find("[data-cy=isbn-autofill-input]").length > 0) {
-        cy.get("[data-cy=isbn-autofill-input]").clear().type(testIsbn);
-      } else {
-        // Fallback: The autofill input is an outlined TextField near the button
-        // It's in a Grid container before the "Stammdaten des Buchs" section
-        cy.contains("button", "Stammdaten ausfüllen")
-          .parent()
-          .parent()
-          .find(".MuiOutlinedInput-input")
-          .clear()
-          .type(testIsbn);
-      }
-    });
+    // Enter ISBN in the unified ISBN field (now at the top of the form)
+    // The ISBN field uses data-cy="book-isbn-field"
+    cy.get("[data-cy=book-isbn-field]").find("input").clear().type(testIsbn);
 
-    // Click the autofill button ("Stammdaten ausfüllen")
-    // NOTE: Consider adding data-cy="autofill-isbn-button" to this button
-    cy.get("body").then(($body) => {
-      if ($body.find("[data-cy=autofill-isbn-button]").length > 0) {
-        cy.get("[data-cy=autofill-isbn-button]").click();
-      } else {
-        cy.contains("button", "Stammdaten ausfüllen").click();
-      }
-    });
+    // Click the autofill button (data-cy="autofill-button")
+    cy.get("[data-cy=autofill-button]").should("not.be.disabled").click();
 
     // Wait for the autofill API to complete
     cy.wait("@fillByIsbn", { timeout: 15000 }).then((interception) => {
@@ -81,7 +62,7 @@ describe("Book creation with ISBN autofill and editing", () => {
       // Log the response for debugging
       cy.log(
         "ISBN autofill response:",
-        JSON.stringify(interception.response?.body)
+        JSON.stringify(interception.response?.body),
       );
     });
 
@@ -89,44 +70,47 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.wait(1500);
 
     // Verify that the title field has been populated
-    cy.get('input[id="title"]').should("not.have.value", "");
+    cy.get("[data-cy=book-title-field]")
+      .find("input")
+      .should("not.have.value", "");
 
     // Verify that the author field has been populated
-    cy.get('input[id="author"]').should("not.have.value", "");
+    cy.get("[data-cy=book-author-field]")
+      .find("input")
+      .should("not.have.value", "");
 
     // Store the autofilled title for later verification
-    cy.get('input[id="title"]')
+    cy.get("[data-cy=book-title-field]")
+      .find("input")
       .invoke("val")
       .then((title) => {
         cy.log("Autofilled title:", title as string);
         expect(title).to.not.be.empty;
       });
 
-    // Intercept the save API call
-    cy.intercept("PUT", "/api/book/*").as("saveBook");
+    // Intercept the POST API call (new books use POST to /api/book)
+    cy.intercept("POST", "/api/book").as("createBook");
 
     // Click the save button
     cy.get("[data-cy=save-book-button]").should("be.visible").click();
 
-    // Wait for the save to complete
-    cy.wait("@saveBook", { timeout: 10000 }).then((interception) => {
+    // Wait for the create to complete
+    cy.wait("@createBook", { timeout: 10000 }).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
+      expect(interception.response?.statusCode).to.eq(200);
 
-      // Extract the book ID from the URL for subsequent tests
-      const urlParts = interception.request.url.split("/");
-      createdBookId = parseInt(urlParts[urlParts.length - 1]);
+      // Extract the book ID from the response
+      createdBookId = interception.response?.body.id;
       cy.log("Created book ID:", createdBookId);
+      expect(createdBookId).to.exist;
 
       // Store the book ID in Cypress environment for other tests
       Cypress.env("createdBookId", createdBookId);
     });
 
-    // Wait for redirect after save
-    cy.url({ timeout: 10000 }).should("not.include", "/edit");
-
-    // Verify we're on the book detail page or back to book list
-    cy.get("body").should("be.visible");
+    // Should redirect to book list after save
+    cy.url({ timeout: 10000 }).should("include", "/book");
+    cy.url().should("not.include", "/book/new");
   });
 
   it("should edit the created book and change the title", () => {
@@ -154,11 +138,12 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.get("[data-cy=book_title]").should("be.visible");
     cy.get("[data-cy=book_card_editbutton]").should("be.visible").click();
 
-    // Wait for the edit form to be visible
+    // Wait for the edit form to be visible (now at /book/[id])
     cy.get("[data-cy=book-edit-form]").should("be.visible");
 
     // Store the original title for verification
-    cy.get('input[id="title"]')
+    cy.get("[data-cy=book-title-field]")
+      .find("input")
       .invoke("val")
       .then((originalTitle) => {
         cy.log("Original title:", originalTitle as string);
@@ -166,12 +151,14 @@ describe("Book creation with ISBN autofill and editing", () => {
       });
 
     // Clear and enter the new title
-    cy.get('input[id="title"]').clear().type(newTitle);
+    cy.get("[data-cy=book-title-field]").find("input").clear().type(newTitle);
 
     // Verify the title field has the new value
-    cy.get('input[id="title"]').should("have.value", newTitle);
+    cy.get("[data-cy=book-title-field]")
+      .find("input")
+      .should("have.value", newTitle);
 
-    // Intercept the save API call
+    // Intercept the save API call (editing existing books uses PUT)
     cy.intercept("PUT", "/api/book/*").as("saveBookEdit");
 
     // Click the save button
@@ -183,8 +170,8 @@ describe("Book creation with ISBN autofill and editing", () => {
       expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
     });
 
-    // Wait for redirect after save
-    cy.url({ timeout: 10000 }).should("not.include", "/edit");
+    // Should redirect to book list after save
+    cy.url({ timeout: 10000 }).should("include", "/book");
 
     // Navigate back to verify the change persisted
     cy.visit("http://localhost:3000/");
@@ -257,5 +244,56 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     // Verify book was deleted
     cy.task("verifyBook", bookId).should("be.null");
+  });
+
+  it("should show cover preview when autofilling with ISBN that has cover", () => {
+    // Use an ISBN that likely has a cover on OpenLibrary
+    const testIsbn = "9783551551672"; // Harry Potter German edition
+
+    // Navigate to books page
+    cy.get("[data-cy=index_book_button]").click();
+    cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
+
+    // Click the create new book button
+    cy.get("[data-cy=create_book_button]").click();
+
+    // Should be on the new book page
+    cy.url().should("include", "/book/new");
+    cy.get("[data-cy=book-edit-form]").should("be.visible");
+
+    // Intercept the ISBN autofill API call
+    cy.intercept("GET", "/api/book/FillBookByIsbn?isbn=*").as("fillByIsbn");
+
+    // Enter ISBN
+    cy.get("[data-cy=book-isbn-field]").find("input").clear().type(testIsbn);
+
+    // Click autofill button
+    cy.get("[data-cy=autofill-button]").click();
+
+    // Wait for autofill to complete
+    cy.wait("@fillByIsbn", { timeout: 15000 });
+
+    // Wait for cover fetch (happens in parallel)
+    cy.wait(2000);
+
+    // Check if cover preview is shown (depends on OpenLibrary availability)
+    cy.get("body").then(($body) => {
+      if ($body.find("[data-cy=book-cover-preview]").length > 0) {
+        cy.log("Cover preview found - cover was fetched successfully");
+        cy.get("[data-cy=book-cover-preview]").should("be.visible");
+        // Verify the success message
+        cy.contains("Cover wird beim Speichern hochgeladen").should(
+          "be.visible",
+        );
+      } else {
+        cy.log("No cover preview - cover not available or fetch failed");
+        // Should show "Kein Cover gefunden" message
+        cy.contains("Kein Cover gefunden").should("be.visible");
+      }
+    });
+
+    // Cancel without saving (cleanup)
+    cy.get("[data-cy=cancel-book-button]").click();
+    cy.url().should("not.include", "/book/new");
   });
 });
