@@ -66,11 +66,33 @@ interface ScannedEntry {
   bookData: Partial<BookType>;
   errorMessage?: string;
   isEditing?: boolean;
-  coverUrl?: string; // URL to the cover image from OpenLibrary
+  coverUrl?: string; // Object URL for the cover image blob
   hasCover?: boolean; // Whether a cover was found
   coverBlob?: Blob; // The actual cover image data for upload
+  coverSource?: string; // Source of the cover (DNB, OpenLibrary)
   quantity: number; // Number of copies to import
 }
+
+// Check if a cover exists (checks DNB first, then OpenLibrary via server-side API)
+// When called without bookId, fetchCover returns the image directly instead of saving
+const checkCoverExists = async (
+  isbn: string,
+): Promise<{ exists: boolean; blob?: Blob; source?: string }> => {
+  try {
+    const response = await fetch(`/api/book/fetchCover?isbn=${isbn}`);
+
+    if (!response.ok) {
+      return { exists: false };
+    }
+
+    const blob = await response.blob();
+    const source = response.headers.get("X-Cover-Source") || "unknown";
+
+    return { exists: true, blob, source };
+  } catch {
+    return { exists: false };
+  }
+};
 
 export default function BatchScan() {
   const theme = useTheme();
@@ -163,6 +185,12 @@ export default function BatchScan() {
       fetchCoverFromOpenLibrary(cleanedIsbn),
     ]);
 
+    // Create object URL for cover preview if found
+    const coverUrl =
+      coverResult.exists && coverResult.blob
+        ? URL.createObjectURL(coverResult.blob)
+        : undefined;
+
     setEntries((prev) =>
       prev.map((entry) =>
         entry.id === newEntry.id
@@ -178,11 +206,10 @@ export default function BatchScan() {
                     rentalStatus: "available",
                     renewalCount: 0,
                   },
-              coverUrl: coverResult.exists
-                ? getOpenLibraryCoverUrl(cleanedIsbn, "M")
-                : undefined,
+              coverUrl,
               hasCover: coverResult.exists,
               coverBlob: coverResult.blob,
+              coverSource: coverResult.source,
             }
           : entry,
       ),
@@ -190,7 +217,9 @@ export default function BatchScan() {
 
     if (bookData) {
       playSound("success");
-      const coverInfo = coverResult.exists ? " (mit Cover)" : "";
+      const coverInfo = coverResult.exists
+        ? ` (Cover von ${coverResult.source})`
+        : "";
       enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
         variant: "success",
       });
@@ -216,11 +245,16 @@ export default function BatchScan() {
   // Delete an entry
   const handleDelete = useCallback(
     (id: string) => {
+      // Cleanup object URL before deleting
+      const entry = entries.find((e) => e.id === id);
+      if (entry?.coverUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(entry.coverUrl);
+      }
       setEntries((prev) => prev.filter((entry) => entry.id !== id));
       enqueueSnackbar("Eintrag gelöscht", { variant: "info" });
       inputRef.current?.focus();
     },
-    [enqueueSnackbar],
+    [entries, enqueueSnackbar],
   );
 
   // Toggle edit mode for an entry
@@ -277,6 +311,12 @@ export default function BatchScan() {
   // Retry fetching data for an entry
   const handleRetry = useCallback(
     async (id: string, isbn: string) => {
+      // Cleanup old object URL
+      const oldEntry = entries.find((e) => e.id === id);
+      if (oldEntry?.coverUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(oldEntry.coverUrl);
+      }
+
       setEntries((prev) =>
         prev.map((entry) =>
           entry.id === id ? { ...entry, status: "loading" } : entry,
@@ -288,6 +328,12 @@ export default function BatchScan() {
         fetchCoverFromOpenLibrary(isbn),
       ]);
 
+      // Create object URL for cover preview if found
+      const coverUrl =
+        coverResult.exists && coverResult.blob
+          ? URL.createObjectURL(coverResult.blob)
+          : undefined;
+
       setEntries((prev) =>
         prev.map((entry) =>
           entry.id === id
@@ -297,11 +343,10 @@ export default function BatchScan() {
                 bookData: bookData
                   ? { ...bookData, isbn }
                   : { ...entry.bookData },
-                coverUrl: coverResult.exists
-                  ? getOpenLibraryCoverUrl(isbn, "M")
-                  : undefined,
+                coverUrl,
                 hasCover: coverResult.exists,
                 coverBlob: coverResult.blob,
+                coverSource: coverResult.source,
               }
             : entry,
         ),
@@ -309,13 +354,18 @@ export default function BatchScan() {
 
       if (bookData) {
         playSound("success");
-        enqueueSnackbar(`"${bookData.title}" gefunden`, { variant: "success" });
+        const coverInfo = coverResult.exists
+          ? ` (Cover von ${coverResult.source})`
+          : "";
+        enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
+          variant: "success",
+        });
       } else {
         playSound("error");
         enqueueSnackbar("Weiterhin nicht gefunden", { variant: "warning" });
       }
     },
-    [fetchBookData, enqueueSnackbar],
+    [entries, fetchBookData, enqueueSnackbar],
   );
 
   // Import all valid entries to database
@@ -413,7 +463,10 @@ export default function BatchScan() {
         setImportProgress((processedBooks / totalBooks) * 100);
       }
 
-      // Remove successfully imported entry (all copies done)
+      // Cleanup object URL and remove successfully imported entry
+      if (entry.coverUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(entry.coverUrl);
+      }
       if (results.failed === 0 || results.success > 0) {
         setEntries((prev) => prev.filter((e) => e.id !== entry.id));
       }
@@ -450,11 +503,17 @@ export default function BatchScan() {
     if (entries.length === 0) return;
 
     if (window.confirm("Alle Einträge löschen?")) {
+      // Cleanup all object URLs
+      entries.forEach((entry) => {
+        if (entry.coverUrl?.startsWith("blob:")) {
+          URL.revokeObjectURL(entry.coverUrl);
+        }
+      });
       setEntries([]);
       enqueueSnackbar("Alle Einträge gelöscht", { variant: "info" });
       inputRef.current?.focus();
     }
-  }, [entries.length, enqueueSnackbar]);
+  }, [entries, enqueueSnackbar]);
 
   // Stats for the summary bar
   const stats = useMemo(() => {
@@ -744,7 +803,7 @@ function BatchScanEntryCard({
               </Typography>
             )}
             {entry.hasCover && (
-              <Tooltip title="Cover verfügbar">
+              <Tooltip title={`Cover von ${entry.coverSource || "unbekannt"}`}>
                 <ImageIcon color="info" fontSize="small" />
               </Tooltip>
             )}
