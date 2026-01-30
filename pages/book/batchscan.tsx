@@ -1,10 +1,5 @@
 import Layout from "@/components/layout/Layout";
 import { BookType } from "@/entities/BookType";
-import {
-  fetchCoverFromOpenLibrary,
-  getOpenLibraryCoverUrl,
-  uploadCoverBlob,
-} from "@/lib/utils/coverutils";
 import { currentTime } from "@/lib/utils/dateutils";
 import AddIcon from "@mui/icons-material/Add";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -66,29 +61,38 @@ interface ScannedEntry {
   bookData: Partial<BookType>;
   errorMessage?: string;
   isEditing?: boolean;
-  coverUrl?: string; // Object URL for the cover image blob
+  coverUrl?: string; // URL to the cover image from OpenLibrary
   hasCover?: boolean; // Whether a cover was found
   coverBlob?: Blob; // The actual cover image data for upload
-  coverSource?: string; // Source of the cover (DNB, OpenLibrary)
   quantity: number; // Number of copies to import
 }
 
-// Check if a cover exists (checks DNB first, then OpenLibrary via server-side API)
-// When called without bookId, fetchCover returns the image directly instead of saving
+// OpenLibrary cover URL builder
+const getOpenLibraryCoverUrl = (isbn: string, size: "S" | "M" | "L" = "M") => {
+  return `https://covers.openlibrary.org/b/isbn/${isbn}-${size}.jpg`;
+};
+
+// Check if a cover exists at OpenLibrary
 const checkCoverExists = async (
   isbn: string,
-): Promise<{ exists: boolean; blob?: Blob; source?: string }> => {
+): Promise<{ exists: boolean; blob?: Blob }> => {
   try {
-    const response = await fetch(`/api/book/fetchCover?isbn=${isbn}`);
+    const url = getOpenLibraryCoverUrl(isbn, "M");
+    const response = await fetch(url);
 
     if (!response.ok) {
       return { exists: false };
     }
 
     const blob = await response.blob();
-    const source = response.headers.get("X-Cover-Source") || "unknown";
 
-    return { exists: true, blob, source };
+    // OpenLibrary returns a 1x1 pixel image if no cover exists
+    // Check if the image is larger than ~100 bytes (1x1 pixel images are tiny)
+    if (blob.size < 1000) {
+      return { exists: false };
+    }
+
+    return { exists: true, blob };
   } catch {
     return { exists: false };
   }
@@ -110,7 +114,7 @@ export default function BatchScan() {
     inputRef.current?.focus();
   }, []);
 
-  // Fetch book data from ISBN lookup API
+  // Fetch book data from DNB API
   const fetchBookData = useCallback(
     async (isbn: string): Promise<Partial<BookType> | null> => {
       const cleanedIsbn = isbn.replace(/\D/g, "");
@@ -179,17 +183,11 @@ export default function BatchScan() {
     setIsbnInput("");
     inputRef.current?.focus();
 
-    // Fetch book data and cover in parallel using shared utilities
+    // Fetch book data and cover in parallel
     const [bookData, coverResult] = await Promise.all([
       fetchBookData(cleanedIsbn),
-      fetchCoverFromOpenLibrary(cleanedIsbn),
+      checkCoverExists(cleanedIsbn),
     ]);
-
-    // Create object URL for cover preview if found
-    const coverUrl =
-      coverResult.exists && coverResult.blob
-        ? URL.createObjectURL(coverResult.blob)
-        : undefined;
 
     setEntries((prev) =>
       prev.map((entry) =>
@@ -206,10 +204,11 @@ export default function BatchScan() {
                     rentalStatus: "available",
                     renewalCount: 0,
                   },
-              coverUrl,
+              coverUrl: coverResult.exists
+                ? getOpenLibraryCoverUrl(cleanedIsbn, "M")
+                : undefined,
               hasCover: coverResult.exists,
               coverBlob: coverResult.blob,
-              coverSource: coverResult.source,
             }
           : entry,
       ),
@@ -217,9 +216,7 @@ export default function BatchScan() {
 
     if (bookData) {
       playSound("success");
-      const coverInfo = coverResult.exists
-        ? ` (Cover von ${coverResult.source})`
-        : "";
+      const coverInfo = coverResult.exists ? " (mit Cover)" : "";
       enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
         variant: "success",
       });
@@ -245,16 +242,11 @@ export default function BatchScan() {
   // Delete an entry
   const handleDelete = useCallback(
     (id: string) => {
-      // Cleanup object URL before deleting
-      const entry = entries.find((e) => e.id === id);
-      if (entry?.coverUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(entry.coverUrl);
-      }
       setEntries((prev) => prev.filter((entry) => entry.id !== id));
       enqueueSnackbar("Eintrag gelöscht", { variant: "info" });
       inputRef.current?.focus();
     },
-    [entries, enqueueSnackbar],
+    [enqueueSnackbar],
   );
 
   // Toggle edit mode for an entry
@@ -311,12 +303,6 @@ export default function BatchScan() {
   // Retry fetching data for an entry
   const handleRetry = useCallback(
     async (id: string, isbn: string) => {
-      // Cleanup old object URL
-      const oldEntry = entries.find((e) => e.id === id);
-      if (oldEntry?.coverUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(oldEntry.coverUrl);
-      }
-
       setEntries((prev) =>
         prev.map((entry) =>
           entry.id === id ? { ...entry, status: "loading" } : entry,
@@ -325,14 +311,8 @@ export default function BatchScan() {
 
       const [bookData, coverResult] = await Promise.all([
         fetchBookData(isbn),
-        fetchCoverFromOpenLibrary(isbn),
+        checkCoverExists(isbn),
       ]);
-
-      // Create object URL for cover preview if found
-      const coverUrl =
-        coverResult.exists && coverResult.blob
-          ? URL.createObjectURL(coverResult.blob)
-          : undefined;
 
       setEntries((prev) =>
         prev.map((entry) =>
@@ -343,10 +323,11 @@ export default function BatchScan() {
                 bookData: bookData
                   ? { ...bookData, isbn }
                   : { ...entry.bookData },
-                coverUrl,
+                coverUrl: coverResult.exists
+                  ? getOpenLibraryCoverUrl(isbn, "M")
+                  : undefined,
                 hasCover: coverResult.exists,
                 coverBlob: coverResult.blob,
-                coverSource: coverResult.source,
               }
             : entry,
         ),
@@ -354,19 +335,34 @@ export default function BatchScan() {
 
       if (bookData) {
         playSound("success");
-        const coverInfo = coverResult.exists
-          ? ` (Cover von ${coverResult.source})`
-          : "";
-        enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
-          variant: "success",
-        });
+        enqueueSnackbar(`"${bookData.title}" gefunden`, { variant: "success" });
       } else {
         playSound("error");
         enqueueSnackbar("Weiterhin nicht gefunden", { variant: "warning" });
       }
     },
-    [entries, fetchBookData, enqueueSnackbar],
+    [fetchBookData, enqueueSnackbar],
   );
+
+  // Upload cover image for a book
+  const uploadCover = async (
+    bookId: number,
+    coverBlob: Blob,
+  ): Promise<boolean> => {
+    try {
+      const formData = new FormData();
+      formData.set("cover", coverBlob, "cover.jpg");
+
+      const response = await fetch(`/api/book/cover/${bookId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
 
   // Import all valid entries to database
   const handleImport = useCallback(async () => {
@@ -442,12 +438,9 @@ export default function BatchScan() {
             results.success++;
             results.ids.push(data.id);
 
-            // Upload cover for each copy using shared utility
+            // Upload cover for each copy (each book has its own ID)
             if (entry.hasCover && entry.coverBlob && data.id) {
-              const coverUploaded = await uploadCoverBlob(
-                data.id,
-                entry.coverBlob,
-              );
+              const coverUploaded = await uploadCover(data.id, entry.coverBlob);
               if (coverUploaded) {
                 results.coversUploaded++;
               }
@@ -463,10 +456,7 @@ export default function BatchScan() {
         setImportProgress((processedBooks / totalBooks) * 100);
       }
 
-      // Cleanup object URL and remove successfully imported entry
-      if (entry.coverUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(entry.coverUrl);
-      }
+      // Remove successfully imported entry (all copies done)
       if (results.failed === 0 || results.success > 0) {
         setEntries((prev) => prev.filter((e) => e.id !== entry.id));
       }
@@ -503,17 +493,11 @@ export default function BatchScan() {
     if (entries.length === 0) return;
 
     if (window.confirm("Alle Einträge löschen?")) {
-      // Cleanup all object URLs
-      entries.forEach((entry) => {
-        if (entry.coverUrl?.startsWith("blob:")) {
-          URL.revokeObjectURL(entry.coverUrl);
-        }
-      });
       setEntries([]);
       enqueueSnackbar("Alle Einträge gelöscht", { variant: "info" });
       inputRef.current?.focus();
     }
-  }, [entries, enqueueSnackbar]);
+  }, [entries.length, enqueueSnackbar]);
 
   // Stats for the summary bar
   const stats = useMemo(() => {
@@ -803,7 +787,7 @@ function BatchScanEntryCard({
               </Typography>
             )}
             {entry.hasCover && (
-              <Tooltip title={`Cover von ${entry.coverSource || "unbekannt"}`}>
+              <Tooltip title="Cover verfügbar">
                 <ImageIcon color="info" fontSize="small" />
               </Tooltip>
             )}
