@@ -7,7 +7,7 @@ const nextConfig = {
     return new Date().toLocaleDateString();
   },
   images: {
-    minimumCacheTTL: 5,
+    minimumCacheTTL: 0,
     remotePatterns: [
       {
         protocol: "http",
