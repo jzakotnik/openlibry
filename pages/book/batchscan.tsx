@@ -1,5 +1,10 @@
 import Layout from "@/components/layout/Layout";
 import { BookType } from "@/entities/BookType";
+import {
+  fetchCoverFromOpenLibrary,
+  getOpenLibraryCoverUrl,
+  uploadCoverBlob,
+} from "@/lib/utils/coverutils";
 import { currentTime } from "@/lib/utils/dateutils";
 import AddIcon from "@mui/icons-material/Add";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -105,19 +110,7 @@ export default function BatchScan() {
     inputRef.current?.focus();
   }, []);
 
-  // Cleanup object URLs when entries change
-  useEffect(() => {
-    return () => {
-      // Cleanup object URLs on unmount
-      entries.forEach((entry) => {
-        if (entry.coverUrl?.startsWith("blob:")) {
-          URL.revokeObjectURL(entry.coverUrl);
-        }
-      });
-    };
-  }, []);
-
-  // Fetch book data from DNB API
+  // Fetch book data from ISBN lookup API
   const fetchBookData = useCallback(
     async (isbn: string): Promise<Partial<BookType> | null> => {
       const cleanedIsbn = isbn.replace(/\D/g, "");
@@ -186,10 +179,10 @@ export default function BatchScan() {
     setIsbnInput("");
     inputRef.current?.focus();
 
-    // Fetch book data and cover in parallel
+    // Fetch book data and cover in parallel using shared utilities
     const [bookData, coverResult] = await Promise.all([
       fetchBookData(cleanedIsbn),
-      checkCoverExists(cleanedIsbn),
+      fetchCoverFromOpenLibrary(cleanedIsbn),
     ]);
 
     // Create object URL for cover preview if found
@@ -332,7 +325,7 @@ export default function BatchScan() {
 
       const [bookData, coverResult] = await Promise.all([
         fetchBookData(isbn),
-        checkCoverExists(isbn),
+        fetchCoverFromOpenLibrary(isbn),
       ]);
 
       // Create object URL for cover preview if found
@@ -374,26 +367,6 @@ export default function BatchScan() {
     },
     [entries, fetchBookData, enqueueSnackbar],
   );
-
-  // Upload cover image for a book
-  const uploadCover = async (
-    bookId: number,
-    coverBlob: Blob,
-  ): Promise<boolean> => {
-    try {
-      const formData = new FormData();
-      formData.set("cover", coverBlob, "cover.jpg");
-
-      const response = await fetch(`/api/book/cover/${bookId}`, {
-        method: "POST",
-        body: formData,
-      });
-
-      return response.ok;
-    } catch {
-      return false;
-    }
-  };
 
   // Import all valid entries to database
   const handleImport = useCallback(async () => {
@@ -469,9 +442,12 @@ export default function BatchScan() {
             results.success++;
             results.ids.push(data.id);
 
-            // Upload cover for each copy (each book has its own ID)
+            // Upload cover for each copy using shared utility
             if (entry.hasCover && entry.coverBlob && data.id) {
-              const coverUploaded = await uploadCover(data.id, entry.coverBlob);
+              const coverUploaded = await uploadCoverBlob(
+                data.id,
+                entry.coverBlob,
+              );
               if (coverUploaded) {
                 results.coversUploaded++;
               }

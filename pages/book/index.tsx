@@ -15,21 +15,13 @@ import BookSummaryRow from "@/components/book/BookSummaryRow";
 import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
-import { convertDateToDayString, currentTime } from "@/lib/utils/dateutils";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { Button } from "@mui/material";
 import itemsjs from "itemsjs";
 import { useSnackbar } from "notistack";
 import { memo } from "react";
 
 const DEBOUNCE_MS = 100;
-
-const gridItemProps = {
-  xs: 12,
-  sm: 12,
-  md: 6,
-  lg: 4,
-  xl: 4,
-};
 
 interface SearchableBookType extends BookType {
   searchableTopics: Array<string>;
@@ -105,7 +97,6 @@ export default function Books({
   const [renderedBooks, setRenderedBooks] = useState(books);
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
-  const [bookCreating, setBookCreating] = useState(false);
   const [searchResultNumber, setSearchResultNumber] = useState(books.length);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
@@ -134,7 +125,6 @@ export default function Books({
         query: searchString,
       });
 
-      console.log("Found books", foundBooks);
       setPageIndex(numberBooksToShow);
       setRenderedBooks(foundBooks.data.items);
       setSearchResultNumber(foundBooks.pagination.total);
@@ -172,109 +162,60 @@ export default function Books({
     [isMobile],
   );
 
-  const handleCreateNewBook = useCallback(async () => {
-    setBookCreating(true);
+  /**
+   * Navigate to the new book creation page.
+   * This replaces the old behavior of immediately creating an empty book.
+   * Benefits:
+   * - No orphan/empty books created by accident
+   * - User can cancel without database changes
+   * - Cleaner data model
+   */
+  const handleCreateNewBook = useCallback(() => {
+    router.push("/book/new");
+  }, [router]);
 
-    const book: BookType = {
-      title: "",
-      subtitle: "",
-      author: "",
-      renewalCount: 0,
-      rentalStatus: "available",
-      topics: ";",
-      rentedDate: currentTime(),
-      dueDate: currentTime(),
-    };
+  const handleCopyBook = useCallback(
+    (book: BookType) => {
+      // Navigate to new book page with pre-filled data via query params
+      // For now, we'll just navigate and let user fill manually
+      // A more sophisticated approach would use sessionStorage or query params
+      router.push("/book/new");
+      enqueueSnackbar(
+        "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
+        { variant: "info" },
+      );
+    },
+    [router, enqueueSnackbar],
+  );
 
-    try {
-      const res = await fetch("/api/book", {
-        method: "POST",
+  const handleReturnBook = useCallback(
+    (id: number, userid: number) => {
+      fetch(`/api/book/${id}/user/${userid}`, {
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(book),
-      });
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          // Optimistic update
+          const newRenderedBooks = renderedBooks.map((b: any) => {
+            return b.id === id ? { ...b, rentalStatus: "available" } : b;
+          });
+          setRenderedBooks(newRenderedBooks);
 
-      if (!res.ok) {
-        throw new Error(
-          `Fehler beim Erstellen: ${res.status} ${res.statusText}`,
-        );
-      }
-
-      const data = await res.json();
-
-      if (!data.id) {
-        throw new Error("Keine Buch-ID in der Antwort erhalten");
-      }
-
-      mutate();
-      router.push("book/" + data.id);
-      enqueueSnackbar("Buch erfolgreich erstellt", { variant: "success" });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unbekannter Fehler";
-      enqueueSnackbar(`Buch konnte nicht erstellt werden: ${message}`, {
-        variant: "error",
-      });
-    } finally {
-      setBookCreating(false);
-    }
-  }, [mutate, router, enqueueSnackbar]);
-
-  const handleCopyBook = (book: BookType) => {
-    console.log("Creating a new book from an existing book");
-    setBookCreating(true);
-    const newBook: BookType = {
-      title: book.title,
-      subtitle: book.subtitle,
-      author: book.author,
-      renewalCount: 0,
-      rentalStatus: "available",
-      topics: book.topics,
-      rentedDate: currentTime(),
-      dueDate: currentTime(),
-    };
-
-    fetch("/api/book", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newBook),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setBookCreating(false);
-        // Revalidate SWR cache after creating
-        mutate();
-        router.push("book/" + data.id);
-        console.log("Book created", data);
-      });
-  };
-
-  const handleReturnBook = (id: number, userid: number) => {
-    console.log("Return book");
-
-    fetch(`/api/book/${id}/user/${userid}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Book returned, relationship deleted", data, id, userid);
-
-        // Optimistic update
-        const newRenderedBooks = renderedBooks.map((b: any) => {
-          return b.id === id ? { ...b, rentalStatus: "available" } : b;
+          // Revalidate from server
+          mutate();
+          enqueueSnackbar("Buch zurückgegeben", { variant: "success" });
+        })
+        .catch((error) => {
+          enqueueSnackbar("Fehler beim Zurückgeben des Buches", {
+            variant: "error",
+          });
         });
-        setRenderedBooks(newRenderedBooks);
-
-        // Revalidate from server
-        mutate();
-      });
-  };
+    },
+    [renderedBooks, mutate, enqueueSnackbar],
+  );
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
@@ -288,7 +229,6 @@ export default function Books({
     const newView = !detailView;
     setDetailView(newView);
     setPageIndex(numberBooksToShow);
-    console.log("Detail view render toggled", newView);
   };
 
   const SummaryRowContainer = ({ renderedBooks }: any) => (

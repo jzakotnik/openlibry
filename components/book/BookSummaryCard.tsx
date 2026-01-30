@@ -305,7 +305,7 @@ const TopicChips = memo(function TopicChips({ topics }: TopicChipsProps) {
             label={`+${extraCount}`}
             size="small"
             aria-label={`${extraCount} weitere Schlagwörter: ${hiddenTopics.join(
-              ", "
+              ", ",
             )}`}
             sx={{
               ...topicChipStyle,
@@ -363,7 +363,7 @@ function BookSummaryCard({
       e.stopPropagation();
       returnBook(e);
     },
-    [returnBook]
+    [returnBook],
   );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

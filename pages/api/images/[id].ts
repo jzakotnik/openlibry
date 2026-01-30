@@ -15,7 +15,7 @@ export const config = {
 
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== "GET") {
     errorLogger.warn(
@@ -25,7 +25,7 @@ export default async function handle(
         method: req.method,
         reason: "Method not allowed",
       },
-      "Unsupported HTTP method for images endpoint"
+      "Unsupported HTTP method for images endpoint",
     );
     return res.status(405).end(`${req.method} Not Allowed`);
   }
@@ -38,7 +38,7 @@ export default async function handle(
         method: req.method,
         reason: "Missing image ID parameter",
       },
-      "Image ID not provided"
+      "Image ID not provided",
     );
     return res.status(404).end("id not found");
   }
@@ -56,7 +56,7 @@ export default async function handle(
         bookId: id,
         reason: "COVERIMAGE_FILESTORAGE_PATH not configured",
       },
-      "Cover storage path environment variable missing"
+      "Cover storage path environment variable missing",
     );
     return res.status(500).json({
       data: "ERROR: Cover storage not configured",
@@ -72,7 +72,7 @@ export default async function handle(
         path: basePath,
         reason: "Cover storage directory does not exist",
       },
-      "Cover storage path not found on filesystem"
+      "Cover storage path not found on filesystem",
     );
     return res.status(400).json({
       data: "ERROR: Book cover path does not exist",
@@ -94,7 +94,7 @@ export default async function handle(
         searchedPath: filePath,
         defaultPath: defaultFilePath,
       },
-      "Neither book cover nor default cover found"
+      "Neither book cover nor default cover found",
     );
     return res.status(404).json({
       data: "ERROR: No cover image available",
@@ -122,7 +122,7 @@ export default async function handle(
           bookId: id,
           cached: true,
         },
-        "Cover served from client cache (304)"
+        "Cover served from client cache (304)",
       );
       return res.status(304).end();
     }
@@ -136,10 +136,7 @@ export default async function handle(
     res.setHeader("Content-Length", stat.size);
     res.setHeader("ETag", `"${etag}"`);
     res.setHeader("Last-Modified", stat.mtime.toUTCString());
-    res.setHeader(
-      "Cache-Control",
-      `public, max-age=${maxAge}, stale-while-revalidate=86400`
-    );
+    res.setHeader("Cache-Control", "public, no-cache, must-revalidate");
 
     // Log the serve event
     if (isDefault) {
@@ -149,7 +146,7 @@ export default async function handle(
           bookId: id,
           reason: "Custom cover not found",
         },
-        "Default cover served for book"
+        "Default cover served for book",
       );
     } else {
       businessLogger.debug(
@@ -159,7 +156,7 @@ export default async function handle(
           filePath: fileName,
           size: stat.size,
         },
-        "Book cover served"
+        "Book cover served",
       );
     }
 
@@ -176,7 +173,7 @@ export default async function handle(
           error: error.message,
           stack: error.stack,
         },
-        "Error streaming book cover"
+        "Error streaming book cover",
       );
 
       // Only send error if headers haven't been sent
@@ -196,7 +193,7 @@ export default async function handle(
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       },
-      "Failed to serve book cover"
+      "Failed to serve book cover",
     );
     res.status(500).json({
       data: "ERROR: Book Cover error",
