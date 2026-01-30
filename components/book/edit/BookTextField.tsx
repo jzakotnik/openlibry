@@ -8,6 +8,8 @@ type BookTextFieldProps = {
   editable: boolean;
   setBookData: Dispatch<BookType>;
   book: BookType;
+  /** Optional: Auto-focus this field on mount */
+  autoFocus?: boolean;
 };
 
 const BookTextField = ({
@@ -15,6 +17,7 @@ const BookTextField = ({
   editable,
   setBookData,
   book,
+  autoFocus = false,
 }: BookTextFieldProps) => {
   return (
     <TextField
@@ -22,11 +25,11 @@ const BookTextField = ({
       name={fieldType}
       label={(translations["books"] as any)[fieldType]}
       InputLabelProps={{ shrink: true }} // Switch off label floating because of autofill function
-      //defaultValue={(book as any)[fieldType]}
       value={(book as any)[fieldType] ?? ""}
       disabled={!editable}
       fullWidth
       variant="standard"
+      autoFocus={autoFocus}
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
         setBookData({ ...book, [fieldType]: event.target.value });
       }}

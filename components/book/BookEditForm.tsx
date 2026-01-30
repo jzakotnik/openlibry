@@ -1,15 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 import Box from "@mui/material/Box";
 import { useRouter } from "next/router";
-import { Dispatch, useState } from "react";
+import { Dispatch, useCallback, useState } from "react";
 
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageSearchIcon from "@mui/icons-material/ImageSearch";
 import PrintIcon from "@mui/icons-material/Print";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
+import SearchIcon from "@mui/icons-material/Search";
 
 import palette from "@/styles/palette";
 import {
@@ -38,15 +39,6 @@ import BookTopicsChips from "./edit/BookTopicsChips";
 
 import { useSnackbar } from "notistack";
 
-const bull = (
-  <Box
-    component="span"
-    sx={{ display: "inline-block", mx: "1px", transform: "scale(0.8)" }}
-  >
-    •
-  </Box>
-);
-
 type BookEditFormPropType = {
   book: BookType;
   setBookData: Dispatch<BookType>;
@@ -55,6 +47,12 @@ type BookEditFormPropType = {
   saveBook: React.MouseEventHandler<HTMLButtonElement>;
   topics: string[];
   antolinResults: AntolinResultType | null;
+  /** Indicates if this is a new book being created (not yet in database) */
+  isNewBook?: boolean;
+  /** Optional cancel action for new book mode */
+  cancelAction?: () => void;
+  /** Optional flag to show saving state */
+  isSaving?: boolean;
 };
 
 export default function BookEditForm({
@@ -65,54 +63,66 @@ export default function BookEditForm({
   saveBook,
   topics,
   antolinResults,
+  isNewBook = false,
+  cancelAction,
+  isSaving = false,
 }: BookEditFormPropType) {
-  const [editable, setEditable] = useState(true);
-  const [loadingImage, setLoadingImage] = useState(1); //key for changing image
+  // For new books, always start in edit mode
+  const [editable, setEditable] = useState(isNewBook ? true : true);
+  const [loadingImage, setLoadingImage] = useState(1);
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const [fetchingCover, setFetchingCover] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
   const router = useRouter();
   const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   const { enqueueSnackbar } = useSnackbar();
 
-  //Begin autofill stuff
-  const [isbnInput, setIsbnInput] = useState("");
-
-  const handleAutoFillFromISBN = async () => {
-    if (!(isbnInput || book.isbn)) {
+  /**
+   * Handle auto-fill from ISBN - uses book.isbn directly (unified field)
+   */
+  const handleAutoFillFromISBN = useCallback(async () => {
+    if (!book.isbn) {
       enqueueSnackbar("Bitte geben Sie eine ISBN ein.", { variant: "warning" });
       return;
     }
-    if (!isbnInput || book.isbn) {
-      enqueueSnackbar(
-        "Es wird die bereits eingegebene ISBN für die Suche verwendet.",
-        { variant: "warning" },
-      );
-    }
-    // Remove all non-digit characters from the input
-    const cleanedIsbn = (isbnInput || book.isbn || "").replace(/\D/g, "");
+
+    // Remove all non-digit and non-X characters from the input
+    const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
       enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
         variant: "warning",
       });
       return;
     }
+
+    setIsAutoFilling(true);
+
     try {
-      const response = await fetch(
-        `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`,
-      );
+      // Build API URL - for new books, don't pass bookId
+      const apiUrl = isNewBook
+        ? `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`
+        : `/api/book/FillBookByIsbn?isbn=${cleanedIsbn}&bookId=${book.id}`;
+
+      const response = await fetch(apiUrl);
+
       if (!response.ok) {
         enqueueSnackbar(
-          "Stammdaten wurden leider nicht gefunden mit dieser ISBN..",
+          "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
           { variant: "error" },
         );
         return;
       }
+
       const data = await response.json();
+
+      // Merge fetched data with existing book data, keeping the ISBN
       setBookData({
         ...book,
-        ...data, // Merge the fields
+        ...data,
+        isbn: cleanedIsbn, // Ensure ISBN is always set
       });
+
       if (data.coverFetched) {
         setLoadingImage(Math.floor(Math.random() * 10000));
         enqueueSnackbar("Stammdaten und Cover wurden erfolgreich geladen.", {
@@ -127,17 +137,20 @@ export default function BookEditForm({
       enqueueSnackbar(e?.message || "Fehler beim Laden der Buchdaten.", {
         variant: "error",
       });
+    } finally {
+      setIsAutoFilling(false);
     }
-  };
-  //End autofill stuff
+  }, [book, setBookData, isNewBook, enqueueSnackbar]);
 
-  // Fetch cover from ISBN
-  const handleFetchCover = async () => {
+  /**
+   * Fetch cover from ISBN (for existing books)
+   */
+  const handleFetchCover = useCallback(async () => {
     if (!book.isbn) {
       enqueueSnackbar("Keine ISBN im Buch hinterlegt.", { variant: "warning" });
       return;
     }
-    if (!book.id) {
+    if (!book.id && !isNewBook) {
       enqueueSnackbar("Buch muss zuerst gespeichert werden.", {
         variant: "warning",
       });
@@ -175,7 +188,7 @@ export default function BookEditForm({
     } finally {
       setFetchingCover(false);
     }
-  };
+  }, [book.isbn, book.id, isNewBook, enqueueSnackbar]);
 
   const toggleEditButton = () => {
     editable
@@ -189,6 +202,27 @@ export default function BookEditForm({
   };
 
   const CoverImage = () => {
+    // For new books without an ID, show a placeholder
+    if (isNewBook && !book.id) {
+      return (
+        <Box
+          sx={{
+            width: 200,
+            height: 200,
+            border: "1px dashed #ccc",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#f5f5f5",
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Cover nach Speichern verfügbar
+          </Typography>
+        </Box>
+      );
+    }
+
     return (
       <img
         src={`/api/images/${book.id}?${loadingImage}`}
@@ -206,6 +240,11 @@ export default function BookEditForm({
   };
 
   const AntolinResult = () => {
+    // Don't show Antolin for new unsaved books
+    if (isNewBook && !book.id) {
+      return null;
+    }
+
     let resultString = "...";
     if (antolinResults) {
       if (antolinResults.foundNumber > 1) {
@@ -235,6 +274,8 @@ export default function BookEditForm({
         setOpen={setAntolinDetailsDialog}
         antolinBooks={antolinResults}
       />
+
+      {/* Action Buttons Row */}
       <Grid
         container
         direction="row"
@@ -242,23 +283,41 @@ export default function BookEditForm({
         alignItems="center"
         spacing={2}
       >
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 3 }}>
           {editable && (
-            <Tooltip title="Speichern">
-              <Button
-                onClick={(e) => {
-                  saveBook(e);
-                }}
-                startIcon={<SaveAltIcon />}
-                data-cy="save-book-button"
-              >
-                Speichern
-              </Button>
+            <Tooltip
+              title={isNewBook ? "Buch erstellen und speichern" : "Speichern"}
+            >
+              <span>
+                <Button
+                  onClick={saveBook}
+                  startIcon={
+                    isSaving ? <CircularProgress size={16} /> : <SaveAltIcon />
+                  }
+                  disabled={isSaving}
+                  data-cy="save-book-button"
+                >
+                  {isSaving ? "Speichert..." : "Speichern"}
+                </Button>
+              </span>
             </Tooltip>
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          {editable && (
+
+        <Grid size={{ xs: 12, md: 3 }}>
+          {isNewBook && cancelAction && (
+            <Tooltip title="Abbrechen und zurück zur Übersicht">
+              <Button
+                onClick={cancelAction}
+                startIcon={<ArrowBackIcon />}
+                color="secondary"
+                data-cy="cancel-book-button"
+              >
+                Abbrechen
+              </Button>
+            </Tooltip>
+          )}
+          {!isNewBook && editable && (
             <Tooltip title="Löschen">
               <HoldButton
                 duration={deleteSafetySeconds * 1000}
@@ -269,11 +328,12 @@ export default function BookEditForm({
             </Tooltip>
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          {editable && (
+
+        <Grid size={{ xs: 12, md: 3 }}>
+          {editable && !isNewBook && (
             <Tooltip title="Buchlabel drucken">
               <Button
-                onClick={(e) => {
+                onClick={() => {
                   router.push(`/reports/print?id=${book.id}`);
                 }}
                 startIcon={<PrintIcon />}
@@ -285,47 +345,93 @@ export default function BookEditForm({
           )}
         </Grid>
       </Grid>
-      <Divider sx={{ mb: 3 }}>
+
+      {/* ISBN Lookup Section - Now at the top with unified ISBN field */}
+      <Divider sx={{ mb: 3, mt: 2 }}>
         <Typography variant="body1" color={palette.info.main}>
-          Automatisches Ausfüllen
+          ISBN & Stammdaten
         </Typography>
       </Divider>
+
       <Grid
         container
         justifyContent="center"
         alignItems="center"
         spacing={2}
-        sx={{ mb: 2 }}
+        sx={{ mb: 3 }}
       >
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            label="ISBN"
-            variant="outlined"
-            size="small"
-            value={isbnInput}
-            onChange={(e) => setIsbnInput(e.target.value)}
-            data-cy="isbn-input"
+        {/* ISBN Field - Primary entry point */}
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <BookTextField
+            fieldType={"isbn"}
+            editable={editable}
+            setBookData={setBookData}
+            book={book}
+            autoFocus={isNewBook} // Focus ISBN first for new books
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <Tooltip title="Stammdaten mit ISBN in Datenbanken suchen">
-            <Button
-              variant="outlined"
-              onClick={handleAutoFillFromISBN}
-              data-cy="autofill-button"
-            >
-              Stammdaten ausfüllen
-            </Button>
+
+        {/* Autofill Button */}
+        <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+          <Tooltip title="Stammdaten mit ISBN in Datenbanken suchen (DNB, Google Books, OpenLibrary)">
+            <span>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAutoFillFromISBN}
+                disabled={!book.isbn || isAutoFilling}
+                startIcon={
+                  isAutoFilling ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <SearchIcon />
+                  )
+                }
+                data-cy="autofill-button"
+              >
+                {isAutoFilling ? "Sucht..." : "Ausfüllen"}
+              </Button>
+            </span>
           </Tooltip>
         </Grid>
+
+        {/* Fetch Cover Button (only for existing books) */}
+        {!isNewBook && (
+          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+            <Tooltip title="Cover von ISBN laden (wenn verfügbar)">
+              <span>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={handleFetchCover}
+                  disabled={!book.isbn || !book.id || fetchingCover}
+                  startIcon={
+                    fetchingCover ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <ImageSearchIcon />
+                    )
+                  }
+                  data-cy="fetch-cover-button"
+                >
+                  {fetchingCover ? "Lädt..." : "Cover"}
+                </Button>
+              </span>
+            </Tooltip>
+          </Grid>
+        )}
       </Grid>
+
+      {/* Book Details Section */}
       <Divider sx={{ mb: 3 }}>
         <Typography variant="body1" color={palette.info.main}>
           Stammdaten des Buchs
         </Typography>
       </Divider>
+
       <Grid container direction="row" justifyContent="center" alignItems="top">
         <Grid container size={{ xs: 12, sm: 9 }} direction="row" spacing={2}>
+          {/* Title - Tab order 1 */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"title"}
@@ -334,6 +440,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Author - Tab order 2 */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"author"}
@@ -342,6 +450,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Subtitle - Tab order 3 */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"subtitle"}
@@ -350,6 +460,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Topics - Tab order 4 */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTopicsChips
               fieldType={"topics"}
@@ -360,6 +472,8 @@ export default function BookEditForm({
             />
             <AntolinResult />
           </Grid>
+
+          {/* Summary - Tab order 5 */}
           <Grid size={{ xs: 12 }}>
             <BookMultiText
               fieldType={"summary"}
@@ -368,14 +482,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"isbn"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
+
+          {/* Edition Description */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"editionDescription"}
@@ -384,6 +492,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Publisher Name */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"publisherName"}
@@ -392,6 +502,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Publisher Location */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"publisherLocation"}
@@ -400,6 +512,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Publisher Date */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"publisherDate"}
@@ -408,6 +522,8 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
+          {/* Pages */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookPagesField
               fieldType={"pages"}
@@ -416,7 +532,10 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Divider sx={{ mb: 3 }}></Divider>
+
+          <Divider sx={{ mb: 3, width: "100%" }} />
+
+          {/* Rental Status Section */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookStatusDropdown
               fieldType={"rentalStatus"}
@@ -425,6 +544,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookNumberField
               fieldType={"renewalCount"}
@@ -433,6 +553,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookDateField
               fieldType={"rentedDate"}
@@ -441,6 +562,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookDateField
               fieldType={"dueDate"}
@@ -449,7 +571,10 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
-          <Divider sx={{ mb: 3 }}></Divider>
+
+          <Divider sx={{ mb: 3, width: "100%" }} />
+
+          {/* Additional Fields */}
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"minAge"}
@@ -458,6 +583,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"maxAge"}
@@ -466,6 +592,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"price"}
@@ -474,6 +601,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"externalLinks"}
@@ -482,6 +610,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"additionalMaterial"}
@@ -490,6 +619,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"minPlayers"}
@@ -498,6 +628,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"otherPhysicalAttributes"}
@@ -506,6 +637,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"supplierComment"}
@@ -514,6 +646,7 @@ export default function BookEditForm({
               book={book}
             />
           </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <BookTextField
               fieldType={"physicalSize"}
@@ -523,47 +656,37 @@ export default function BookEditForm({
             />
           </Grid>
         </Grid>
+
+        {/* Cover Image and Barcode Column */}
         <Grid
           container
           size={{ xs: 12, sm: 3 }}
           direction="column"
-          justifyContent="top"
+          justifyContent="flex-start"
           alignItems="center"
         >
           <Grid>
             <CoverImage />
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <BookImageUploadButton
-                book={book}
-                setLoadingImage={setLoadingImage}
-              />
-              <Tooltip title="Cover von ISBN laden (OpenLibrary)">
-                <span>
-                  <Button
-                    size="small"
-                    onClick={handleFetchCover}
-                    disabled={!book.isbn || !book.id || fetchingCover}
-                    startIcon={
-                      fetchingCover ? (
-                        <CircularProgress size={16} />
-                      ) : (
-                        <ImageSearchIcon />
-                      )
-                    }
-                    data-cy="fetch-cover-button"
-                  >
-                    {fetchingCover ? "Lädt..." : "Cover laden"}
-                  </Button>
-                </span>
-              </Tooltip>
-            </Box>
+            {!isNewBook && (
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
+              >
+                <BookImageUploadButton
+                  book={book}
+                  setLoadingImage={setLoadingImage}
+                />
+              </Box>
+            )}
           </Grid>
-          <Grid>
-            <BookBarcode book={book} />
-          </Grid>
+          {!isNewBook && (
+            <Grid>
+              <BookBarcode book={book} />
+            </Grid>
+          )}
         </Grid>
       </Grid>
-      <Divider sx={{ mb: 3 }}></Divider>
+
+      <Divider sx={{ mb: 3 }} />
     </Paper>
   );
 }

@@ -13,7 +13,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
 import { useSnackbar } from "notistack";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const theme = createTheme({
   palette: {
@@ -37,6 +37,7 @@ export default function BookDetail({
   const router = useRouter();
   const [bookData, setBookData] = useState<BookType>(book);
   const [antolinResults, setAntolinResults] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -76,11 +77,11 @@ export default function BookDetail({
   const bookid = parseInt(
     Array.isArray(router.query.bookid)
       ? router.query.bookid[0]
-      : router.query.bookid
+      : router.query.bookid,
   );
 
-  const handleSaveButton = async () => {
-    console.log("Saving book ", bookData);
+  const handleSaveButton = useCallback(async () => {
+    setIsSaving(true);
 
     const rentedDate = convertStringToDay(bookData.rentedDate as string);
     const dueDate = convertStringToDay(bookData.dueDate as string);
@@ -101,45 +102,45 @@ export default function BookDetail({
         console.error("ERROR while saving book", res.statusText, errorData);
         enqueueSnackbar(
           errorData.message || "Fehler beim Speichern des Buches",
-          { variant: "error" }
+          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(`Buch ${bookData.title} gespeichert, gut gemacht!`);
+      enqueueSnackbar(`Buch "${bookData.title}" gespeichert, gut gemacht!`);
       router.push("/book");
     } catch (error) {
       console.error("Failed to save book:", error);
       enqueueSnackbar("Fehler beim Speichern des Buches", { variant: "error" });
+    } finally {
+      setIsSaving(false);
     }
-  };
+  }, [bookData, bookid, router, enqueueSnackbar]);
 
-  const handleReturnBookButton = async (userid: number) => {
-    console.log("Returning book ", bookid);
+  const handleReturnBookButton = useCallback(
+    async (userid: number) => {
+      try {
+        const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-    try {
-      const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        const data = await res.json();
+        enqueueSnackbar("Buch zurückgegeben, super!");
+      } catch (error) {
+        console.error("Failed to return book:", error);
+        enqueueSnackbar("Fehler beim Zurückgeben des Buches", {
+          variant: "error",
+        });
+      }
+    },
+    [bookid, enqueueSnackbar],
+  );
 
-      const data = await res.json();
-      console.log(data);
-      enqueueSnackbar("Buch zurückgegeben, super!");
-    } catch (error) {
-      console.error("Failed to return book:", error);
-      enqueueSnackbar("Fehler beim Zurückgeben des Buches", {
-        variant: "error",
-      });
-    }
-  };
-
-  const handleDeleteButton = async () => {
-    console.log("Deleting book ", bookData);
-
+  const handleDeleteButton = useCallback(async () => {
     try {
       const res = await fetch(`/api/book/${bookid}`, {
         method: "DELETE",
@@ -149,14 +150,13 @@ export default function BookDetail({
       });
 
       const data = await res.json();
-      console.log("Delete operation performed on ", bookid, data);
       enqueueSnackbar("Buch gelöscht");
       router.push("/book");
     } catch (error) {
       console.error("Failed to delete book:", error);
       enqueueSnackbar("Fehler beim Löschen des Buches", { variant: "error" });
     }
-  };
+  }, [bookid, router, enqueueSnackbar]);
 
   return (
     <Layout>
@@ -164,11 +164,13 @@ export default function BookDetail({
         <BookEditForm
           book={bookData}
           setBookData={setBookData}
+          isNewBook={false}
           deleteBook={handleDeleteButton}
           deleteSafetySeconds={deleteSafetySeconds}
           saveBook={handleSaveButton}
           topics={topics}
           antolinResults={antolinResults}
+          isSaving={isSaving}
         />
       </ThemeProvider>
     </Layout>
@@ -178,7 +180,7 @@ export default function BookDetail({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const deleteSafetySeconds = parseInt(
     process.env.DELETE_SAFETY_SECONDS || "5",
-    10
+    10,
   );
 
   const dbbook = await getBook(prisma, parseInt(context.query.bookid as any));
