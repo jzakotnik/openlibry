@@ -6,36 +6,40 @@ import path from "path";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
+/**
+ * Fetch cover image for a book by ISBN.
+ *
+ * Checks DNB first, then falls back to OpenLibrary.
+ *
+ * Query parameters:
+ * - isbn (required): The ISBN to look up
+ * - bookId (optional): If provided, saves cover to disk and returns JSON.
+ *                      If omitted, returns the image data directly (for preview/batch operations).
+ */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   const { isbn, bookId } = req.query;
 
   if (!isbn || typeof isbn !== "string") {
     errorLogger.warn(
       {
         event: LogEvents.API_ERROR,
-        endpoint: "/api/cover/fetch",
+        endpoint: "/api/book/fetchCover",
         reason: "Missing ISBN parameter",
       },
-      "Cover fetch request missing ISBN"
+      "Cover fetch request missing ISBN",
     );
     return res.status(400).json({ error: "ISBN fehlt", success: false });
   }
 
-  if (!bookId || typeof bookId !== "string") {
-    errorLogger.warn(
-      {
-        event: LogEvents.API_ERROR,
-        endpoint: "/api/cover/fetch",
-        isbn,
-        reason: "Missing book ID parameter",
-      },
-      "Cover fetch request missing book ID"
-    );
-    return res.status(400).json({ error: "Buch-ID fehlt", success: false });
-  }
+  // bookId is optional - if provided, we save to disk; if not, we return the image
+  const shouldSave = bookId && typeof bookId === "string";
 
   // Clean ISBN: remove dashes, spaces, keep X for ISBN-10 check digit
   const cleanedIsbn = isbn.replace(/[^0-9X]/gi, "");
@@ -45,10 +49,10 @@ export default async function handler(
       {
         event: LogEvents.ISBN_LOOKUP_INVALID,
         isbn,
-        bookId,
+        bookId: bookId || null,
         reason: "ISBN contains no valid characters",
       },
-      "Invalid ISBN format for cover fetch"
+      "Invalid ISBN format for cover fetch",
     );
     return res.status(400).json({ error: "Ungültige ISBN", success: false });
   }
@@ -58,9 +62,10 @@ export default async function handler(
       event: LogEvents.COVER_FETCH_STARTED,
       isbn: cleanedIsbn,
       originalIsbn: isbn,
-      bookId,
+      bookId: bookId || null,
+      mode: shouldSave ? "save" : "preview",
     },
-    "Starting cover fetch"
+    "Starting cover fetch",
   );
 
   // Try DNB first, then fallback to OpenLibrary
@@ -84,10 +89,10 @@ export default async function handler(
           event: LogEvents.COVER_FETCH_ATTEMPT,
           source: source.name,
           isbn: cleanedIsbn,
-          bookId,
+          bookId: bookId || null,
           url: source.url,
         },
-        `Attempting cover fetch from ${source.name}`
+        `Attempting cover fetch from ${source.name}`,
       );
 
       const response = await fetch(source.url, {
@@ -103,11 +108,11 @@ export default async function handler(
             event: LogEvents.COVER_FETCH_ATTEMPT,
             source: source.name,
             isbn: cleanedIsbn,
-            bookId,
+            bookId: bookId || null,
             httpStatus: response.status,
             reason: "Non-OK HTTP status",
           },
-          `${source.name} returned HTTP ${response.status}`
+          `${source.name} returned HTTP ${response.status}`,
         );
         continue;
       }
@@ -120,11 +125,11 @@ export default async function handler(
             event: LogEvents.COVER_FETCH_ATTEMPT,
             source: source.name,
             isbn: cleanedIsbn,
-            bookId,
+            bookId: bookId || null,
             contentType,
             reason: "Response is not an image",
           },
-          `${source.name} did not return an image`
+          `${source.name} did not return an image`,
         );
         continue;
       }
@@ -141,11 +146,11 @@ export default async function handler(
             event: LogEvents.COVER_FETCH_ATTEMPT,
             source: source.name,
             isbn: cleanedIsbn,
-            bookId,
+            bookId: bookId || null,
             detectedMime: fileType?.mime ?? "unknown",
             reason: "Invalid image magic bytes",
           },
-          `${source.name} did not return a valid image`
+          `${source.name} did not return a valid image`,
         );
         continue;
       }
@@ -157,50 +162,71 @@ export default async function handler(
             event: LogEvents.COVER_FETCH_ATTEMPT,
             source: source.name,
             isbn: cleanedIsbn,
-            bookId,
+            bookId: bookId || null,
             fileSize: buffer.length,
             reason: "Image too small, likely placeholder",
           },
-          `${source.name} returned placeholder image`
+          `${source.name} returned placeholder image`,
         );
         continue;
       }
 
-      // Save the cover
-      const filePath = path.join(
-        process.env.COVERIMAGE_FILESTORAGE_PATH!,
-        `${bookId}.jpg`
-      );
+      // Found a valid cover
+      if (shouldSave) {
+        // Save mode: write to disk and return JSON
+        const filePath = path.join(
+          process.env.COVERIMAGE_FILESTORAGE_PATH!,
+          `${bookId}.jpg`,
+        );
 
-      await fs.writeFile(filePath, buffer);
+        await fs.writeFile(filePath, buffer);
 
-      businessLogger.info(
-        {
-          event: source.logEvent,
+        businessLogger.info(
+          {
+            event: source.logEvent,
+            source: source.name,
+            isbn: cleanedIsbn,
+            bookId,
+            fileSize: buffer.length,
+            mimeType: fileType.mime,
+          },
+          `Cover saved from ${source.name}`,
+        );
+
+        return res.status(200).json({
+          success: true,
           source: source.name,
-          isbn: cleanedIsbn,
-          bookId,
-          fileSize: buffer.length,
-          mimeType: fileType.mime,
-        },
-        `Cover saved from ${source.name}`
-      );
+        });
+      } else {
+        // Preview mode: return image directly
+        businessLogger.info(
+          {
+            event: source.logEvent,
+            source: source.name,
+            isbn: cleanedIsbn,
+            fileSize: buffer.length,
+            mimeType: fileType.mime,
+            mode: "preview",
+          },
+          `Cover returned from ${source.name} (preview mode)`,
+        );
 
-      return res.status(200).json({
-        success: true,
-        source: source.name,
-      });
+        res.setHeader("Content-Type", fileType.mime);
+        res.setHeader("X-Cover-Source", source.name);
+        res.setHeader("Content-Length", buffer.length);
+        return res.status(200).send(buffer);
+      }
     } catch (error: any) {
       errorLogger.warn(
         {
           event: LogEvents.COVER_FETCH_FAILED,
           source: source.name,
           isbn: cleanedIsbn,
-          bookId,
+          bookId: bookId || null,
           error: error.message,
           stack: error.stack,
         },
-        `Error fetching cover from ${source.name}`
+        `Error fetching cover from ${source.name}`,
       );
       // Continue to next source
     }
@@ -211,10 +237,10 @@ export default async function handler(
     {
       event: LogEvents.COVER_NOT_FOUND,
       isbn: cleanedIsbn,
-      bookId,
+      bookId: bookId || null,
       sourcesChecked: coverSources.map((s) => s.name),
     },
-    "No cover found from any source"
+    "No cover found from any source",
   );
 
   return res.status(404).json({
