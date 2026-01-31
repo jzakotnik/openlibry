@@ -47,6 +47,11 @@ docker run --rm -p 3000:3000 \
 
 Achtung, das ist keine permanente Installation sondern nur eine temporäre "Spiel-Installation". Wenn der Docker Container beendet wird, sind auch die Daten weg.
 
+Falls Du noch ein paar Beispiel-Daten (10 Bücher, 5 User, 2 Ausleihen) in der Installation haben möchtest, führe diesen Docker Container aus, der diese über die OpenLibry API anlegt:
+```bash
+docker run --rm --network host jzakotnik/openlibry-demoseeder:release
+```
+
 ## OpenLibry öffnen
 
 Öffne deinen Browser und gehe zu:
