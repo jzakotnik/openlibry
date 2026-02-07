@@ -8,6 +8,7 @@ import {
   getUsersInIdRangeForSchoolgrade,
 } from "@/entities/user";
 import { chunkArray } from "@/lib/utils/chunkArray";
+import { resolveCustomPath } from "@/lib/utils/customPath";
 import ReactPDF, {
   Canvas,
   Document,
@@ -19,7 +20,6 @@ import ReactPDF, {
 } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
 import type { NextApiRequest, NextApiResponse } from "next";
-const { join } = require("path");
 
 import { prisma } from "@/entities/db";
 var fs = require("fs");
@@ -52,18 +52,18 @@ const DEFAULT_USERLABEL_LINES: Array<
 // =============================================================================
 
 // Load background image with fallback and error handling
+// Checks database/custom/ first, falls back to public/
 const labelImagePath =
   process.env.USERID_LABEL_IMAGE || DEFAULT_USERLABEL_IMAGE;
 let base64Image: string | null = null;
 try {
-  base64Image = fs.readFileSync(
-    join(process.cwd(), "/public/" + labelImagePath),
-    { encoding: "base64" },
-  );
+  const resolvedImagePath = resolveCustomPath(labelImagePath);
+  base64Image = fs.readFileSync(resolvedImagePath, { encoding: "base64" });
+  console.log(`User label background loaded: ${resolvedImagePath}`);
 } catch (error) {
   console.warn(
-    `Warning: Could not load user label image at /public/${labelImagePath}. ` +
-      `Please ensure the file exists or set USERID_LABEL_IMAGE in your .env file.`,
+    `Warning: Could not load user label image "${labelImagePath}" ` +
+      `in database/custom/ or public/. Please ensure the file exists or set USERID_LABEL_IMAGE in your .env file.`,
   );
 }
 

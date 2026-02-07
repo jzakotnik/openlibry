@@ -2,9 +2,9 @@ import { getRentedBooksWithUsers } from "@/entities/book";
 
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
-import { join } from "path";
 import PizZip from "pizzip";
 
+import { resolveCustomPath } from "@/lib/utils/customPath";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -35,16 +35,16 @@ const REMINDER_TEMPLATE_DOC =
   process.env.REMINDER_TEMPLATE_DOC || DEFAULT_REMINDER_TEMPLATE_DOC;
 
 // Load template with error handling
+// Checks database/custom/ first, falls back to public/
 let template: Buffer | null = null;
 try {
-  template = fs.readFileSync(
-    join(process.cwd(), "/public/" + REMINDER_TEMPLATE_DOC),
-  );
-  console.log(`Reminder template loaded: /public/${REMINDER_TEMPLATE_DOC}`);
+  const templatePath = resolveCustomPath(REMINDER_TEMPLATE_DOC);
+  template = fs.readFileSync(templatePath);
+  console.log(`Reminder template loaded: ${templatePath}`);
 } catch (error) {
   console.warn(
-    `Warning: Could not load reminder template at /public/${REMINDER_TEMPLATE_DOC}. ` +
-      `Reminder generation will not work until template is provided.`,
+    `Warning: Could not load reminder template "${REMINDER_TEMPLATE_DOC}" ` +
+      `in database/custom/ or public/. Reminder generation will not work until template is provided.`,
   );
 }
 
@@ -86,8 +86,9 @@ export default async function handle(
       if (!template) {
         return res.status(500).json({
           data:
-            `ERROR: Reminder template not found at /public/${REMINDER_TEMPLATE_DOC}. ` +
-            `Please create the template file or set REMINDER_TEMPLATE_DOC in your .env file.`,
+            `ERROR: Reminder template not found. ` +
+            `Please place "${REMINDER_TEMPLATE_DOC}" in database/custom/ or public/, ` +
+            `or set REMINDER_TEMPLATE_DOC in your .env file.`,
         });
       }
 
