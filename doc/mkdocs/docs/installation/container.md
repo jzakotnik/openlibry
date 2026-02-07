@@ -133,8 +133,6 @@ cp /pfad/zu/antolingesamt.csv ~/openlibry/database/custom/antolin/
 docker compose restart
 ```
 
-!!! tip "Kein extra Volume nötig"
-    Der `custom/`-Ordner nutzt das bestehende `database`-Volume. Du musst nichts an der `docker-compose.yml` ändern.
 
 !!! info "Wie funktioniert das?"
     OpenLibry sucht zuerst in `database/custom/` nach der Datei. Wird sie dort nicht gefunden, wird die Standarddatei aus `public/` verwendet. So funktioniert alles auch ohne eigene Dateien.
