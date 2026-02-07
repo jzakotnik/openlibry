@@ -37,7 +37,7 @@ const theme = createTheme(
     spacing: 4,
   },
   deDE, // x-data-grid translations
-  coreDeDE // core translations
+  coreDeDE, // core translations
 );
 
 const cardHeight = 210;
@@ -345,16 +345,19 @@ export default function Reports({ users, books, rentals }: ReportPropsType) {
   const schoolGradeSet = convertToTopicCount(allSchoolGrades);
 
   function convertToTopicCount(
-    arr: string[][]
+    arr: string[][],
   ): { topic: string; count: number }[] {
     // Flatten the array of arrays into a single array of strings
     const flattenedArray = arr.flat();
 
     // Use reduce to create the topicCountMap
-    const topicCountMap = flattenedArray.reduce((acc, topic) => {
-      acc[topic] = (acc[topic] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const topicCountMap = flattenedArray.reduce(
+      (acc, topic) => {
+        acc[topic] = (acc[topic] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number },
+    );
 
     // Convert the map to an array of objects with "topic" and "count"
     return Object.keys(topicCountMap).map((topic) => ({
@@ -516,16 +519,15 @@ export async function getServerSideProps() {
 
     return {
       id: r.id,
-      title: r.title,
-      lastName: r.user?.lastName,
-      firstName: r.user?.firstName,
+      title: r.title || "",
+      lastName: r.user?.lastName || "",
+      firstName: r.user?.firstName || "",
       remainingDays: diff,
       dueDate: convertDateToDayString(due.toDate()),
-      renewalCount: r.renewalCount,
-      userid: r.user?.id,
+      renewalCount: r.renewalCount ?? 0,
+      userid: r.user?.id ?? null,
     };
   });
-
   businessLogger.debug(
     {
       event: LogEvents.PAGE_LOAD,
@@ -534,7 +536,7 @@ export async function getServerSideProps() {
       bookCount: books.length,
       rentalCount: rentals.length,
     },
-    "Reports page loaded"
+    "Reports page loaded",
   );
 
   return { props: { users, books, rentals } };
