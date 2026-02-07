@@ -94,11 +94,11 @@ Starten:
 docker compose up -d
 ```
 
-OpenLibry läuft jetzt unter `http://localhost:3000` und startet automatisch nach einem Neustart.
+OpenLibry läuft jetzt unter `http://<domain>:3000` und startet automatisch nach einem Neustart.
 
 ## Schritt 3: Ersten Benutzer anlegen
 
-1. Öffne `http://localhost:3000/auth/register`
+1. Öffne `http://<domain>:3000/auth/register`
 2. Erstelle einen Admin-Benutzer
 3. Bearbeite die `.env` und setze `AUTH_ENABLED=true`
 4. Container neu starten: `docker compose restart`
