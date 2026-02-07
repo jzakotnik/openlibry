@@ -62,7 +62,7 @@ export default function BookRentalList({
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState<Array<BookType>>(books);
   const [returnedBooks, setReturnedBooks] = useState<Record<number, number>>(
-    {}
+    {},
   );
 
   const sortings = useMemo(
@@ -72,11 +72,11 @@ export default function BookRentalList({
         id_desc: { field: "id", order: "desc" },
         title_asc: { field: "title", order: "asc" },
         title_desc: { field: "title", order: "desc" },
-      } as const satisfies Record<
+      }) as const satisfies Record<
         "id_asc" | "id_desc" | "title_asc" | "title_desc",
         Sorting<BookType>
-      >),
-    []
+      >,
+    [],
   );
 
   // Build itemsjs index only when the dataset changes
@@ -86,7 +86,7 @@ export default function BookRentalList({
         searchableFields: ["title", "author", "subtitle", "id"],
         sortings,
       }),
-    [books, sortings]
+    [books, sortings],
   );
 
   // Stable search function (captures engine + sortBy)
@@ -99,7 +99,7 @@ export default function BookRentalList({
       });
       setRenderedBooks(found.data.items);
     },
-    [searchEngine, sortBy]
+    [searchEngine, sortBy],
   );
 
   // Run search whenever input text changes or engine/sort changes
@@ -113,7 +113,7 @@ export default function BookRentalList({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     const v = e.target.value;
     setBookSearchInput(v);
@@ -158,7 +158,7 @@ export default function BookRentalList({
       userExpanded,
       books,
       handleRentBookButton,
-    ]
+    ],
   );
 
   const markBookTouched = (id: number) => {
@@ -214,7 +214,7 @@ export default function BookRentalList({
         {renderedBooks.slice(0, 100).map((b: BookType) => {
           const allowExtendBookRent = extensionDueDate.isAfter(
             b.dueDate,
-            "day"
+            "day",
           );
           const tooltip = allowExtendBookRent
             ? "Verlängern"
@@ -370,7 +370,7 @@ export default function BookRentalList({
                     <span>
                       {" "}
                       - ausgeliehen bis {dayjs(b.dueDate).format(
-                        "DD.MM.YYYY"
+                        "DD.MM.YYYY",
                       )}{" "}
                       an {userNameForBook(users, b.userId!)}
                     </span>

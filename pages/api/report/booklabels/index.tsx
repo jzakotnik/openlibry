@@ -1,6 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { chunkArray } from "@/lib/utils/chunkArray";
+import { resolveCustomPath } from "@/lib/utils/customPath";
 import { currentTime } from "@/lib/utils/dateutils";
 import ReactPDF, {
   Canvas,
@@ -13,7 +14,6 @@ import ReactPDF, {
 } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
 import { NextApiRequest, NextApiResponse } from "next";
-const { join } = require("path");
 
 import { prisma } from "@/entities/db";
 
@@ -162,14 +162,17 @@ const BOOKLABEL_LINE_BELOW_2 = process.env.BOOKLABEL_LINE_BELOW_2
 const pointPerCm = 28.3464566929;
 
 // Load school logo with fallback and error handling
+// Checks database/custom/ first, falls back to public/
 const logoPath = process.env.BOOKLABEL_LOGO || DEFAULT_BOOKLABEL_LOGO;
 let schoollogo: Buffer | null = null;
 try {
-  schoollogo = fs.readFileSync(join(process.cwd(), "/public/" + logoPath));
+  const resolvedLogoPath = resolveCustomPath(logoPath);
+  schoollogo = fs.readFileSync(resolvedLogoPath);
+  console.log(`Book label logo loaded: ${resolvedLogoPath}`);
 } catch (error) {
   console.warn(
-    `Warning: Could not load book label logo at /public/${logoPath}. ` +
-      `Logo will not be shown if BOOKLABEL_BARCODE_PLACEHOLDER is set to 'logo'.`,
+    `Warning: Could not load book label logo "${logoPath}" ` +
+      `in database/custom/ or public/. Logo will not be shown if BOOKLABEL_BARCODE_PLACEHOLDER is set to 'logo'.`,
   );
 }
 

@@ -1,4 +1,5 @@
 import { prisma } from "@/entities/db";
+import { getCustomPathInfo } from "@/lib/utils/customPath";
 import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import os from "os";
@@ -338,6 +339,14 @@ export default async function handle(
     });
   }
 
+  // Add database/custom folder check
+  const customDir = path.join(process.cwd(), "database", "custom");
+  requiredFolders.push({
+    name: "custom",
+    path: customDir,
+    mustBeWritable: false, // Not required to exist, just informational
+  });
+
   const folderResults: Record<
     string,
     { exists: boolean; writable: boolean; fileCount?: number }
@@ -364,12 +373,27 @@ export default async function handle(
       }
     }
 
+    // Count files in custom folder
+    if (folder.name === "custom" && check.exists) {
+      try {
+        const files = fs.readdirSync(folder.path);
+        // Filter out README.txt
+        const customFiles = files.filter((f) => f !== "README.txt");
+        result.fileCount = customFiles.length;
+      } catch {
+        // Ignore counting errors
+      }
+    }
+
     folderResults[folder.name] = result;
 
-    if (!check.exists) {
-      folderIssues.push(`${folder.name}: nicht gefunden`);
-    } else if (!check.writable && folder.mustBeWritable) {
-      folderIssues.push(`${folder.name}: nicht beschreibbar`);
+    // Only report issues for required folders (not custom, which is optional)
+    if (folder.name !== "custom") {
+      if (!check.exists) {
+        folderIssues.push(`${folder.name}: nicht gefunden`);
+      } else if (!check.writable && folder.mustBeWritable) {
+        folderIssues.push(`${folder.name}: nicht beschreibbar`);
+      }
     }
   }
 
@@ -415,8 +439,7 @@ export default async function handle(
     };
   }
 
-  // 4. Check optional files from environment variables
-  const publicDir = path.join(process.cwd(), "public");
+  // 4. Check optional files using customPath resolution (database/custom/ → public/)
   const optionalFiles = [
     {
       name: "Logo (BOOKLABEL_LOGO)",
@@ -443,33 +466,37 @@ export default async function handle(
 
   const fileResults: Record<
     string,
-    { configured: boolean; exists: boolean; path: string }
+    { configured: boolean; exists: boolean; path: string; source?: string }
   > = {};
   const fileWarnings: string[] = [];
 
   for (const file of optionalFiles) {
-    let filePath: string;
+    let filename: string;
     let isConfigured: boolean;
 
     if ("fixedPath" in file && file.fixedPath) {
-      filePath = path.join(publicDir, file.fixedPath);
+      filename = file.fixedPath;
       isConfigured = true;
     } else {
       const envValue = file.envVar ? process.env[file.envVar] : null;
       isConfigured = !!envValue;
-      const fileName = envValue || file.defaultValue;
-      filePath = path.join(publicDir, fileName || "");
+      filename = envValue || file.defaultValue || "";
     }
 
-    const check = checkPath(filePath, "file");
+    // Use customPath resolution to check both database/custom/ and public/
+    const pathInfo = getCustomPathInfo(filename);
     fileResults[file.name] = {
       configured: isConfigured,
-      exists: check.exists,
-      path: filePath,
+      exists: pathInfo.activeSource !== "missing",
+      path:
+        pathInfo.activeSource === "custom"
+          ? pathInfo.customPath
+          : pathInfo.publicPath,
+      source: pathInfo.activeSource,
     };
 
-    // Only warn if explicitly configured but missing
-    if (isConfigured && !check.exists && file.envVar) {
+    // Only warn if explicitly configured but missing in both locations
+    if (isConfigured && pathInfo.activeSource === "missing" && file.envVar) {
       fileWarnings.push(`${file.name}: konfiguriert aber nicht gefunden`);
     }
   }

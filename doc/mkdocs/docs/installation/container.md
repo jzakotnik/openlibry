@@ -43,13 +43,12 @@ sudo systemctl is-active docker
 
 ## Schritt 2: OpenLibry vorbereiten und konfigurieren
 
-Im Unterschied zur temporären Installation werden im Server Ordner für die Datenbank un die Cover angelegt, die auch verbleiben, wenn der Docker Container gelöscht oder geupdatet wird. Diese müssen entsprechende Zugangsrechte haben, damit der Docker Daemon diese nutzen kann. Falls was nicht funktioniert sind es in 90% der Fälle ein Permission Problem.
+Im Unterschied zur temporären Installation werden im Server Ordner für die Datenbank und die Cover angelegt, die auch verbleiben, wenn der Docker Container gelöscht oder geupdatet wird. Diese müssen entsprechende Zugangsrechte haben, damit der Docker Daemon diese nutzen kann. Falls was nicht funktioniert sind es in 90% der Fälle ein Permission Problem.
 
 Der Weg der Daten ist also intern für den Server anders als er von außen auf dem Docker Host zu sehen ist.
 ![Docker Volumes Intro](../assets/dockerVolumesIntro.png)
 
 Deshalb diese Ordner erstellen:
-
 
 ```bash
 # Verzeichnis erstellen
@@ -97,12 +96,46 @@ docker compose up -d
 
 OpenLibry läuft jetzt unter `http://localhost:3000` und startet automatisch nach einem Neustart.
 
-## Schritt 4: Ersten Benutzer anlegen
+## Schritt 3: Ersten Benutzer anlegen
 
 1. Öffne `http://localhost:3000/auth/register`
 2. Erstelle einen Admin-Benutzer
 3. Bearbeite die `.env` und setze `AUTH_ENABLED=true`
 4. Container neu starten: `docker compose restart`
+
+## Eigene Vorlagen anpassen
+
+Beim ersten Start erstellt OpenLibry automatisch einen Ordner `database/custom/` innerhalb des Datenbank-Volumes. Dort kannst du eigene Dateien ablegen, die die im Image enthaltenen Standarddateien überschreiben:
+
+| Datei | Beschreibung | Standard im Image |
+|-------|--------------|-------------------|
+| `school_logo.png` | Schullogo für Bücherlabels | OpenLibry-Platzhalter |
+| `mahnung-template.docx` | Vorlage für Mahnschreiben | Standard-Vorlage |
+| `ausweis_hintergrund.png` | Hintergrundbild für Benutzerausweise | Standard-Hintergrund |
+| `antolin/antolingesamt.csv` | Antolin-Datenliste | nicht enthalten |
+
+Da der `custom/`-Ordner innerhalb des `database`-Volumes liegt, bleiben deine Anpassungen bei Container-Updates automatisch erhalten und werden auch bei einem regulären Datenbank-Backup mitgesichert.
+
+### Beispiel
+
+```bash
+# Schullogo ablegen
+cp /pfad/zu/mein_logo.png ~/openlibry/database/custom/school_logo.png
+
+# Eigene Mahnungsvorlage ablegen
+cp /pfad/zu/meine_mahnung.docx ~/openlibry/database/custom/mahnung-template.docx
+
+# Antolin-Daten (Unterverzeichnis!)
+mkdir -p ~/openlibry/database/custom/antolin
+cp /pfad/zu/antolingesamt.csv ~/openlibry/database/custom/antolin/
+
+# Container neu starten, damit die Dateien erkannt werden
+docker compose restart
+```
+
+
+!!! info "Wie funktioniert das?"
+    OpenLibry sucht zuerst in `database/custom/` nach der Datei. Wird sie dort nicht gefunden, wird die Standarddatei aus `public/` verwendet. So funktioniert alles auch ohne eigene Dateien.
 
 ## Nützliche Befehle
 
@@ -146,7 +179,7 @@ docker run --rm --entrypoint sh jzakotnik/openlibry:latest -c 'id -u'
 
 # Ordner mit korrekten Rechten erstellen
 mkdir -p database
-sudo chown 1000:1000 database
+sudo chown -R 1000:1000 database
 ```
 
 ## Nächste Schritte
