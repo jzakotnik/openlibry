@@ -274,7 +274,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.wait("@fillByIsbn", { timeout: 15000 });
 
     // Wait for cover fetch (happens in parallel)
-    cy.wait(2000);
+    cy.wait(5000);
 
     // Check if cover preview is shown (depends on OpenLibrary availability)
     cy.get("body").then(($body) => {

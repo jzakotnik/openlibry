@@ -2,9 +2,9 @@ import { getRentedBooksWithUsers } from "@/entities/book";
 
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
+import { join } from "path";
 import PizZip from "pizzip";
 
-import { resolveCustomPath } from "@/lib/utils/customPath";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -35,22 +35,24 @@ const REMINDER_TEMPLATE_DOC =
   process.env.REMINDER_TEMPLATE_DOC || DEFAULT_REMINDER_TEMPLATE_DOC;
 
 // Load template with error handling
-// Checks database/custom/ first, falls back to public/
 let template: Buffer | null = null;
 try {
-  const templatePath = resolveCustomPath(REMINDER_TEMPLATE_DOC);
-  template = fs.readFileSync(templatePath);
-  console.log(`Reminder template loaded: ${templatePath}`);
+  template = fs.readFileSync(
+    join(process.cwd(), "/public/" + REMINDER_TEMPLATE_DOC),
+  );
+  console.log(`Reminder template loaded: /public/${REMINDER_TEMPLATE_DOC}`);
 } catch (error) {
   console.warn(
-    `Warning: Could not load reminder template "${REMINDER_TEMPLATE_DOC}" ` +
-      `in database/custom/ or public/. Reminder generation will not work until template is provided.`,
+    `Warning: Could not load reminder template at /public/${REMINDER_TEMPLATE_DOC}. ` +
+      `Reminder generation will not work until template is provided.`,
   );
 }
 
 // =============================================================================
 // Type definitions
 // =============================================================================
+type ReminderMode = "all" | "non-extendable";
+
 interface BookListItem {
   title: string;
   author: string;
@@ -86,18 +88,19 @@ export default async function handle(
       if (!template) {
         return res.status(500).json({
           data:
-            `ERROR: Reminder template not found. ` +
-            `Please place "${REMINDER_TEMPLATE_DOC}" in database/custom/ or public/, ` +
-            `or set REMINDER_TEMPLATE_DOC in your .env file.`,
+            `ERROR: Reminder template not found at /public/${REMINDER_TEMPLATE_DOC}. ` +
+            `Please create the template file or set REMINDER_TEMPLATE_DOC in your .env file.`,
         });
       }
 
       try {
-        // Parse query parameter: includeAllOverdue=true skips renewal count check
-        const includeAllOverdue = req.query.includeAllOverdue === "true";
+        // Parse mode parameter: "all" (default) or "non-extendable"
+        const mode: ReminderMode =
+          req.query.mode === "non-extendable" ? "non-extendable" : "all";
+
+        console.log(`Reminder mode: ${mode}`);
 
         // Create fresh replacement variables for each request
-        // (avoids concurrency issues with multiple clients)
         const replacementVariables: ReplacementVariables = {
           alleMahnungen: [],
         };
@@ -133,20 +136,24 @@ export default async function handle(
           };
         });
 
-        // Filter for overdue rentals
-        // If includeAllOverdue is true, include all overdue books regardless of renewal count
-        // Otherwise, only include books that exceed the renewal count threshold
-        const overdueRentals = rentals.filter(
-          (r) =>
-            r.remainingDays > 0 &&
-            (includeAllOverdue || r.renewalCount >= REMINDER_RENEWAL_COUNT),
-        );
+        // Filter for overdue rentals based on mode
+        let overdueRentals;
+        if (mode === "non-extendable") {
+          // Only rentals that have exceeded the renewal count AND are overdue
+          overdueRentals = rentals.filter(
+            (r) =>
+              r.renewalCount >= REMINDER_RENEWAL_COUNT && r.remainingDays > 0,
+          );
+        } else {
+          // All overdue rentals regardless of renewal count
+          overdueRentals = rentals.filter((r) => r.remainingDays > 0);
+        }
 
         if (overdueRentals.length === 0) {
+          const modeLabel =
+            mode === "non-extendable" ? "non-extendable overdue" : "overdue";
           return res.status(200).json({
-            data: includeAllOverdue
-              ? "No overdue rentals found"
-              : "No overdue rentals found that require reminders",
+            data: `No ${modeLabel} rentals found that require reminders`,
             reminderCount: 0,
           });
         }
@@ -164,12 +171,9 @@ export default async function handle(
         );
 
         console.log(
-          "Overdue rentals by user:",
+          `Overdue rentals by user (mode=${mode}):`,
           Object.keys(overDueRentalsByUser).length,
           "users",
-          includeAllOverdue
-            ? "(including all overdue)"
-            : `(renewal count >= ${REMINDER_RENEWAL_COUNT})`,
         );
 
         // Map overdue rentals to the docxtemplater template format
@@ -216,12 +220,14 @@ export default async function handle(
             compression: "DEFLATE",
           });
 
+          const modeLabel =
+            mode === "non-extendable" ? "nicht-verlaengerbar" : "alle";
           console.log("Generated reminder document successfully");
 
           res.writeHead(200, {
             "Content-Type":
               "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "Content-Disposition": `attachment; filename="mahnungen-${dayjs().format("YYYY-MM-DD")}.docx"`,
+            "Content-Disposition": `attachment; filename="mahnungen-${modeLabel}-${dayjs().format("YYYY-MM-DD")}.docx"`,
           });
 
           res.end(generatedDoc);
