@@ -93,6 +93,9 @@ export default async function handle(
       }
 
       try {
+        // Parse query parameter: includeAllOverdue=true skips renewal count check
+        const includeAllOverdue = req.query.includeAllOverdue === "true";
+
         // Create fresh replacement variables for each request
         // (avoids concurrency issues with multiple clients)
         const replacementVariables: ReplacementVariables = {
@@ -130,15 +133,20 @@ export default async function handle(
           };
         });
 
-        // Filter for overdue rentals that exceed the renewal count threshold
+        // Filter for overdue rentals
+        // If includeAllOverdue is true, include all overdue books regardless of renewal count
+        // Otherwise, only include books that exceed the renewal count threshold
         const overdueRentals = rentals.filter(
           (r) =>
-            r.renewalCount >= REMINDER_RENEWAL_COUNT && r.remainingDays > 0,
+            r.remainingDays > 0 &&
+            (includeAllOverdue || r.renewalCount >= REMINDER_RENEWAL_COUNT),
         );
 
         if (overdueRentals.length === 0) {
           return res.status(200).json({
-            data: "No overdue rentals found that require reminders",
+            data: includeAllOverdue
+              ? "No overdue rentals found"
+              : "No overdue rentals found that require reminders",
             reminderCount: 0,
           });
         }
@@ -159,6 +167,9 @@ export default async function handle(
           "Overdue rentals by user:",
           Object.keys(overDueRentalsByUser).length,
           "users",
+          includeAllOverdue
+            ? "(including all overdue)"
+            : `(renewal count >= ${REMINDER_RENEWAL_COUNT})`,
         );
 
         // Map overdue rentals to the docxtemplater template format
