@@ -1,12 +1,20 @@
 import {
+  Box,
   Button,
   Card,
   CardActions,
   CardContent,
+  Stack,
   Typography,
 } from "@mui/material";
 import router from "next/router";
-import { CARD_HEIGHT } from "./cardConstants";
+import {
+  cardAccentSx,
+  cardActionButtonSx,
+  cardBaseSx,
+  metricSx,
+} from "./cardConstants";
+import palette from "@/styles/palette";
 
 type ReportCardProps = {
   title: string;
@@ -26,30 +34,46 @@ export default function ReportCard({
   const dataCy = `report-card-${unit}`;
 
   return (
-    <Card
-      variant="outlined"
-      sx={{ minWidth: 275, minHeight: CARD_HEIGHT }}
-      data-cy={dataCy}
-    >
-      <CardContent>
-        <Typography variant="h5" component="div" data-cy={`${dataCy}-title`}>
+    <Card sx={cardBaseSx} data-cy={dataCy}>
+      <Box sx={cardAccentSx(palette.secondary.main)} />
+      <CardContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 2 }}
+          data-cy={`${dataCy}-title`}
+        >
           {title}
         </Typography>
+
+        <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 1 }}>
+          <Typography sx={metricSx} data-cy={`${dataCy}-count`}>
+            {totalNumber.toLocaleString("de-DE")}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "0.875rem",
+              color: palette.text.disabled,
+              fontWeight: 500,
+            }}
+          >
+            {unit}
+          </Typography>
+        </Stack>
+
         <Typography
-          sx={{ mb: 1.5 }}
-          color="text.secondary"
-          data-cy={`${dataCy}-count`}
+          variant="body2"
+          sx={{ color: palette.text.disabled, lineHeight: 1.5 }}
+          data-cy={`${dataCy}-subtitle`}
         >
-          {totalNumber}
-        </Typography>
-        <Typography variant="body2" data-cy={`${dataCy}-subtitle`}>
           {subtitle}
         </Typography>
       </CardContent>
-      <CardActions>
+      <CardActions sx={{ px: 3, pb: 2 }}>
         <Button
           size="small"
           onClick={() => router.push(link)}
+          sx={cardActionButtonSx}
           data-cy={`${dataCy}-button`}
         >
           Erzeuge Tabelle

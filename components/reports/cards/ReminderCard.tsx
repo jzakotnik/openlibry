@@ -1,14 +1,23 @@
+import palette from "@/styles/palette";
 import {
+  Box,
   Button,
   Card,
   CardActions,
   CardContent,
+  Stack,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 import { useState } from "react";
-import { CARD_HEIGHT } from "./cardConstants";
+import {
+  cardAccentSx,
+  cardActionButtonSx,
+  cardBaseSx,
+  metricSx,
+} from "./cardConstants";
 
 export type ReminderMode = "all" | "non-extendable";
 
@@ -28,6 +37,7 @@ export default function ReminderCard({
   nonExtendableCount,
 }: ReminderCardProps) {
   const [mode, setMode] = useState<ReminderMode>("all");
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleModeChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -44,31 +54,87 @@ export default function ReminderCard({
 
   const currentCount = mode === "all" ? overdueCount : nonExtendableCount;
 
+  const handleGenerateClick = () => {
+    if (currentCount === 0) {
+      const message =
+        mode === "all"
+          ? "Keine überfälligen Ausleihen vorhanden."
+          : "Keine nicht verlängerbaren überfälligen Ausleihen vorhanden.";
+      enqueueSnackbar(message, { variant: "info" });
+      return;
+    }
+    window.open(getReminderUrl(), "_blank");
+  };
+
   return (
-    <Card
-      variant="outlined"
-      sx={{ minWidth: 275, minHeight: CARD_HEIGHT }}
-      data-cy="reminder-card"
-    >
-      <CardContent>
-        <Typography variant="h5" component="div" data-cy="reminder-card-title">
+    <Card sx={cardBaseSx} data-cy="reminder-card">
+      <Box sx={cardAccentSx(palette.error.main)} />
+      <CardContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 2 }}
+          data-cy="reminder-card-title"
+        >
           {title}
         </Typography>
 
-        <Typography
-          sx={{ mb: 1.5 }}
-          color="text.secondary"
-          data-cy="reminder-card-count"
-        >
-          {currentCount} {currentCount === 1 ? "Mahnung" : "Mahnungen"}
-        </Typography>
+        <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 2 }}>
+          <Typography
+            sx={{
+              ...metricSx,
+              color:
+                currentCount > 0 ? palette.error.main : palette.success.main,
+            }}
+            data-cy="reminder-card-count"
+          >
+            {currentCount}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "0.875rem",
+              color: palette.text.disabled,
+              fontWeight: 500,
+            }}
+          >
+            {currentCount === 1 ? "Mahnung" : "Mahnungen"}
+          </Typography>
+        </Stack>
 
         <ToggleButtonGroup
           value={mode}
           exclusive
           onChange={handleModeChange}
           size="small"
-          sx={{ mt: 1, mb: 1 }}
+          sx={{
+            mb: 1.5,
+            "& .MuiToggleButton-root": {
+              textTransform: "none",
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              px: 1.5,
+              py: 0.5,
+              borderRadius: "8px !important",
+              border: `1px solid #e0e0e0`,
+              color: palette.text.secondary,
+              "&.Mui-selected": {
+                backgroundColor: `${palette.primary.main}12`,
+                color: palette.primary.main,
+                borderColor: `${palette.primary.main}40`,
+                fontWeight: 600,
+                "&:hover": {
+                  backgroundColor: `${palette.primary.main}1A`,
+                },
+              },
+              "&:hover": {
+                backgroundColor: "#f5f5f5",
+              },
+            },
+            "& .MuiToggleButtonGroup-grouped:not(:first-of-type)": {
+              ml: 0.5,
+              borderLeft: `1px solid #e0e0e0`,
+            },
+          }}
           data-cy="reminder-mode-toggle"
         >
           <ToggleButton value="all" data-cy="reminder-mode-all">
@@ -82,14 +148,19 @@ export default function ReminderCard({
           </ToggleButton>
         </ToggleButtonGroup>
 
-        <Typography variant="body2" data-cy="reminder-card-subtitle">
+        <Typography
+          variant="body2"
+          sx={{ color: palette.text.disabled, lineHeight: 1.5 }}
+          data-cy="reminder-card-subtitle"
+        >
           {subtitle}
         </Typography>
       </CardContent>
-      <CardActions>
+      <CardActions sx={{ px: 3, pb: 2 }}>
         <Button
           size="small"
-          onClick={() => window.open(getReminderUrl(), "_blank")}
+          onClick={handleGenerateClick}
+          sx={cardActionButtonSx}
           data-cy="reminder-card-button"
         >
           Erzeuge Word

@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Card,
   CardActions,
@@ -6,7 +7,9 @@ import {
   Typography,
 } from "@mui/material";
 import router from "next/router";
-import { CARD_HEIGHT } from "./cardConstants";
+import { cardAccentSx, cardActionButtonSx, cardBaseSx } from "./cardConstants";
+import palette from "@/styles/palette";
+import type { ReactNode } from "react";
 
 type LinkCardProps = {
   title: string;
@@ -14,6 +17,7 @@ type LinkCardProps = {
   buttonTitle: string;
   link: string;
   dataCy?: string;
+  icon?: ReactNode;
 };
 
 export default function LinkCard({
@@ -22,25 +26,50 @@ export default function LinkCard({
   buttonTitle,
   link,
   dataCy,
+  icon,
 }: LinkCardProps) {
   return (
-    <Card
-      variant="outlined"
-      sx={{ minWidth: 275, minHeight: CARD_HEIGHT }}
-      data-cy={dataCy}
-    >
-      <CardContent>
-        <Typography variant="h5" component="div" data-cy={`${dataCy}-title`}>
+    <Card sx={cardBaseSx} data-cy={dataCy}>
+      <Box sx={cardAccentSx(palette.primary.main)} />
+      <CardContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+        {icon && (
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 40,
+              height: 40,
+              borderRadius: "10px",
+              backgroundColor: `${palette.primary.main}0F`,
+              color: palette.primary.main,
+              mb: 1.5,
+            }}
+          >
+            {icon}
+          </Box>
+        )}
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 1 }}
+          data-cy={`${dataCy}-title`}
+        >
           {title}
         </Typography>
-        <Typography variant="body2" data-cy={`${dataCy}-subtitle`}>
+        <Typography
+          variant="body2"
+          sx={{ color: palette.text.disabled, lineHeight: 1.5 }}
+          data-cy={`${dataCy}-subtitle`}
+        >
           {subtitle}
         </Typography>
       </CardContent>
-      <CardActions>
+      <CardActions sx={{ px: 3, pb: 2 }}>
         <Button
           size="small"
           onClick={() => router.push(link)}
+          sx={cardActionButtonSx}
           data-cy={`${dataCy}-button`}
         >
           {buttonTitle}
