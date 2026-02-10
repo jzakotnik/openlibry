@@ -1,6 +1,9 @@
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import { hasOverdueBooks } from "@/lib/utils/hasOverdueBooks";
+
+function hasOverdueBooks(rentals: Array<RentalsUserType>): boolean {
+  return rentals.some((b) => b.remainingDays > 0);
+}
 
 export function searchAndRemoveKlasse(inputString: string) {
   // Create a regex pattern to find "klasse?" followed by a number
@@ -23,7 +26,7 @@ export function filterUsers(
   users: Array<UserType>,
   searchString: string,
   rentals: Array<RentalsUserType>,
-  exactMatch: boolean = false
+  exactMatch: boolean = false,
 ): [Array<UserType>, number] {
   const exactMatchUserIdDefault = -1;
   if (searchString.length === 0) return [users, exactMatchUserIdDefault]; // nothing to do
@@ -64,22 +67,22 @@ export function filterUsers(
   });
 
   const idMatchedUser = users.filter(
-    (u: UserType) => u.id!.toString() === finalString
+    (u: UserType) => u.id!.toString() === finalString,
   );
 
   const exactMatchUserIdRes =
     filteredUsers.length === 1
       ? filteredUsers[0].id!
       : idMatchedUser.length === 1
-      ? idMatchedUser[0].id!
-      : exactMatchUserIdDefault;
+        ? idMatchedUser[0].id!
+        : exactMatchUserIdDefault;
 
   return [filteredUsers, exactMatchUserIdRes];
 }
 
 export function booksForUser(
   id: number,
-  rentals: Array<RentalsUserType>
+  rentals: Array<RentalsUserType>,
 ): Array<RentalsUserType> {
   const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
   //console.log("Filtered rentals", userRentals);

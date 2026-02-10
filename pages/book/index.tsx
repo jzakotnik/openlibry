@@ -125,8 +125,25 @@ export default function Books({
         query: searchString,
       });
 
+      let items = foundBooks.data.items;
+
+      // If query contains a number, prioritize title matches
+      const numbersInQuery = searchString.match(/\d+/g);
+      if (numbersInQuery) {
+        items = [...items].sort((a, b) => {
+          const aTitle = a.title?.toString() ?? "";
+          const bTitle = b.title?.toString() ?? "";
+          const aTitleMatch = numbersInQuery.some((n) => aTitle.includes(n));
+          const bTitleMatch = numbersInQuery.some((n) => bTitle.includes(n));
+
+          if (aTitleMatch && !bTitleMatch) return -1;
+          if (!aTitleMatch && bTitleMatch) return 1;
+          return 0; // preserve original order otherwise
+        });
+      }
+
       setPageIndex(numberBooksToShow);
-      setRenderedBooks(foundBooks.data.items);
+      setRenderedBooks(items);
       setSearchResultNumber(foundBooks.pagination.total);
     },
     [searchEngine, maxBooks, numberBooksToShow],

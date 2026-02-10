@@ -24,7 +24,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import userNameForBook from "@/lib/utils/userNameForBook";
+import userNameforBook from "@/lib/utils/lookups";
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -372,7 +372,7 @@ export default function BookRentalList({
                       - ausgeliehen bis {dayjs(b.dueDate).format(
                         "DD.MM.YYYY",
                       )}{" "}
-                      an {userNameForBook(users, b.userId!)}
+                      an {userNameforBook(users, b.userId!)}
                     </span>
                   )}
                   {b.rentalStatus === "available" && <span> - {b.author}</span>}

@@ -1,3 +1,13 @@
+export default function getMaxId(array: Array<{ id?: number }>): number {
+  if (array.length === 0) {
+    return 0;
+  }
+
+  return array.reduce((max: number, obj) => {
+    const id = obj.id ?? 0;
+    return id > max ? id : max;
+  }, array[0].id ?? 0);
+}
 /**
  * ID generation utilities
  */

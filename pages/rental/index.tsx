@@ -13,7 +13,7 @@ import {
   replaceBookStringDate,
   sameDay,
 } from "@/lib/utils/dateutils";
-import { getBookFromID } from "@/lib/utils/getBookFromID";
+import { getBookFromID } from "@/lib/utils/lookups";
 import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
@@ -75,20 +75,20 @@ export default function Rental({
       if (!res.ok) {
         enqueueSnackbar(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" }
+          { variant: "error" },
         );
         return;
       }
 
       await res.json();
       enqueueSnackbar(
-        `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`
+        `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`,
       );
       handleBookSearchSetFocus();
     } catch (error) {
       enqueueSnackbar(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" }
+        { variant: "error" },
       );
     }
   };
@@ -101,7 +101,7 @@ export default function Rental({
     if (sameDay(newbook.dueDate, newDueDate)) {
       enqueueSnackbar(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
-        { variant: "warning" }
+        { variant: "warning" },
       );
       return;
     }
@@ -124,7 +124,7 @@ export default function Rental({
       if (!res.ok) {
         enqueueSnackbar(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" }
+          { variant: "error" },
         );
         return;
       }
@@ -135,7 +135,7 @@ export default function Rental({
     } catch (error) {
       enqueueSnackbar(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" }
+        { variant: "error" },
       );
     }
   };
@@ -152,7 +152,7 @@ export default function Rental({
       if (!res.ok) {
         enqueueSnackbar(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" }
+          { variant: "error" },
         );
         return;
       }
@@ -163,7 +163,7 @@ export default function Rental({
     } catch (error) {
       enqueueSnackbar(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" }
+        { variant: "error" },
       );
     }
   };
@@ -222,7 +222,7 @@ export default function Rental({
 }
 
 export const getServerSideProps: GetServerSideProps = async (
-  context: GetServerSidePropsContext
+  context: GetServerSidePropsContext,
 ) => {
   // In test/dev environment, force fresh Prisma connection
   if (process.env.NODE_ENV !== "production") {
@@ -232,7 +232,7 @@ export const getServerSideProps: GetServerSideProps = async (
   // Disable all caching
   context.res.setHeader(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
   );
   context.res.setHeader("Pragma", "no-cache");
   context.res.setHeader("Expires", "0");

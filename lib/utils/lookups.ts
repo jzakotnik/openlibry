@@ -1,8 +1,15 @@
+import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+
+export function getBookFromID(id: number, books: Array<BookType>) {
+  const firstMatch = books.filter((item) => item.id == id);
+  console.log("First match", firstMatch);
+  return firstMatch[0];
+}
 
 export default function userNameforBook(
   users: Array<UserType>,
-  userbookid: number
+  userbookid: number,
 ): string {
   if (!userbookid) return "";
   const foundUser = users.filter((u) => u.id == userbookid);
