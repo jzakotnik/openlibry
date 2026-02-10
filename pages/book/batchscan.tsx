@@ -49,7 +49,7 @@ import {
 } from "react";
 
 import { playSound } from "@/lib/utils/audioutils";
-import { generateId } from "@/lib/utils/idutils";
+import { generateId } from "@/lib/utils/id";
 
 // Status types for each scanned entry
 type ScanStatus = "loading" | "found" | "not_found" | "edited" | "error";

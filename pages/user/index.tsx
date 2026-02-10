@@ -10,7 +10,7 @@ import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
-import getMaxId from "@/lib/utils/idhandling";
+import getMaxId from "@/lib/utils/id";
 import { increaseNumberInString } from "@/lib/utils/increaseNumberInString";
 import palette from "@/styles/palette";
 import { alpha, Box, Container, Stack } from "@mui/material";
@@ -60,7 +60,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
     (e: ChangeEvent<HTMLTextAreaElement>) => {
       setSearchText(e.target.value);
     },
-    []
+    [],
   );
 
   const handleFilterChange = useCallback((filter: string) => {
@@ -96,11 +96,11 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
           setIsCreatingUser(false);
           enqueueSnackbar(
             "Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?",
-            { variant: "error" }
+            { variant: "error" },
           );
         });
     },
-    [router, enqueueSnackbar]
+    [router, enqueueSnackbar],
   );
 
   const handleSelectAll = useCallback(() => {
