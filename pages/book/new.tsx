@@ -3,10 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { getAllTopics } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
-import {
-  fetchCoverFromOpenLibrary,
-  uploadCoverBlob,
-} from "@/lib/utils/coverutils";
+import { uploadCoverBlob } from "@/lib/utils/coverutils";
 import { currentTime } from "@/lib/utils/dateutils";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/router";
@@ -86,6 +83,29 @@ export default function NewBook({
   }, []);
 
   /**
+   * Fetch cover using the server-side API (checks DNB first, then OpenLibrary).
+   * This matches the batch scan behavior and supports all cover sources.
+   */
+  const fetchCoverFromApi = async (
+    isbn: string,
+  ): Promise<{ exists: boolean; blob?: Blob; source?: string }> => {
+    try {
+      const response = await fetch(`/api/book/fetchCover?isbn=${isbn}`);
+
+      if (!response.ok) {
+        return { exists: false };
+      }
+
+      const blob = await response.blob();
+      const source = response.headers.get("X-Cover-Source") || "unknown";
+
+      return { exists: true, blob, source };
+    } catch {
+      return { exists: false };
+    }
+  };
+
+  /**
    * Handle ISBN autofill - fetches book data AND cover in parallel
    */
   const handleAutoFill = useCallback(
@@ -111,7 +131,7 @@ export default function NewBook({
         // Fetch book data and cover in parallel (like batch scan)
         const [bookResponse, coverResult] = await Promise.all([
           fetch(`/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`),
-          fetchCoverFromOpenLibrary(cleanedIsbn),
+          fetchCoverFromApi(cleanedIsbn),
         ]);
 
         // Handle book data
