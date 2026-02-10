@@ -38,7 +38,7 @@ const SERVICES: IsbnLookupService[] = [
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const { isbn } = req.query;
 
@@ -57,7 +57,7 @@ export default async function handler(
           isbn,
           service: service.name,
         },
-        `Trying ${service.name} for ISBN ${isbn}`
+        `Trying ${service.name} for ISBN ${isbn}`,
       );
 
       const bookData = await service.fetch(isbn);
@@ -65,8 +65,10 @@ export default async function handler(
       if (isValidBookData(bookData)) {
         // Normalize data before returning
         const pagesNum = extractPageNumber(bookData.pages);
+        //remove topics from bookData, because they basically never fit
+        const { topics, ...bookDataWithoutTopics } = bookData;
         const normalizedData = {
-          ...bookData,
+          ...bookDataWithoutTopics,
           title: cleanTitle(bookData.title),
           subtitle: cleanTitle(bookData.subtitle),
           pages: pagesNum ? pagesNum : null,
@@ -81,7 +83,7 @@ export default async function handler(
             service: service.name,
             title: normalizedData.title,
           },
-          `Found via ${service.name}: ${normalizedData.title}`
+          `Found via ${service.name}: ${normalizedData.title}`,
         );
 
         res.status(200).json(normalizedData);
@@ -95,7 +97,7 @@ export default async function handler(
           isbn,
           service: service.name,
         },
-        `No results from ${service.name}`
+        `No results from ${service.name}`,
       );
     }
 
@@ -108,7 +110,7 @@ export default async function handler(
         isbn,
         services: serviceNames,
       },
-      `Book not found in any catalog for ISBN ${isbn}`
+      `Book not found in any catalog for ISBN ${isbn}`,
     );
     res.status(404).json({
       error: `Book not found in any catalog (${serviceNames}).`,
@@ -122,7 +124,7 @@ export default async function handler(
         isbn,
         error: errorMessage,
       },
-      `Unexpected error during ISBN lookup: ${errorMessage}`
+      `Unexpected error during ISBN lookup: ${errorMessage}`,
     );
     res.status(500).json({
       error: errorMessage || "Error fetching book data.",
