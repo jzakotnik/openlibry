@@ -1,18 +1,13 @@
 import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
-import { deDE as coreDeDE } from "@mui/material/locale";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { deDE } from "@mui/x-data-grid/locales";
 import dayjs from "dayjs";
 
 import BookLabelsCard from "@/components/reports/cards/BookLabelsCard";
-
 import LinkCard from "@/components/reports/cards/LinkCard";
 import ReminderCard from "@/components/reports/cards/ReminderCard";
 import ReportCard from "@/components/reports/cards/ReportCard";
 import UserLabelsCard from "@/components/reports/cards/UserLabelsCard";
-import Dashboard from "@/components/reports/Dashboard";
 import { useBookLabelFilters } from "@/components/reports/hooks/useBookLabelFilters";
 import { useUserLabelFilters } from "@/components/reports/hooks/useUserLabelFilters";
 import TagCloudDashboard from "@/components/reports/TagCloud";
@@ -26,19 +21,6 @@ import {
   getBookTopicCounts,
   getSchoolGradeCounts,
 } from "@/lib/utils/topicUtils";
-import { Grid } from "@mui/material";
-import type {} from "@mui/x-data-grid/themeAugmentation";
-
-const theme = createTheme(
-  {
-    palette: {
-      primary: { main: "#1976d2" },
-    },
-    spacing: 4,
-  },
-  deDE,
-  coreDeDE,
-);
 
 interface ReportPropsType {
   users: Array<UserType>;
@@ -64,122 +46,96 @@ export default function Reports({
 
   return (
     <Layout>
-      <ThemeProvider theme={theme}>
-        <TagCloudDashboard tagsSet={tagSet} />
-
-        <Grid
-          container
-          direction="row"
-          alignItems="center"
-          justifyContent="center"
-          spacing={3}
-          data-cy="reports-grid"
-        >
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Nutzerinnen"
-              subtitle="Liste aller Nutzerinnen"
-              unit="users"
-              totalNumber={users.length}
-              link="reports/users"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Bücher"
-              subtitle="Liste aller Bücher"
-              unit="books"
-              totalNumber={books.length}
-              link="reports/books"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Leihen"
-              subtitle="Liste aller Leihen"
-              unit="rentals"
-              totalNumber={rentals.length}
-              link="reports/rentals"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <LinkCard
-              title="Excel Export"
-              subtitle="Excel Export der Daten"
-              buttonTitle="Download Excel"
-              link="api/excel"
-              dataCy="excel-export-card"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <LinkCard
-              title="Excel Import"
-              subtitle="Excel Import der Daten"
-              buttonTitle="Upload Excel"
-              link="reports/xlsimport"
-              dataCy="excel-import-card"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReportCard
-              title="Historie"
-              subtitle="Aktivitäten Bücher/User"
-              unit="audits"
-              totalNumber={1000}
-              link="reports/audit"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <BookLabelsCard
-              title="Buch Etiketten"
-              subtitle=""
-              unit="Etiketten"
-              link="api/report/booklabels"
-              totalNumber={books.length}
-              startLabel={bookLabelFilters.startLabel}
-              setStartLabel={bookLabelFilters.setStartLabel}
-              startId={bookLabelFilters.startId}
-              setStartId={bookLabelFilters.setStartId}
-              endId={bookLabelFilters.endId}
-              setEndId={bookLabelFilters.setEndId}
-              idFilter={bookLabelFilters.idFilter}
-              setIdFilter={bookLabelFilters.setIdFilter}
-              topicsFilter={bookLabelFilters.topicsFilter}
-              setTopicsFilter={bookLabelFilters.setTopicsFilter}
-              allTopics={tagSet}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <UserLabelsCard
-              title="Ausweise"
-              subtitle="Liste aller Ausweise"
-              link="api/report/userlabels"
-              totalNumber={users.length}
-              startLabel={userLabelFilters.startLabel}
-              setStartLabel={userLabelFilters.setStartLabel}
-              startUserId={userLabelFilters.startUserId}
-              setStartUserId={userLabelFilters.setStartUserId}
-              endUserId={userLabelFilters.endUserId}
-              setEndUserId={userLabelFilters.setEndUserId}
-              idUserFilter={userLabelFilters.idUserFilter}
-              setIdUserFilter={userLabelFilters.setIdUserFilter}
-              topicsFilter={userLabelFilters.schoolgradeFilter}
-              setTopicsFilter={userLabelFilters.setSchoolgradeFilter}
-              allTopics={schoolGradeSet}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-            <ReminderCard
-              title="Mahnungen"
-              subtitle="Ausdruck der Mahnungen als Word-Dokument"
-              link="/api/report/reminder"
-              overdueCount={overdueCount}
-              nonExtendableCount={nonExtendableCount}
-            />
-          </Grid>
-        </Grid>
-        <Dashboard users={users} rentals={rentals} books={books} />
-      </ThemeProvider>
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-start"
+        data-cy="reports-grid"
+      >
+        <ReportCard
+          title="Nutzerinnen"
+          subtitle="Liste aller Nutzerinnen"
+          unit="users"
+          totalNumber={users.length}
+          link="reports/users"
+        />
+        <ReportCard
+          title="Bücher"
+          subtitle="Liste aller Bücher"
+          unit="books"
+          totalNumber={books.length}
+          link="reports/books"
+        />
+        <ReportCard
+          title="Leihen"
+          subtitle="Liste aller Leihen"
+          unit="rentals"
+          totalNumber={rentals.length}
+          link="reports/rentals"
+        />
+        <LinkCard
+          title="Excel Export"
+          subtitle="Excel Export der Daten"
+          buttonTitle="Download Excel"
+          link="api/excel"
+          dataCy="excel-export-card"
+        />
+        <LinkCard
+          title="Excel Import"
+          subtitle="Excel Import der Daten"
+          buttonTitle="Upload Excel"
+          link="reports/xlsimport"
+          dataCy="excel-import-card"
+        />
+        <ReportCard
+          title="Historie"
+          subtitle="Aktivitäten Bücher/User"
+          unit="audits"
+          totalNumber={1000}
+          link="reports/audit"
+        />
+        <BookLabelsCard
+          title="Buch Etiketten"
+          subtitle=""
+          unit="Etiketten"
+          link="api/report/booklabels"
+          totalNumber={books.length}
+          startLabel={bookLabelFilters.startLabel}
+          setStartLabel={bookLabelFilters.setStartLabel}
+          startId={bookLabelFilters.startId}
+          setStartId={bookLabelFilters.setStartId}
+          endId={bookLabelFilters.endId}
+          setEndId={bookLabelFilters.setEndId}
+          idFilter={bookLabelFilters.idFilter}
+          setIdFilter={bookLabelFilters.setIdFilter}
+          topicsFilter={bookLabelFilters.topicsFilter}
+          setTopicsFilter={bookLabelFilters.setTopicsFilter}
+          allTopics={tagSet}
+        />
+        <UserLabelsCard
+          title="Ausweise"
+          subtitle="Liste aller Ausweise"
+          link="api/report/userlabels"
+          totalNumber={users.length}
+          startLabel={userLabelFilters.startLabel}
+          setStartLabel={userLabelFilters.setStartLabel}
+          startUserId={userLabelFilters.startUserId}
+          setStartUserId={userLabelFilters.setStartUserId}
+          endUserId={userLabelFilters.endUserId}
+          setEndUserId={userLabelFilters.setEndUserId}
+          idUserFilter={userLabelFilters.idUserFilter}
+          setIdUserFilter={userLabelFilters.setIdUserFilter}
+          topicsFilter={userLabelFilters.schoolgradeFilter}
+          setTopicsFilter={userLabelFilters.setSchoolgradeFilter}
+          allTopics={schoolGradeSet}
+        />
+        <ReminderCard
+          title="Mahnungen"
+          subtitle="Ausdruck der Mahnungen als Word-Dokument"
+          link="/api/report/reminder"
+          overdueCount={overdueCount}
+          nonExtendableCount={nonExtendableCount}
+        />{" "}
+      </div>{" "}
+      <TagCloudDashboard tagsSet={tagSet} />
     </Layout>
   );
 }
