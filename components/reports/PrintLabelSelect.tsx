@@ -1,14 +1,11 @@
-import { Button, Typography } from "@mui/material";
+import { Button } from "@/components/ui/button";
+import { BookType } from "@/entities/BookType";
 import { useState } from "react";
 import Barcode from "react-barcode";
 
-import styles from "@/styles/grid.module.css";
-
-import { BookType } from "@/entities/BookType";
-
 type Rectangle = {
   book: BookType | null;
-  status: "off" | "empty" | "full"; // 'off' for red, 'empty' for available space
+  status: "off" | "empty" | "full";
 };
 
 type PrintLabelSelectProps = {
@@ -42,32 +39,32 @@ export default function PrintLabelSelect({
   rectangleWidth = "7cm",
   rectangleHeight = "3cm",
 }: PrintLabelSelectProps) {
-  const [idButtons, setIdButtons] = useState(initialIds);
+  const [idButtons, setIdButtons] = useState(initialIds ?? []);
   const itemsPerPage = rows * columns;
   const [grid, setGrid] = useState<Rectangle[]>(
-    Array(itemsPerPage).fill({ book: null, status: "empty" })
+    Array.from({ length: itemsPerPage }, () => ({
+      book: null,
+      status: "empty" as const,
+    })),
   );
 
-  // Handle click on rectangle
   const handleLeftClick = (index: number) => {
     const newGrid = [...grid];
-    if (newGrid[index].status === "off") return; // Can't interact with red boxes
+    if (newGrid[index].status === "off") return;
 
-    // If a rectangle already has an ID, remove it and move back to the ID box
     if (newGrid[index].book != null) {
       setIdButtons([...idButtons, newGrid[index].book as BookType]);
       newGrid[index] = { book: null, status: "empty" };
     } else {
-      if (idButtons.length === 0) return; // No IDs to move
+      if (idButtons.length === 0) return;
       const newId = idButtons[0];
-      newGrid[index] = { book: newId, status: "full" }; // Assign the first ID from the list to the rectangle
-      setIdButtons(idButtons.slice(1)); // Remove the assigned ID from the list
+      newGrid[index] = { book: newId, status: "full" };
+      setIdButtons(idButtons.slice(1));
     }
 
     setGrid(newGrid);
   };
 
-  // Handle right-click on rectangle to mark it as 'off' (red)
   const handleRightClick = (index: number, event: React.MouseEvent) => {
     event.preventDefault();
     const newGrid = [...grid];
@@ -80,24 +77,23 @@ export default function PrintLabelSelect({
     newGrid[index] = {
       ...newGrid[index],
       status: grid[index].status === "off" ? "empty" : "off",
-    }; // Mark as 'off' (red)
+    };
     setGrid(newGrid);
   };
 
-  // Auto arrange IDs in the grid, skipping 'off' rectangles
   const handleAutoArrange = () => {
     const newGrid = [...grid];
     let idIndex = 0;
 
     for (let i = 0; i < newGrid.length && idIndex < idButtons.length; i++) {
       if (newGrid[i].status !== "off" && newGrid[i].book === null) {
-        newGrid[i] = { book: idButtons[idIndex], status: "empty" };
+        newGrid[i] = { book: idButtons[idIndex], status: "full" };
         idIndex++;
       }
     }
 
     setGrid(newGrid);
-    setIdButtons(idButtons.slice(idIndex)); // Remove distributed IDs from the top box
+    setIdButtons(idButtons.slice(idIndex));
   };
 
   const handleCreatePdf = () => {
@@ -130,7 +126,6 @@ export default function PrintLabelSelect({
       params.append("topic", topicsFilter);
     }
 
-    // Add skip labels
     skipLabels.forEach((label) => {
       const [key, value] = label.split("=");
       params.append(key, value);
@@ -140,16 +135,17 @@ export default function PrintLabelSelect({
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.box}>
-        <div>
-          <h2>Label anklicken, die beim Druck übersprungen werden sollen</h2>
-        </div>
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">
+          Label anklicken, die beim Druck übersprungen werden sollen
+        </h2>
         <div>
           <Button
-            className={styles.autoArrangeButton}
-            size="small"
+            variant="default"
+            size="default"
             onClick={handleCreatePdf}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-md shadow-sm"
           >
             Erzeuge PDF
           </Button>
@@ -157,9 +153,8 @@ export default function PrintLabelSelect({
       </div>
 
       <div
-        className={styles.grid}
+        className="grid gap-1"
         style={{
-          display: "grid",
           gridTemplateColumns: `repeat(${columns}, ${rectangleWidth})`,
           gridTemplateRows: `repeat(${rows}, ${rectangleHeight})`,
         }}
@@ -167,21 +162,19 @@ export default function PrintLabelSelect({
         {grid.map((rect, index) => (
           <div
             key={index}
-            className={`${styles.rect} ${
-              rect.status === "off" ? styles.off : ""
+            className={`flex flex-col items-center justify-center border rounded cursor-pointer transition-colors overflow-hidden ${
+              rect.status === "off"
+                ? "bg-red-200 border-red-400"
+                : "bg-white border-gray-300 hover:bg-gray-50"
             }`}
             onClick={(e) => handleRightClick(index, e)}
             onContextMenu={(e) => handleRightClick(index, e)}
-            style={{
-              width: rectangleWidth,
-              height: rectangleHeight,
-            }}
           >
             {rect.book && (
-              <span>
-                <Typography>
+              <span className="flex flex-col items-center">
+                <p className="text-sm">
                   {rect.book.title.substring(0, 30) + "..."}
-                </Typography>
+                </p>
                 <Barcode
                   value={rect.book.id!.toString()}
                   height={40}
