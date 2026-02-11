@@ -1,3 +1,47 @@
+
+/* styles/globals.css */
+@import "tailwindcss";
+
+@theme {
+  /* --- Primary (from palette.primary) --- */
+  --color-primary: #12556F;
+  --color-primary-light: #A1DCF8;
+  --color-primary-dark: #13556F;
+  --color-primary-foreground: #ffffff;
+
+  /* --- Secondary (from palette.secondary) --- */
+  --color-secondary: #D79900;
+  --color-secondary-light: #A4B419;
+  --color-secondary-dark: #5E7200;
+  --color-secondary-foreground: #ffffff;
+
+  /* --- Backgrounds --- */
+  --color-background: #faf9f8;
+  --color-background-paper: #FFFFFF;
+  --color-background-table: #F2F2F3;
+
+  /* --- Muted / text --- */
+  --color-muted: #F2F2F3;
+  --color-muted-foreground: #5A6166;
+
+  /* --- Semantic feedback --- */
+  --color-destructive: #C80538;
+  --color-destructive-light: #FDECEB;
+  --color-warning: #BD900D;
+  --color-warning-light: #FEF5E6;
+  --color-info: #005A8C;
+  --color-info-light: #E9F5FE;
+  --color-success: #507666;
+  --color-success-light: #EDF7EE;
+
+  /* --- Misc --- */
+  --color-disabled: #BDC0C2;
+  --color-hint: #005A8C;
+
+  /* --- Fonts --- */
+  --font-sans: "Roboto", "Helvetica Neue", "Arial", sans-serif;
+}
+
 :root {
   --max-width: 1100px;
   --border-radius: 12px;

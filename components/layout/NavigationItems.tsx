@@ -1,9 +1,4 @@
-import {
-  AssessmentOutlined,
-  AutoStoriesOutlined,
-  PeopleOutlined,
-  SwapHorizOutlined,
-} from "@mui/icons-material";
+import { ArrowLeftRight, BookOpen, ChartBar, Users } from "lucide-react";
 import { ReactNode } from "react";
 
 interface NavItem {
@@ -18,24 +13,24 @@ export const publicNavItems: NavItem[] = [
     title: "Leihe",
     subtitle: "Entleihe und Rückgabe",
     slug: "/rental",
-    icon: <SwapHorizOutlined />,
+    icon: <ArrowLeftRight className="size-6" />,
   },
   {
     title: "Nutzer",
     subtitle: "Verwaltung der User",
     slug: "/user",
-    icon: <PeopleOutlined />,
+    icon: <Users className="size-6" />,
   },
   {
     title: "Bücher",
     subtitle: "Bestand aller Medien",
     slug: "/book",
-    icon: <AutoStoriesOutlined />,
+    icon: <BookOpen className="size-6" />,
   },
   {
     title: "Reports",
     subtitle: "Überblick über Bestand",
     slug: "/reports",
-    icon: <AssessmentOutlined />,
+    icon: <ChartBar className="size-6" />,
   },
 ];
