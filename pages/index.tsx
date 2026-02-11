@@ -27,31 +27,13 @@ export default function Home({ showAdminButton }: HomeProps) {
       {/* Content */}
       <div className="relative">
         <Layout showAdminButton={showAdminButton}>
-          <div className="max-w-5xl mx-auto px-4">
+          <div className="max-w-5xl mx-auto px-4 ">
             <div className="flex flex-col items-center gap-15 pt-40 md:pt-48 pb-8 md:pb-16">
-              {/* Hero Section */}
-              <div className="text-center max-w-[700px]">
-                <h1
-                  id="title_headline"
-                  data-cy="indexpage"
-                  className="
-                  font-bold text-primary-dark mb-3 gap-15
-                  text-3xl sm:text-4xl md:text-5xl
-                  [text-shadow:0_2px_20px_rgba(255,255,255,0.8)]
-                "
-                >
-                  OpenLibry
-                </h1>
-                <p className="text-muted-foreground text-lg sm:text-xl px-2">
-                  Die <strong>einfache</strong> Büchereiverwaltung für Schulen
-                </p>
-              </div>
-
               {/* Navigation Tiles */}
               <div
                 className="
                 grid gap-4 mt-4 w-fit mx-auto
-                grid-cols-1 sm:grid-cols-2 md:grid-cols-4
+                grid-cols-1 sm:grid-cols-2 md:grid-cols-4 
               "
               >
                 {publicNavItems.map((item) => (

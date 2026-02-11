@@ -1,4 +1,9 @@
-import { ArrowLeftRight, BookOpen, ChartBar, Users } from "lucide-react";
+import {
+  BarChartIcon,
+  PersonIcon,
+  ReaderIcon,
+  ShuffleIcon,
+} from "@radix-ui/react-icons";
 import { ReactNode } from "react";
 
 interface NavItem {
@@ -13,24 +18,24 @@ export const publicNavItems: NavItem[] = [
     title: "Leihe",
     subtitle: "Entleihe und Rückgabe",
     slug: "/rental",
-    icon: <ArrowLeftRight className="size-6" />,
+    icon: <ShuffleIcon width={24} height={24} />,
   },
   {
     title: "Nutzer",
     subtitle: "Verwaltung der User",
     slug: "/user",
-    icon: <Users className="size-6" />,
+    icon: <PersonIcon width={24} height={24} />,
   },
   {
     title: "Bücher",
     subtitle: "Bestand aller Medien",
     slug: "/book",
-    icon: <BookOpen className="size-6" />,
+    icon: <ReaderIcon width={24} height={24} />,
   },
   {
     title: "Reports",
     subtitle: "Überblick über Bestand",
     slug: "/reports",
-    icon: <ChartBar className="size-6" />,
+    icon: <BarChartIcon width={24} height={24} />,
   },
 ];
