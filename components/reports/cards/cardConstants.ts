@@ -1,6 +1,3 @@
-import type { SxProps, Theme } from "@mui/material";
-import palette from "@/styles/palette";
-
 export const CARD_HEIGHT = 210;
 
 export type TopicCount = {
@@ -8,69 +5,34 @@ export type TopicCount = {
   count: number;
 };
 
-// Shared card elevation & shape
-export const cardBaseSx: SxProps<Theme> = {
-  minWidth: 275,
-  minHeight: CARD_HEIGHT,
-  borderRadius: "16px",
-  border: "none",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)",
-  transition: "box-shadow 0.25s ease, transform 0.25s ease",
-  overflow: "hidden",
-  "&:hover": {
-    boxShadow: "0 4px 16px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.06)",
-    transform: "translateY(-2px)",
-  },
-};
+// Shared card shell classes
+export const cardBaseClasses = `
+  min-w-[275px] min-h-[210px] rounded-2xl overflow-hidden bg-white
+  shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]
+  transition-all duration-200 ease-out
+  hover:shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(0,0,0,0.06)]
+  hover:-translate-y-0.5
+`;
 
-// Accent bar at the top of a card
-export const cardAccentSx = (
-  color: string = palette.primary.main,
-): SxProps<Theme> => ({
-  height: 4,
-  width: "100%",
-  background: `linear-gradient(90deg, ${color}, ${color}80)`,
-});
+// Accent bar: use from-{color} to-{color}/50
+// e.g. "from-primary to-primary/50" or "from-secondary to-secondary/50"
+export const cardAccentClasses = "h-1 w-full bg-gradient-to-r";
 
-// Primary action button style
-export const cardActionButtonSx: SxProps<Theme> = {
-  textTransform: "none",
-  fontWeight: 600,
-  fontSize: "0.8125rem",
-  borderRadius: "8px",
-  px: 2,
-  py: 0.75,
-  color: palette.primary.main,
-  "&:hover": {
-    backgroundColor: `${palette.primary.main}0D`,
-  },
-};
+// Primary action button
+export const cardActionButtonClasses = `
+  text-sm font-semibold text-primary
+  px-3 py-1.5 rounded-lg
+  hover:bg-primary/5
+  transition-colors cursor-pointer
+`;
 
-// Large metric number style
-export const metricSx: SxProps<Theme> = {
-  fontSize: "2rem",
-  fontWeight: 700,
-  color: palette.primary.main,
-  lineHeight: 1.2,
-};
+// Large metric number
+export const metricClasses = "text-3xl font-bold text-primary leading-tight";
 
 // Input fields within cards
-export const cardInputSx: SxProps<Theme> = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "10px",
-    fontSize: "0.875rem",
-    "& fieldset": {
-      borderColor: "#e0e0e0",
-    },
-    "&:hover fieldset": {
-      borderColor: palette.primary.light,
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: palette.primary.main,
-      borderWidth: "1.5px",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    fontSize: "0.8125rem",
-  },
-};
+export const cardInputClasses = `
+  w-full rounded-[10px] border border-gray-200 px-3 py-2 text-sm
+  hover:border-primary-light
+  focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+  transition-colors
+`;

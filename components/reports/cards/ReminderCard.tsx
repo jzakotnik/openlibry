@@ -1,23 +1,15 @@
-import palette from "@/styles/palette";
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
-import { useSnackbar } from "notistack";
 import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
-  cardAccentSx,
-  cardActionButtonSx,
-  cardBaseSx,
-  metricSx,
-} from "./cardConstants";
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export type ReminderMode = "all" | "non-extendable";
 
@@ -37,16 +29,6 @@ export default function ReminderCard({
   nonExtendableCount,
 }: ReminderCardProps) {
   const [mode, setMode] = useState<ReminderMode>("all");
-  const { enqueueSnackbar } = useSnackbar();
-
-  const handleModeChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    newMode: ReminderMode | null,
-  ) => {
-    if (newMode !== null) {
-      setMode(newMode);
-    }
-  };
 
   const getReminderUrl = () => {
     return `${link}?mode=${mode}`;
@@ -60,112 +42,92 @@ export default function ReminderCard({
         mode === "all"
           ? "Keine überfälligen Ausleihen vorhanden."
           : "Keine nicht verlängerbaren überfälligen Ausleihen vorhanden.";
-      enqueueSnackbar(message, { variant: "info" });
+      toast.info(message);
       return;
     }
     window.open(getReminderUrl(), "_blank");
   };
 
   return (
-    <Card sx={cardBaseSx} data-cy="reminder-card">
-      <Box sx={cardAccentSx(palette.error.main)} />
-      <CardContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 2 }}
+    <Card
+      className="overflow-hidden border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200"
+      data-cy="reminder-card"
+    >
+      {/* Accent bar — destructive/error */}
+      <div className="h-1 w-full bg-gradient-to-r from-destructive to-destructive/50" />
+
+      <CardHeader className="pb-2">
+        <CardTitle
+          className="text-lg text-muted-foreground"
           data-cy="reminder-card-title"
         >
           {title}
-        </Typography>
+        </CardTitle>
+      </CardHeader>
 
-        <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 2 }}>
-          <Typography
-            sx={{
-              ...metricSx,
-              color:
-                currentCount > 0 ? palette.error.main : palette.success.main,
-            }}
+      <CardContent className="space-y-3">
+        {/* Metric */}
+        <div className="flex items-baseline gap-2 mb-2">
+          <span
+            className={`text-3xl font-bold leading-tight ${
+              currentCount > 0 ? "text-destructive" : "text-success"
+            }`}
             data-cy="reminder-card-count"
           >
             {currentCount}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: "0.875rem",
-              color: palette.text.disabled,
-              fontWeight: 500,
-            }}
-          >
+          </span>
+          <span className="text-sm font-medium text-disabled">
             {currentCount === 1 ? "Mahnung" : "Mahnungen"}
-          </Typography>
-        </Stack>
+          </span>
+        </div>
 
-        <ToggleButtonGroup
+        {/* Mode toggle */}
+        <ToggleGroup
+          type="single"
           value={mode}
-          exclusive
-          onChange={handleModeChange}
-          size="small"
-          sx={{
-            mb: 1.5,
-            "& .MuiToggleButton-root": {
-              textTransform: "none",
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              px: 1.5,
-              py: 0.5,
-              borderRadius: "8px !important",
-              border: `1px solid #e0e0e0`,
-              color: palette.text.secondary,
-              "&.Mui-selected": {
-                backgroundColor: `${palette.primary.main}12`,
-                color: palette.primary.main,
-                borderColor: `${palette.primary.main}40`,
-                fontWeight: 600,
-                "&:hover": {
-                  backgroundColor: `${palette.primary.main}1A`,
-                },
-              },
-              "&:hover": {
-                backgroundColor: "#f5f5f5",
-              },
-            },
-            "& .MuiToggleButtonGroup-grouped:not(:first-of-type)": {
-              ml: 0.5,
-              borderLeft: `1px solid #e0e0e0`,
-            },
+          onValueChange={(value) => {
+            if (value) setMode(value as ReminderMode);
           }}
+          className="justify-start"
           data-cy="reminder-mode-toggle"
         >
-          <ToggleButton value="all" data-cy="reminder-mode-all">
+          <ToggleGroupItem
+            value="all"
+            size="sm"
+            className="text-xs px-3 rounded-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=on]:font-semibold"
+            data-cy="reminder-mode-all"
+          >
             Alle Mahnungen
-          </ToggleButton>
-          <ToggleButton
+          </ToggleGroupItem>
+          <ToggleGroupItem
             value="non-extendable"
+            size="sm"
+            className="text-xs px-3 rounded-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=on]:font-semibold"
             data-cy="reminder-mode-non-extendable"
           >
             Nur nicht verlängerbare
-          </ToggleButton>
-        </ToggleButtonGroup>
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-        <Typography
-          variant="body2"
-          sx={{ color: palette.text.disabled, lineHeight: 1.5 }}
+        <p
+          className="text-sm text-disabled leading-relaxed"
           data-cy="reminder-card-subtitle"
         >
           {subtitle}
-        </Typography>
+        </p>
       </CardContent>
-      <CardActions sx={{ px: 3, pb: 2 }}>
+
+      <CardFooter>
         <Button
-          size="small"
+          variant="ghost"
+          size="sm"
           onClick={handleGenerateClick}
-          sx={cardActionButtonSx}
+          className="text-primary hover:bg-primary/5 font-semibold"
           data-cy="reminder-card-button"
         >
           Erzeuge Word
         </Button>
-      </CardActions>
+      </CardFooter>
     </Card>
   );
 }

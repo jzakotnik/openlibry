@@ -1,24 +1,32 @@
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { type TopicCount } from "./cardConstants";
+
+import { Button } from "@/components/ui/button";
 import {
-  Autocomplete,
-  Box,
-  Button,
   Card,
-  CardActions,
   CardContent,
-  Divider,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
-  cardAccentSx,
-  cardActionButtonSx,
-  cardBaseSx,
-  cardInputSx,
-  TopicCount,
-} from "./cardConstants";
-import palette from "@/styles/palette";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 type UserLabelsCardProps = {
   title: string;
@@ -55,6 +63,8 @@ export default function UserLabelsCard({
   setTopicsFilter,
   allTopics,
 }: UserLabelsCardProps) {
+  const [comboboxOpen, setComboboxOpen] = useState(false);
+
   const getUserUrl = () => {
     return (
       "/?" +
@@ -69,166 +79,167 @@ export default function UserLabelsCard({
 
   return (
     <Card
-      sx={{ ...cardBaseSx, minHeight: "auto" }}
+      className="overflow-hidden border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200"
       data-cy="user-labels-card"
     >
-      <Box sx={cardAccentSx(palette.secondary.main)} />
-      <CardContent sx={{ px: 3, pt: 2.5, pb: 1.5 }}>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 0.5 }}
+      {/* Accent bar — secondary */}
+      <div className="h-1 w-full bg-gradient-to-r from-secondary to-secondary/50" />
+
+      <CardHeader className="pb-2">
+        <CardTitle
+          className="text-lg text-muted-foreground"
           data-cy="user-labels-title"
         >
           {title}
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: palette.text.disabled, lineHeight: 1.5, mb: 2 }}
-        >
-          {subtitle}
-        </Typography>
+        </CardTitle>
+        {subtitle && <CardDescription>{subtitle}</CardDescription>}
+      </CardHeader>
 
-        <Stack spacing={2}>
-          {/* Section: Count */}
-          <TextField
+      <CardContent className="space-y-3">
+        {/* Count */}
+        <div className="space-y-1.5">
+          <Label htmlFor="user-label-count">Anzahl Etiketten</Label>
+          <Input
             id="user-label-count"
-            label="Anzahl Etiketten"
-            key="book_report_number_input"
             type="number"
-            size="small"
-            fullWidth
             value={startLabel}
-            error={startLabel > totalNumber}
-            helperText={
-              startLabel > totalNumber ? "So viele gibt es nicht?" : ""
+            onChange={(e) => setStartLabel(parseInt(e.target.value))}
+            className={
+              startLabel > totalNumber
+                ? "border-destructive focus-visible:ring-destructive/20"
+                : ""
             }
-            onChange={(e: any) => {
-              setStartLabel(parseInt(e.target.value));
-            }}
-            InputLabelProps={{ shrink: true }}
-            sx={cardInputSx}
             data-cy="user-labels-count-input"
           />
+          {startLabel > totalNumber && (
+            <p className="text-xs text-destructive">So viele gibt es nicht?</p>
+          )}
+        </div>
 
-          <Divider sx={{ my: 0.5 }} />
+        <Separator />
 
-          {/* Section: ID Range */}
-          <Typography
-            variant="caption"
-            sx={{
-              color: palette.text.disabled,
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "0.6875rem",
-            }}
-          >
-            ID-Bereich
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                id="idUserRangeFrom"
-                label="Von ID"
-                key="idUserRangeFrom"
-                type="number"
-                size="small"
-                fullWidth
-                value={startUserId}
-                onChange={(e: any) => {
-                  setStartUserId(parseInt(e.target.value));
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={cardInputSx}
-                data-cy="user-labels-start-id"
-              />
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                id="idUserRangeTo"
-                label="Bis ID"
-                key="idUserRangeTo"
-                type="number"
-                size="small"
-                fullWidth
-                value={endUserId}
-                onChange={(e: any) => {
-                  setEndUserId(parseInt(e.target.value));
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={cardInputSx}
-                data-cy="user-labels-end-id"
-              />
-            </Grid>
-          </Grid>
+        {/* ID Range */}
+        <p className="text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">
+          ID-Bereich
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="idUserRangeFrom">Von ID</Label>
+            <Input
+              id="idUserRangeFrom"
+              type="number"
+              value={startUserId}
+              onChange={(e) => setStartUserId(parseInt(e.target.value))}
+              data-cy="user-labels-start-id"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="idUserRangeTo">Bis ID</Label>
+            <Input
+              id="idUserRangeTo"
+              type="number"
+              value={endUserId}
+              onChange={(e) => setEndUserId(parseInt(e.target.value))}
+              data-cy="user-labels-end-id"
+            />
+          </div>
+        </div>
 
-          <Divider sx={{ my: 0.5 }} />
+        <Separator />
 
-          {/* Section: Filters */}
-          <Typography
-            variant="caption"
-            sx={{
-              color: palette.text.disabled,
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "0.6875rem",
-            }}
-          >
-            Filter
-          </Typography>
-          <TextField
+        {/* Filters */}
+        <p className="text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">
+          Filter
+        </p>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="user-label-single-id">Etikett für UserID</Label>
+          <Input
             id="user-label-single-id"
-            label="Etikett für UserID"
-            key="user_report_id_input"
             type="number"
-            size="small"
-            fullWidth
             value={idUserFilter}
-            onChange={(e: any) => {
-              setIdUserFilter(parseInt(e.target.value));
-            }}
-            InputLabelProps={{ shrink: true }}
-            sx={cardInputSx}
+            onChange={(e) => setIdUserFilter(parseInt(e.target.value))}
             data-cy="user-labels-user-id-filter"
           />
+        </div>
 
-          <Autocomplete
-            freeSolo
-            id="schoolgrades"
-            getOptionLabel={(option: any) =>
-              `${option.topic} (${option.count})`
-            }
-            options={allTopics}
-            onChange={(_event: any, newValue: any) => {
-              setTopicsFilter(newValue);
-            }}
-            value={topicsFilter}
-            isOptionEqualToValue={(option, value) => option === value}
-            size="small"
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Klassen Filter"
-                variant="outlined"
-                sx={cardInputSx}
+        {/* School grade combobox */}
+        <div className="space-y-1.5">
+          <Label>Klassen Filter</Label>
+          <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={comboboxOpen}
+                className="w-full justify-between font-normal"
                 data-cy="user-labels-schoolgrade-filter"
-              />
-            )}
-          />
-        </Stack>
+              >
+                {topicsFilter
+                  ? `${topicsFilter.topic} (${topicsFilter.count})`
+                  : "Klasse auswählen…"}
+                <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput placeholder="Suche Klasse…" />
+                <CommandList>
+                  <CommandEmpty>Keine Klasse gefunden.</CommandEmpty>
+                  <CommandGroup>
+                    {topicsFilter && (
+                      <CommandItem
+                        value="__clear__"
+                        onSelect={() => {
+                          setTopicsFilter(null);
+                          setComboboxOpen(false);
+                        }}
+                        className="text-muted-foreground italic"
+                      >
+                        Filter zurücksetzen
+                      </CommandItem>
+                    )}
+                    {allTopics.map((option) => (
+                      <CommandItem
+                        key={option.topic}
+                        value={option.topic}
+                        onSelect={() => {
+                          setTopicsFilter(option);
+                          setComboboxOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={`mr-2 size-4 ${
+                            topicsFilter?.topic === option.topic
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {option.topic}
+                        <span className="ml-auto text-muted-foreground">
+                          {option.count}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardContent>
-      <CardActions sx={{ px: 3, pb: 2 }}>
+
+      <CardFooter>
         <Button
-          size="small"
+          variant="ghost"
+          size="sm"
           onClick={() => window.open(link + getUserUrl(), "_blank")}
-          sx={cardActionButtonSx}
+          className="text-primary hover:bg-primary/5 font-semibold"
           data-cy="user-labels-generate-button"
         >
           Erzeuge PDF
         </Button>
-      </CardActions>
+      </CardFooter>
     </Card>
   );
 }

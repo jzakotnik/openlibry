@@ -1,24 +1,33 @@
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { type TopicCount } from "./cardConstants";
+
+import { Button } from "@/components/ui/button";
 import {
-  Autocomplete,
-  Box,
-  Button,
   Card,
-  CardActions,
   CardContent,
-  Divider,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import router from "next/router";
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
-  cardAccentSx,
-  cardActionButtonSx,
-  cardBaseSx,
-  cardInputSx,
-} from "./cardConstants";
-import palette from "@/styles/palette";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 type BookLabelCardProps = {
   title: string;
@@ -34,9 +43,9 @@ type BookLabelCardProps = {
   totalNumber: number;
   idFilter: number;
   setIdFilter: any;
-  topicsFilter: any;
-  setTopicsFilter: any;
-  allTopics: any;
+  topicsFilter: TopicCount | null;
+  setTopicsFilter: (value: TopicCount | null) => void;
+  allTopics: TopicCount[];
 };
 
 export default function BookLabelCard({
@@ -56,6 +65,9 @@ export default function BookLabelCard({
   setTopicsFilter,
   allTopics,
 }: BookLabelCardProps) {
+  const router = useRouter();
+  const [comboboxOpen, setComboboxOpen] = useState(false);
+
   const getBookUrl = () => {
     return (
       "/?" +
@@ -70,181 +82,177 @@ export default function BookLabelCard({
 
   return (
     <Card
-      sx={{ ...cardBaseSx, minHeight: "auto" }}
+      className="overflow-hidden border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200"
       data-cy="book-labels-card"
     >
-      <Box sx={cardAccentSx(palette.info.main)} />
-      <CardContent sx={{ px: 3, pt: 2.5, pb: 1.5 }}>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 0.5 }}
+      {/* Accent bar */}
+      <div className="h-1 w-full bg-gradient-to-r from-info to-info/50" />
+
+      <CardHeader className="pb-2">
+        <CardTitle
+          className="text-lg text-muted-foreground"
           data-cy="book-labels-title"
         >
           {title}
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: palette.text.disabled, lineHeight: 1.5, mb: 2 }}
-        >
-          {subtitle}
-        </Typography>
+        </CardTitle>
+        {subtitle && <CardDescription>{subtitle}</CardDescription>}
+      </CardHeader>
 
-        {/* Section: Count filter */}
-        <Stack spacing={2}>
-          <TextField
+      <CardContent className="space-y-3">
+        {/* Count filter */}
+        <div className="space-y-1.5">
+          <Label htmlFor="book-label-count">Anzahl (neueste) Etiketten</Label>
+          <Input
             id="book-label-count"
-            label="Anzahl (neueste) Etiketten"
-            key="book_report_number_input"
             type="number"
-            size="small"
-            fullWidth
             value={startLabel}
-            error={startLabel! > totalNumber}
-            helperText={
-              startLabel! > totalNumber ? "So viele gibt es nicht?" : ""
+            onChange={(e) => setStartLabel(parseInt(e.target.value))}
+            className={
+              startLabel > totalNumber
+                ? "border-destructive focus-visible:ring-destructive/20"
+                : ""
             }
-            onChange={(e: any) => {
-              setStartLabel(parseInt(e.target.value));
-            }}
-            InputLabelProps={{ shrink: true }}
-            sx={cardInputSx}
             data-cy="book-labels-count-input"
           />
+          {startLabel > totalNumber && (
+            <p className="text-xs text-destructive">So viele gibt es nicht?</p>
+          )}
+        </div>
 
-          <Divider sx={{ my: 0.5 }} />
+        <Separator />
 
-          {/* Section: ID Range */}
-          <Typography
-            variant="caption"
-            sx={{
-              color: palette.text.disabled,
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "0.6875rem",
-            }}
-          >
-            ID-Bereich
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                id="idRangeFrom"
-                label="Von ID"
-                key="idRangeFrom"
-                type="number"
-                size="small"
-                fullWidth
-                value={startId}
-                onChange={(e: any) => {
-                  setStartId(parseInt(e.target.value));
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={cardInputSx}
-                data-cy="book-labels-start-id"
-              />
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                id="idRangeTo"
-                label="Bis ID"
-                key="idRangeTo"
-                type="number"
-                size="small"
-                fullWidth
-                value={endId}
-                onChange={(e: any) => {
-                  setEndId(parseInt(e.target.value));
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={cardInputSx}
-                data-cy="book-labels-end-id"
-              />
-            </Grid>
-          </Grid>
+        {/* ID Range */}
+        <p className="text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">
+          ID-Bereich
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="idRangeFrom">Von ID</Label>
+            <Input
+              id="idRangeFrom"
+              type="number"
+              value={startId}
+              onChange={(e) => setStartId(parseInt(e.target.value))}
+              data-cy="book-labels-start-id"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="idRangeTo">Bis ID</Label>
+            <Input
+              id="idRangeTo"
+              type="number"
+              value={endId}
+              onChange={(e) => setEndId(parseInt(e.target.value))}
+              data-cy="book-labels-end-id"
+            />
+          </div>
+        </div>
 
-          <Divider sx={{ my: 0.5 }} />
+        <Separator />
 
-          {/* Section: Single ID + Topic filter */}
-          <Typography
-            variant="caption"
-            sx={{
-              color: palette.text.disabled,
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "0.6875rem",
-            }}
-          >
-            Filter
-          </Typography>
-          <TextField
+        {/* Single ID + Topic filter */}
+        <p className="text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">
+          Filter
+        </p>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="book-label-single-id">Etikett für MedienID</Label>
+          <Input
             id="book-label-single-id"
-            label="Etikett für MedienID"
-            key="book_report_id_input"
             type="number"
-            size="small"
-            fullWidth
             value={idFilter}
-            onChange={(e: any) => {
-              setIdFilter(parseInt(e.target.value));
-            }}
-            InputLabelProps={{ shrink: true }}
-            sx={cardInputSx}
+            onChange={(e) => setIdFilter(parseInt(e.target.value))}
             data-cy="book-labels-id-filter"
           />
+        </div>
 
-          <Autocomplete
-            freeSolo
-            id="controlled-demo"
-            getOptionLabel={(option: any) =>
-              `${option.topic} (${option.count})`
-            }
-            options={allTopics}
-            onChange={(_event: any, newValue: string | null) => {
-              setTopicsFilter(newValue);
-            }}
-            value={topicsFilter}
-            isOptionEqualToValue={(option, value) => option === value}
-            size="small"
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Schlagwort Filter"
-                variant="outlined"
-                sx={cardInputSx}
+        {/* Topic combobox — shadcn Popover + Command */}
+        <div className="space-y-1.5">
+          <Label>Schlagwort Filter</Label>
+          <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={comboboxOpen}
+                className="w-full justify-between font-normal"
                 data-cy="book-labels-topic-filter"
-              />
-            )}
-          />
-        </Stack>
+              >
+                {topicsFilter
+                  ? `${topicsFilter.topic} (${topicsFilter.count})`
+                  : "Schlagwort auswählen…"}
+                <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput placeholder="Suche Schlagwort…" />
+                <CommandList>
+                  <CommandEmpty>Kein Schlagwort gefunden.</CommandEmpty>
+                  <CommandGroup>
+                    {/* Clear option */}
+                    {topicsFilter && (
+                      <CommandItem
+                        value="__clear__"
+                        onSelect={() => {
+                          setTopicsFilter(null);
+                          setComboboxOpen(false);
+                        }}
+                        className="text-muted-foreground italic"
+                      >
+                        Filter zurücksetzen
+                      </CommandItem>
+                    )}
+                    {allTopics.map((option) => (
+                      <CommandItem
+                        key={option.topic}
+                        value={option.topic}
+                        onSelect={() => {
+                          setTopicsFilter(option);
+                          setComboboxOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={`mr-2 size-4 ${
+                            topicsFilter?.topic === option.topic
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {option.topic}
+                        <span className="ml-auto text-muted-foreground">
+                          {option.count}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardContent>
-      <CardActions sx={{ px: 3, pb: 2, gap: 1 }}>
+
+      <CardFooter className="gap-2">
         <Button
-          size="small"
-          onClick={() => {
-            window.open(link + getBookUrl(), "_blank");
-          }}
-          sx={cardActionButtonSx}
+          variant="ghost"
+          size="sm"
+          onClick={() => window.open(link + getBookUrl(), "_blank")}
+          className="text-primary hover:bg-primary/5 font-semibold"
           data-cy="book-labels-pdf-button"
         >
           Erzeuge PDF
         </Button>
         <Button
-          size="small"
-          onClick={() => {
-            router.push("reports/print" + getBookUrl());
-          }}
-          sx={{
-            ...cardActionButtonSx,
-            color: palette.text.disabled,
-          }}
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("reports/print" + getBookUrl())}
+          className="text-muted-foreground hover:bg-muted font-semibold"
           data-cy="book-labels-skip-button"
         >
           Überspringe Label
         </Button>
-      </CardActions>
+      </CardFooter>
     </Card>
   );
 }
