@@ -67,13 +67,17 @@ export default async function handler(
         const pagesNum = extractPageNumber(bookData.pages);
         //remove topics from bookData, because they basically never fit
         const { topics, ...bookDataWithoutTopics } = bookData;
-        const normalizedData = {
-          ...bookDataWithoutTopics,
-          title: cleanTitle(bookData.title),
-          subtitle: cleanTitle(bookData.subtitle),
-          pages: pagesNum ? pagesNum : null,
-          //_source: service.name, // Include source for debugging
-        };
+        const normalizedData = Object.fromEntries(
+          Object.entries({
+            ...bookData,
+            title: cleanTitle(bookData.title),
+            subtitle: cleanTitle(bookData.subtitle),
+            pages: pagesNum ? pagesNum : null,
+          }).map(([key, value]) => [
+            key,
+            typeof value === "string" ? value.normalize("NFC") : value, //there were some problems with Umlaut like in Flätscher
+          ]),
+        );
 
         logger.debug(
           {
