@@ -69,7 +69,7 @@ Falls es dich interessiert – OpenLibry basiert auf modernen Technologien:
 
 | Komponente | Technologie |
 |------------|-------------|
-| Frontend | React mit Material-UI |
+| Frontend | React mit Shadcn/ui, Tailwind |
 | Backend | Next.js (Node.js) |
 | Datenbank | SQLite (über Prisma ORM) |
 | Deployment | Docker, Bare Metal, oder beides |
