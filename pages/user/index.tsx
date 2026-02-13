@@ -13,8 +13,6 @@ import { convertDateToDayString } from "@/lib/utils/dateutils";
 import getMaxId from "@/lib/utils/id";
 import { increaseNumberInString } from "@/lib/utils/increaseNumberInString";
 import palette from "@/styles/palette";
-import { alpha, Box, Container, Stack } from "@mui/material";
-import { ThemeProvider, useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useSnackbar } from "notistack";
@@ -37,7 +35,6 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
 
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
-  const theme = useTheme();
 
   // Combine search text and filter string for the list
   const combinedSearchString = useMemo(() => {
@@ -167,77 +164,60 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
     }, []);
   }, [users]);
 
-  const selectedCount = Object.values(checked).filter(Boolean).length;
-
   return (
     <Layout>
-      <ThemeProvider theme={theme}>
-        <NewUserDialog
-          open={showNewUserDialog}
-          setOpen={setShowNewUserDialog}
-          maxUserID={getMaxId(users) + 1}
-          onCreate={(idAuto, idValue) => {
-            handleCreateUser(idValue, idAuto);
-            setShowNewUserDialog(false);
-          }}
-        />
+      <NewUserDialog
+        open={showNewUserDialog}
+        setOpen={setShowNewUserDialog}
+        maxUserID={getMaxId(users) + 1}
+        onCreate={(idAuto, idValue) => {
+          handleCreateUser(idValue, idAuto);
+          setShowNewUserDialog(false);
+        }}
+      />
 
-        <Container maxWidth="lg" sx={{ py: 3 }}>
-          <Stack spacing={3}>
-            {/* Header Section */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                alignItems: { xs: "stretch", sm: "center" },
-                justifyContent: "space-between",
-                gap: 2,
-              }}
-            ></Box>
+      <div className="mx-auto max-w-screen-lg px-4 py-6 sm:px-6">
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex justify-center">
+            <UserSearchBar
+              searchValue={searchText}
+              onSearchChange={handleSearchChange}
+              onToggleSettings={() => setShowDetailSearch(!showDetailSearch)}
+              showSettings={showDetailSearch}
+              onSelectAll={handleSelectAll}
+              onCreateUser={() => setShowNewUserDialog(true)}
+              checked={checked}
+              onIncreaseGrade={handleIncreaseGrade}
+              onDeleteUsers={handleDeleteUsers}
+              confirmDelete={confirmDelete}
+              settingsContent={
+                <UserSearchFilters
+                  grades={uniqueGrades}
+                  onFilterChange={handleFilterChange}
+                />
+              }
+            />
+          </div>
 
-            {/* Search Bar */}
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <UserSearchBar
-                searchValue={searchText}
-                onSearchChange={handleSearchChange}
-                onToggleSettings={() => setShowDetailSearch(!showDetailSearch)}
-                showSettings={showDetailSearch}
-                onSelectAll={handleSelectAll}
-                onCreateUser={() => setShowNewUserDialog(true)}
-                checked={checked}
-                onIncreaseGrade={handleIncreaseGrade}
-                onDeleteUsers={handleDeleteUsers}
-                confirmDelete={confirmDelete}
-                settingsContent={
-                  <UserSearchFilters
-                    grades={uniqueGrades}
-                    onFilterChange={handleFilterChange}
-                  />
-                }
-              />
-            </Box>
-
-            {/* User List */}
-            <Box
-              sx={{
-                p: { xs: 1, sm: 2 },
-                borderRadius: 3,
-                bgcolor: alpha(palette.background.paper, 0.5),
-                backdropFilter: "blur(8px)",
-                border: `1px solid ${alpha(palette.primary.main, 0.08)}`,
-              }}
-            >
-              <UserAdminList
-                users={users}
-                rentals={rentals}
-                searchString={combinedSearchString}
-                checked={checked}
-                setChecked={setChecked}
-              />
-            </Box>
-          </Stack>
-        </Container>
-      </ThemeProvider>
+          {/* User List */}
+          <div
+            className="rounded-2xl border p-2 backdrop-blur-sm sm:p-3"
+            style={{
+              backgroundColor: `${palette.background.paper}80`,
+              borderColor: `${palette.primary.main}14`,
+            }}
+          >
+            <UserAdminList
+              users={users}
+              rentals={rentals}
+              searchString={combinedSearchString}
+              checked={checked}
+              setChecked={setChecked}
+            />
+          </div>
+        </div>
+      </div>
     </Layout>
   );
 }

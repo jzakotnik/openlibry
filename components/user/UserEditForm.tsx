@@ -1,45 +1,41 @@
-import Box from "@mui/material/Box";
-import * as React from "react";
-import { Dispatch, useState } from "react";
-
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import MoreTimeIcon from "@mui/icons-material/MoreTime";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import ListItem from "@mui/material/ListItem";
-import Typography from "@mui/material/Typography";
-
-import { UserType } from "@/entities/UserType";
-import SaveAltIcon from "@mui/icons-material/SaveAlt";
-import ListItemText from "@mui/material/ListItemText";
-
-import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
-import EditIcon from "@mui/icons-material/Edit";
-
 import { BookType } from "@/entities/BookType";
+import { UserType } from "@/entities/UserType";
 import palette from "@/styles/palette";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
+import {
+  AlertTriangle,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Edit3,
+  Printer,
+  RotateCcw,
+  Save,
+  Undo2,
+  User,
+  X,
+} from "lucide-react";
+import { Dispatch, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 import HoldButton from "../layout/HoldButton";
 
-import {
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  Grid,
-  Paper,
-  TextField,
-  Tooltip,
-} from "@mui/material";
-
-const bull = (
-  <Box
-    component="span"
-    sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}
-  >
-    •
-  </Box>
-);
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 
 type UserEditFormPropType = {
   user: UserType;
@@ -53,14 +49,191 @@ type UserEditFormPropType = {
   initiallyEditable?: boolean;
 };
 
-interface ReturnBooksType {
-  bookid: number;
-  time: Date;
+type OverdueLevel = "overdue" | "warning" | "ok";
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function getOverdueLevel(dueDate: string | Date | undefined): OverdueLevel {
+  if (!dueDate) return "ok";
+  const days = dayjs().diff(dueDate, "days");
+  if (days > 13) return "overdue";
+  if (days > 0) return "warning";
+  return "ok";
 }
 
-type ReturnedIconPropsType = {
-  id: number;
-};
+function overdueColor(level: OverdueLevel) {
+  switch (level) {
+    case "overdue":
+      return palette.error.main;
+    case "warning":
+      return palette.warning.main;
+    default:
+      return palette.text.secondary;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Editable field                                                     */
+/* ------------------------------------------------------------------ */
+
+function FormField({
+  id,
+  label,
+  value,
+  disabled,
+  required,
+  onChange,
+  tabIndex,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  disabled: boolean;
+  required?: boolean;
+  onChange?: (v: string) => void;
+  tabIndex?: number;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label
+        htmlFor={id}
+        className="text-xs font-medium"
+        style={{ color: palette.text.secondary }}
+      >
+        {label}
+        {required && <span style={{ color: palette.error.main }}> *</span>}
+      </Label>
+      <Input
+        id={id}
+        name={id}
+        defaultValue={value}
+        disabled={disabled}
+        tabIndex={tabIndex}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        className="transition-colors disabled:opacity-60"
+        style={
+          !disabled ? { borderColor: `${palette.primary.main}66` } : undefined
+        }
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Book row                                                           */
+/* ------------------------------------------------------------------ */
+
+function BookRow({
+  book,
+  returned,
+  onReturn,
+  onExtend,
+}: {
+  book: BookType;
+  returned: boolean;
+  onReturn: () => void;
+  onExtend: () => void;
+}) {
+  const level = getOverdueLevel(book.dueDate);
+  const color = overdueColor(level);
+  const dueDateStr = dayjs(book.dueDate).format("DD.MM.YYYY");
+
+  return (
+    <div
+      className="group flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2 transition-all duration-200 hover:shadow-sm"
+      style={{
+        borderLeftColor: returned ? palette.success.main : color,
+        backgroundColor: returned ? `${palette.success.main}0a` : `${color}0a`,
+      }}
+    >
+      {/* Return button */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={onReturn}
+            className="shrink-0 rounded-md p-1.5 transition-colors hover:bg-black/5"
+            style={{
+              color: returned ? palette.success.main : palette.primary.main,
+            }}
+          >
+            {returned ? <CheckCircle2 size={18} /> : <Undo2 size={18} />}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{returned ? "Bereits zurückgegeben" : "Zurückgeben"}</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {/* Extend button */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={onExtend}
+            className="shrink-0 rounded-md p-1.5 transition-colors hover:bg-black/5"
+            style={{ color: palette.text.secondary }}
+          >
+            <Clock size={16} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Verlängern</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {/* Book info */}
+      <div className="min-w-0 flex-1">
+        <span
+          className="block truncate text-sm font-medium"
+          title={book.title ?? ""}
+          style={{
+            color: returned ? palette.text.disabled : palette.text.secondary,
+            textDecoration: returned ? "line-through" : "none",
+          }}
+        >
+          {book.title}
+        </span>
+      </div>
+
+      {/* Renewal count */}
+      {(book.renewalCount ?? 0) > 0 && (
+        <Badge
+          variant="secondary"
+          className="shrink-0 text-[0.6rem]"
+          style={{
+            backgroundColor: `${palette.primary.main}14`,
+            color: palette.text.secondary,
+          }}
+        >
+          <RotateCcw size={10} className="mr-0.5" />
+          {book.renewalCount}×
+        </Badge>
+      )}
+
+      {/* Due date */}
+      <span
+        className="shrink-0 whitespace-nowrap text-xs"
+        style={{
+          color: returned ? palette.text.disabled : color,
+          fontWeight: level !== "ok" ? 600 : 400,
+        }}
+      >
+        {dueDateStr}
+        {level === "overdue" && !returned && (
+          <AlertTriangle size={12} className="ml-1 inline-block align-[-1px]" />
+        )}
+      </span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main component                                                     */
+/* ------------------------------------------------------------------ */
+
 export default function UserEditForm({
   user,
   books,
@@ -72,256 +245,370 @@ export default function UserEditForm({
   extendBook,
   initiallyEditable = false,
 }: UserEditFormPropType) {
-  const [editable, setEditable] = useState(
-    initiallyEditable ? initiallyEditable : false
+  const [editable, setEditable] = useState(initiallyEditable);
+  const [returnedBooks, setReturnedBooks] = useState<Record<number, number>>(
+    {},
   );
-  // const [userBooks, setUserBooks] = useState(books);
 
-  const [editButtonLabel, setEditButtonLabel] = useState(
-    initiallyEditable ? "Abbrechen" : "Editieren"
-  );
-  const [returnedBooks, setReturnedBooks] = useState({});
+  const toggleEdit = () => setEditable((e) => !e);
 
-  const toggleEditButton = () => {
-    editable
-      ? setEditButtonLabel("Editieren")
-      : setEditButtonLabel("Abbrechen");
-    setEditable(!editable);
+  const handleReturn = (b: BookType) => {
+    if (!b.id) return;
+    returnBook(b.id);
+    setReturnedBooks((prev) => ({ ...prev, [b.id!]: Date.now() }));
   };
 
-  const ReturnedIcon = ({ id }: ReturnedIconPropsType) => {
-    //console.log("Rendering icon ", id, returnedBooks);
-    if (id in returnedBooks) {
-      return <CheckCircleIcon color="success" />;
-    } else {
-      return <ArrowCircleLeftIcon />;
-    }
-  };
+  const overdueCount = books.filter(
+    (b) => getOverdueLevel(b.dueDate) !== "ok",
+  ).length;
 
   return (
-    <Paper sx={{ mt: 5, px: 4 }}>
-      <Divider sx={{ mb: 3 }}>
-        <Typography variant="body1" color={palette.info.main}>
-          Daten
-        </Typography>
-      </Divider>
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6 }} >
-          <TextField
-            required
-            id="firstName"
-            name="firstName"
-            label="Vorname"
-            defaultValue={user.firstName}
-            disabled={!editable}
-            fullWidth
-            autoComplete="given-name"
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setUserData({ ...user, firstName: event.target.value });
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} >
-          <TextField
-            required
-            id="lastName"
-            name="lastName"
-            label="Nachname"
-            defaultValue={user.lastName}
-            disabled={!editable}
-            fullWidth
-            autoComplete="family-name"
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setUserData({ ...user, lastName: event.target.value });
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6 }} >
-          <TextField
-            required
-            id="schoolGrade"
-            name="schoolGrade"
-            label="Klasse"
-            defaultValue={user.schoolGrade}
-            disabled={!editable}
-            fullWidth
-            autoComplete="shipping address-level2"
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setUserData({ ...user, schoolGrade: event.target.value });
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} >
-          <TextField
-            id="schoolTeacherName"
-            name="schoolTeacherName"
-            label="Lehrkraft"
-            defaultValue={user.schoolTeacherName}
-            disabled={!editable}
-            fullWidth
-            variant="standard"
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setUserData({
-                ...user,
-                schoolTeacherName: event.target.value,
-              });
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} >
-          <TextField
-            id="createdAt"
-            name="createdAt"
-            label="Erzeugt am"
-            defaultValue={
-              "User erstellt am " +
-              user.createdAt +
-              " mit Ausweisnummer " +
-              user.id
-            }
-            disabled={true}
-            fullWidth
-            variant="standard"
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }} >
-          <TextField
-            id="lastUpdated"
-            name="lastUpdated"
-            label="Letztes Update"
-            defaultValue={user.updatedAt}
-            disabled={true}
-            fullWidth
-            variant="standard"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }} >
-          <FormControlLabel
-            control={
-              <Checkbox
-                color="secondary"
-                name="saveActive"
-                disabled={!editable}
-                checked={user.active}
-                onClick={() => {
-                  const toggleValue = !user.active;
-                  setUserData({ ...user, active: toggleValue });
-                }}
-              />
-            }
-            label="Aktiv"
-          />
-        </Grid>
-      </Grid>
-      <Divider sx={{ mb: 3 }}>
-        <Typography variant="body1" color={palette.info.main}>
-          Geliehene Bücher
-        </Typography>
-      </Divider>
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
+    <TooltipProvider delayDuration={300}>
+      <div
+        className="overflow-hidden rounded-2xl border shadow-sm"
+        style={{
+          backgroundColor: palette.background.paper,
+          borderColor: `${palette.primary.main}14`,
+        }}
       >
-        <Grid size={{ xs: 12 }} >
-          {" "}
-          {books.map((b: BookType) => {
-            return "id" in b ? (
-              <ListItem key={b.id}>
-                <Tooltip title="Zurückgeben">
-                  <IconButton
-                    onClick={() => {
-                      returnBook(b.id!);
-                      const time = Date.now();
-                      const newbook = {};
-                      (newbook as any)[b.id!] = time;
-                      setReturnedBooks({ ...returnedBooks, ...newbook });
-                    }}
-                    aria-label="zurückgeben"
-                  >
-                    <ReturnedIcon key={b.id} id={b.id!} />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Verlängern">
-                  <IconButton
-                    onClick={() => {
-                      if (!b.id) return;
-                      extendBook(b.id, b);
-                    }}
-                    aria-label="verlängern"
-                  >
-                    <MoreTimeIcon key={b.id} />
-                  </IconButton>
-                </Tooltip>
-                <ListItemText>
+        {/* ═══════════════════════════════════════════════ */}
+        {/*  Header                                        */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div
+          className="relative overflow-hidden px-6 py-5"
+          style={{
+            background: `linear-gradient(135deg, ${palette.primary.main} 0%, ${palette.primary.dark} 100%)`,
+          }}
+        >
+          {/* Decorative shapes */}
+          <div
+            className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
+            style={{ backgroundColor: palette.primary.light }}
+          />
+          <div
+            className="absolute -bottom-4 right-16 h-20 w-20 rounded-full opacity-[0.07]"
+            style={{ backgroundColor: palette.primary.light }}
+          />
 
-                  {dayjs().diff(b.dueDate, "days") > 13 && (
-                    <Typography color="red">
-                      {b.title + ", " + b.renewalCount + "x verlängert bis " + dayjs(b.dueDate).format("DD.MM.YYYY")}
-                    </Typography >
-                  )}
-                  {dayjs().diff(b.dueDate, "days") > 0 && dayjs().diff(b.dueDate, "days") <= 13 && (
-                    <Typography color="darkorange">
-                      {b.title + ", " + b.renewalCount + "x verlängert bis " + dayjs(b.dueDate).format("DD.MM.YYYY")}
-                    </Typography >
-                  )}
-                  {dayjs().diff(b.dueDate, "days") <= 0 && (
-                    b.title + ", " + b.renewalCount + "x verlängert bis " + dayjs(b.dueDate).format("DD.MM.YYYY")
-                  )}
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-xl"
+                style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+              >
+                <User size={22} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">
+                  {user.firstName} {user.lastName}
+                </h2>
+                <p className="text-sm text-white/60">
+                  Nr. {user.id} · Klasse {user.schoolGrade}
+                  {user.schoolTeacherName && ` · ${user.schoolTeacherName}`}
+                </p>
+              </div>
+            </div>
 
-                </ListItemText>
-              </ListItem>
-            ) : (
-              <div>ID not found</div>
-            );
-          })}
-        </Grid>
-        <Grid size={{ xs: 12, md: 3 }} >
-          <Button onClick={toggleEditButton} startIcon={<EditIcon />}>
-            {editButtonLabel}
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
-          {editable && (
-            <Button
-              onClick={() => {
-                saveUser();
-                toggleEditButton();
-              }}
-              startIcon={<SaveAltIcon />}
-            >
-              Speichern
-            </Button>
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
-          {editable && (
-            <HoldButton
-              duration={deleteSafetySeconds * 1000}
-              onClick={deleteUser}
-              buttonLabel="Löschen"
+            {/* Status badges */}
+            <div className="hidden gap-2 sm:flex">
+              {books.length > 0 && (
+                <Badge
+                  className="rounded-full border-0 text-xs"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.18)",
+                    color: "white",
+                  }}
+                >
+                  <BookOpen size={12} className="mr-1" />
+                  {books.length} {books.length === 1 ? "Buch" : "Bücher"}
+                </Badge>
+              )}
+              {overdueCount > 0 && (
+                <Badge
+                  className="rounded-full border-0 text-xs"
+                  style={{
+                    backgroundColor: "rgba(255,80,80,0.25)",
+                    color: "#fecaca",
+                  }}
+                >
+                  <AlertTriangle size={12} className="mr-1" />
+                  {overdueCount} überfällig
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════ */}
+        {/*  Section: Personal data                        */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="px-6 pt-6">
+          <SectionHeading label="Daten" />
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Tab order: 1-6 for data fields */}
+            <FormField
+              id="firstName"
+              label="Vorname"
+              value={user.firstName ?? ""}
+              disabled={!editable}
+              required
+              tabIndex={1}
+              onChange={(v) => setUserData({ ...user, firstName: v })}
             />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, md: 3 }}>
-          {editable && (
+            <FormField
+              id="lastName"
+              label="Nachname"
+              value={user.lastName ?? ""}
+              disabled={!editable}
+              required
+              tabIndex={2}
+              onChange={(v) => setUserData({ ...user, lastName: v })}
+            />
+            <FormField
+              id="schoolGrade"
+              label="Klasse"
+              value={user.schoolGrade ?? ""}
+              disabled={!editable}
+              required
+              tabIndex={3}
+              onChange={(v) => setUserData({ ...user, schoolGrade: v })}
+            />
+            <FormField
+              id="schoolTeacherName"
+              label="Lehrkraft"
+              value={user.schoolTeacherName ?? ""}
+              disabled={!editable}
+              tabIndex={4}
+              onChange={(v) => setUserData({ ...user, schoolTeacherName: v })}
+            />
+            <FormField
+              id="createdAt"
+              label="Erzeugt am"
+              value={`User erstellt am ${user.createdAt} mit Ausweisnummer ${user.id}`}
+              disabled
+              tabIndex={-1}
+            />
+            <FormField
+              id="lastUpdated"
+              label="Letztes Update"
+              value={user.updatedAt ?? ""}
+              disabled
+              tabIndex={-1}
+            />
+          </div>
+
+          {/* Active checkbox */}
+          <label
+            htmlFor="user-active"
+            className="mt-4 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-gray-50"
+            tabIndex={5}
+            style={{
+              borderColor: user.active ? palette.primary.main : "#e5e7eb",
+              opacity: editable ? 1 : 0.6,
+              pointerEvents: editable ? "auto" : "none",
+            }}
+          >
+            <Checkbox
+              id="user-active"
+              checked={user.active}
+              disabled={!editable}
+              onCheckedChange={() =>
+                setUserData({ ...user, active: !user.active })
+              }
+              className="border-gray-300 data-[state=checked]:border-transparent"
+              style={
+                user.active
+                  ? {
+                      backgroundColor: palette.primary.main,
+                      borderColor: palette.primary.main,
+                    }
+                  : undefined
+              }
+            />
+            <div>
+              <span
+                className="text-sm font-medium"
+                style={{
+                  color: user.active
+                    ? palette.primary.dark
+                    : palette.text.secondary,
+                }}
+              >
+                Aktiv
+              </span>
+              <p className="text-xs" style={{ color: palette.text.disabled }}>
+                {user.active
+                  ? "Benutzer kann Bücher ausleihen"
+                  : "Benutzer ist deaktiviert"}
+              </p>
+            </div>
+          </label>
+        </div>
+
+        {/* ═══════════════════════════════════════════════ */}
+        {/*  Section: Borrowed books                       */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="px-6 pt-6">
+          <SectionHeading label="Geliehene Bücher" count={books.length} />
+
+          <div className="mt-3 space-y-1.5">
+            {books.length === 0 ? (
+              <div
+                className="rounded-lg px-4 py-3 text-center text-sm font-medium"
+                style={{
+                  backgroundColor: `${palette.success.main}0f`,
+                  color: palette.success.main,
+                }}
+              >
+                Keine ausgeliehenen Bücher
+              </div>
+            ) : (
+              books.map((b: BookType) =>
+                b.id ? (
+                  <BookRow
+                    key={b.id}
+                    book={b}
+                    returned={b.id in returnedBooks}
+                    onReturn={() => handleReturn(b)}
+                    onExtend={() => b.id && extendBook(b.id, b)}
+                  />
+                ) : (
+                  <div
+                    key={Math.random()}
+                    className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-500"
+                  >
+                    ID nicht gefunden
+                  </div>
+                ),
+              )
+            )}
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════ */}
+        {/*  Action bar                                    */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="px-6 pb-6 pt-5">
+          <Separator className="mb-5" />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Edit / Cancel toggle — always visible */}
             <Button
-              onClick={() => {
-                window.open("/api/report/userlabels?id=" + user.id, "_blank")
-              }}
+              variant={editable ? "outline" : "default"}
+              size="sm"
+              tabIndex={6}
+              onClick={toggleEdit}
+              className="gap-2 rounded-lg font-medium"
+              style={
+                editable
+                  ? {
+                      borderColor: `${palette.text.secondary}33`,
+                      color: palette.text.secondary,
+                    }
+                  : {
+                      backgroundColor: palette.primary.main,
+                      color: palette.primary.contrastText,
+                    }
+              }
             >
-              Drucken
+              {editable ? <X size={15} /> : <Edit3 size={15} />}
+              {editable ? "Abbrechen" : "Editieren"}
             </Button>
-          )}
-        </Grid>
-      </Grid>
-    </Paper>
+
+            {/* These only appear when editing */}
+            {editable && (
+              <>
+                {/* Save */}
+                <Button
+                  size="sm"
+                  tabIndex={7}
+                  onClick={() => {
+                    saveUser();
+                    toggleEdit();
+                  }}
+                  className="gap-2 rounded-lg font-medium shadow-sm"
+                  style={{
+                    backgroundColor: palette.primary.main,
+                    color: palette.primary.contrastText,
+                  }}
+                >
+                  <Save size={15} />
+                  Speichern
+                </Button>
+
+                {/* Print */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  tabIndex={8}
+                  onClick={() =>
+                    window.open(
+                      `/api/report/userlabels?id=${user.id}`,
+                      "_blank",
+                    )
+                  }
+                  className="gap-2 rounded-lg font-medium"
+                  style={{
+                    borderColor: `${palette.primary.main}33`,
+                    color: palette.primary.main,
+                  }}
+                >
+                  <Printer size={15} />
+                  Drucken
+                </Button>
+
+                {/* Spacer pushes delete to the right */}
+                <div className="flex-1" />
+
+                {/* Delete — subtle by default, reveals danger on hold */}
+                <HoldButton
+                  duration={deleteSafetySeconds * 1000}
+                  onClick={deleteUser}
+                  buttonLabel="Löschen"
+                />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section heading with optional count                                */
+/* ------------------------------------------------------------------ */
+
+function SectionHeading({ label, count }: { label: string; count?: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className="h-px flex-1"
+        style={{ backgroundColor: `${palette.primary.main}1a` }}
+      />
+      <span
+        className="flex items-center gap-1.5 text-sm font-semibold"
+        style={{ color: palette.info.main }}
+      >
+        {label}
+        {count !== undefined && (
+          <Badge
+            variant="secondary"
+            className="ml-1 h-5 min-w-[20px] rounded-full px-1.5 text-[0.65rem]"
+            style={{
+              backgroundColor: `${palette.info.main}14`,
+              color: palette.info.main,
+            }}
+          >
+            {count}
+          </Badge>
+        )}
+      </span>
+      <div
+        className="h-px flex-1"
+        style={{ backgroundColor: `${palette.primary.main}1a` }}
+      />
+    </div>
   );
 }
