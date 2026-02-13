@@ -1,21 +1,16 @@
-import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
-import ClearIcon from "@mui/icons-material/Clear";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
-import UpdateIcon from "@mui/icons-material/Update";
-
 import {
-  Box,
-  FormControl,
-  IconButton,
-  Input,
-  InputAdornment,
-  InputLabel,
-  Paper,
-  Stack,
   Tooltip,
-  Typography,
-} from "@mui/material";
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  BookOpen,
+  CircleArrowLeft,
+  ListPlus,
+  RefreshCw,
+  X,
+} from "lucide-react";
 
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -43,9 +38,6 @@ type Sorting<T> = {
   field: keyof T | (keyof T)[];
   order: "asc" | "desc";
 };
-
-const ReturnedIcon = () => <ArrowCircleLeftIcon />;
-const ExtendedIcon = () => <UpdateIcon />;
 
 export default function BookRentalList({
   books,
@@ -79,7 +71,6 @@ export default function BookRentalList({
     [],
   );
 
-  // Build itemsjs index only when the dataset changes
   const searchEngine = useMemo(
     () =>
       itemsjs(books, {
@@ -89,7 +80,6 @@ export default function BookRentalList({
     [books, sortings],
   );
 
-  // Stable search function (captures engine + sortBy)
   const searchBooks = useCallback(
     (query: any) => {
       const found = searchEngine.search({
@@ -102,7 +92,6 @@ export default function BookRentalList({
     [searchEngine, sortBy],
   );
 
-  // Run search whenever input text changes or engine/sort changes
   useEffect(() => {
     searchBooks(bookSearchInput);
   }, [bookSearchInput, searchBooks]);
@@ -112,13 +101,8 @@ export default function BookRentalList({
     setBookSearchInput("");
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-  ) => {
-    const v = e.target.value;
-    setBookSearchInput(v);
-    // optional immediate search (effect will also run)
-    //searchBooks(v);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBookSearchInput(e.target.value);
   };
 
   const handleKeyUp = useCallback(
@@ -135,19 +119,14 @@ export default function BookRentalList({
       if (e.key === "Enter" && userExpanded) {
         const trimmedInput = bookSearchInput.trim();
         const bookId = parseInt(trimmedInput, 10);
-
-        // Find book by ID (exact match)
         const book = books.find((b) => b.id === bookId);
 
         if (book && book.rentalStatus === "available") {
           handleRentBookButton(book.id!, userExpanded);
           setBookSearchInput("");
         } else if (book && book.rentalStatus !== "available") {
-          // Book exists but is already rented - optionally show feedback
           console.log(`Book ${bookId} is already rented`);
-          // You could add a snackbar/toast notification here
         } else {
-          // Book not found - optionally show feedback
           console.log(`Book ${bookId} not found`);
         }
       }
@@ -162,226 +141,209 @@ export default function BookRentalList({
   );
 
   const markBookTouched = (id: number) => {
-    const time = Date.now();
-    setReturnedBooks((prev) => ({ ...prev, [id]: time }));
+    setReturnedBooks((prev) => ({ ...prev, [id]: Date.now() }));
   };
 
   return (
-    <div data-cy="book_rental_list_container">
-      <FormControl variant="standard">
-        <InputLabel
-          htmlFor="book-search-input-label"
-          data-cy="book_search_label"
+    <TooltipProvider>
+      <div data-cy="book_rental_list_container">
+        {/* ── Search field ─────────────────────────────────────── */}
+        <div className="relative flex items-center">
+          <BookOpen className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            ref={searchFieldRef}
+            id="book-search-input"
+            type="text"
+            value={bookSearchInput}
+            onChange={handleInputChange}
+            onKeyUp={handleKeyUp}
+            placeholder="Suche Buch"
+            data-cy="book_search_input"
+            aria-label="search books"
+            className="h-10 w-full rounded-lg border border-border bg-card
+                       pl-9 pr-9 text-sm text-foreground
+                       placeholder:text-muted-foreground
+                       transition-colors duration-200
+                       hover:border-primary/25
+                       focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          {bookSearchInput && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onMouseDown={handleClear}
+                  data-cy="book_search_clear_button"
+                  aria-label="Suche löschen"
+                  className="absolute right-2 flex h-6 w-6 items-center justify-center
+                             rounded text-muted-foreground
+                             hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Suche löschen</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+
+        {/* ── Book list ────────────────────────────────────────── */}
+        <div
+          className="flex flex-col gap-2 px-0.5 mt-2"
+          data-cy="book_list_container"
         >
-          Suche Buch
-        </InputLabel>
-        <Input
-          id="book-search-input"
-          inputRef={searchFieldRef}
-          data-cy="book_search_input"
-          startAdornment={
-            <InputAdornment position="start">
-              <MenuBookIcon />
-            </InputAdornment>
-          }
-          endAdornment={
-            bookSearchInput && (
-              <InputAdornment position="end">
-                <Tooltip title="Suche löschen">
-                  <IconButton
-                    edge="end"
-                    onMouseDown={handleClear}
-                    data-cy="book_search_clear_button"
+          {renderedBooks.slice(0, 100).map((b: BookType) => {
+            const allowExtendBookRent = extensionDueDate.isAfter(
+              b.dueDate,
+              "day",
+            );
+            const tooltip = allowExtendBookRent
+              ? "Verlängern"
+              : "Maximale Ausleihzeit erreicht";
+
+            return (
+              <div
+                key={b.id}
+                className="rounded-lg border border-border bg-card shadow-sm"
+                style={{ overflow: "visible" }}
+                data-cy={`book_item_${b.id}`}
+              >
+                {/* HEADER ROW */}
+                <div
+                  className="flex items-center gap-2 px-2 pt-1.5 w-full flex-nowrap min-w-0"
+                  data-cy={`book_header_${b.id}`}
+                >
+                  {/* Title — grows, truncates */}
+                  <span
+                    className="flex-1 min-w-0 truncate text-sm font-medium text-foreground"
+                    data-cy={`book_title_${b.id}`}
                   >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            )
-          }
-          value={bookSearchInput}
-          onChange={handleInputChange}
-          onKeyUp={handleKeyUp}
-        />
-      </FormControl>
+                    {b.title}
+                  </span>
 
-      {/* Use Stack instead of Grid for the vertical list to avoid spacing/overflow quirks */}
-      <Stack
-        spacing={1}
-        sx={{ px: 0.5, my: 0.5 }}
-        data-cy="book_list_container"
-      >
-        {renderedBooks.slice(0, 100).map((b: BookType) => {
-          const allowExtendBookRent = extensionDueDate.isAfter(
-            b.dueDate,
-            "day",
-          );
-          const tooltip = allowExtendBookRent
-            ? "Verlängern"
-            : "Maximale Ausleihzeit erreicht";
+                  {/* Action buttons — never shrink */}
+                  <div
+                    className="flex items-center gap-0.5 shrink-0 relative z-[1]"
+                    style={{ overflow: "visible" }}
+                    data-cy={`book_actions_${b.id}`}
+                  >
+                    {b.rentalStatus !== "available" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <button
+                              aria-label="extend"
+                              disabled={!allowExtendBookRent}
+                              onClick={() => {
+                                handleExtendBookButton(b.id!, b);
+                                markBookTouched(b.id!);
+                              }}
+                              data-cy={`book_extend_button_${b.id}`}
+                              className="flex h-8 w-8 items-center justify-center rounded-md
+                                         text-muted-foreground
+                                         enabled:hover:bg-primary/10 enabled:hover:text-primary
+                                         disabled:opacity-40 disabled:cursor-not-allowed
+                                         transition-colors"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </button>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{tooltip}</TooltipContent>
+                      </Tooltip>
+                    )}
 
-          return (
-            <Paper
-              key={b.id}
-              elevation={2}
-              sx={{
-                my: 0.5,
-                // VERY IMPORTANT for iPad/Safari: do not clip trailing icons
-                overflow: "visible",
-              }}
-              data-cy={`book_item_${b.id}`}
-            >
-              {/* HEADER ROW */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  px: 1,
-                  pt: 0.5,
-                  width: "100%",
-                  // Make this a strict single-line row with proper shrinking
-                  flexWrap: "nowrap",
-                  minWidth: 0,
-                }}
-                data-cy={`book_header_${b.id}`}
-              >
-                {/* LEFT: title — grows, can truncate */}
-                <Typography
-                  sx={{ flex: "1 1 auto", minWidth: 0 }}
-                  noWrap
-                  data-cy={`book_title_${b.id}`}
-                >
-                  {b.title}
-                </Typography>
+                    {b.rentalStatus !== "available" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              handleReturnBookButton(b.id!, b.userId!);
+                              markBookTouched(b.id!);
+                            }}
+                            aria-label="zurückgeben"
+                            data-cy={`book_return_button_${b.id}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md
+                                       text-muted-foreground
+                                       hover:bg-destructive/10 hover:text-destructive
+                                       transition-colors"
+                          >
+                            <CircleArrowLeft className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Zurückgeben</TooltipContent>
+                      </Tooltip>
+                    )}
 
-                {/* RIGHT: icon cluster — never shrink, never wrap, keep on top */}
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={0.5}
-                  sx={{
-                    flex: "0 0 auto",
-                    whiteSpace: "nowrap",
-                    position: "relative",
-                    zIndex: 1,
-                    overflow: "visible",
-                  }}
-                  data-cy={`book_actions_${b.id}`}
-                >
-                  {b.rentalStatus !== "available" && (
-                    <Tooltip title={tooltip}>
-                      <span>
-                        <IconButton
-                          aria-label="extend"
-                          disabled={!allowExtendBookRent}
-                          onClick={() => {
-                            handleExtendBookButton(b.id!, b);
-                            markBookTouched(b.id!);
-                          }}
-                          size="small"
-                          data-cy={`book_extend_button_${b.id}`}
-                        >
-                          <ExtendedIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  )}
+                    {userExpanded && b.rentalStatus === "available" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              handleRentBookButton(b.id!, userExpanded!);
+                              markBookTouched(b.id!);
+                            }}
+                            aria-label="ausleihen"
+                            data-cy={`book_rent_button_${b.id}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md
+                                       text-primary
+                                       hover:bg-primary/10
+                                       transition-colors"
+                          >
+                            <ListPlus className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Ausleihen</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
 
-                  {b.rentalStatus !== "available" && (
-                    <Tooltip title="Zurückgeben">
-                      <IconButton
-                        onClick={() => {
-                          handleReturnBookButton(b.id!, b.userId!);
-                          markBookTouched(b.id!);
-                        }}
-                        aria-label="zurückgeben"
-                        size="small"
-                        data-cy={`book_return_button_${b.id}`}
-                      >
-                        <ReturnedIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-
-                  {userExpanded && b.rentalStatus === "available" && (
-                    <Tooltip title="Ausleihen">
-                      <IconButton
-                        onClick={() => {
-                          handleRentBookButton(b.id!, userExpanded!);
-                          markBookTouched(b.id!);
-                        }}
-                        aria-label="ausleihen"
-                        size="small"
-                        data-cy={`book_rent_button_${b.id}`}
-                      >
-                        <PlaylistAddIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Stack>
-              </Box>
-
-              {/* SUBTITLE ROW */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  px: 1,
-                  pt: 0.5,
-                  width: "100%",
-                  minWidth: 0,
-                }}
-                data-cy={`book_subtitle_row_${b.id}`}
-              >
-                <Typography
-                  sx={{ m: 0.5 }}
-                  variant="body2"
-                  noWrap
-                  data-cy={`book_subtitle_${b.id}`}
-                >
-                  Untertitel: {b.subtitle}
-                </Typography>
-              </Box>
-
-              {/* INFO ROW */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  px: 1,
-                  pt: 0.5,
-                  width: "100%",
-                  minWidth: 0,
-                }}
-                data-cy={`book_info_row_${b.id}`}
-              >
-                <Typography
-                  sx={{ m: 0.5 }}
-                  variant="body2"
-                  data-cy={`book_info_${b.id}`}
-                >
-                  Buch Nr. {b.id}
-                  {!(
-                    b.rentalStatus === "available" || b.rentalStatus === "lost"
-                  ) && (
-                    <span>
-                      {" "}
-                      - ausgeliehen bis {dayjs(b.dueDate).format(
-                        "DD.MM.YYYY",
-                      )}{" "}
-                      an {userNameforBook(users, b.userId!)}
+                {/* SUBTITLE ROW */}
+                {b.subtitle && (
+                  <div
+                    className="flex items-center gap-2 px-2 pt-1 w-full min-w-0"
+                    data-cy={`book_subtitle_row_${b.id}`}
+                  >
+                    <span
+                      className="text-xs text-muted-foreground truncate"
+                      data-cy={`book_subtitle_${b.id}`}
+                    >
+                      {b.subtitle}
                     </span>
-                  )}
-                  {b.rentalStatus === "available" && <span> - {b.author}</span>}
-                </Typography>
-              </Box>
-            </Paper>
-          );
-        })}
-      </Stack>
-    </div>
+                  </div>
+                )}
+
+                {/* INFO ROW */}
+                <div
+                  className="flex items-center gap-2 px-2 pt-1 pb-2 w-full min-w-0"
+                  data-cy={`book_info_row_${b.id}`}
+                >
+                  <span
+                    className="text-xs text-muted-foreground"
+                    data-cy={`book_info_${b.id}`}
+                  >
+                    Nr. {b.id}
+                    {!(
+                      b.rentalStatus === "available" ||
+                      b.rentalStatus === "lost"
+                    ) && (
+                      <span>
+                        {" "}
+                        — ausgeliehen bis{" "}
+                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
+                        {userNameforBook(users, b.userId!)}
+                      </span>
+                    )}
+                    {b.rentalStatus === "available" && (
+                      <span> — {b.author}</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }
