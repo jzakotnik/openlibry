@@ -1,21 +1,13 @@
-import palette from "@/styles/palette";
-import {
-  Add,
-  GridView,
-  QueueOutlined,
-  Search,
-  ViewList,
-} from "@mui/icons-material";
-import {
-  alpha,
-  Box,
-  Divider,
-  IconButton,
-  InputBase,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Grid2x2, LayoutList, ListPlus, Plus, Search } from "lucide-react";
 import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface BookSearchBarProps {
   handleInputChange: React.ChangeEventHandler<
@@ -39,139 +31,120 @@ export default function BookSearchBar({
   showNewBookControl = true,
 }: BookSearchBarProps) {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        px: { xs: 2, md: 10 },
-        my: 4,
-      }}
-    >
-      <Box
-        component="form"
-        onSubmit={(e) => e.preventDefault()}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 0.5,
-          px: 2,
-          py: 1,
-          width: "100%",
-          maxWidth: 500,
-          borderRadius: 3,
-          bgcolor: alpha(palette.background.paper, 0.9),
-          backdropFilter: "blur(12px)",
-          border: `1px solid ${alpha(palette.primary.main, 0.12)}`,
-          boxShadow: `0 4px 20px ${alpha(palette.primary.main, 0.08)}`,
-          transition: "all 0.3s ease",
-          "&:hover": {
-            border: `1px solid ${alpha(palette.primary.main, 0.25)}`,
-            boxShadow: `0 6px 24px ${alpha(palette.primary.main, 0.12)}`,
-          },
-          "&:focus-within": {
-            border: `1px solid ${palette.primary.main}`,
-            boxShadow: `0 6px 24px ${alpha(palette.primary.main, 0.15)}`,
-          },
-        }}
-      >
-        {/* View Toggle */}
-        <Tooltip title="Ansicht wechseln">
-          <IconButton
-            onClick={toggleView}
-            sx={{
-              color: palette.text.secondary,
-              "&:hover": {
-                bgcolor: alpha(palette.primary.main, 0.1),
-                color: palette.primary.main,
-              },
-            }}
+    <TooltipProvider>
+      <div className="flex justify-center px-4 md:px-10 my-6">
+        <div className="flex w-full max-w-xl items-center gap-2">
+          {/* ── Search input ────────────────────────────────────── */}
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="relative flex flex-1 items-center"
           >
-            {detailView ? <GridView /> : <ViewList />}
-          </IconButton>
-        </Tooltip>
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={bookSearchInput}
+              onChange={handleInputChange}
+              placeholder="Buch suchen…"
+              aria-label="search books"
+              data-cy="rental_input_searchbook"
+              className="h-10 w-full rounded-lg border border-border bg-card/90
+                         pl-9 pr-3 text-sm text-foreground
+                         placeholder:text-muted-foreground
+                         backdrop-blur-xl
+                         shadow-sm
+                         transition-all duration-200
+                         hover:border-primary/25 hover:shadow-md
+                         focus:border-primary focus:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
 
-        {/* Search Icon & Input */}
-        <Search sx={{ color: palette.text.disabled, ml: 0.5 }} />
-        <InputBase
-          value={bookSearchInput}
-          onChange={handleInputChange}
-          placeholder="Buch suchen..."
-          data-cy="rental_input_searchbook"
-          inputProps={{
-            "aria-label": "search books",
-          }}
-          sx={{
-            flex: 1,
-            ml: 1,
-            "& input": {
-              py: 0.75,
-              "&::placeholder": {
-                color: palette.text.disabled,
-                opacity: 1,
-              },
-            },
-          }}
-        />
-
-        {/* Result Count */}
-        {searchResultNumber > 0 && (
-          <Typography
-            variant="caption"
-            sx={{
-              color: palette.text.secondary,
-              bgcolor: alpha(palette.primary.main, 0.08),
-              px: 1,
-              py: 0.25,
-              borderRadius: 1,
-              fontWeight: 500,
-            }}
-          >
-            {searchResultNumber}
-          </Typography>
-        )}
-
-        {/* Create Book Button */}
-        {showNewBookControl && (
-          <>
-            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-            <Tooltip title="Neues Buch erzeugen">
-              <IconButton
-                onClick={handleNewBook}
-                data-cy="create_book_button"
-                sx={{
-                  color: palette.primary.main,
-                  "&:hover": {
-                    bgcolor: alpha(palette.primary.main, 0.1),
-                  },
-                }}
+            {/* Result count — inside the input, right-aligned */}
+            {searchResultNumber > 0 && (
+              <Badge
+                variant="secondary"
+                className="absolute right-2 text-[0.65rem] px-1.5 py-0 h-5 font-medium pointer-events-none"
               >
-                <Add />
-              </IconButton>
-            </Tooltip>
-          </>
-        )}
-        {/* Create Book Button */}
-        {showNewBookControl && (
-          <>
-            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-            <Tooltip title="Viele Bücher importieren">
-              <Link href={`book/batchscan`} passHref style={{ flex: 1 }}>
-                <IconButton
-                  data-cy="batchscan_button"
-                  sx={{
-                    color: palette.primary.main,
-                    "&:hover": {
-                      bgcolor: alpha(palette.primary.main, 0.1),
-                    },
-                  }}
+                {searchResultNumber}
+              </Badge>
+            )}
+          </form>
+
+          {/* ── Action buttons ──────────────────────────────────── */}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* View toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleView}
+                  aria-label="Ansicht wechseln"
+                  className="flex items-center justify-center
+                             h-10 w-10 rounded-lg border border-border bg-card/90
+                             text-muted-foreground
+                             shadow-sm backdrop-blur-xl
+                             transition-all duration-200
+                             hover:border-primary/25 hover:text-primary hover:shadow-md
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                 >
-                  <QueueOutlined />
-                </IconButton>
-              </Link>
+                  {detailView ? (
+                    <LayoutList className="h-4 w-4" />
+                  ) : (
+                    <Grid2x2 className="h-4 w-4" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Ansicht wechseln</TooltipContent>
             </Tooltip>
-          </>
-        )}
-      </Box>
-    </Box>
+
+            {showNewBookControl && (
+              <>
+                {/* Vertical separator */}
+                <div className="h-6 w-px bg-border mx-0.5" />
+
+                {/* New book */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleNewBook}
+                      aria-label="Neues Buch erzeugen"
+                      data-cy="create_book_button"
+                      className="flex items-center justify-center
+                                 h-10 w-10 rounded-lg
+                                 bg-primary text-primary-foreground
+                                 shadow-sm
+                                 transition-all duration-200
+                                 hover:bg-primary/90 hover:shadow-md hover:scale-105
+                                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Neues Buch erzeugen</TooltipContent>
+                </Tooltip>
+
+                {/* Batch scan */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/book/batchscan"
+                      aria-label="Viele Bücher importieren"
+                      data-cy="batchscan_button"
+                      className="flex items-center justify-center
+                                 h-10 w-10 rounded-lg border border-border bg-card/90
+                                 text-muted-foreground
+                                 shadow-sm backdrop-blur-xl
+                                 transition-all duration-200
+                                 hover:border-primary/25 hover:text-primary hover:shadow-md
+                                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                    >
+                      <ListPlus className="h-4 w-4" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>Viele Bücher importieren</TooltipContent>
+                </Tooltip>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }

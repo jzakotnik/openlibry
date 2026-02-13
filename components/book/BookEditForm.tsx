@@ -1,26 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
-import Box from "@mui/material/Box";
 import { useRouter } from "next/router";
 import { Dispatch, useCallback, useState } from "react";
 
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ImageSearchIcon from "@mui/icons-material/ImageSearch";
-import PrintIcon from "@mui/icons-material/Print";
-import SaveAltIcon from "@mui/icons-material/SaveAlt";
-import SearchIcon from "@mui/icons-material/Search";
+import {
+  ArrowLeft,
+  ImagePlus,
+  Loader2,
+  Printer,
+  Save,
+  Search,
+} from "lucide-react";
 
 import palette from "@/styles/palette";
-import {
-  CircularProgress,
-  Divider,
-  Grid,
-  Link,
-  Paper,
-  Tooltip,
-} from "@mui/material";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
@@ -29,39 +20,112 @@ import HoldButton from "../layout/HoldButton";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
+import BookField from "./edit/BookField";
 import BookImageUploadButton from "./edit/BookImageUploadButton";
-import BookMultiText from "./edit/BookMultiText";
-import BookNumberField from "./edit/BookNumberField";
-import BookPagesField from "./edit/BookPagesField";
-import BookStatusDropdown from "./edit/BookStatusDropdown";
-import BookTextField from "./edit/BookTextField";
+import BookSelect, {
+  renewalCountOptions,
+  rentalStatusOptions,
+} from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
 
 import { useSnackbar } from "notistack";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
 type BookEditFormPropType = {
   book: BookType;
   setBookData: Dispatch<BookType>;
-  deleteBook: React.MouseEventHandler<HTMLButtonElement>;
+  deleteBook: () => void;
   deleteSafetySeconds: number;
   saveBook: React.MouseEventHandler<HTMLButtonElement>;
   topics: string[];
   antolinResults: AntolinResultType | null;
-  /** Indicates if this is a new book being created (not yet in database) */
   isNewBook?: boolean;
-  /** Optional cancel action for new book mode */
   cancelAction?: () => void;
-  /** Optional flag to show saving state */
   isSaving?: boolean;
-  /** Cover preview URL for new books (blob URL from memory) */
   coverPreviewUrl?: string;
-  /** Whether autofill has been attempted (to show appropriate placeholder) */
   autofillAttempted?: boolean;
-  /** External autofill handler for new books (fetches data + cover) */
   onAutoFill?: (isbn: string) => Promise<void>;
-  /** External autofill loading state */
   isAutoFilling?: boolean;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared UI Primitives
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SectionDivider({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative flex items-center gap-4 py-4">
+      <div className="flex-1 h-px bg-gray-200" />
+      <span
+        className="text-sm font-medium whitespace-nowrap"
+        style={{ color: palette.info.main }}
+      >
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-gray-200" />
+    </div>
+  );
+}
+
+function ActionButton({
+  onClick,
+  disabled = false,
+  loading = false,
+  icon: Icon,
+  children,
+  variant = "primary",
+  title,
+  dataCy,
+}: {
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  loading?: boolean;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  variant?: "primary" | "secondary" | "outline";
+  title?: string;
+  dataCy?: string;
+}) {
+  const baseClasses =
+    "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
+
+  const variantClasses = {
+    primary: "text-white shadow-sm hover:shadow-md active:scale-[0.98]",
+    secondary:
+      "text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-[0.98]",
+    outline:
+      "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98]",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      title={title}
+      data-cy={dataCy}
+      className={`${baseClasses} ${variantClasses[variant]}`}
+      style={
+        variant === "primary"
+          ? { backgroundColor: palette.primary.main }
+          : undefined
+      }
+    >
+      {loading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <Icon className="w-4 h-4" />
+      )}
+      {children}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function BookEditForm({
   book,
@@ -79,38 +143,30 @@ export default function BookEditForm({
   onAutoFill,
   isAutoFilling: externalIsAutoFilling,
 }: BookEditFormPropType) {
-  // For new books, always start in edit mode
-  const [editable, setEditable] = useState(true);
+  const [editable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1);
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const [fetchingCover, setFetchingCover] = useState(false);
   const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
   const router = useRouter();
-  const [editButtonLabel, setEditButtonLabel] = useState("Editieren");
 
   const { enqueueSnackbar } = useSnackbar();
 
-  // Use external loading state if provided, otherwise internal
   const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
 
-  /**
-   * Handle auto-fill from ISBN
-   * For new books: delegates to external handler (which also fetches cover)
-   * For existing books: uses internal logic
-   */
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
   const handleAutoFillFromISBN = useCallback(async () => {
     if (!book.isbn) {
       enqueueSnackbar("Bitte geben Sie eine ISBN ein.", { variant: "warning" });
       return;
     }
 
-    // For new books, use external handler if provided
     if (isNewBook && onAutoFill) {
       await onAutoFill(book.isbn);
       return;
     }
 
-    // Internal logic for existing books
     const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
       enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
@@ -160,9 +216,6 @@ export default function BookEditForm({
     }
   }, [book, setBookData, isNewBook, onAutoFill, enqueueSnackbar]);
 
-  /**
-   * Fetch cover from ISBN (for existing books only)
-   */
   const handleFetchCover = useCallback(async () => {
     if (!book.isbn) {
       enqueueSnackbar("Keine ISBN im Buch hinterlegt.", { variant: "warning" });
@@ -208,22 +261,11 @@ export default function BookEditForm({
     }
   }, [book.isbn, book.id, enqueueSnackbar]);
 
-  const toggleEditButton = () => {
-    editable
-      ? setEditButtonLabel("Editieren")
-      : setEditButtonLabel("Abbrechen");
-    setEditable(!editable);
-  };
+  const handleAntolinClick = () => setAntolinDetailsDialog(true);
 
-  const handleAntolinClick = () => {
-    setAntolinDetailsDialog(true);
-  };
+  // ── Sub-components ────────────────────────────────────────────────────────
 
-  /**
-   * Cover image component - handles both new books (preview URL) and existing books (API)
-   */
   const CoverImage = () => {
-    // For new books with a cover preview from memory
     if (isNewBook && coverPreviewUrl) {
       return (
         <img
@@ -232,49 +274,30 @@ export default function BookEditForm({
           height="auto"
           alt="Cover Vorschau"
           data-cy="book-cover-preview"
-          style={{
-            border: "1px solid #ddd",
-            maxHeight: 280,
-            objectFit: "contain",
-          }}
+          className="border border-gray-200 rounded-lg object-contain"
+          style={{ maxHeight: 280 }}
         />
       );
     }
 
-    // For new books - show status-based placeholder
     if (isNewBook) {
       let message = "ISBN eingeben und 'Ausfüllen' klicken";
-      let color = "text.secondary";
+      let textColor = "text-gray-400";
 
       if (isAutoFilling) {
         message = "Cover wird gesucht...";
       } else if (autofillAttempted && !coverPreviewUrl) {
         message = "Kein Cover gefunden";
-        color = "warning.main";
+        textColor = "text-amber-600";
       }
 
       return (
-        <Box
-          sx={{
-            width: 200,
-            height: 200,
-            border: "1px dashed #ccc",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#f5f5f5",
-            textAlign: "center",
-            p: 2,
-          }}
-        >
-          <Typography variant="body2" color={color}>
-            {message}
-          </Typography>
-        </Box>
+        <div className="w-[200px] h-[200px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 text-center p-4">
+          <span className={`text-sm ${textColor}`}>{message}</span>
+        </div>
       );
     }
 
-    // For existing books - load from API
     return (
       <img
         src={`/api/images/${book.id}?${loadingImage}`}
@@ -283,480 +306,393 @@ export default function BookEditForm({
         alt="cover image"
         key={loadingImage}
         data-cy="book-cover-image"
-        style={{
-          border: "1px solid #fff",
-          width: "auto",
-        }}
+        className="border border-white rounded-lg"
+        style={{ width: "auto" }}
       />
     );
   };
 
   const AntolinResult = () => {
-    // Don't show Antolin for new unsaved books
-    if (isNewBook && !book.id) {
-      return null;
+    if (isNewBook && !book.id) return null;
+
+    if (!antolinResults) {
+      return <span className="text-xs text-gray-400">...</span>;
     }
 
     let resultString = "...";
-    if (antolinResults) {
-      if (antolinResults.foundNumber > 1) {
-        resultString = ` ${antolinResults.foundNumber} Bücher`;
-      } else if (antolinResults.foundNumber === 0) {
-        resultString = " Kein Buch gefunden";
-      } else if (antolinResults.foundNumber === 1) {
-        resultString = " Ein Buch gefunden";
-      }
-
-      return (
-        <Typography variant="caption">
-          Antolin-Suche:
-          <Link onClick={handleAntolinClick} tabIndex={0} component="button">
-            {resultString}
-          </Link>
-        </Typography>
-      );
+    if (antolinResults.foundNumber > 1) {
+      resultString = ` ${antolinResults.foundNumber} ähnliche Bücher`;
+    } else if (antolinResults.foundNumber === 0) {
+      resultString = " Kein Buch gefunden";
+    } else if (antolinResults.foundNumber === 1) {
+      resultString = " Ein Buch gefunden";
     }
-    return <Typography variant="caption">...</Typography>;
+
+    return (
+      <span className="text-xs text-gray-500">
+        Antolin:
+        <button
+          onClick={handleAntolinClick}
+          className="ml-1 text-blue-600 hover:text-blue-800 underline underline-offset-2 cursor-pointer"
+          tabIndex={0}
+        >
+          {resultString}
+        </button>
+      </span>
+    );
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
-    <Paper sx={{ mt: 5, px: 4 }} data-cy="book-edit-form">
+    <div
+      className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 px-4 sm:px-6 lg:px-8 py-6"
+      data-cy="book-edit-form"
+    >
       <BookAntolinDialog
         open={antolinDetailsDialog}
         setOpen={setAntolinDetailsDialog}
         antolinBooks={antolinResults}
       />
 
-      {/* Action Buttons Row */}
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
-      >
-        <Grid size={{ xs: 12, md: 3 }}>
-          {editable && (
-            <Tooltip
-              title={isNewBook ? "Buch erstellen und speichern" : "Speichern"}
-            >
-              <span>
-                <Button
-                  onClick={saveBook}
-                  startIcon={
-                    isSaving ? <CircularProgress size={16} /> : <SaveAltIcon />
-                  }
-                  disabled={isSaving}
-                  data-cy="save-book-button"
-                >
-                  {isSaving ? "Speichert..." : "Speichern"}
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-        </Grid>
+      {/* ── Action Buttons ─────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start pb-2">
+        {editable && (
+          <ActionButton
+            onClick={saveBook}
+            loading={isSaving}
+            icon={Save}
+            title={isNewBook ? "Buch erstellen und speichern" : "Speichern"}
+            dataCy="save-book-button"
+          >
+            {isSaving ? "Speichert..." : "Speichern"}
+          </ActionButton>
+        )}
 
-        <Grid size={{ xs: 12, md: 3 }}>
-          {isNewBook && cancelAction && (
-            <Tooltip title="Abbrechen und zurück zur Übersicht">
-              <Button
-                onClick={cancelAction}
-                startIcon={<ArrowBackIcon />}
-                color="secondary"
-                data-cy="cancel-book-button"
-              >
-                Abbrechen
-              </Button>
-            </Tooltip>
-          )}
-          {!isNewBook && editable && (
-            <Tooltip title="Löschen">
-              <HoldButton
-                duration={deleteSafetySeconds * 1000}
-                buttonLabel="Löschen"
-                onClick={deleteBook}
-                data-cy="delete-book-button"
-              />
-            </Tooltip>
-          )}
-        </Grid>
+        {isNewBook && cancelAction && (
+          <ActionButton
+            onClick={cancelAction}
+            icon={ArrowLeft}
+            variant="secondary"
+            title="Abbrechen und zurück zur Übersicht"
+            dataCy="cancel-book-button"
+          >
+            Abbrechen
+          </ActionButton>
+        )}
 
-        <Grid size={{ xs: 12, md: 3 }}>
-          {editable && !isNewBook && (
-            <Tooltip title="Buchlabel drucken">
-              <Button
-                onClick={() => {
-                  router.push(`/reports/print?id=${book.id}`);
-                }}
-                startIcon={<PrintIcon />}
-                data-cy="print-book-button"
-              >
-                Drucken
-              </Button>
-            </Tooltip>
-          )}
-        </Grid>
-      </Grid>
+        {editable && !isNewBook && (
+          <ActionButton
+            onClick={() => router.push(`/reports/print?id=${book.id}`)}
+            icon={Printer}
+            variant="outline"
+            title="Buchlabel drucken"
+            dataCy="print-book-button"
+          >
+            Drucken
+          </ActionButton>
+        )}
+        {!isNewBook && editable && (
+          <HoldButton
+            duration={deleteSafetySeconds * 1000}
+            buttonLabel="Löschen"
+            onClick={deleteBook}
+            data-cy="delete-book-button"
+          />
+        )}
+      </div>
 
-      {/* ISBN Lookup Section - At the top with unified ISBN field */}
-      <Divider sx={{ mb: 3, mt: 2 }}>
-        <Typography variant="body1" color={palette.info.main}>
-          ISBN & Stammdaten
-        </Typography>
-      </Divider>
+      {/* ── ISBN & Lookup ──────────────────────────────────────────────── */}
+      <SectionDivider>ISBN &amp; Stammdaten</SectionDivider>
 
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
-        sx={{ mb: 3 }}
-      >
-        {/* ISBN Field - Primary entry point */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <BookTextField
-            fieldType={"isbn"}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end mb-6">
+        <div className="min-w-0">
+          <BookField
+            fieldType="isbn"
             editable={editable}
             setBookData={setBookData}
             book={book}
-            autoFocus={isNewBook} // Focus ISBN first for new books
+            autoFocus={isNewBook}
           />
-        </Grid>
+        </div>
 
-        {/* Autofill Button */}
-        <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-          <Tooltip title="Stammdaten und Cover mit ISBN suchen (DNB, Google Books, OpenLibrary)">
-            <span>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={handleAutoFillFromISBN}
-                disabled={!book.isbn || isAutoFilling}
-                startIcon={
-                  isAutoFilling ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <SearchIcon />
-                  )
-                }
-                data-cy="autofill-button"
-              >
-                {isAutoFilling ? "Sucht..." : "Ausfüllen"}
-              </Button>
-            </span>
-          </Tooltip>
-        </Grid>
-
-        {/* Fetch Cover Button (only for existing books) */}
-        {!isNewBook && (
-          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Tooltip title="Cover von ISBN laden (OpenLibrary)">
-              <span>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={handleFetchCover}
-                  disabled={!book.isbn || !book.id || fetchingCover}
-                  startIcon={
-                    fetchingCover ? (
-                      <CircularProgress size={16} />
-                    ) : (
-                      <ImageSearchIcon />
-                    )
-                  }
-                  data-cy="fetch-cover-button"
-                >
-                  {fetchingCover ? "Lädt..." : "Cover"}
-                </Button>
-              </span>
-            </Tooltip>
-          </Grid>
-        )}
-      </Grid>
-
-      {/* Book Details Section */}
-      <Divider sx={{ mb: 3 }}>
-        <Typography variant="body1" color={palette.info.main}>
-          Stammdaten des Buchs
-        </Typography>
-      </Divider>
-
-      <Grid container direction="row" justifyContent="center" alignItems="top">
-        <Grid container size={{ xs: 12, sm: 9 }} direction="row" spacing={2}>
-          {/* Title - Tab order 1 */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"title"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Author - Tab order 2 */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"author"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Subtitle - Tab order 3 */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"subtitle"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Topics - Tab order 4 */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTopicsChips
-              fieldType={"topics"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-              topics={topics}
-            />
-            <AntolinResult />
-          </Grid>
-
-          {/* Summary - Tab order 5 */}
-          <Grid size={{ xs: 12 }}>
-            <BookMultiText
-              fieldType={"summary"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Edition Description */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"editionDescription"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Publisher Name */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"publisherName"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Publisher Location */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"publisherLocation"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Publisher Date */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"publisherDate"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          {/* Pages */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookPagesField
-              fieldType={"pages"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Divider sx={{ mb: 3, width: "100%" }} />
-
-          {/* Rental Status Section */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookStatusDropdown
-              fieldType={"rentalStatus"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookNumberField
-              fieldType={"renewalCount"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookDateField
-              fieldType={"rentedDate"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookDateField
-              fieldType={"dueDate"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Divider sx={{ mb: 3, width: "100%" }} />
-
-          {/* Additional Fields */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"minAge"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"maxAge"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"price"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"externalLinks"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"additionalMaterial"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"minPlayers"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"otherPhysicalAttributes"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"supplierComment"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <BookTextField
-              fieldType={"physicalSize"}
-              editable={editable}
-              setBookData={setBookData}
-              book={book}
-            />
-          </Grid>
-        </Grid>
-
-        {/* Cover Image and Barcode Column */}
-        <Grid
-          container
-          size={{ xs: 12, sm: 3 }}
-          direction="column"
-          justifyContent="flex-start"
-          alignItems="center"
+        <ActionButton
+          onClick={handleAutoFillFromISBN}
+          disabled={!book.isbn || isAutoFilling}
+          loading={isAutoFilling}
+          icon={Search}
+          variant="outline"
+          title="Stammdaten und Cover mit ISBN suchen (DNB, Google Books, OpenLibrary)"
+          dataCy="autofill-button"
         >
-          <Grid>
-            <CoverImage />
-            {!isNewBook && (
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
-              >
-                <BookImageUploadButton
-                  book={book}
-                  setLoadingImage={setLoadingImage}
-                />
-              </Box>
-            )}
-            {isNewBook && coverPreviewUrl && (
-              <Typography
-                variant="caption"
-                color="success.main"
-                sx={{ display: "block", mt: 1, textAlign: "center" }}
-              >
-                ✓ Cover wird beim Speichern hochgeladen
-              </Typography>
-            )}
-            {isNewBook && autofillAttempted && !coverPreviewUrl && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: "block", mt: 1, textAlign: "center" }}
-              >
-                Cover kann nach Speichern manuell hochgeladen werden
-              </Typography>
-            )}
-          </Grid>
-          {!isNewBook && (
-            <Grid>
-              <BookBarcode book={book} />
-            </Grid>
-          )}
-        </Grid>
-      </Grid>
+          {isAutoFilling ? "Sucht..." : "Ausfüllen"}
+        </ActionButton>
 
-      <Divider sx={{ mb: 3 }} />
-    </Paper>
+        {!isNewBook && (
+          <ActionButton
+            onClick={handleFetchCover}
+            disabled={!book.isbn || !book.id || fetchingCover}
+            loading={fetchingCover}
+            icon={ImagePlus}
+            variant="outline"
+            title="Cover von ISBN laden (OpenLibrary)"
+            dataCy="fetch-cover-button"
+          >
+            {fetchingCover ? "Lädt..." : "Cover"}
+          </ActionButton>
+        )}
+      </div>
+
+      {/* ── Book Details ───────────────────────────────────────────────── */}
+      <SectionDivider>Stammdaten des Buchs</SectionDivider>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* ── Left: Form fields ──────────────────────────────────────── */}
+        <div className="flex-1 min-w-0">
+          {/* Core fields — tab order 1-5 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+            <div>
+              <BookField
+                fieldType="title"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="author"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="subtitle"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookTopicsChips
+                fieldType="topics"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+                topics={topics}
+              />
+              <AntolinResult />
+            </div>
+            <div className="sm:col-span-2">
+              <BookField
+                fieldType="summary"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+                variant="textarea"
+              />
+            </div>
+          </div>
+
+          {/* Publishing details */}
+          <SectionDivider>Verlag &amp; Ausgabe</SectionDivider>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <div>
+              <BookField
+                fieldType="publisherName"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="publisherLocation"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="publisherDate"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="editionDescription"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="pages"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+                variant="number"
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="price"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+          </div>
+
+          {/* Rental status */}
+          <SectionDivider>Ausleih-Status</SectionDivider>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+            <div>
+              <BookSelect
+                fieldType="rentalStatus"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+                label="Status"
+                options={rentalStatusOptions}
+              />
+            </div>
+            <div>
+              <BookSelect
+                fieldType="renewalCount"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+                label="Verlängerungen"
+                options={renewalCountOptions}
+              />
+            </div>
+            <div>
+              <BookDateField
+                fieldType="rentedDate"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookDateField
+                fieldType="dueDate"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+          </div>
+
+          {/* Additional metadata */}
+          <SectionDivider>Weitere Angaben</SectionDivider>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+            <div>
+              <BookField
+                fieldType="minAge"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="maxAge"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="minPlayers"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="physicalSize"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="otherPhysicalAttributes"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="additionalMaterial"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="externalLinks"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="supplierComment"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Right: Cover image & barcode ───────────────────────────── */}
+        <div className="flex flex-col items-center gap-4 lg:w-[220px] shrink-0">
+          <CoverImage />
+
+          {!isNewBook && (
+            <BookImageUploadButton
+              book={book}
+              setLoadingImage={setLoadingImage}
+            />
+          )}
+
+          {isNewBook && coverPreviewUrl && (
+            <span className="text-xs text-green-600 text-center">
+              ✓ Cover wird beim Speichern hochgeladen
+            </span>
+          )}
+
+          {isNewBook && autofillAttempted && !coverPreviewUrl && (
+            <span className="text-xs text-gray-400 text-center">
+              Cover kann nach Speichern manuell hochgeladen werden
+            </span>
+          )}
+
+          {!isNewBook && <BookBarcode book={book} />}
+        </div>
+      </div>
+
+      {/* Bottom spacer */}
+      <div className="h-px bg-gray-200 mt-8" />
+    </div>
   );
 }

@@ -66,7 +66,7 @@ const HoldButton: React.FC<HoldButtonProps> = ({
             onTouchStart={startHold}
             onTouchEnd={stopHold}
             data-cy={dataCy}
-            className="relative w-[200px] h-[50px] overflow-hidden"
+            className="relative w-[100px] h-[40px] overflow-hidden"
           >
             <span
               className={`absolute left-0 top-0 h-full bg-white/50 ${

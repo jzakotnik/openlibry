@@ -1,16 +1,16 @@
 import { BookType } from "@/entities/BookType";
-import { Paper, Typography } from "@mui/material";
 import Barcode from "react-barcode";
 
-interface BookTypeProps {
+interface BookBarcodeProps {
   book: BookType;
 }
 
-export default function BookBarcode({ book }: BookTypeProps) {
+export default function BookBarcode({ book }: BookBarcodeProps) {
   return (
-    <Paper sx={{ mx: 10, my: 10, px: 5 }}>
-      <Typography> {book.title.substring(0, 30) + "..."}</Typography>
-
+    <div className="mt-6 px-3 py-4 bg-white rounded-lg shadow-sm border border-gray-100 text-center">
+      <p className="text-xs text-gray-600 mb-2 truncate">
+        {book.title.substring(0, 30)}…
+      </p>
       <Barcode
         value={book.id!.toString()}
         height={90}
@@ -19,6 +19,6 @@ export default function BookBarcode({ book }: BookTypeProps) {
         textMargin={4}
         margin={2}
       />
-    </Paper>
+    </div>
   );
 }

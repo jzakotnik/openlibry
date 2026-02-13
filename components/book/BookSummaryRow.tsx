@@ -1,23 +1,16 @@
-import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
-import ControlPointDuplicateIcon from "@mui/icons-material/ControlPointDuplicate";
-
-import TaskAltIcon from "@mui/icons-material/TaskAlt";
-import {
-  Avatar,
-  Box,
-  Chip,
-  IconButton,
-  Paper,
-  Stack,
-  Tooltip,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { CheckCircle, Copy, XCircle } from "lucide-react";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
-
+const MAX_TOPICS_LENGTH = 10;
 interface BookSummaryRowPropType {
   book: BookType;
   handleCopyBook: React.MouseEventHandler<HTMLButtonElement>;
@@ -27,16 +20,15 @@ export default function BookSummaryRow({
   book,
   handleCopyBook,
 }: BookSummaryRowPropType) {
-  const theme = useTheme();
   const router = useRouter();
 
   const topics = useMemo(
     () =>
       (book.topics ?? "")
         .split(";")
-        .map((t) => t.trim())
+        .map((t) => t.trim().substring(0, MAX_TOPICS_LENGTH))
         .filter(Boolean),
-    [book.topics]
+    [book.topics],
   );
 
   const maxChips = 4;
@@ -46,107 +38,94 @@ export default function BookSummaryRow({
   const isRented = book.rentalStatus === "rented";
 
   return (
-    <Paper
-      elevation={1}
-      sx={{
-        px: 2,
-        py: 1.25,
-        my: 1,
-        width: "100%",
-        borderRadius: 2,
-        transition: "box-shadow 120ms ease, transform 120ms ease",
-        "&:hover": {
-          boxShadow: 4,
-          transform: "translateY(-1px)",
-          cursor: "pointer",
-        },
-      }}
+    <div
+      className="w-full rounded-lg border border-border bg-card px-4 py-3 my-2
+                 shadow-sm transition-all duration-150
+                 hover:shadow-md hover:-translate-y-0.5 hover:cursor-pointer"
       onClick={() => router.push(`/book/${book.id}`)}
       role="button"
       aria-label={`Open book ${book.title}`}
+      data-cy={`book_summary_row_${book.id}`}
     >
-      <Stack
-        direction="row"
-        alignItems="center"
-        spacing={1.5}
-        useFlexGap
-        flexWrap="wrap"
-      >
+      <div className="flex flex-row items-center gap-3 flex-wrap">
         {/* Status avatar */}
-        <Avatar
-          sx={{
-            width: 36,
-            height: 36,
-            bgcolor: isRented ? "error.main" : "success.main",
-          }}
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${
+            isRented ? "bg-destructive" : "bg-success"
+          }`}
+          data-cy={`book_status_${book.id}`}
         >
           {isRented ? (
-            <CancelPresentationIcon fontSize="small" />
+            <XCircle className="h-5 w-5" />
           ) : (
-            <TaskAltIcon fontSize="small" />
+            <CheckCircle className="h-5 w-5" />
           )}
-        </Avatar>
+        </div>
 
-        {/* Title + author (grows) */}
-        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-          <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            noWrap
+        {/* Title + subtitle + author (grows) */}
+        <div className="min-w-0 flex-1">
+          <p
+            className="truncate text-sm font-semibold leading-tight text-foreground"
             title={book.title}
+            data-cy={`book_title_${book.id}`}
           >
             {book.title || "Untitled"}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            noWrap
+          </p>
+          {book.subtitle && (
+            <p
+              className="truncate text-xs text-muted-foreground leading-tight mt-0.5"
+              title={book.subtitle}
+              data-cy={`book_subtitle_${book.id}`}
+            >
+              {book.subtitle}
+            </p>
+          )}
+          <p
+            className="truncate text-xs text-muted-foreground mt-0.5"
             title={book.author || ""}
+            data-cy={`book_author_${book.id}`}
           >
             {book.author}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {/* Topics */}
-        <Stack
-          direction="row"
-          spacing={0.5}
-          alignItems="center"
-          flexWrap="wrap"
-          sx={{
-            maxWidth: { xs: "100%", md: "60%" },
-            rowGap: 0.5,
-          }}
-        >
+        <div className="flex flex-row flex-wrap items-center gap-1 max-w-full md:max-w-[60%]">
           {visibleTopics.map((t) => (
-            <Chip key={t} label={t} size="small" />
+            <Badge key={t} variant="secondary" className="text-xs">
+              {t}
+            </Badge>
           ))}
           {extraCount > 0 && (
-            <Chip
-              label={`+${extraCount}`}
-              size="small"
-              variant="outlined"
-              sx={{ fontWeight: 500 }}
-            />
+            <Badge variant="outline" className="text-xs font-medium">
+              +{extraCount}
+            </Badge>
           )}
-        </Stack>
+        </div>
 
-        {/* Actions (don’t trigger row click) */}
-        <Box
+        {/* Actions (don't trigger row click) */}
+        <div
+          className="ml-auto flex items-center"
           onClick={(e) => e.stopPropagation()}
-          sx={{ ml: "auto", display: "flex", alignItems: "center" }}
         >
-          <Tooltip title="Buch duplizieren">
-            <IconButton
-              color="primary"
-              aria-label="copy-book"
-              onClick={handleCopyBook}
-            >
-              <ControlPointDuplicateIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Stack>
-    </Paper>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md
+                             text-primary hover:bg-primary/10 transition-colors"
+                  aria-label="copy-book"
+                  onClick={handleCopyBook}
+                  data-cy={`book_copy_button_${book.id}`}
+                >
+                  <Copy className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Buch duplizieren</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+    </div>
   );
 }
