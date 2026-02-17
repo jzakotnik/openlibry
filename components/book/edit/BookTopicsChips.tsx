@@ -100,9 +100,9 @@ export default function BookTopicsChips({
           <Badge
             key={topic}
             variant={editable ? "secondary" : "outline"}
-            className="gap-1 pr-1"
+            className="gap-1 pr-1 max-w-[16rem]"
           >
-            {topic}
+            <span className="truncate">{topic}</span>
             {editable && (
               <button
                 type="button"

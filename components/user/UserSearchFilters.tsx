@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import palette from "@/styles/palette";
+import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
   Filter,
@@ -37,7 +37,6 @@ export default function UserSearchFilters({
   const [isOverdue, setIsOverdue] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
 
-  // Update parent when filters change
   useEffect(() => {
     const parts: string[] = [];
     if (isOverdue) parts.push("fällig?");
@@ -52,7 +51,6 @@ export default function UserSearchFilters({
 
   const hasActiveFilters = isOverdue || selectedGrade !== "";
 
-  // Sort grades naturally (1, 2, 3... not 1, 10, 2...)
   const sortedGrades = [...grades].sort((a, b) => {
     const numA = parseInt(a);
     const numB = parseInt(b);
@@ -66,21 +64,12 @@ export default function UserSearchFilters({
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Filter size={16} style={{ color: palette.primary.main }} />
-            <span
-              className="text-sm font-semibold"
-              style={{ color: palette.primary.main }}
-            >
-              Filter
-            </span>
+            <Filter size={16} className="text-primary" />
+            <span className="text-sm font-semibold text-primary">Filter</span>
             {hasActiveFilters && (
               <Badge
                 variant="secondary"
-                className="h-[18px] px-1.5 text-[0.65rem]"
-                style={{
-                  backgroundColor: `${palette.primary.main}26`,
-                  color: palette.primary.main,
-                }}
+                className="h-[18px] bg-primary/15 px-1.5 text-[0.65rem] text-primary"
               >
                 Aktiv
               </Badge>
@@ -94,8 +83,7 @@ export default function UserSearchFilters({
                   variant="ghost"
                   size="sm"
                   onClick={handleReset}
-                  className="h-6 gap-1.5 px-2 text-xs"
-                  style={{ color: palette.text.secondary }}
+                  className="h-6 gap-1.5 px-2 text-xs text-muted-foreground"
                 >
                   <RotateCcw size={12} />
                   Zurücksetzen
@@ -112,27 +100,17 @@ export default function UserSearchFilters({
         <div className="flex flex-col gap-3 sm:flex-row">
           {/* Overdue Toggle */}
           <div className="flex-1">
-            <Label
-              className="mb-1.5 block text-xs font-medium"
-              style={{ color: palette.text.secondary }}
-            >
+            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               Status
             </Label>
             <Toggle
               pressed={isOverdue}
               onPressedChange={setIsOverdue}
-              className="h-auto w-full justify-start gap-2 rounded-lg border px-3 py-2 text-sm font-medium data-[state=off]:bg-transparent"
-              style={{
-                borderColor: isOverdue
-                  ? palette.warning.main
-                  : `${palette.primary.main}33`,
-                backgroundColor: isOverdue
-                  ? `${palette.warning.main}1f`
-                  : "transparent",
-                color: isOverdue
-                  ? palette.warning.main
-                  : palette.text.secondary,
-              }}
+              className={cn(
+                "h-auto w-full justify-start gap-2 rounded-lg border px-3 py-2 text-sm font-medium",
+                "data-[state=off]:bg-transparent data-[state=off]:border-primary/20 data-[state=off]:text-muted-foreground",
+                "data-[state=on]:bg-amber-500/10 data-[state=on]:border-amber-500 data-[state=on]:text-amber-500",
+              )}
             >
               <AlertTriangle size={16} />
               Nur überfällige
@@ -141,10 +119,7 @@ export default function UserSearchFilters({
 
           {/* Grade Dropdown */}
           <div className="flex-1">
-            <Label
-              className="mb-1.5 block text-xs font-medium"
-              style={{ color: palette.text.secondary }}
-            >
+            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               Klasse
             </Label>
             <Select
@@ -152,33 +127,28 @@ export default function UserSearchFilters({
               onValueChange={(v) => setSelectedGrade(v === "__all__" ? "" : v)}
             >
               <SelectTrigger
-                className="rounded-lg"
-                style={{
-                  borderColor: selectedGrade
-                    ? palette.primary.main
-                    : `${palette.primary.main}33`,
-                  backgroundColor: selectedGrade
-                    ? `${palette.primary.main}0f`
-                    : "transparent",
-                }}
+                className={cn(
+                  "rounded-lg",
+                  selectedGrade
+                    ? "border-primary bg-primary/5"
+                    : "border-primary/20",
+                )}
               >
                 <div className="flex items-center gap-2">
                   <GraduationCap
                     size={16}
-                    style={{
-                      color: selectedGrade
-                        ? palette.primary.main
-                        : palette.text.disabled,
-                    }}
+                    className={
+                      selectedGrade
+                        ? "text-primary"
+                        : "text-muted-foreground/50"
+                    }
                   />
                   <SelectValue placeholder="Alle Klassen" />
                 </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">
-                  <span style={{ color: palette.text.disabled }}>
-                    Alle Klassen
-                  </span>
+                  <span className="text-muted-foreground">Alle Klassen</span>
                 </SelectItem>
                 {sortedGrades.map((grade) => (
                   <SelectItem key={grade} value={grade}>
@@ -196,11 +166,7 @@ export default function UserSearchFilters({
             {isOverdue && (
               <Badge
                 variant="secondary"
-                className="gap-1 pr-1"
-                style={{
-                  backgroundColor: `${palette.warning.main}1f`,
-                  color: palette.warning.main,
-                }}
+                className="gap-1 bg-amber-500/10 pr-1 text-amber-500"
               >
                 Überfällig
                 <button
@@ -215,11 +181,7 @@ export default function UserSearchFilters({
             {selectedGrade && selectedGrade !== "__all__" && (
               <Badge
                 variant="secondary"
-                className="gap-1 pr-1"
-                style={{
-                  backgroundColor: `${palette.primary.main}1f`,
-                  color: palette.primary.main,
-                }}
+                className="gap-1 bg-primary/10 pr-1 text-primary"
               >
                 Klasse {selectedGrade}
                 <button

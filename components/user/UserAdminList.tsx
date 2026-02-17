@@ -1,6 +1,5 @@
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import palette from "@/styles/palette";
 
 import {
   Accordion,
@@ -19,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 import dayjs from "dayjs";
 import {
@@ -57,14 +57,26 @@ function getOverdueStatus(dueDate: string | Date): OverdueStatus {
   return "ok";
 }
 
-function getStatusColor(status: OverdueStatus): string {
+function rentalRowClasses(status: OverdueStatus) {
   switch (status) {
     case "overdue":
-      return palette.error.main;
+      return {
+        bg: "bg-destructive/10",
+        border: "border-l-destructive",
+        text: "text-destructive font-semibold",
+      };
     case "warning":
-      return palette.warning.main;
+      return {
+        bg: "bg-amber-500/10",
+        border: "border-l-amber-500",
+        text: "text-amber-500 font-semibold",
+      };
     default:
-      return palette.text.secondary;
+      return {
+        bg: "bg-muted/30",
+        border: "border-l-border",
+        text: "text-muted-foreground",
+      };
   }
 }
 
@@ -79,7 +91,6 @@ export default function UserAdminList({
   checked,
   setChecked,
 }: UserAdminListProps) {
-  // Build rental count map
   const rentalCountByUser = rentals.reduce<Record<number, number>>(
     (acc, rental) => {
       const userId = rental.userid;
@@ -89,7 +100,6 @@ export default function UserAdminList({
     {},
   );
 
-  // Initialize checkboxes
   useEffect(() => {
     const initialChecked = users.reduce<Record<string, boolean>>(
       (acc, user) => {
@@ -115,16 +125,13 @@ export default function UserAdminList({
 
   if (filteredUsers.length === 0) {
     return (
-      <div
-        className="rounded-lg px-3 py-6 text-center"
-        style={{ backgroundColor: `${palette.primary.light}0f` }}
-      >
-        <p className="mb-1 text-base" style={{ color: palette.text.secondary }}>
+      <div className="rounded-lg bg-primary/5 px-3 py-6 text-center">
+        <p className="mb-1 text-base text-muted-foreground">
           {searchString
             ? "Keine Benutzer gefunden"
             : "Noch keine Benutzer vorhanden"}
         </p>
-        <p className="text-sm" style={{ color: palette.text.disabled }}>
+        <p className="text-sm text-muted-foreground/60">
           {searchString
             ? "Versuche einen anderen Suchbegriff"
             : "Erstelle einen neuen Benutzer um zu beginnen"}
@@ -146,35 +153,17 @@ export default function UserAdminList({
           return (
             <div
               key={user.id}
-              className="flex items-stretch overflow-hidden rounded-xl border backdrop-blur-sm transition-all duration-200 hover:shadow-md"
-              style={{
-                backgroundColor: `${palette.background.paper}e6`,
-                borderColor: `${palette.primary.main}1a`,
-              }}
+              className="flex items-stretch overflow-hidden rounded-xl border border-primary/10 bg-card/90 backdrop-blur-sm transition-all duration-200 hover:shadow-md"
             >
               {/* Checkbox Column */}
-              <div
-                className="flex items-center px-2"
-                style={{
-                  borderRight: `1px solid ${palette.primary.main}14`,
-                }}
-              >
+              <div className="flex items-center border-r border-primary/10 px-2">
                 <Checkbox
                   checked={isChecked}
                   onCheckedChange={() => handleCheckboxChange(userId)}
-                  className="border-gray-300 data-[state=checked]:border-transparent"
-                  style={
-                    isChecked
-                      ? {
-                          backgroundColor: palette.primary.main,
-                          borderColor: palette.primary.main,
-                        }
-                      : undefined
-                  }
                 />
               </div>
 
-              {/* Main Content — AccordionItem */}
+              {/* Main Content – AccordionItem */}
               <AccordionItem value={userId} className="flex-1 border-0">
                 <AccordionTrigger className="group/trigger px-3 py-3 hover:no-underline [&>svg]:hidden">
                   <div className="flex w-full items-center gap-3">
@@ -183,21 +172,14 @@ export default function UserAdminList({
                       <TooltipTrigger asChild>
                         <Avatar className="h-10 w-10 shrink-0">
                           <AvatarFallback
-                            className="text-sm font-semibold"
-                            style={{
-                              backgroundColor:
-                                rentalCount > 0
-                                  ? hasOverdue
-                                    ? `${palette.error.main}26`
-                                    : `${palette.primary.main}26`
-                                  : `${palette.success.main}26`,
-                              color:
-                                rentalCount > 0
-                                  ? hasOverdue
-                                    ? palette.error.main
-                                    : palette.primary.main
-                                  : palette.success.main,
-                            }}
+                            className={cn(
+                              "text-sm font-semibold",
+                              rentalCount === 0
+                                ? "bg-success/15 text-success"
+                                : hasOverdue
+                                  ? "bg-destructive/15 text-destructive"
+                                  : "bg-primary/15 text-primary",
+                            )}
                           >
                             {rentalCount}
                           </AvatarFallback>
@@ -214,10 +196,7 @@ export default function UserAdminList({
                     {/* User Info */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span
-                          className="truncate font-semibold"
-                          style={{ color: palette.primary.dark }}
-                        >
+                        <span className="truncate font-semibold text-foreground">
                           {user.lastName}, {user.firstName}
                         </span>
                         {hasOverdue && (
@@ -225,8 +204,7 @@ export default function UserAdminList({
                             <TooltipTrigger asChild>
                               <AlertTriangle
                                 size={16}
-                                className="shrink-0"
-                                style={{ color: palette.warning.main }}
+                                className="shrink-0 text-amber-500"
                               />
                             </TooltipTrigger>
                             <TooltipContent>
@@ -238,12 +216,9 @@ export default function UserAdminList({
                       <div className="mt-0.5 flex items-center gap-1.5">
                         <GraduationCap
                           size={13}
-                          style={{ color: palette.text.disabled }}
+                          className="text-muted-foreground/50"
                         />
-                        <span
-                          className="text-xs"
-                          style={{ color: palette.text.secondary }}
-                        >
+                        <span className="text-xs text-muted-foreground">
                           Klasse {user.schoolGrade}
                           {user.schoolTeacherName &&
                             ` · ${user.schoolTeacherName}`}
@@ -254,57 +229,33 @@ export default function UserAdminList({
                     {/* Quick Info Badge */}
                     <Badge
                       variant="secondary"
-                      className="hidden shrink-0 text-[0.7rem] sm:inline-flex"
-                      style={{
-                        backgroundColor: `${palette.primary.main}14`,
-                        color: palette.text.secondary,
-                      }}
+                      className="hidden shrink-0 bg-primary/10 text-[0.7rem] text-muted-foreground sm:inline-flex"
                     >
                       Nr. {user.id}
                     </Badge>
 
-                    {/* Custom chevron so we can style it */}
+                    {/* Custom chevron */}
                     <ChevronDown
                       size={18}
-                      className="shrink-0 transition-transform duration-200 group-data-[state=open]/trigger:rotate-180"
-                      style={{ color: palette.primary.main }}
+                      className="shrink-0 text-primary transition-transform duration-200 group-data-[state=open]/trigger:rotate-180"
                     />
                   </div>
                 </AccordionTrigger>
 
                 <AccordionContent className="px-3 pb-3 pt-0">
-                  <div
-                    className="overflow-hidden rounded-lg p-3"
-                    style={{
-                      backgroundColor: `${palette.primary.light}0f`,
-                    }}
-                  >
+                  <div className="overflow-hidden rounded-lg bg-primary/5 p-3">
                     {/* Rental Section Header */}
                     <div className="mb-2.5 flex items-center gap-2">
-                      <BookOpen
-                        size={16}
-                        style={{ color: palette.primary.main }}
-                      />
-                      <span
-                        className="text-sm font-semibold"
-                        style={{ color: palette.primary.main }}
-                      >
+                      <BookOpen size={16} className="text-primary" />
+                      <span className="text-sm font-semibold text-primary">
                         Ausgeliehene Bücher
                       </span>
                     </div>
 
                     {/* Rental List */}
                     {userRentals.length === 0 ? (
-                      <div
-                        className="rounded-md px-3 py-2.5 text-center"
-                        style={{
-                          backgroundColor: `${palette.success.main}1a`,
-                        }}
-                      >
-                        <span
-                          className="text-sm font-medium"
-                          style={{ color: palette.success.main }}
-                        >
+                      <div className="rounded-md bg-success/15 px-3 py-2.5 text-center">
+                        <span className="text-sm font-medium text-success">
                           Keine ausgeliehenen Bücher
                         </span>
                       </div>
@@ -312,30 +263,28 @@ export default function UserAdminList({
                       <div className="space-y-1.5">
                         {userRentals.map((rental) => {
                           const status = getOverdueStatus(rental.dueDate);
-                          const statusColor = getStatusColor(status);
+                          const cls = rentalRowClasses(status);
 
                           return (
                             <div
                               key={rental.id}
-                              className="flex min-w-0 items-center gap-2.5 rounded-md border-l-[3px] px-2.5 py-1.5"
-                              style={{
-                                backgroundColor: `${statusColor}14`,
-                                borderLeftColor: statusColor,
-                              }}
+                              className={cn(
+                                "flex min-w-0 items-center gap-2.5 rounded-md border-l-[3px] px-2.5 py-1.5",
+                                cls.bg,
+                                cls.border,
+                              )}
                             >
                               <span
-                                className="min-w-0 flex-1 truncate text-sm font-medium"
+                                className="min-w-0 flex-1 truncate text-sm font-medium text-muted-foreground"
                                 title={rental.title}
-                                style={{ color: palette.text.secondary }}
                               >
                                 {rental.title}
                               </span>
                               <span
-                                className="shrink-0 whitespace-nowrap text-xs"
-                                style={{
-                                  color: statusColor,
-                                  fontWeight: status !== "ok" ? 600 : 400,
-                                }}
+                                className={cn(
+                                  "shrink-0 whitespace-nowrap text-xs",
+                                  cls.text,
+                                )}
                               >
                                 {dayjs(rental.dueDate).format("DD.MM.YYYY")}
                                 {status === "overdue" && " ⚠"}
@@ -359,10 +308,6 @@ export default function UserAdminList({
                           size="sm"
                           className="w-full gap-2 rounded-md font-medium shadow-none"
                           data-cy="user_card_editbutton"
-                          style={{
-                            backgroundColor: palette.primary.main,
-                            color: palette.primary.contrastText,
-                          }}
                         >
                           <Pencil size={14} />
                           Editieren
@@ -374,7 +319,7 @@ export default function UserAdminList({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="rounded-md px-3"
+                            className="rounded-md border-primary/30 px-3 text-primary"
                             data-cy="user_card_printbutton"
                             onClick={() =>
                               window.open(
@@ -382,10 +327,6 @@ export default function UserAdminList({
                                 "_blank",
                               )
                             }
-                            style={{
-                              borderColor: `${palette.primary.main}4d`,
-                              color: palette.primary.main,
-                            }}
                           >
                             <Printer size={16} />
                           </Button>

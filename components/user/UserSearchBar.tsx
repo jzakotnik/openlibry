@@ -16,7 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import palette from "@/styles/palette";
+import { cn } from "@/lib/utils";
 import {
   CheckCheck,
   GraduationCap,
@@ -30,13 +30,13 @@ import {
 import { ChangeEvent, ReactNode } from "react";
 
 /* ------------------------------------------------------------------ */
-/*  Action‑button (icon‑only with tooltip)                            */
+/*  Action-button (icon-only with tooltip)                            */
 /* ------------------------------------------------------------------ */
 interface ActionButtonProps {
   icon: ReactNode;
   tooltip: string;
   onClick: () => void;
-  variant?: "default" | "primary" | "error" | "warning";
+  active?: boolean;
   badgeCount?: number;
   "data-cy"?: string;
 }
@@ -45,46 +45,32 @@ function ActionButton({
   icon,
   tooltip,
   onClick,
-  variant = "primary",
+  active = true,
   badgeCount,
   ...rest
 }: ActionButtonProps) {
-  const colorMap: Record<string, string> = {
-    default: palette.text.secondary,
-    primary: palette.primary.main,
-    error: palette.error.main,
-    warning: palette.warning.main,
-  };
-
-  const color = colorMap[variant];
-
-  const button = (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      onClick={onClick}
-      className="relative h-9 w-9 transition-all duration-200 hover:scale-105"
-      style={{ color }}
-      {...rest}
-    >
-      {icon}
-
-      {/* Badge overlay */}
-      {badgeCount !== undefined && badgeCount > 0 && (
-        <span
-          className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[0.6rem] font-semibold text-white"
-          style={{ backgroundColor: palette.primary.main }}
-        >
-          {badgeCount}
-        </span>
-      )}
-    </Button>
-  );
-
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onClick}
+          className={cn(
+            "relative h-9 w-9 transition-all duration-200 hover:scale-105",
+            active ? "text-primary" : "text-muted-foreground",
+          )}
+          {...rest}
+        >
+          {icon}
+          {badgeCount !== undefined && badgeCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-semibold text-primary-foreground">
+              {badgeCount}
+            </span>
+          )}
+        </Button>
+      </TooltipTrigger>
       <TooltipContent>
         <p>{tooltip}</p>
       </TooltipContent>
@@ -129,19 +115,10 @@ export default function UserSearchBar({
     <TooltipProvider delayDuration={300}>
       <div className="w-full max-w-[600px] space-y-2">
         {/* ── Main search row ── */}
-        <div
-          className="flex items-center gap-1 rounded-2xl border px-3 py-1.5 backdrop-blur-xl transition-all duration-300 focus-within:shadow-lg hover:shadow-md"
-          style={{
-            backgroundColor: `${palette.background.paper}e6`,
-            borderColor: `${palette.primary.main}1f`,
-            boxShadow: `0 4px 20px ${palette.primary.main}14`,
-          }}
-        >
-          {/* Search icon + input */}
+        <div className="flex items-center gap-1 rounded-2xl border border-primary/10 bg-card/90 px-3 py-1.5 shadow-[0_4px_20px_hsl(var(--primary)/0.08)] backdrop-blur-xl transition-all duration-300 focus-within:shadow-lg hover:shadow-md">
           <Search
             size={20}
-            className="ml-1 shrink-0"
-            style={{ color: palette.text.disabled }}
+            className="ml-1 shrink-0 text-muted-foreground/50"
           />
 
           <Input
@@ -156,17 +133,15 @@ export default function UserSearchBar({
             className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
           />
 
-          {/* Settings toggle */}
           <ActionButton
             icon={<SlidersHorizontal size={18} />}
             tooltip="Sucheinstellungen"
             onClick={onToggleSettings}
-            variant={showSettings ? "primary" : "default"}
+            active={showSettings}
           />
 
           <Separator orientation="vertical" className="mx-0.5 h-6" />
 
-          {/* Select all / deselect */}
           <ActionButton
             icon={<CheckCheck size={18} />}
             tooltip={hasSelection ? "Auswahl aufheben" : "Alle auswählen"}
@@ -174,7 +149,6 @@ export default function UserSearchBar({
             badgeCount={hasSelection ? selectedCount : undefined}
           />
 
-          {/* Create user */}
           <ActionButton
             icon={<UserPlus size={18} />}
             tooltip="Neue Nutzerin erzeugen"
@@ -185,47 +159,29 @@ export default function UserSearchBar({
         {/* ── Selection action bar (slides in below) ── */}
         <Collapsible open={hasSelection}>
           <CollapsibleContent>
-            <div
-              className="flex items-center justify-between rounded-xl px-4 py-2"
-              style={{
-                backgroundColor: `${palette.primary.main}0a`,
-                border: `1px solid ${palette.primary.main}1a`,
-              }}
-            >
-              {/* Left: selection info + deselect */}
+            <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-primary/5 px-4 py-2">
               <div className="flex items-center gap-2">
-                <Badge
-                  className="rounded-full text-white"
-                  style={{ backgroundColor: palette.primary.main }}
-                >
-                  {selectedCount}
-                </Badge>
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: palette.text.secondary }}
-                >
+                <Badge className="rounded-full">{selectedCount}</Badge>
+                <span className="text-sm font-medium text-muted-foreground">
                   ausgewählt
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onSelectAll}
-                  className="ml-1 h-7 gap-1 px-2 text-xs"
-                  style={{ color: palette.text.secondary }}
+                  className="ml-1 h-7 gap-1 px-2 text-xs text-muted-foreground"
                 >
                   <X size={12} />
                   Aufheben
                 </Button>
               </div>
 
-              {/* Right: bulk actions in a safe dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
-                    style={{ color: palette.text.secondary }}
+                    className="h-8 w-8 text-muted-foreground"
                   >
                     <MoreVertical size={18} />
                     <span className="sr-only">Aktionen</span>
@@ -235,8 +191,7 @@ export default function UserSearchBar({
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem
                     onClick={onIncreaseGrade}
-                    className="gap-3"
-                    style={{ color: palette.primary.main }}
+                    className="gap-3 text-primary"
                   >
                     <GraduationCap size={16} />
                     Klasse erhöhen
@@ -246,13 +201,12 @@ export default function UserSearchBar({
 
                   <DropdownMenuItem
                     onClick={onDeleteUsers}
-                    className="gap-3"
-                    style={{
-                      color: confirmDelete
-                        ? palette.error.main
-                        : palette.text.secondary,
-                      fontWeight: confirmDelete ? 600 : 400,
-                    }}
+                    className={cn(
+                      "gap-3",
+                      confirmDelete
+                        ? "font-semibold text-destructive focus:text-destructive"
+                        : "text-muted-foreground",
+                    )}
                   >
                     <Trash2 size={16} />
                     {confirmDelete ? "Wirklich löschen?" : "Nutzer löschen"}
@@ -266,13 +220,7 @@ export default function UserSearchBar({
         {/* ── Settings panel ── */}
         <Collapsible open={showSettings}>
           <CollapsibleContent>
-            <div
-              className="rounded-xl p-4"
-              style={{
-                backgroundColor: `${palette.primary.light}0f`,
-                border: `1px solid ${palette.primary.main}1a`,
-              }}
-            >
+            <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
               {settingsContent}
             </div>
           </CollapsibleContent>
