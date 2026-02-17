@@ -91,7 +91,9 @@ export default function BookRentalList({
   );
 
   useEffect(() => {
-    searchBooks(bookSearchInput);
+    //strip any leading 0s from the search
+    const stripZerosInput = bookSearchInput.replace(/^0+/, "");
+    searchBooks(stripZerosInput);
   }, [bookSearchInput, searchBooks]);
 
   const handleClear = (e: React.MouseEvent) => {
