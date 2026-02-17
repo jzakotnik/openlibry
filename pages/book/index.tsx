@@ -240,7 +240,7 @@ export default function Books({
         .then((res) => res.json())
         .then(() => {
           // Optimistic update
-          setRenderedBooks((prev) =>
+          setRenderedBooks((prev: any) =>
             prev.map((b: any) =>
               b.id === id ? { ...b, rentalStatus: "available" } : b,
             ),
