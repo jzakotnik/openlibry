@@ -1,3 +1,6 @@
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import { Dispatch } from "react";
@@ -32,30 +35,14 @@ const BookField = ({
     setBookData({ ...book, [fieldType]: newValue });
   };
 
-  const baseInputClasses = [
-    "w-full bg-transparent text-sm text-gray-900 placeholder-gray-400",
-    "border-0 border-b border-gray-300",
-    "focus:border-b-2 focus:outline-none transition-colors duration-150",
-    "py-1.5 px-0",
-    !editable && "text-gray-500 cursor-not-allowed border-gray-200",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  // Focus ring color via inline style to match palette
-  const focusStyle = editable ? { borderBottomColor: undefined } : {};
-
   return (
-    <div className="relative pt-4">
-      <label
-        htmlFor={fieldType}
-        className="absolute top-0 left-0 text-xs font-medium text-gray-500 select-none"
-      >
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={fieldType} className="text-xs text-muted-foreground">
         {label}
-      </label>
+      </Label>
 
       {variant === "textarea" ? (
-        <textarea
+        <Textarea
           data-cy={`book-${fieldType}-field`}
           id={fieldType}
           name={fieldType}
@@ -64,11 +51,10 @@ const BookField = ({
           rows={3}
           autoFocus={autoFocus}
           onChange={handleChange}
-          className={`${baseInputClasses} resize-y min-h-[2.5rem]`}
-          style={focusStyle}
+          className="resize-y min-h-[2.5rem]"
         />
       ) : (
-        <input
+        <Input
           data-cy={`book-${fieldType}-field`}
           id={fieldType}
           name={fieldType}
@@ -77,8 +63,6 @@ const BookField = ({
           disabled={!editable}
           autoFocus={autoFocus}
           onChange={handleChange}
-          className={baseInputClasses}
-          style={focusStyle}
         />
       )}
     </div>

@@ -1,3 +1,11 @@
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import { Dispatch } from "react";
@@ -24,45 +32,38 @@ const BookSelect = ({
   label,
   options,
 }: BookSelectProps) => {
-  const value = (book as any)[fieldType] ?? "";
+  const value = String((book as any)[fieldType] ?? "");
+
+  const handleChange = (raw: string) => {
+    const parsed =
+      typeof options[0]?.value === "number" ? Number(raw) : raw;
+    setBookData({ ...book, [fieldType]: parsed });
+  };
 
   return (
-    <div className="relative pt-4">
-      <label
+    <div className="flex flex-col gap-1.5">
+      <Label
         htmlFor={`book-${fieldType}-select`}
-        className="absolute top-0 left-0 text-xs font-medium text-gray-500 select-none"
+        className="text-xs text-muted-foreground"
       >
         {label}
-      </label>
-      <select
-        id={`book-${fieldType}-select`}
+      </Label>
+      <Select
         value={value}
+        onValueChange={handleChange}
         disabled={!editable}
-        onChange={(e) => {
-          const raw = e.target.value;
-          // Keep the value type consistent: if options use numbers, parse it
-          const parsed =
-            typeof options[0]?.value === "number" ? Number(raw) : raw;
-          setBookData({ ...book, [fieldType]: parsed });
-        }}
-        className={[
-          "w-full bg-transparent text-sm text-gray-900",
-          "border-0 border-b border-gray-300",
-          "focus:border-b-2 focus:outline-none transition-colors duration-150",
-          "py-1.5 px-0 appearance-none cursor-pointer",
-          "bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')]",
-          "bg-[length:12px] bg-[right_4px_center] bg-no-repeat",
-          !editable && "text-gray-500 cursor-not-allowed border-gray-200",
-        ]
-          .filter(Boolean)
-          .join(" ")}
       >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger id={`book-${fieldType}-select`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={String(opt.value)}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

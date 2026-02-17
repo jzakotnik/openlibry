@@ -1,3 +1,5 @@
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import {
@@ -50,14 +52,17 @@ const BookDateField = ({
   const inputValue = toInputDate(rawValue);
 
   return (
-    <div className="relative pt-4" data-cy={`book_${fieldType}_datepicker`}>
-      <label
+    <div
+      className="flex flex-col gap-1.5"
+      data-cy={`book_${fieldType}_datepicker`}
+    >
+      <Label
         htmlFor={`date-${fieldType}`}
-        className="absolute top-0 left-0 text-xs font-medium text-gray-500 select-none"
+        className="text-xs text-muted-foreground"
       >
         {label}
-      </label>
-      <input
+      </Label>
+      <Input
         id={`date-${fieldType}`}
         type="date"
         value={inputValue}
@@ -70,15 +75,6 @@ const BookDateField = ({
             [fieldType]: fromInputDate(val),
           });
         }}
-        className={[
-          "w-full bg-transparent text-sm text-gray-900",
-          "border-0 border-b border-gray-300",
-          "focus:border-b-2 focus:outline-none transition-colors duration-150",
-          "py-1.5 px-0",
-          !editable && "text-gray-500 cursor-not-allowed border-gray-200",
-        ]
-          .filter(Boolean)
-          .join(" ")}
       />
     </div>
   );
