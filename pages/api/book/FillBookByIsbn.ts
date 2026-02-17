@@ -78,6 +78,7 @@ export default async function handler(
             typeof value === "string" ? value.normalize("NFC") : value, //there were some problems with Umlaut like in Flätscher
           ]),
         );
+
         logger.debug(
           {
             category: "business",
