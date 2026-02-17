@@ -30,14 +30,15 @@ describe("Rental cleanup on user deletion", () => {
 
     // Get the user ID from the accordion for later navigation
     cy.get("[data-cy^=user_accordion_]")
+      .filter((_, el) =>
+        /user_accordion_\d+$/.test(el.getAttribute("data-cy") || ""),
+      )
       .first()
       .invoke("attr", "data-cy")
       .then((dataCy) => {
-        // Extract user ID from data-cy attribute (e.g., "user_accordion_123" -> "123")
         const userId = dataCy!.replace("user_accordion_", "");
         cy.wrap(userId).as("rentedUserId");
       });
-
     // Search for an available book (BookRentalList component)
     cy.get("[data-cy=book_search_input]").should("be.visible").type("Dorf");
 
@@ -116,7 +117,7 @@ describe("Rental cleanup on user deletion", () => {
       } else {
         // No books found matching the search - this is expected
         cy.log(
-          "No books found matching 'Dorf' - book was successfully deleted with user"
+          "No books found matching 'Dorf' - book was successfully deleted with user",
         );
       }
     });
@@ -145,7 +146,7 @@ describe("Rental cleanup on user deletion", () => {
       } else {
         // No users found matching the search - this is expected
         cy.log(
-          "No users found matching 'Magnus' - user was successfully deleted"
+          "No users found matching 'Magnus' - user was successfully deleted",
         );
       }
     });
