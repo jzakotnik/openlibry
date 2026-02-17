@@ -951,6 +951,9 @@ export default function BatchScan() {
           : "";
       toast.success(
         `${results.success} Buch/Bücher erfolgreich importiert!${coverInfo}`,
+        {
+          duration: 10000,
+        },
       );
     }
 
