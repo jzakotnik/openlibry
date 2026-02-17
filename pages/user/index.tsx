@@ -15,7 +15,8 @@ import { increaseNumberInString } from "@/lib/utils/increaseNumberInString";
 import palette from "@/styles/palette";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { useSnackbar } from "notistack";
+import { toast } from "sonner";
+
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 interface UsersPageProps {
@@ -33,7 +34,6 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
   const [showDetailSearch, setShowDetailSearch] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
 
   // Combine search text and filter string for the list
@@ -91,13 +91,12 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
         .catch((error) => {
           console.error("Error creating user:", error);
           setIsCreatingUser(false);
-          enqueueSnackbar(
+          toast.error(
             "Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?",
-            { variant: "error" },
           );
         });
     },
-    [router, enqueueSnackbar],
+    [router],
   );
 
   const handleSelectAll = useCallback(() => {
@@ -126,10 +125,10 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
     })
       .then((res) => res.json())
       .then(() => {
-        enqueueSnackbar("Klassenstufe für Schüler erhöht");
+        toast.success("Klassenstufe für Schüler erhöht");
         router.push("user");
       });
-  }, [users, checked, router, enqueueSnackbar]);
+  }, [users, checked, router]);
 
   const handleDeleteUsers = useCallback(() => {
     if (!confirmDelete) {
@@ -148,12 +147,12 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
     })
       .then((res) => res.json())
       .then(() => {
-        enqueueSnackbar("Schüler erfolgreich gelöscht");
+        toast.success("Schüler erfolgreich gelöscht");
         setConfirmDelete(false);
         router.push("user");
       })
       .catch(() => setConfirmDelete(false));
-  }, [users, checked, confirmDelete, router, enqueueSnackbar]);
+  }, [users, checked, confirmDelete, router]);
 
   const uniqueGrades = useMemo(() => {
     return users.reduce<string[]>((unique, user) => {

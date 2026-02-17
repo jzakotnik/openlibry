@@ -14,8 +14,8 @@ import {
 } from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
-import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type UserDetailPropsType = {
   user: UserType;
@@ -31,7 +31,6 @@ export default function UserDetail({
   deleteSafetySeconds,
 }: UserDetailPropsType) {
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
 
   const [userData, setUserData] = useState(user);
   const [userBooks, setUserBooks] = useState(books);
@@ -68,7 +67,7 @@ export default function UserDetail({
     })
       .then((res) => res.json())
       .then(() => {
-        enqueueSnackbar(
+        toast.success(
           `Nutzer ${userData.firstName} ${userData.lastName} gespeichert`,
         );
         router.push("/user");
@@ -85,7 +84,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        enqueueSnackbar("Buch zurückgegeben, super!");
+        toast.success("Buch zurückgegeben, super!");
       });
   };
 
@@ -94,9 +93,8 @@ export default function UserDetail({
     const newDueDate = extendDays(new Date(), extensionDays);
 
     if (sameDay(newbook.dueDate, newDueDate)) {
-      enqueueSnackbar(
+      toast.info(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
-        { variant: "warning" },
       );
       return;
     }
@@ -113,7 +111,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        enqueueSnackbar("Buch verlängert, super!");
+        toast.success("Buch verlängert, super!");
       });
 
     setUserBooks((prev) =>
@@ -139,7 +137,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", userid, data);
-        enqueueSnackbar("Nutzer gelöscht!");
+        toast.success("Nutzer gelöscht!");
         router.push("/user");
       });
   };

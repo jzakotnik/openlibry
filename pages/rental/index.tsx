@@ -17,8 +17,8 @@ import { getBookFromID } from "@/lib/utils/lookups";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useSnackbar } from "notistack";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 
 interface RentalPropsType {
@@ -39,7 +39,6 @@ export default function Rental({
   bookSortBy,
 }: RentalPropsType) {
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const bookFocusRef = useRef<HTMLInputElement>(null);
@@ -69,22 +68,20 @@ export default function Rental({
       });
 
       if (!res.ok) {
-        enqueueSnackbar(
+        toast.error(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(
+      toast.success(
         `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`,
       );
       handleBookSearchSetFocus();
     } catch (error) {
-      enqueueSnackbar(
+      toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" },
       );
     }
   };
@@ -95,9 +92,8 @@ export default function Rental({
     const newbook = replaceBookStringDate(book) as any;
 
     if (sameDay(newbook.dueDate, newDueDate)) {
-      enqueueSnackbar(
+      toast.warning(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
-        { variant: "warning" },
       );
       return;
     }
@@ -115,20 +111,18 @@ export default function Rental({
       });
 
       if (!res.ok) {
-        enqueueSnackbar(
+        toast.error(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(`Buch - ${book.title} - verlängert`);
+      toast.success(`Buch - ${book.title} - verlängert`);
       handleBookSearchSetFocus();
     } catch (error) {
-      enqueueSnackbar(
+      toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" },
       );
     }
   };
@@ -141,20 +135,18 @@ export default function Rental({
       });
 
       if (!res.ok) {
-        enqueueSnackbar(
+        toast.error(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
+      toast.success(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
       handleBookSearchSetFocus();
     } catch (error) {
-      enqueueSnackbar(
+      toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" },
       );
     }
   };

@@ -16,6 +16,7 @@ import palette from "@/styles/palette";
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
 import React from "react";
+import { toast } from "sonner";
 import HoldButton from "../layout/HoldButton";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
@@ -27,8 +28,6 @@ import BookSelect, {
   rentalStatusOptions,
 } from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
-
-import { useSnackbar } from "notistack";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -150,15 +149,13 @@ export default function BookEditForm({
   const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
   const router = useRouter();
 
-  const { enqueueSnackbar } = useSnackbar();
-
   const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleAutoFillFromISBN = useCallback(async () => {
     if (!book.isbn) {
-      enqueueSnackbar("Bitte geben Sie eine ISBN ein.", { variant: "warning" });
+      toast.info("Bitte geben Sie eine ISBN ein.");
       return;
     }
 
@@ -169,9 +166,7 @@ export default function BookEditForm({
 
     const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
-      enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
-        variant: "warning",
-      });
+      toast.info("Die ISBN ist ungültig (keine Zahlen gefunden).");
       return;
     }
 
@@ -182,10 +177,7 @@ export default function BookEditForm({
       const response = await fetch(apiUrl);
 
       if (!response.ok) {
-        enqueueSnackbar(
-          "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
-          { variant: "error" },
-        );
+        toast.info("Stammdaten wurden leider nicht gefunden mit dieser ISBN.");
         return;
       }
 
@@ -199,38 +191,30 @@ export default function BookEditForm({
 
       if (data.coverFetched) {
         setLoadingImage(Math.floor(Math.random() * 10000));
-        enqueueSnackbar("Stammdaten und Cover wurden erfolgreich geladen.", {
-          variant: "success",
-        });
+        toast.success("Stammdaten und Cover wurden erfolgreich geladen.");
       } else {
-        enqueueSnackbar("Stammdaten wurden erfolgreich ausgefüllt.", {
-          variant: "success",
-        });
+        toast.success("Stammdaten wurden erfolgreich ausgefüllt.");
       }
     } catch (e: any) {
-      enqueueSnackbar(e?.message || "Fehler beim Laden der Buchdaten.", {
-        variant: "error",
-      });
+      toast.error(e?.message || "Fehler beim Laden der Buchdaten.");
     } finally {
       setInternalIsAutoFilling(false);
     }
-  }, [book, setBookData, isNewBook, onAutoFill, enqueueSnackbar]);
+  }, [book, setBookData, isNewBook, onAutoFill]);
 
   const handleFetchCover = useCallback(async () => {
     if (!book.isbn) {
-      enqueueSnackbar("Keine ISBN im Buch hinterlegt.", { variant: "warning" });
+      toast.info("Keine ISBN im Buch hinterlegt.");
       return;
     }
     if (!book.id) {
-      enqueueSnackbar("Buch muss zuerst gespeichert werden.", {
-        variant: "warning",
-      });
+      toast.info("Buch muss zuerst gespeichert werden.");
       return;
     }
 
     const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
-      enqueueSnackbar("Die ISBN ist ungültig.", { variant: "warning" });
+      toast.info("Die ISBN ist ungültig.");
       return;
     }
 
@@ -243,23 +227,18 @@ export default function BookEditForm({
 
       if (response.ok && data.success) {
         setLoadingImage(Math.floor(Math.random() * 10000));
-        enqueueSnackbar(
+        toast.success(
           `Cover wurde erfolgreich von ${data.source || "unbekannt"} geladen.`,
-          { variant: "success" },
         );
       } else {
-        enqueueSnackbar(data.error || "Cover konnte nicht gefunden werden.", {
-          variant: "warning",
-        });
+        toast.info(data.error || "Cover konnte nicht gefunden werden.");
       }
     } catch (e: any) {
-      enqueueSnackbar(e?.message || "Fehler beim Laden des Covers.", {
-        variant: "error",
-      });
+      toast.error(e?.message || "Fehler beim Laden des Covers.");
     } finally {
       setFetchingCover(false);
     }
-  }, [book.isbn, book.id, enqueueSnackbar]);
+  }, [book.isbn, book.id]);
 
   const handleAntolinClick = () => setAntolinDetailsDialog(true);
 

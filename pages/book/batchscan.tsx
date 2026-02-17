@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useSnackbar } from "notistack";
 import {
   KeyboardEvent,
   useCallback,
@@ -41,6 +40,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 import { playSound } from "@/lib/utils/audioutils";
 import { generateId } from "@/lib/utils/id";
@@ -581,7 +581,6 @@ function BatchScanEntryCard({
 
 export default function BatchScan() {
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
 
   const [isbnInput, setIsbnInput] = useState("");
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
@@ -628,9 +627,7 @@ export default function BatchScan() {
     const cleanedIsbn = isbnInput.trim().replace(/\D/g, "");
 
     if (!cleanedIsbn) {
-      enqueueSnackbar("Bitte eine gültige ISBN eingeben", {
-        variant: "warning",
-      });
+      toast.warning("Bitte eine gültige ISBN eingeben");
       return;
     }
 
@@ -645,9 +642,8 @@ export default function BatchScan() {
         ),
       );
       playSound("scan");
-      enqueueSnackbar(
+      toast.success(
         `"${existingEntry.bookData.title || cleanedIsbn}" - jetzt ${existingEntry.quantity + 1} Exemplare`,
-        { variant: "success" },
       );
       setIsbnInput("");
       inputRef.current?.focus();
@@ -707,17 +703,14 @@ export default function BatchScan() {
       const coverInfo = coverResult.exists
         ? ` (Cover von ${coverResult.source})`
         : "";
-      enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
-        variant: "success",
-      });
+      toast.success(`"${bookData.title}" gefunden${coverInfo}`);
     } else {
       playSound("error");
-      enqueueSnackbar(
+      toast.warning(
         "ISBN nicht in Datenbank gefunden - manuelle Eingabe möglich",
-        { variant: "warning" },
       );
     }
-  }, [isbnInput, entries, fetchBookData, enqueueSnackbar]);
+  }, [isbnInput, entries, fetchBookData]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -735,10 +728,10 @@ export default function BatchScan() {
         URL.revokeObjectURL(entry.coverUrl);
       }
       setEntries((prev) => prev.filter((e) => e.id !== id));
-      enqueueSnackbar("Eintrag gelöscht", { variant: "info" });
+      toast.info("Eintrag gelöscht");
       inputRef.current?.focus();
     },
-    [entries, enqueueSnackbar],
+    [entries],
   );
 
   const handleToggleEdit = useCallback((id: string) => {
@@ -832,15 +825,13 @@ export default function BatchScan() {
         const coverInfo = coverResult.exists
           ? ` (Cover von ${coverResult.source})`
           : "";
-        enqueueSnackbar(`"${bookData.title}" gefunden${coverInfo}`, {
-          variant: "success",
-        });
+        toast.success(`"${bookData.title}" gefunden${coverInfo}`);
       } else {
         playSound("error");
-        enqueueSnackbar("Weiterhin nicht gefunden", { variant: "warning" });
+        toast.warning("Weiterhin nicht gefunden");
       }
     },
-    [entries, fetchBookData, enqueueSnackbar],
+    [entries, fetchBookData],
   );
 
   // ── Upload cover ──────────────────────────────────────────────────────────
@@ -871,9 +862,8 @@ export default function BatchScan() {
     );
 
     if (validEntries.length === 0) {
-      enqueueSnackbar(
+      toast.warning(
         "Keine gültigen Einträge zum Importieren (Titel erforderlich)",
-        { variant: "warning" },
       );
       return;
     }
@@ -959,21 +949,19 @@ export default function BatchScan() {
         results.coversUploaded > 0
           ? ` (${results.coversUploaded} Cover hochgeladen)`
           : "";
-      enqueueSnackbar(
+      toast.success(
         `${results.success} Buch/Bücher erfolgreich importiert!${coverInfo}`,
-        { variant: "success" },
       );
     }
 
     if (results.failed > 0) {
-      enqueueSnackbar(
+      toast.error(
         `${results.failed} Buch/Bücher konnten nicht importiert werden`,
-        { variant: "error" },
       );
     }
 
     inputRef.current?.focus();
-  }, [entries, enqueueSnackbar]);
+  }, [entries]);
 
   // ── Clear all ─────────────────────────────────────────────────────────────
 
@@ -986,10 +974,10 @@ export default function BatchScan() {
         }
       });
       setEntries([]);
-      enqueueSnackbar("Alle Einträge gelöscht", { variant: "info" });
+      toast.info("Alle Einträge gelöscht");
       inputRef.current?.focus();
     }
-  }, [entries, enqueueSnackbar]);
+  }, [entries]);
 
   // ── Stats ─────────────────────────────────────────────────────────────────
 

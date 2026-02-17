@@ -3,8 +3,8 @@ import { BookType } from "@/entities/BookType";
 import { uploadCoverBlob } from "@/lib/utils/coverutils";
 import { convertStringToDay } from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
-import { useSnackbar } from "notistack";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -64,7 +64,6 @@ async function fetchCoverFromApi(
 
 export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
 
   // --- Book data state ---------------------------------------------------
 
@@ -148,74 +147,56 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
 
   // --- Autofill (new-book mode) -------------------------------------------
 
-  const handleAutoFill = useCallback(
-    async (isbn: string) => {
-      if (!isbn) {
-        enqueueSnackbar("Bitte geben Sie eine ISBN ein.", {
-          variant: "warning",
-        });
-        return;
-      }
+  const handleAutoFill = useCallback(async (isbn: string) => {
+    if (!isbn) {
+      toast.info("Bitte geben Sie eine ISBN ein.");
+      return;
+    }
 
-      const cleanedIsbn = isbn.replace(/[^0-9X]/gi, "");
-      if (!cleanedIsbn) {
-        enqueueSnackbar("Die ISBN ist ungültig (keine Zahlen gefunden).", {
-          variant: "warning",
-        });
-        return;
-      }
+    const cleanedIsbn = isbn.replace(/[^0-9X]/gi, "");
+    if (!cleanedIsbn) {
+      toast.info("Die ISBN ist ungültig (keine Zahlen gefunden).");
+      return;
+    }
 
-      setIsAutoFilling(true);
+    setIsAutoFilling(true);
 
-      try {
-        const [bookResponse, coverResult] = await Promise.all([
-          fetch(`/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`),
-          fetchCoverFromApi(cleanedIsbn),
-        ]);
+    try {
+      const [bookResponse, coverResult] = await Promise.all([
+        fetch(`/api/book/FillBookByIsbn?isbn=${cleanedIsbn}`),
+        fetchCoverFromApi(cleanedIsbn),
+      ]);
 
-        // Handle book data
-        if (bookResponse.ok) {
-          const data = await bookResponse.json();
-          setBookData((prev) => ({ ...prev, ...data, isbn: cleanedIsbn }));
+      // Handle book data
+      if (bookResponse.ok) {
+        const data = await bookResponse.json();
+        setBookData((prev) => ({ ...prev, ...data, isbn: cleanedIsbn }));
 
-          if (coverResult.exists && coverResult.blob) {
-            setCoverPreview(coverResult.blob);
-            enqueueSnackbar(
-              "Stammdaten und Cover wurden erfolgreich geladen.",
-              { variant: "success" },
-            );
-          } else {
-            enqueueSnackbar("Stammdaten wurden erfolgreich ausgefüllt.", {
-              variant: "success",
-            });
-          }
+        if (coverResult.exists && coverResult.blob) {
+          setCoverPreview(coverResult.blob);
+          toast.success("Stammdaten und Cover wurden erfolgreich geladen.");
         } else {
-          // Book data not found – maybe cover still available
-          if (coverResult.exists && coverResult.blob) {
-            setCoverPreview(coverResult.blob);
-            enqueueSnackbar(
-              "Stammdaten nicht gefunden, aber Cover ist verfügbar.",
-              { variant: "warning" },
-            );
-          } else {
-            enqueueSnackbar(
-              "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
-              { variant: "error" },
-            );
-          }
+          toast.success("Stammdaten wurden erfolgreich ausgefüllt.");
         }
-
-        setAutofillAttempted(true);
-      } catch (e: any) {
-        enqueueSnackbar(e?.message || "Fehler beim Laden der Buchdaten.", {
-          variant: "error",
-        });
-      } finally {
-        setIsAutoFilling(false);
+      } else {
+        // Book data not found – maybe cover still available
+        if (coverResult.exists && coverResult.blob) {
+          setCoverPreview(coverResult.blob);
+          toast.info("Stammdaten nicht gefunden, aber Cover ist verfügbar.");
+        } else {
+          toast.error(
+            "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
+          );
+        }
       }
-    },
-    [enqueueSnackbar],
-  );
+
+      setAutofillAttempted(true);
+    } catch (e: any) {
+      toast.error(e?.message || "Fehler beim Laden der Buchdaten.");
+    } finally {
+      setIsAutoFilling(false);
+    }
+  }, []);
 
   /** Helper: set cover preview blob, cleaning up the old one. */
   function setCoverPreview(blob: Blob) {
@@ -232,15 +213,11 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
   const handleSave = useCallback(async () => {
     // Validate required fields (applies to both modes now)
     if (!bookData.title?.trim()) {
-      enqueueSnackbar("Bitte geben Sie einen Titel ein.", {
-        variant: "warning",
-      });
+      toast.info("Bitte geben Sie einen Titel ein.");
       return;
     }
     if (!bookData.author?.trim()) {
-      enqueueSnackbar("Bitte geben Sie einen Autor ein.", {
-        variant: "warning",
-      });
+      toast.info("Bitte geben Sie einen Autor ein.");
       return;
     }
 
@@ -281,17 +258,15 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       if (coverData?.blob) {
         coverUploaded = await uploadCoverBlob(data.id, coverData.blob);
         if (!coverUploaded) {
-          enqueueSnackbar(
+          toast.info(
             "Buch erstellt, aber Cover konnte nicht hochgeladen werden.",
-            { variant: "warning" },
           );
         }
       }
 
       const coverInfo = coverUploaded ? " (mit Cover)" : "";
-      enqueueSnackbar(
+      toast.success(
         `Buch "${bookData.title}" erfolgreich erstellt${coverInfo}!`,
-        { variant: "success" },
       );
       router.push("/book");
     }
@@ -310,18 +285,15 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         console.error("ERROR while saving book", res.statusText, errorData);
-        enqueueSnackbar(
-          errorData.message || "Fehler beim Speichern des Buches",
-          { variant: "error" },
-        );
+        toast.error(errorData.message || "Fehler beim Speichern des Buches");
         return;
       }
 
       await res.json();
-      enqueueSnackbar(`Buch "${bookData.title}" gespeichert, gut gemacht!`);
+      toast.success(`Buch "${bookData.title}" gespeichert, gut gemacht!`);
       router.push("/book");
     }
-  }, [bookData, bookId, isNew, coverData, router, enqueueSnackbar]);
+  }, [bookData, bookId, isNew, coverData, router]);
 
   // --- Delete ------------------------------------------------------------
 
@@ -334,13 +306,13 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
         headers: { "Content-Type": "application/json" },
       });
       await res.json();
-      enqueueSnackbar("Buch gelöscht");
+      toast.success("Buch gelöscht");
       router.push("/book");
     } catch (error) {
       console.error("Failed to delete book:", error);
-      enqueueSnackbar("Fehler beim Löschen des Buches", { variant: "error" });
+      toast.error("Fehler beim Löschen des Buches");
     }
-  }, [bookId, router, enqueueSnackbar]);
+  }, [bookId, router]);
 
   // --- Return book -------------------------------------------------------
 
@@ -354,15 +326,13 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
           headers: { "Content-Type": "application/json" },
         });
         await res.json();
-        enqueueSnackbar("Buch zurückgegeben, super!");
+        toast.success("Buch zurückgegeben, super!");
       } catch (error) {
         console.error("Failed to return book:", error);
-        enqueueSnackbar("Fehler beim Zurückgeben des Buches", {
-          variant: "error",
-        });
+        toast.error("Fehler beim Zurückgeben des Buches", {});
       }
     },
-    [bookId, enqueueSnackbar],
+    [bookId],
   );
 
   // --- Cancel (new-book mode) --------------------------------------------

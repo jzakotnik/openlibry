@@ -13,7 +13,7 @@ import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import itemsjs from "itemsjs";
-import { useSnackbar } from "notistack";
+import { toast } from "sonner";
 
 const DEBOUNCE_MS = 100;
 
@@ -146,8 +146,6 @@ export default function Books({
   const [searchResultNumber, setSearchResultNumber] = useState(books.length);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
-  const { enqueueSnackbar } = useSnackbar();
-
   // Memoize search engine — only rebuild when books data changes
   const searchEngine = useMemo(
     () =>
@@ -223,12 +221,11 @@ export default function Books({
   const handleCopyBook = useCallback(
     (book: BookType) => {
       router.push("/book/new");
-      enqueueSnackbar(
+      toast.info(
         "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
-        { variant: "info" },
       );
     },
-    [router, enqueueSnackbar],
+    [router],
   );
 
   const handleReturnBook = useCallback(
@@ -246,15 +243,13 @@ export default function Books({
             ),
           );
           mutate();
-          enqueueSnackbar("Buch zurückgegeben", { variant: "success" });
+          toast.success("Buch zurückgegeben");
         })
         .catch(() => {
-          enqueueSnackbar("Fehler beim Zurückgeben des Buches", {
-            variant: "error",
-          });
+          toast.error("Fehler beim Zurückgeben des Buches");
         });
     },
-    [mutate, enqueueSnackbar],
+    [mutate],
   );
 
   const handleInputChange = (

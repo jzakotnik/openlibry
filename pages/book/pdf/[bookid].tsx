@@ -1,21 +1,22 @@
-import { Paper, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import Barcode from "react-barcode";
 
 export default function Home() {
   const router = useRouter();
   if (!router.query.bookid) {
-    return <Typography>ID not found</Typography>;
+    return <p className="text-muted-foreground">ID not found</p>;
   }
 
   const bookid = parseInt(
     Array.isArray(router.query.bookid)
       ? router.query.bookid[0]
-      : router.query.bookid
+      : router.query.bookid,
   );
   return (
-    <Paper sx={{ mx: 10, my: 10 }}>
-      <Typography>Barcode Buch ID {bookid.toString()}</Typography>
+    <div className="mx-10 my-10 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <p className="text-sm font-medium mb-2">
+        Barcode Buch ID {bookid.toString()}
+      </p>
 
       <Barcode
         value={bookid.toString()}
@@ -25,6 +26,6 @@ export default function Home() {
         textMargin={4}
         margin={0}
       />
-    </Paper>
+    </div>
   );
 }

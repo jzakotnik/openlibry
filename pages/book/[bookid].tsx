@@ -9,7 +9,6 @@ import {
   getDeleteSafetySeconds,
   getUniqueTopics,
 } from "@/lib/utils/getUniqueTopics";
-import { Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
 
@@ -29,7 +28,7 @@ export default function BookDetail({
   if (!router.query.bookid) {
     return (
       <Layout>
-        <Typography>ID not found</Typography>
+        <p className="text-muted-foreground">ID not found</p>
       </Layout>
     );
   }
