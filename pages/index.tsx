@@ -15,7 +15,7 @@ export default function Home({ showAdminButton }: HomeProps) {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div data-cy="indexpage" className="relative min-h-screen">
       {/* Background image layer */}
       <div
         className="absolute inset-0 bg-cover bg-center"
