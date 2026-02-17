@@ -46,7 +46,7 @@ const BookField = ({
   const focusStyle = editable ? { borderBottomColor: undefined } : {};
 
   return (
-    <div className="relative pt-4" data-cy={`book-${fieldType}-field`}>
+    <div className="relative pt-4">
       <label
         htmlFor={fieldType}
         className="absolute top-0 left-0 text-xs font-medium text-gray-500 select-none"
@@ -56,6 +56,7 @@ const BookField = ({
 
       {variant === "textarea" ? (
         <textarea
+          data-cy={`book-${fieldType}-field`}
           id={fieldType}
           name={fieldType}
           value={value}
@@ -68,6 +69,7 @@ const BookField = ({
         />
       ) : (
         <input
+          data-cy={`book-${fieldType}-field`}
           id={fieldType}
           name={fieldType}
           type={variant === "number" ? "number" : "text"}

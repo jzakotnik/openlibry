@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -82,11 +84,7 @@ export default function BookRentalList({
 
   const searchBooks = useCallback(
     (query: any) => {
-      const found = searchEngine.search({
-        per_page: 20,
-        sort: sortBy,
-        query,
-      });
+      const found = searchEngine.search({ per_page: 20, sort: sortBy, query });
       setRenderedBooks(found.data.items);
     },
     [searchEngine, sortBy],
@@ -115,7 +113,6 @@ export default function BookRentalList({
         }
       }
 
-      // Barcode scanner support: Enter key triggers rent
       if (e.key === "Enter" && userExpanded) {
         const trimmedInput = bookSearchInput.trim();
         const bookId = parseInt(trimmedInput, 10);
@@ -149,8 +146,8 @@ export default function BookRentalList({
       <div data-cy="book_rental_list_container">
         {/* ── Search field ─────────────────────────────────────── */}
         <div className="relative flex items-center">
-          <BookOpen className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
+          <BookOpen className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+          <Input
             ref={searchFieldRef}
             id="book-search-input"
             type="text"
@@ -160,26 +157,21 @@ export default function BookRentalList({
             placeholder="Suche Buch"
             data-cy="book_search_input"
             aria-label="search books"
-            className="h-10 w-full rounded-lg border border-border bg-card
-                       pl-9 pr-9 text-sm text-foreground
-                       placeholder:text-muted-foreground
-                       transition-colors duration-200
-                       hover:border-primary/25
-                       focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="pl-9 pr-9"
           />
           {bookSearchInput && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onMouseDown={handleClear}
                   data-cy="book_search_clear_button"
                   aria-label="Suche löschen"
-                  className="absolute right-2 flex h-6 w-6 items-center justify-center
-                             rounded text-muted-foreground
-                             hover:bg-muted hover:text-foreground transition-colors"
+                  className="absolute right-1 h-6 w-6"
                 >
                   <X className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               </TooltipTrigger>
               <TooltipContent>Suche löschen</TooltipContent>
             </Tooltip>
@@ -196,15 +188,15 @@ export default function BookRentalList({
               b.dueDate,
               "day",
             );
-            const tooltip = allowExtendBookRent
+            const extendTooltip = allowExtendBookRent
               ? "Verlängern"
               : "Maximale Ausleihzeit erreicht";
+            const isRented = b.rentalStatus !== "available";
 
             return (
               <div
                 key={b.id}
-                className="rounded-lg border border-border bg-card shadow-sm"
-                style={{ overflow: "visible" }}
+                className="rounded-lg border border-border bg-card shadow-sm overflow-visible"
                 data-cy={`book_item_${b.id}`}
               >
                 {/* HEADER ROW */}
@@ -212,7 +204,6 @@ export default function BookRentalList({
                   className="flex items-center gap-2 px-2 pt-1.5 w-full flex-nowrap min-w-0"
                   data-cy={`book_header_${b.id}`}
                 >
-                  {/* Title — grows, truncates */}
                   <span
                     className="flex-1 min-w-0 truncate text-sm font-medium text-foreground"
                     data-cy={`book_title_${b.id}`}
@@ -220,17 +211,19 @@ export default function BookRentalList({
                     {b.title}
                   </span>
 
-                  {/* Action buttons — never shrink */}
+                  {/* Action buttons */}
                   <div
-                    className="flex items-center gap-0.5 shrink-0 relative z-[1]"
-                    style={{ overflow: "visible" }}
+                    className="flex items-center gap-0.5 shrink-0 overflow-visible relative z-[1]"
                     data-cy={`book_actions_${b.id}`}
                   >
-                    {b.rentalStatus !== "available" && (
+                    {isRented && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span>
-                            <button
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
                               aria-label="extend"
                               disabled={!allowExtendBookRent}
                               onClick={() => {
@@ -238,59 +231,55 @@ export default function BookRentalList({
                                 markBookTouched(b.id!);
                               }}
                               data-cy={`book_extend_button_${b.id}`}
-                              className="flex h-8 w-8 items-center justify-center rounded-md
-                                         text-muted-foreground
-                                         enabled:hover:bg-primary/10 enabled:hover:text-primary
-                                         disabled:opacity-40 disabled:cursor-not-allowed
-                                         transition-colors"
+                              className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
                             >
                               <RefreshCw className="h-4 w-4" />
-                            </button>
+                            </Button>
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent>{tooltip}</TooltipContent>
+                        <TooltipContent>{extendTooltip}</TooltipContent>
                       </Tooltip>
                     )}
 
-                    {b.rentalStatus !== "available" && (
+                    {isRented && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => {
                               handleReturnBookButton(b.id!, b.userId!);
                               markBookTouched(b.id!);
                             }}
                             aria-label="zurückgeben"
                             data-cy={`book_return_button_${b.id}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md
-                                       text-muted-foreground
-                                       hover:bg-destructive/10 hover:text-destructive
-                                       transition-colors"
+                            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                           >
                             <CircleArrowLeft className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </TooltipTrigger>
                         <TooltipContent>Zurückgeben</TooltipContent>
                       </Tooltip>
                     )}
 
-                    {userExpanded && b.rentalStatus === "available" && (
+                    {userExpanded && !isRented && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => {
-                              handleRentBookButton(b.id!, userExpanded!);
+                              handleRentBookButton(b.id!, userExpanded);
                               markBookTouched(b.id!);
                             }}
                             aria-label="ausleihen"
                             data-cy={`book_rent_button_${b.id}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md
-                                       text-primary
-                                       hover:bg-primary/10
-                                       transition-colors"
+                            className="h-8 w-8 text-primary hover:bg-primary/10"
                           >
                             <ListPlus className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </TooltipTrigger>
                         <TooltipContent>Ausleihen</TooltipContent>
                       </Tooltip>
@@ -301,11 +290,11 @@ export default function BookRentalList({
                 {/* SUBTITLE ROW */}
                 {b.subtitle && (
                   <div
-                    className="flex items-center gap-2 px-2 pt-1 w-full min-w-0"
+                    className="px-2 pt-1 w-full min-w-0"
                     data-cy={`book_subtitle_row_${b.id}`}
                   >
                     <span
-                      className="text-xs text-muted-foreground truncate"
+                      className="text-xs text-muted-foreground truncate block"
                       data-cy={`book_subtitle_${b.id}`}
                     >
                       {b.subtitle}
@@ -315,7 +304,7 @@ export default function BookRentalList({
 
                 {/* INFO ROW */}
                 <div
-                  className="flex items-center gap-2 px-2 pt-1 pb-2 w-full min-w-0"
+                  className="px-2 pt-1 pb-2"
                   data-cy={`book_info_row_${b.id}`}
                 >
                   <span
@@ -323,10 +312,7 @@ export default function BookRentalList({
                     data-cy={`book_info_${b.id}`}
                   >
                     Nr. {b.id}
-                    {!(
-                      b.rentalStatus === "available" ||
-                      b.rentalStatus === "lost"
-                    ) && (
+                    {isRented && b.rentalStatus !== "lost" && (
                       <span>
                         {" "}
                         — ausgeliehen bis{" "}
@@ -334,9 +320,7 @@ export default function BookRentalList({
                         {userNameforBook(users, b.userId!)}
                       </span>
                     )}
-                    {b.rentalStatus === "available" && (
-                      <span> — {b.author}</span>
-                    )}
+                    {!isRented && <span> — {b.author}</span>}
                   </span>
                 </div>
               </div>

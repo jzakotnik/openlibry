@@ -31,7 +31,7 @@ describe("Book editing and upload of cover", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type(Cypress.env("bookid"));
     cy.get("[data-cy=book_title]").should("be.visible");
     cy.get("[data-cy=book_card_editbutton]").should("be.visible");
@@ -48,7 +48,7 @@ describe("Book editing and upload of cover", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type(Cypress.env("bookid"));
     cy.get("[data-cy=book_card_editbutton]").click();
 
@@ -61,7 +61,7 @@ describe("Book editing and upload of cover", () => {
     // Upload an image
     cy.get("[data-cy=upload-image-input]").selectFile(
       "cypress/fixtures/test-book-cover.jpg",
-      { force: true }
+      { force: true },
     );
 
     // Wait for the upload to complete
@@ -90,7 +90,7 @@ describe("Book editing and upload of cover", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type(Cypress.env("bookid"));
     cy.get("[data-cy=book_card_editbutton]").click();
 
@@ -120,7 +120,7 @@ describe("Book editing and upload of cover", () => {
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type(Cypress.env("bookid"));
     cy.get("[data-cy=book_title]").should("be.visible");
   });
@@ -135,7 +135,7 @@ describe("Book editing and upload of cover", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type(Cypress.env("bookid"));
     cy.get("[data-cy=book_card_editbutton]").click();
 
@@ -181,7 +181,7 @@ describe("Book editing and upload of cover", () => {
 
     // Search for the deleted book
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type(Cypress.env("bookid"));
 
     // Wait a moment for the search to complete

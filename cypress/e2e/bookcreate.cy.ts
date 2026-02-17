@@ -45,42 +45,42 @@ describe("Book creation and validation", () => {
     // Fill in book details
     // ISBN field is now at the top and auto-focused for new books
     cy.get("[data-cy=book-isbn-field]")
-      .find("input")
+
       .clear()
       .type(testBook.isbn);
 
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .clear()
       .type(testBook.title);
 
     cy.get("[data-cy=book-author-field]")
-      .find("input")
+
       .clear()
       .type(testBook.author);
 
     cy.get("[data-cy=book-subtitle-field]")
-      .find("input")
+
       .clear()
       .type(testBook.subtitle);
 
     cy.get("[data-cy=book-publisherName-field]")
-      .find("input")
+
       .clear()
       .type(testBook.publisherName);
 
     cy.get("[data-cy=book-publisherLocation-field]")
-      .find("input")
+
       .clear()
       .type(testBook.publisherLocation);
 
     cy.get("[data-cy=book-publisherDate-field]")
-      .find("input")
+
       .clear()
       .type(testBook.publisherDate);
 
     cy.get("[data-cy=book-pages-field]")
-      .find("input")
+
       .clear()
       .type(testBook.pages);
 
@@ -113,7 +113,7 @@ describe("Book creation and validation", () => {
 
     // Search for the newly created book by title
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .clear()
       .type(testBook.title);
 
@@ -134,28 +134,28 @@ describe("Book creation and validation", () => {
 
     // Verify all fields contain the correct values
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .should("have.value", testBook.title);
     cy.get("[data-cy=book-author-field]")
-      .find("input")
+
       .should("have.value", testBook.author);
     cy.get("[data-cy=book-subtitle-field]")
-      .find("input")
+
       .should("have.value", testBook.subtitle);
     cy.get("[data-cy=book-isbn-field]")
-      .find("input")
+
       .should("have.value", testBook.isbn);
     cy.get("[data-cy=book-publisherName-field]")
-      .find("input")
+
       .should("have.value", testBook.publisherName);
     cy.get("[data-cy=book-publisherLocation-field]")
-      .find("input")
+
       .should("have.value", testBook.publisherLocation);
     cy.get("[data-cy=book-publisherDate-field]")
-      .find("input")
+
       .should("have.value", testBook.publisherDate);
     cy.get("[data-cy=book-pages-field]")
-      .find("input")
+
       .should("have.value", testBook.pages);
   });
 
@@ -173,7 +173,7 @@ describe("Book creation and validation", () => {
 
     // Fill in some data (but don't save)
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .type("This should not be saved");
 
     // Click cancel button
@@ -185,7 +185,7 @@ describe("Book creation and validation", () => {
 
     // Verify the unsaved book is not in the list
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .type("This should not be saved");
 
     cy.wait(500);
@@ -213,14 +213,14 @@ describe("Book creation and validation", () => {
     cy.url().should("include", "/book/new");
 
     // Fill only title
-    cy.get("[data-cy=book-title-field]").find("input").type("Only Title");
+    cy.get("[data-cy=book-title-field]").type("Only Title");
     cy.get("[data-cy=save-book-button]").click();
 
     // Should still show validation error for missing author
     cy.url().should("include", "/book/new");
 
     // Now fill author as well
-    cy.get("[data-cy=book-author-field]").find("input").type("Test Author");
+    cy.get("[data-cy=book-author-field]").type("Test Author");
 
     // Intercept the POST
     cy.intercept("POST", "/api/book").as("createBook");

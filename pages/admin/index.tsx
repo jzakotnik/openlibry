@@ -138,6 +138,7 @@ function ActionCard({
   onClick,
   color = palette.primary.main,
   loading = false,
+  dataCy,
 }: {
   title: string;
   description: string;
@@ -145,9 +146,11 @@ function ActionCard({
   onClick: () => void;
   color?: string;
   loading?: boolean;
+  dataCy?: string;
 }) {
   return (
     <button
+      data-cy={dataCy}
       onClick={onClick}
       disabled={loading}
       className="w-full h-full text-left bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-70"
@@ -375,6 +378,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
           <ActionCard
             title="Excel-Backup"
+            dataCy="admin-excel-backup-button"
             description="Alle Daten als Excel herunterladen"
             icon={Download}
             onClick={handleBackup}

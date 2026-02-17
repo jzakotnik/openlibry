@@ -43,13 +43,13 @@ export default function Rental({
 
   const bookFocusRef = useRef<HTMLInputElement>(null);
   const handleBookSearchSetFocus = () => {
-    bookFocusRef.current?.focus();
+    bookFocusRef.current?.focus({ preventScroll: true });
     bookFocusRef.current?.select();
   };
 
   const userFocusRef = useRef<HTMLInputElement>(null);
   const handleUserSearchSetFocus = () => {
-    userFocusRef.current?.focus();
+    userFocusRef.current?.focus({ preventScroll: true });
     userFocusRef.current?.select();
   };
 
