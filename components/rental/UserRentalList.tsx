@@ -63,11 +63,6 @@ export default function UserRentalList({
     grade: "",
   });
 
-  // ── Memoized filter ─────────────────────────────────────────────────────
-  // filterUsers previously ran on every render inside the map. useMemo
-  // ensures it only re-runs when users, search input, or rentals change.
-  // exactMatchUserId is now returned alongside the filtered list instead of
-  // being tracked via a mutable variable.
   const [filteredUsers, exactMatchUserId] = useMemo(
     () => filterUsers(users, userSearchInput, rentals, false),
     [users, userSearchInput, rentals],

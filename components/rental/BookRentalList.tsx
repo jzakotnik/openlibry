@@ -22,6 +22,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
+import { toast } from "sonner";
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -55,9 +56,6 @@ export default function BookRentalList({
 }: BookPropsType) {
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState<Array<BookType>>(books);
-  const [returnedBooks, setReturnedBooks] = useState<Record<number, number>>(
-    {},
-  );
 
   const sortings = useMemo(
     () =>
@@ -124,9 +122,9 @@ export default function BookRentalList({
           handleRentBookButton(book.id!, userExpanded);
           setBookSearchInput("");
         } else if (book && book.rentalStatus !== "available") {
-          console.log(`Book ${bookId} is already rented`);
+          toast.warning(`Buch ${bookId} ist bereits ausgeliehen`);
         } else {
-          console.log(`Book ${bookId} not found`);
+          toast.warning(`Buch ${bookId} nicht gefunden`);
         }
       }
     },
@@ -138,10 +136,6 @@ export default function BookRentalList({
       handleRentBookButton,
     ],
   );
-
-  const markBookTouched = (id: number) => {
-    setReturnedBooks((prev) => ({ ...prev, [id]: Date.now() }));
-  };
 
   return (
     <TooltipProvider>
@@ -230,7 +224,6 @@ export default function BookRentalList({
                               disabled={!allowExtendBookRent}
                               onClick={() => {
                                 handleExtendBookButton(b.id!, b);
-                                markBookTouched(b.id!);
                               }}
                               data-cy={`book_extend_button_${b.id}`}
                               className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
@@ -252,7 +245,6 @@ export default function BookRentalList({
                             size="icon"
                             onClick={() => {
                               handleReturnBookButton(b.id!, b.userId!);
-                              markBookTouched(b.id!);
                             }}
                             aria-label="zurückgeben"
                             data-cy={`book_return_button_${b.id}`}
@@ -274,7 +266,6 @@ export default function BookRentalList({
                             size="icon"
                             onClick={() => {
                               handleRentBookButton(b.id!, userExpanded);
-                              markBookTouched(b.id!);
                             }}
                             aria-label="ausleihen"
                             data-cy={`book_rent_button_${b.id}`}

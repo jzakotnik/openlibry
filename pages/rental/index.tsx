@@ -17,7 +17,7 @@ import { getBookFromID } from "@/lib/utils/lookups";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
@@ -86,7 +86,10 @@ export default function Rental({
     }
   };
 
-  const newDueDate = extendDays(new Date(), extensionDays);
+  const newDueDate = useMemo(
+    () => extendDays(new Date(), extensionDays),
+    [extensionDays], // only changes if extensionDays config changes, which might be practically never
+  );
 
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
     const newbook = replaceBookStringDate(book) as any;
@@ -169,7 +172,6 @@ export default function Rental({
             userExpanded={userExpanded}
             searchFieldRef={userFocusRef}
             handleBookSearchSetFocus={handleBookSearchSetFocus}
-            extensionDurationDays={extensionDays}
           />
         </div>
         <div style={{ overflow: "visible" }} data-cy="rental_book_column">
