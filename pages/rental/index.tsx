@@ -169,6 +169,7 @@ export default function Rental({
             userExpanded={userExpanded}
             searchFieldRef={userFocusRef}
             handleBookSearchSetFocus={handleBookSearchSetFocus}
+            extensionDurationDays={extensionDays}
           />
         </div>
         <div style={{ overflow: "visible" }} data-cy="rental_book_column">
