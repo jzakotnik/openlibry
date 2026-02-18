@@ -1,5 +1,5 @@
 import Layout from "@/components/layout/Layout";
-// ✅ palette import removed
+
 import {
   AlertTriangle,
   ArrowLeft,
@@ -72,36 +72,36 @@ interface HealthCheckResponse {
 
 const statusConfig = {
   ok: {
-    cssVar: "var(--success)", // ✅ was: color: "#10b981"
-    bg: "bg-success-light", // ✅ was: "bg-emerald-100"
-    text: "text-success", // ✅ was: "text-emerald-800"
-    border: "border-success", // ✅ was: "border-emerald-500"
+    cssVar: "var(--success)", // was: color: "#10b981"
+    bg: "bg-success-light", // was: "bg-emerald-100"
+    text: "text-success", // was: "text-emerald-800"
+    border: "border-success", // was: "border-emerald-500"
     icon: CheckCircle,
     label: "OK",
-    gradientFrom: "from-success/10", // ✅ was: "from-emerald-500/10"
-    gradientTo: "to-success/5", // ✅ was: "to-emerald-500/5"
-    borderOpacity: "border-success/20", // ✅ replaces `${color}33` hex trick
+    gradientFrom: "from-success/10", // was: "from-emerald-500/10"
+    gradientTo: "to-success/5", // was: "to-emerald-500/5"
+    borderOpacity: "border-success/20", // replaces `${color}33` hex trick
   },
   warning: {
-    cssVar: "var(--warning)", // ✅ was: color: "#f59e0b"
-    bg: "bg-warning-light", // ✅ was: "bg-amber-100"
-    text: "text-warning", // ✅ was: "text-amber-800"
-    border: "border-warning", // ✅ was: "border-amber-500"
+    cssVar: "var(--warning)", // was: color: "#f59e0b"
+    bg: "bg-warning-light", // was: "bg-amber-100"
+    text: "text-warning", // was: "text-amber-800"
+    border: "border-warning", // was: "border-amber-500"
     icon: AlertTriangle,
     label: "Warnung",
-    gradientFrom: "from-warning/10", // ✅ was: "from-amber-500/10"
-    gradientTo: "to-warning/5", // ✅ was: "to-amber-500/5"
+    gradientFrom: "from-warning/10", // was: "from-amber-500/10"
+    gradientTo: "to-warning/5", // was: "to-amber-500/5"
     borderOpacity: "border-warning/20",
   },
   error: {
-    cssVar: "var(--destructive)", // ✅ was: color: "#ef4444"
-    bg: "bg-destructive-light", // ✅ was: "bg-red-100"
-    text: "text-destructive", // ✅ was: "text-red-800"
-    border: "border-destructive", // ✅ was: "border-red-500"
+    cssVar: "var(--destructive)", // was: color: "#ef4444"
+    bg: "bg-destructive-light", // was: "bg-red-100"
+    text: "text-destructive", // was: "text-red-800"
+    border: "border-destructive", // was: "border-red-500"
     icon: XCircle,
     label: "Fehler",
-    gradientFrom: "from-destructive/10", // ✅ was: "from-red-500/10"
-    gradientTo: "to-destructive/5", // ✅ was: "to-red-500/5"
+    gradientFrom: "from-destructive/10", // was: "from-red-500/10"
+    gradientTo: "to-destructive/5", // was: "to-red-500/5"
     borderOpacity: "border-destructive/20",
   },
 };

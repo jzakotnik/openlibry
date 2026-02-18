@@ -67,9 +67,9 @@ function rentalRowClasses(status: OverdueStatus) {
       };
     case "warning":
       return {
-        bg: "bg-amber-500/10",
-        border: "border-l-amber-500",
-        text: "text-amber-500 font-semibold",
+        bg: "bg-warning/10",
+        border: "border-l-warning",
+        text: "text-warning font-semibold",
       };
     default:
       return {
@@ -204,7 +204,7 @@ export default function UserAdminList({
                             <TooltipTrigger asChild>
                               <AlertTriangle
                                 size={16}
-                                className="shrink-0 text-amber-500"
+                                className="shrink-0 text-warning"
                               />
                             </TooltipTrigger>
                             <TooltipContent>

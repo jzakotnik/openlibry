@@ -45,7 +45,8 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
         style={{
           background:
             "linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, var(--primary) 100%)",
-          boxShadow: "0 4px 30px rgba(18, 85, 111, 0.3)",
+          boxShadow:
+            "0 4px 30px color-mix(in srgb, var(--primary) 30%, transparent)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6">
@@ -156,7 +157,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
       <div
         className={`
           fixed top-0 left-0 z-50 h-full w-[280px] flex flex-col
-          bg-background-paper
+        bg-card
           transition-transform duration-300 ease-in-out
           ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
         `}

@@ -69,7 +69,7 @@ export default function NewUserDialog({
                 {displayId}
               </span>
               {idAuto && (
-                <span className="flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-amber-600">
+                <span className="flex items-center gap-1 rounded-md bg-warning-light px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-warning">
                   <Sparkles size={10} />
                   Auto
                 </span>
