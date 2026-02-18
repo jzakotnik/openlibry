@@ -91,8 +91,10 @@ export default function BookRentalList({
   );
 
   useEffect(() => {
-    //strip any leading 0s from the search
-    const stripZerosInput = bookSearchInput.replace(/^0+/, "");
+    //strip any leading 0s from the search but only if it is a number only in the search (like "007 james bond" should remain)
+    const stripZerosInput = /^\d+$/.test(bookSearchInput)
+      ? bookSearchInput.replace(/^0+/, "")
+      : bookSearchInput;
     searchBooks(stripZerosInput);
   }, [bookSearchInput, searchBooks]);
 
