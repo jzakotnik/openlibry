@@ -6,6 +6,9 @@ export function getBookFromID(id: number, books: Array<BookType>) {
   console.log("First match", firstMatch);
   return firstMatch[0];
 }
+export function stripZerosFromSearch(query: string): string {
+  return /^\d+$/.test(query) ? query.replace(/^0+/, "") : query;
+}
 
 export default function userNameforBook(
   users: Array<UserType>,

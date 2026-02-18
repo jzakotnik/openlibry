@@ -21,7 +21,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import userNameforBook from "@/lib/utils/lookups";
+import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -92,9 +92,7 @@ export default function BookRentalList({
 
   useEffect(() => {
     //strip any leading 0s from the search but only if it is a number only in the search (like "007 james bond" should remain)
-    const stripZerosInput = /^\d+$/.test(bookSearchInput)
-      ? bookSearchInput.replace(/^0+/, "")
-      : bookSearchInput;
+    const stripZerosInput = stripZerosFromSearch(bookSearchInput);
     searchBooks(stripZerosInput);
   }, [bookSearchInput, searchBooks]);
 

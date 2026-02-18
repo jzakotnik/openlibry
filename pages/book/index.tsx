@@ -12,6 +12,7 @@ import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
+import { stripZerosFromSearch } from "@/lib/utils/lookups";
 import itemsjs from "itemsjs";
 import { toast } from "sonner";
 
@@ -163,10 +164,11 @@ export default function Books({
 
   const searchBooks = useCallback(
     (searchString: string) => {
+      const stripZeros = stripZerosFromSearch(searchString); // if book is number only, 000321 should be 321
       const foundBooks = searchEngine.search({
         sort: "name_asc",
         per_page: maxBooks,
-        query: searchString,
+        query: stripZeros,
       });
 
       let items = foundBooks.data.items;
