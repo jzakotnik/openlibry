@@ -12,12 +12,10 @@ import { getAllUsers } from "@/entities/user";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import getMaxId from "@/lib/utils/id";
 import { increaseNumberInString } from "@/lib/utils/increaseNumberInString";
-import palette from "@/styles/palette";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { toast } from "sonner";
-
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface UsersPageProps {
   users: UserType[];
@@ -36,19 +34,16 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
 
   const router = useRouter();
 
-  // Combine search text and filter string for the list
   const combinedSearchString = useMemo(() => {
     return [searchText, filterString].filter(Boolean).join(" ");
   }, [searchText, filterString]);
 
-  // Auto-reset confirm state after 5s
   useEffect(() => {
     if (!confirmDelete) return;
     const timer = setTimeout(() => setConfirmDelete(false), 5000);
     return () => clearTimeout(timer);
   }, [confirmDelete]);
 
-  // Reset confirm when selection changes
   useEffect(() => {
     setConfirmDelete(false);
   }, [checked]);
@@ -177,7 +172,6 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
 
       <div className="mx-auto max-w-screen-lg px-4 py-6 sm:px-6">
         <div className="space-y-4">
-          {/* Search Bar */}
           <div className="flex justify-center">
             <UserSearchBar
               searchValue={searchText}
@@ -199,14 +193,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
             />
           </div>
 
-          {/* User List */}
-          <div
-            className="rounded-2xl border p-2 backdrop-blur-sm sm:p-3"
-            style={{
-              backgroundColor: `${palette.background.paper}80`,
-              borderColor: `${palette.primary.main}14`,
-            }}
-          >
+          <div className="rounded-2xl border border-primary/[0.08] bg-card/50 p-2 backdrop-blur-sm sm:p-3">
             <UserAdminList
               users={users}
               rentals={rentals}

@@ -81,7 +81,8 @@
    e.g. bg-primary, text-muted-foreground, etc.
    ═══════════════════════════════════════════════ */
 @theme inline {
-  --font-sans: "Roboto", "Helvetica Neue", "Arial", sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Ubuntu", sans-serif;
+
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -174,6 +175,10 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  html {
+    font-size: 18px; /* bump from browser default 16px — all rem values scale up proportionally */
   }
 
   a {
