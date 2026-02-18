@@ -16,12 +16,22 @@ import {
 
 import dayjs from "dayjs";
 import "dayjs/locale/de";
+import debounce from "debounce";
 import itemsjs from "itemsjs";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
+import { toast } from "sonner";
+
+const SEARCH_DEBOUNCE_MS = 180;
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -41,6 +51,175 @@ type Sorting<T> = {
   order: "asc" | "desc";
 };
 
+/* ────────────────────────────────────────────────────────────────
+ * Memoised book list – only re-renders when its props actually
+ * change (i.e. after the debounced search produces a new
+ * renderedBooks array). Typing into the search input no longer
+ * forces React to diff 100 complex book cards on every keystroke.
+ * ──────────────────────────────────────────────────────────────── */
+const BookList = React.memo(function BookList({
+  renderedBooks,
+  users,
+  userExpanded,
+  extensionDueDate,
+  handleExtendBookButton,
+  handleReturnBookButton,
+  handleRentBookButton,
+}: {
+  renderedBooks: Array<BookType>;
+  users: Array<UserType>;
+  userExpanded: number | false;
+  extensionDueDate: dayjs.Dayjs;
+  handleExtendBookButton: (id: number, b: BookType) => void;
+  handleReturnBookButton: (bookid: number, userid: number) => void;
+  handleRentBookButton: (id: number, userid: number) => void;
+}) {
+  return (
+    <div
+      className="flex flex-col gap-2 px-0.5 mt-2"
+      data-cy="book_list_container"
+    >
+      {renderedBooks.slice(0, 100).map((b: BookType) => {
+        const allowExtendBookRent = extensionDueDate.isAfter(b.dueDate, "day");
+        const extendTooltip = allowExtendBookRent
+          ? "Verlängern"
+          : "Maximale Ausleihzeit erreicht";
+        const isRented = b.rentalStatus !== "available";
+
+        return (
+          <div
+            key={b.id}
+            className="rounded-lg border border-border bg-card shadow-sm overflow-visible"
+            data-cy={`book_item_${b.id}`}
+          >
+            {/* HEADER ROW */}
+            <div
+              className="flex items-center gap-2 px-2 pt-1.5 w-full flex-nowrap min-w-0"
+              data-cy={`book_header_${b.id}`}
+            >
+              <span
+                className="flex-1 min-w-0 truncate text-sm font-medium text-foreground"
+                data-cy={`book_title_${b.id}`}
+              >
+                {b.title}
+              </span>
+
+              {/* Action buttons */}
+              <div
+                className="flex items-center gap-0.5 shrink-0 overflow-visible relative z-[1]"
+                data-cy={`book_actions_${b.id}`}
+              >
+                {isRented && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="extend"
+                          disabled={!allowExtendBookRent}
+                          onClick={() => {
+                            handleExtendBookButton(b.id!, b);
+                          }}
+                          data-cy={`book_extend_button_${b.id}`}
+                          className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>{extendTooltip}</TooltipContent>
+                  </Tooltip>
+                )}
+
+                {isRented && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          handleReturnBookButton(b.id!, b.userId!);
+                        }}
+                        aria-label="zurückgeben"
+                        data-cy={`book_return_button_${b.id}`}
+                        className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <CircleArrowLeft className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Zurückgeben</TooltipContent>
+                  </Tooltip>
+                )}
+
+                {userExpanded && !isRented && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          handleRentBookButton(b.id!, userExpanded);
+                        }}
+                        aria-label="ausleihen"
+                        data-cy={`book_rent_button_${b.id}`}
+                        className="h-8 w-8 text-primary hover:bg-primary/10"
+                      >
+                        <ListPlus className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ausleihen</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
+
+            {/* SUBTITLE ROW */}
+            {b.subtitle && (
+              <div
+                className="px-2 pt-1 w-full min-w-0"
+                data-cy={`book_subtitle_row_${b.id}`}
+              >
+                <span
+                  className="text-xs text-muted-foreground truncate block"
+                  data-cy={`book_subtitle_${b.id}`}
+                >
+                  {b.subtitle}
+                </span>
+              </div>
+            )}
+
+            {/* INFO ROW */}
+            <div className="px-2 pt-1 pb-2" data-cy={`book_info_row_${b.id}`}>
+              <span
+                className="text-xs text-muted-foreground"
+                data-cy={`book_info_${b.id}`}
+              >
+                Nr. {b.id}
+                {isRented && b.rentalStatus !== "lost" && (
+                  <span>
+                    {" "}
+                    — ausgeliehen bis {dayjs(b.dueDate).format(
+                      "DD.MM.YYYY",
+                    )} an {userNameforBook(users, b.userId!)}
+                  </span>
+                )}
+                {!isRented && <span> — {b.author}</span>}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+/* ────────────────────────────────────────────────────────────────
+ * Main component
+ * ──────────────────────────────────────────────────────────────── */
 export default function BookRentalList({
   books,
   users,
@@ -53,11 +232,16 @@ export default function BookRentalList({
   extensionDueDate,
   sortBy,
 }: BookPropsType) {
+  // bookSearchInput drives the <Input> immediately — no delay, always snappy.
+  // debouncedSearch trails behind it and is the only thing that triggers the
+  // expensive itemsjs search, keeping the two concerns fully decoupled.
   const [bookSearchInput, setBookSearchInput] = useState("");
   const [renderedBooks, setRenderedBooks] = useState<Array<BookType>>(books);
-  const [returnedBooks, setReturnedBooks] = useState<Record<number, number>>(
-    {},
-  );
+
+  // Ref keeps the current search input accessible inside the books-refresh
+  // effect without adding bookSearchInput to its dependency array.
+  const bookSearchInputRef = useRef(bookSearchInput);
+  bookSearchInputRef.current = bookSearchInput;
 
   const sortings = useMemo(
     () =>
@@ -84,25 +268,42 @@ export default function BookRentalList({
 
   const searchBooks = useCallback(
     (query: any) => {
-      const found = searchEngine.search({ per_page: 20, sort: sortBy, query });
+      const found = searchEngine.search({ per_page: 100, sort: sortBy, query });
       setRenderedBooks(found.data.items);
     },
     [searchEngine, sortBy],
   );
 
+  // Debounced search — same pattern as books/index.tsx.
+  // useMemo recreates the debounced function only when searchBooks changes;
+  // the cleanup effect calls .clear() so no stale search fires after unmount.
+  const debouncedSearch = useMemo(
+    () => debounce((query: string) => searchBooks(query), SEARCH_DEBOUNCE_MS),
+    [searchBooks],
+  );
+
   useEffect(() => {
-    //strip any leading 0s from the search but only if it is a number only in the search (like "007 james bond" should remain)
-    const stripZerosInput = stripZerosFromSearch(bookSearchInput);
-    searchBooks(stripZerosInput);
-  }, [bookSearchInput, searchBooks]);
+    return () => debouncedSearch.clear();
+  }, [debouncedSearch]);
+
+  // Re-run search when books data changes externally (e.g. SWR refresh)
+  // while a query is active.  Uses a ref for the current input so this
+  // effect does NOT fire on every keystroke — only when the underlying
+  // books array or searchBooks function changes.
+  useEffect(() => {
+    searchBooks(stripZerosFromSearch(bookSearchInputRef.current));
+  }, [books, searchBooks]);
 
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
     setBookSearchInput("");
+    searchBooks("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBookSearchInput(e.target.value);
+    const value = e.target.value;
+    setBookSearchInput(value);
+    debouncedSearch(stripZerosFromSearch(value));
   };
 
   const handleKeyUp = useCallback(
@@ -112,10 +313,13 @@ export default function BookRentalList({
           handleUserSearchSetFocus();
         } else {
           setBookSearchInput("");
+          searchBooks("");
         }
       }
 
       if (e.key === "Enter" && userExpanded) {
+        // Use bookSearchInput directly (not the debounced search) so barcode
+        // scanning + Enter feels instant without waiting for the debounce.
         const trimmedInput = bookSearchInput.trim();
         const bookId = parseInt(trimmedInput, 10);
         const book = books.find((b) => b.id === bookId);
@@ -124,9 +328,9 @@ export default function BookRentalList({
           handleRentBookButton(book.id!, userExpanded);
           setBookSearchInput("");
         } else if (book && book.rentalStatus !== "available") {
-          console.log(`Book ${bookId} is already rented`);
+          toast.warning(`Buch ${bookId} ist bereits ausgeliehen`);
         } else {
-          console.log(`Book ${bookId} not found`);
+          toast.warning(`Buch ${bookId} nicht gefunden`);
         }
       }
     },
@@ -136,12 +340,9 @@ export default function BookRentalList({
       userExpanded,
       books,
       handleRentBookButton,
+      searchBooks,
     ],
   );
-
-  const markBookTouched = (id: number) => {
-    setReturnedBooks((prev) => ({ ...prev, [id]: Date.now() }));
-  };
 
   return (
     <TooltipProvider>
@@ -180,155 +381,16 @@ export default function BookRentalList({
           )}
         </div>
 
-        {/* ── Book list ────────────────────────────────────────── */}
-        <div
-          className="flex flex-col gap-2 px-0.5 mt-2"
-          data-cy="book_list_container"
-        >
-          {renderedBooks.slice(0, 100).map((b: BookType) => {
-            const allowExtendBookRent = extensionDueDate.isAfter(
-              b.dueDate,
-              "day",
-            );
-            const extendTooltip = allowExtendBookRent
-              ? "Verlängern"
-              : "Maximale Ausleihzeit erreicht";
-            const isRented = b.rentalStatus !== "available";
-
-            return (
-              <div
-                key={b.id}
-                className="rounded-lg border border-border bg-card shadow-sm overflow-visible"
-                data-cy={`book_item_${b.id}`}
-              >
-                {/* HEADER ROW */}
-                <div
-                  className="flex items-center gap-2 px-2 pt-1.5 w-full flex-nowrap min-w-0"
-                  data-cy={`book_header_${b.id}`}
-                >
-                  <span
-                    className="flex-1 min-w-0 truncate text-sm font-medium text-foreground"
-                    data-cy={`book_title_${b.id}`}
-                  >
-                    {b.title}
-                  </span>
-
-                  {/* Action buttons */}
-                  <div
-                    className="flex items-center gap-0.5 shrink-0 overflow-visible relative z-[1]"
-                    data-cy={`book_actions_${b.id}`}
-                  >
-                    {isRented && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              aria-label="extend"
-                              disabled={!allowExtendBookRent}
-                              onClick={() => {
-                                handleExtendBookButton(b.id!, b);
-                                markBookTouched(b.id!);
-                              }}
-                              data-cy={`book_extend_button_${b.id}`}
-                              className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                            </Button>
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>{extendTooltip}</TooltipContent>
-                      </Tooltip>
-                    )}
-
-                    {isRented && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              handleReturnBookButton(b.id!, b.userId!);
-                              markBookTouched(b.id!);
-                            }}
-                            aria-label="zurückgeben"
-                            data-cy={`book_return_button_${b.id}`}
-                            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <CircleArrowLeft className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Zurückgeben</TooltipContent>
-                      </Tooltip>
-                    )}
-
-                    {userExpanded && !isRented && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              handleRentBookButton(b.id!, userExpanded);
-                              markBookTouched(b.id!);
-                            }}
-                            aria-label="ausleihen"
-                            data-cy={`book_rent_button_${b.id}`}
-                            className="h-8 w-8 text-primary hover:bg-primary/10"
-                          >
-                            <ListPlus className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Ausleihen</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-
-                {/* SUBTITLE ROW */}
-                {b.subtitle && (
-                  <div
-                    className="px-2 pt-1 w-full min-w-0"
-                    data-cy={`book_subtitle_row_${b.id}`}
-                  >
-                    <span
-                      className="text-xs text-muted-foreground truncate block"
-                      data-cy={`book_subtitle_${b.id}`}
-                    >
-                      {b.subtitle}
-                    </span>
-                  </div>
-                )}
-
-                {/* INFO ROW */}
-                <div
-                  className="px-2 pt-1 pb-2"
-                  data-cy={`book_info_row_${b.id}`}
-                >
-                  <span
-                    className="text-xs text-muted-foreground"
-                    data-cy={`book_info_${b.id}`}
-                  >
-                    Nr. {b.id}
-                    {isRented && b.rentalStatus !== "lost" && (
-                      <span>
-                        {" "}
-                        — ausgeliehen bis{" "}
-                        {dayjs(b.dueDate).format("DD.MM.YYYY")} an{" "}
-                        {userNameforBook(users, b.userId!)}
-                      </span>
-                    )}
-                    {!isRented && <span> — {b.author}</span>}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* ── Book list (memoised) ─────────────────────────────── */}
+        <BookList
+          renderedBooks={renderedBooks}
+          users={users}
+          userExpanded={userExpanded}
+          extensionDueDate={extensionDueDate}
+          handleExtendBookButton={handleExtendBookButton}
+          handleReturnBookButton={handleReturnBookButton}
+          handleRentBookButton={handleRentBookButton}
+        />
       </div>
     </TooltipProvider>
   );
