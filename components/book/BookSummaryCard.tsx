@@ -81,7 +81,10 @@ const CoverModal = memo(function CoverModal({
             placeholder="blur"
             blurDataURL="/coverimages/default.jpg"
             sizes="(max-width: 600px) 85vw, (max-width: 900px) 70vw, 500px"
-            style={{ objectFit: "contain", backgroundColor: "#1a1a1a" }}
+            style={{
+              objectFit: "contain",
+              backgroundColor: "var(--foreground)",
+            }}
           />
         </div>
 
@@ -245,9 +248,9 @@ function BookSummaryCard({
                    transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
                    shadow-[0_4px_12px_rgba(0,0,0,0.1)]
                    hover:-translate-y-1 hover:scale-[1.02]
-                   hover:shadow-[0_20px_40px_rgba(18,85,111,0.3),0_0_20px_rgba(18,85,111,0.2)]
+                   hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--primary)_30%,transparent),0_0_20px_color-mix(in_srgb,var(--primary)_20%,transparent)]
                    focus-within:-translate-y-1 focus-within:scale-[1.02]
-                   focus-within:shadow-[0_20px_40px_rgba(18,85,111,0.3),0_0_20px_rgba(18,85,111,0.2)]
+                   focus-within:shadow-[0_20px_40px_color-mix(in_srgb,var(--primary)_30%,transparent),0_0_20px_color-mix(in_srgb,var(--primary)_20%,transparent)]
                    focus-visible:outline-3 focus-visible:outline-primary-light focus-visible:outline-offset-2"
         style={{
           width: CARD_WIDTH,
@@ -313,7 +316,7 @@ function BookSummaryCard({
                   className="flex items-center justify-center
                              w-[26px] h-[26px] rounded-md
                              bg-destructive/85 text-white backdrop-blur-sm
-                             shadow-[0_2px_8px_rgba(200,5,56,0.4)]
+                             shadow-[0_2px_8px_color-mix(in_srgb,var(--destructive)_40%,transparent)]
                              hover:bg-destructive hover:scale-110
                              focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2
                              transition-all duration-200"
@@ -432,7 +435,7 @@ function BookSummaryCard({
           aria-hidden="true"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 0%, rgba(161,220,248,0.15) 0%, transparent 60%)",
+              "radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--primary-light) 15%, transparent) 0%, transparent 60%)",
           }}
         />
 

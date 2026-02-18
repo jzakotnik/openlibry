@@ -11,7 +11,7 @@ import {
   Search,
 } from "lucide-react";
 
-import palette from "@/styles/palette";
+// ✅ palette import removed entirely
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
@@ -57,14 +57,12 @@ type BookEditFormPropType = {
 function SectionDivider({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex items-center gap-4 py-4">
-      <div className="flex-1 h-px bg-gray-200" />
-      <span
-        className="text-sm font-medium whitespace-nowrap"
-        style={{ color: palette.info.main }}
-      >
+      <div className="flex-1 h-px bg-border" />
+      {/* ✅ was: style={{ color: palette.info.main }} */}
+      <span className="text-sm font-medium text-info whitespace-nowrap">
         {children}
       </span>
-      <div className="flex-1 h-px bg-gray-200" />
+      <div className="flex-1 h-px bg-border" />
     </div>
   );
 }
@@ -89,14 +87,18 @@ function ActionButton({
   dataCy?: string;
 }) {
   const baseClasses =
-    "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed";
 
+  // ✅ was: primary used style={{ backgroundColor: palette.primary.main }}
+  // ✅ was: secondary used text-gray-600 bg-gray-100 hover:bg-gray-200
+  // ✅ was: outline used border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400
   const variantClasses = {
-    primary: "text-white shadow-sm hover:shadow-md active:scale-[0.98]",
+    primary:
+      "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]",
     secondary:
-      "text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-[0.98]",
+      "text-muted-foreground bg-muted hover:bg-muted/80 active:scale-[0.98]",
     outline:
-      "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98]",
+      "border border-border text-foreground bg-card hover:bg-muted/50 hover:border-ring/50 active:scale-[0.98]",
   };
 
   return (
@@ -105,12 +107,8 @@ function ActionButton({
       disabled={disabled || loading}
       title={title}
       data-cy={dataCy}
+      // ✅ style prop removed entirely — no more inline palette references
       className={`${baseClasses} ${variantClasses[variant]}`}
-      style={
-        variant === "primary"
-          ? { backgroundColor: palette.primary.main }
-          : undefined
-      }
     >
       {loading ? (
         <Loader2 className="w-4 h-4 animate-spin" />
@@ -253,7 +251,7 @@ export default function BookEditForm({
           height="auto"
           alt="Cover Vorschau"
           data-cy="book-cover-preview"
-          className="border border-gray-200 rounded-lg object-contain"
+          className="border border-border rounded-lg object-contain"
           style={{ maxHeight: 280 }}
         />
       );
@@ -261,17 +259,19 @@ export default function BookEditForm({
 
     if (isNewBook) {
       let message = "ISBN eingeben und 'Ausfüllen' klicken";
-      let textColor = "text-gray-400";
+      // ✅ was: textColor = "text-amber-600" for not-found state
+      let textColor = "text-muted-foreground";
 
       if (isAutoFilling) {
         message = "Cover wird gesucht...";
       } else if (autofillAttempted && !coverPreviewUrl) {
         message = "Kein Cover gefunden";
-        textColor = "text-amber-600";
+        textColor = "text-warning";
       }
 
       return (
-        <div className="w-[200px] h-[200px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 text-center p-4">
+        // ✅ was: border-gray-300 bg-gray-50
+        <div className="w-[200px] h-[200px] border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted text-center p-4">
           <span className={`text-sm ${textColor}`}>{message}</span>
         </div>
       );
@@ -285,7 +285,7 @@ export default function BookEditForm({
         alt="cover image"
         key={loadingImage}
         data-cy="book-cover-image"
-        className="border border-white rounded-lg"
+        className="border border-border rounded-lg"
         style={{ width: "auto" }}
       />
     );
@@ -295,7 +295,8 @@ export default function BookEditForm({
     if (isNewBook && !book.id) return null;
 
     if (!antolinResults) {
-      return <span className="text-xs text-gray-400">...</span>;
+      // ✅ was: text-gray-400
+      return <span className="text-xs text-muted-foreground">...</span>;
     }
 
     let resultString = "...";
@@ -308,11 +309,13 @@ export default function BookEditForm({
     }
 
     return (
-      <span className="text-xs text-gray-500">
+      // ✅ was: text-gray-500
+      <span className="text-xs text-muted-foreground">
         Antolin:
+        {/* ✅ was: text-blue-600 hover:text-blue-800 */}
         <button
           onClick={handleAntolinClick}
-          className="ml-1 text-blue-600 hover:text-blue-800 underline underline-offset-2 cursor-pointer"
+          className="ml-1 text-info hover:text-info/80 underline underline-offset-2 cursor-pointer"
           tabIndex={0}
         >
           {resultString}
@@ -324,8 +327,9 @@ export default function BookEditForm({
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
+    // ✅ was: border-gray-100
     <div
-      className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 px-4 sm:px-6 lg:px-8 py-6"
+      className="mt-8 bg-card rounded-2xl shadow-sm border border-border px-4 sm:px-6 lg:px-8 py-6"
       data-cy="book-edit-form"
     >
       <BookAntolinDialog
@@ -428,7 +432,6 @@ export default function BookEditForm({
       <div className="flex flex-col lg:flex-row gap-6">
         {/* ── Left: Form fields ──────────────────────────────────────── */}
         <div className="flex-1 min-w-0">
-          {/* Core fields — tab order 1-5 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
             <div>
               <BookField
@@ -475,7 +478,6 @@ export default function BookEditForm({
             </div>
           </div>
 
-          {/* Publishing details */}
           <SectionDivider>Verlag &amp; Ausgabe</SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
@@ -530,7 +532,6 @@ export default function BookEditForm({
             </div>
           </div>
 
-          {/* Rental status */}
           <SectionDivider>Ausleih-Status</SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
@@ -572,7 +573,6 @@ export default function BookEditForm({
             </div>
           </div>
 
-          {/* Additional metadata */}
           <SectionDivider>Weitere Angaben</SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
@@ -655,13 +655,15 @@ export default function BookEditForm({
           )}
 
           {isNewBook && coverPreviewUrl && (
-            <span className="text-xs text-green-600 text-center">
+            // ✅ was: text-green-600
+            <span className="text-xs text-success text-center">
               ✓ Cover wird beim Speichern hochgeladen
             </span>
           )}
 
           {isNewBook && autofillAttempted && !coverPreviewUrl && (
-            <span className="text-xs text-gray-400 text-center">
+            // ✅ was: text-gray-400
+            <span className="text-xs text-muted-foreground text-center">
               Cover kann nach Speichern manuell hochgeladen werden
             </span>
           )}
@@ -670,8 +672,8 @@ export default function BookEditForm({
         </div>
       </div>
 
-      {/* Bottom spacer */}
-      <div className="h-px bg-gray-200 mt-8" />
+      {/* ✅ was: bg-gray-200 */}
+      <div className="h-px bg-border mt-8" />
     </div>
   );
 }

@@ -109,7 +109,7 @@ export default function UserSearchFilters({
               className={cn(
                 "h-auto w-full justify-start gap-2 rounded-lg border px-3 py-2 text-sm font-medium",
                 "data-[state=off]:bg-transparent data-[state=off]:border-primary/20 data-[state=off]:text-muted-foreground",
-                "data-[state=on]:bg-amber-500/10 data-[state=on]:border-amber-500 data-[state=on]:text-amber-500",
+                "data-[state=on]:bg-warning/10 data-[state=on]:border-warning data-[state=on]:text-warning",
               )}
             >
               <AlertTriangle size={16} />
@@ -166,7 +166,7 @@ export default function UserSearchFilters({
             {isOverdue && (
               <Badge
                 variant="secondary"
-                className="gap-1 bg-amber-500/10 pr-1 text-amber-500"
+                className="gap-1 bg-warning/10 pr-1 text-warning"
               >
                 Überfällig
                 <button

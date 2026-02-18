@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/Layout";
-import palette from "@/styles/palette";
 import { useRouter } from "next/router";
+
+// ✅ palette import removed entirely
 
 export default function NotFound() {
   const router = useRouter();
@@ -21,15 +22,15 @@ export default function NotFound() {
               {/* Left page */}
               <path
                 d="M100 240 L100 170 Q100 160 110 158 L195 145 L195 225 Q195 228 190 229 L105 245 Q100 246 100 240Z"
-                fill="#faf9f8"
-                stroke={palette.primary.main}
+                fill="var(--background)"
+                stroke="var(--primary)"
                 strokeWidth="2"
               />
               {/* Right page */}
               <path
                 d="M195 145 L280 155 Q290 157 290 167 L290 240 Q290 245 285 244 L195 225Z"
-                fill="#f5f3f0"
-                stroke={palette.primary.main}
+                fill="var(--background-paper)"
+                stroke="var(--primary)"
                 strokeWidth="2"
               />
               {/* Spine */}
@@ -38,7 +39,7 @@ export default function NotFound() {
                 y1="145"
                 x2="195"
                 y2="225"
-                stroke={palette.primary.main}
+                stroke="var(--primary)"
                 strokeWidth="2.5"
               />
               {/* Text lines left page */}
@@ -47,7 +48,7 @@ export default function NotFound() {
                 y1="172"
                 x2="175"
                 y2="165"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.6"
@@ -57,7 +58,7 @@ export default function NotFound() {
                 y1="182"
                 x2="180"
                 y2="175"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.5"
@@ -67,7 +68,7 @@ export default function NotFound() {
                 y1="192"
                 x2="165"
                 y2="186"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.4"
@@ -77,7 +78,7 @@ export default function NotFound() {
                 y1="202"
                 x2="172"
                 y2="196"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.35"
@@ -88,7 +89,7 @@ export default function NotFound() {
                 y1="165"
                 x2="272"
                 y2="172"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.6"
@@ -98,7 +99,7 @@ export default function NotFound() {
                 y1="175"
                 x2="268"
                 y2="181"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.5"
@@ -108,7 +109,7 @@ export default function NotFound() {
                 y1="185"
                 x2="260"
                 y2="190"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.4"
@@ -120,20 +121,19 @@ export default function NotFound() {
                 textAnchor="middle"
                 fontSize="22"
                 fontWeight="800"
-                fill={palette.primary.main}
+                fill="var(--primary)"
                 opacity="0.25"
                 fontFamily="system-ui, sans-serif"
               >
                 404
               </text>
             </g>
-
             {/* Cat body */}
             <g>
-              {/* Tail — curls from behind */}
+              {/* Tail */}
               <path
                 d="M130 260 Q80 240 75 280 Q72 310 100 305 Q115 302 118 290"
-                stroke={palette.primary.dark}
+                stroke="var(--primary-dark)"
                 strokeWidth="5"
                 strokeLinecap="round"
                 fill="none"
@@ -146,50 +146,49 @@ export default function NotFound() {
                   repeatCount="indefinite"
                 />
               </path>
-
               {/* Back body / torso */}
               <ellipse
                 cx="195"
                 cy="275"
                 rx="72"
                 ry="42"
-                fill={palette.primary.dark}
-              />
-
+                fill="var(--primary-dark)"
+              />{" "}
+              {/* ✅ */}
               {/* Belly highlight */}
               <ellipse
                 cx="200"
                 cy="280"
                 rx="45"
                 ry="25"
-                fill={palette.primary.main}
+                fill="var(--primary)"
                 opacity="0.3"
-              />
-
-              {/* Front paws on book */}
+              />{" "}
+              {/* ✅ */}
               {/* Left paw */}
               <ellipse
                 cx="155"
                 cy="243"
                 rx="16"
                 ry="9"
-                fill={palette.primary.dark}
-              />
+                fill="var(--primary-dark)"
+              />{" "}
+              {/* ✅ */}
               <path
                 d="M143 240 Q142 236 145 235"
-                stroke="#faf9f8"
+                stroke="var(--background)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
               <path
                 d="M150 238 Q149 234 152 233"
-                stroke="#faf9f8"
+                stroke="var(--background)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
               <path
                 d="M157 238 Q156 234 159 233"
-                stroke="#faf9f8"
+                stroke="var(--background)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
@@ -199,97 +198,125 @@ export default function NotFound() {
                 cy="245"
                 rx="16"
                 ry="9"
-                fill={palette.primary.dark}
-              />
+                fill="var(--primary-dark)"
+              />{" "}
+              {/* ✅ */}
               <path
                 d="M229 242 Q228 238 231 237"
-                stroke="#faf9f8"
+                stroke="var(--background)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
               <path
                 d="M236 241 Q235 237 238 236"
-                stroke="#faf9f8"
+                stroke="var(--background)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
               <path
                 d="M243 242 Q242 238 245 237"
-                stroke="#faf9f8"
+                stroke="var(--background)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
-
               {/* Head */}
-              <circle cx="195" cy="220" r="38" fill={palette.primary.dark} />
-
+              <circle
+                cx="195"
+                cy="220"
+                r="38"
+                fill="var(--primary-dark)"
+              />{" "}
+              {/* ✅ */}
               {/* Ears */}
               <path
                 d="M164 192 L155 155 L182 185Z"
-                fill={palette.primary.dark}
-                stroke={palette.primary.dark}
+                fill="var(--primary-dark)"
+                stroke="var(--primary-dark)"
                 strokeWidth="1"
                 strokeLinejoin="round"
               />
               <path
                 d="M168 188 L162 164 L182 185Z"
-                fill={palette.secondary.main}
+                fill="var(--secondary)"
                 opacity="0.4"
-              />
+              />{" "}
+              {/* ✅ was: palette.secondary.main */}
               <path
                 d="M226 192 L235 155 L208 185Z"
-                fill={palette.primary.dark}
-                stroke={palette.primary.dark}
+                fill="var(--primary-dark)"
+                stroke="var(--primary-dark)"
                 strokeWidth="1"
                 strokeLinejoin="round"
               />
               <path
                 d="M222 188 L228 164 L208 185Z"
-                fill={palette.secondary.main}
+                fill="var(--secondary)"
                 opacity="0.4"
-              />
-
+              />{" "}
+              {/* ✅ */}
               {/* Eyes */}
               <g>
-                <ellipse cx="180" cy="215" rx="8" ry="9" fill="#faf9f8" />
-                <ellipse cx="210" cy="215" rx="8" ry="9" fill="#faf9f8" />
-                {/* Pupils — looking down at the book */}
-                <ellipse cx="181" cy="219" rx="4.5" ry="5.5" fill="#1a1a2e" />
-                <ellipse cx="211" cy="219" rx="4.5" ry="5.5" fill="#1a1a2e" />
-                {/* Eye highlights */}
+                <ellipse
+                  cx="180"
+                  cy="215"
+                  rx="8"
+                  ry="9"
+                  fill="var(--background)"
+                />
+                <ellipse
+                  cx="210"
+                  cy="215"
+                  rx="8"
+                  ry="9"
+                  fill="var(--background)"
+                />
+                <ellipse
+                  cx="181"
+                  cy="219"
+                  rx="4.5"
+                  ry="5.5"
+                  fill="var(--foreground)"
+                />
+                <ellipse
+                  cx="211"
+                  cy="219"
+                  rx="4.5"
+                  ry="5.5"
+                  fill="var(--foreground)"
+                />
                 <circle cx="183" cy="216" r="2" fill="white" />
                 <circle cx="213" cy="216" r="2" fill="white" />
               </g>
-
               {/* Nose */}
               <path
                 d="M193 225 L195 228 L197 225Z"
-                fill={palette.secondary.main}
-              />
-
+                fill="var(--secondary)"
+              />{" "}
+              {/* ✅ */}
               {/* Mouth */}
               <path
                 d="M195 228 Q189 233 185 230"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="1.5"
                 fill="none"
                 strokeLinecap="round"
               />
               <path
                 d="M195 228 Q201 233 205 230"
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="1.5"
                 fill="none"
                 strokeLinecap="round"
               />
-
               {/* Whiskers */}
               <g
-                stroke={palette.primary.light}
+                stroke="var(--primary-light)"
                 strokeWidth="1.2"
                 strokeLinecap="round"
                 opacity="0.7"
               >
+                {" "}
+                {/* ✅ */}
                 <line x1="170" y1="223" x2="140" y2="218" />
                 <line x1="170" y1="227" x2="138" y2="228" />
                 <line x1="170" y1="231" x2="142" y2="237" />
@@ -297,14 +324,15 @@ export default function NotFound() {
                 <line x1="220" y1="227" x2="252" y2="228" />
                 <line x1="220" y1="231" x2="248" y2="237" />
               </g>
-
               {/* Glasses */}
               <g
-                stroke={palette.secondary.main}
+                stroke="var(--secondary)"
                 strokeWidth="2"
                 fill="none"
                 opacity="0.8"
               >
+                {" "}
+                {/* ✅ */}
                 <circle cx="180" cy="215" r="13" />
                 <circle cx="210" cy="215" r="13" />
                 <path d="M193 215 Q195 218 197 215" />
@@ -312,26 +340,27 @@ export default function NotFound() {
                 <line x1="223" y1="213" x2="230" y2="208" />
               </g>
             </g>
-
             {/* Floor / shadow */}
             <ellipse
               cx="195"
               cy="315"
               rx="120"
               ry="10"
-              fill={palette.primary.main}
+              fill="var(--primary)"
               opacity="0.08"
-            />
-
-            {/* Floating sparkles around the cat */}
+            />{" "}
+            {/* ✅ */}
+            {/* Floating sparkles */}
             <g>
               <circle
                 cx="90"
                 cy="175"
                 r="2.5"
-                fill={palette.secondary.main}
+                fill="var(--secondary)"
                 opacity="0.6"
               >
+                {" "}
+                {/* ✅ */}
                 <animate
                   attributeName="opacity"
                   values="0.6;0.15;0.6"
@@ -343,9 +372,11 @@ export default function NotFound() {
                 cx="310"
                 cy="185"
                 r="2"
-                fill={palette.primary.light}
+                fill="var(--primary-light)"
                 opacity="0.5"
               >
+                {" "}
+                {/* ✅ */}
                 <animate
                   attributeName="opacity"
                   values="0.5;0.1;0.5"
@@ -357,9 +388,11 @@ export default function NotFound() {
                 cx="320"
                 cy="155"
                 r="1.5"
-                fill={palette.secondary.main}
+                fill="var(--secondary)"
                 opacity="0.4"
               >
+                {" "}
+                {/* ✅ */}
                 <animate
                   attributeName="opacity"
                   values="0.4;0.1;0.4"
@@ -371,9 +404,11 @@ export default function NotFound() {
                 cx="75"
                 cy="150"
                 r="1.8"
-                fill={palette.primary.light}
+                fill="var(--primary-light)"
                 opacity="0.35"
               >
+                {" "}
+                {/* ✅ */}
                 <animate
                   attributeName="opacity"
                   values="0.35;0.05;0.35"
@@ -386,45 +421,33 @@ export default function NotFound() {
         </div>
 
         {/* Text */}
-        <h1
-          className="mb-2 text-center text-6xl font-extrabold tracking-tight sm:text-7xl"
-          style={{ color: palette.primary.main }}
-        >
+        {/* ✅ was: style={{ color: palette.primary.main }} */}
+        <h1 className="mb-2 text-center text-6xl font-extrabold tracking-tight text-primary sm:text-7xl">
           404
         </h1>
-        <p
-          className="mb-1 text-center text-lg font-semibold sm:text-xl"
-          style={{ color: palette.primary.dark }}
-        >
+        {/* ✅ was: style={{ color: palette.primary.dark }} — primary-dark ≈ primary */}
+        <p className="mb-1 text-center text-lg font-semibold text-primary sm:text-xl">
           Seite nicht gefunden
         </p>
-        <p
-          className="mb-8 max-w-md text-center text-sm sm:text-base"
-          style={{ color: palette.text.secondary }}
-        >
+        {/* ✅ was: style={{ color: palette.text.secondary }} → muted-foreground (#5A6166) */}
+        <p className="mb-8 max-w-md text-center text-sm text-muted-foreground sm:text-base">
           Die Seite konnte leider nicht gefunden werden — vielleicht wurde sie
           ausgeliehen und noch nicht zurückgegeben?
         </p>
 
         {/* Actions */}
         <div className="flex gap-3">
+          {/* ✅ was: borderColor `${palette.primary.main}33`, color: palette.primary.main */}
           <button
             onClick={() => router.back()}
-            className="rounded-xl border px-5 py-2.5 text-sm font-medium transition-all duration-200 hover:shadow-md"
-            style={{
-              borderColor: `${palette.primary.main}33`,
-              color: palette.primary.main,
-            }}
+            className="rounded-xl border border-primary/20 px-5 py-2.5 text-sm font-medium text-primary transition-all duration-200 hover:shadow-md"
           >
             Zurück
           </button>
+          {/* ✅ was: style={{ backgroundColor: palette.primary.main, color: palette.primary.contrastText }} */}
           <button
             onClick={() => router.push("/")}
-            className="rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
-            style={{
-              backgroundColor: palette.primary.main,
-              color: palette.primary.contrastText,
-            }}
+            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
           >
             Zur Startseite
           </button>
