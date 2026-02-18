@@ -14,12 +14,11 @@ import {
   sameDay,
 } from "@/lib/utils/dateutils";
 import { getBookFromID } from "@/lib/utils/lookups";
-import Grid from "@mui/material/Grid";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useSnackbar } from "notistack";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 
 interface RentalPropsType {
@@ -40,25 +39,23 @@ export default function Rental({
   bookSortBy,
 }: RentalPropsType) {
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const bookFocusRef = useRef<HTMLInputElement>(null);
   const handleBookSearchSetFocus = () => {
-    bookFocusRef.current?.focus();
+    bookFocusRef.current?.focus({ preventScroll: true });
     bookFocusRef.current?.select();
   };
 
   const userFocusRef = useRef<HTMLInputElement>(null);
   const handleUserSearchSetFocus = () => {
-    userFocusRef.current?.focus();
+    userFocusRef.current?.focus({ preventScroll: true });
     userFocusRef.current?.select();
   };
 
   // Use SWR for live updates
   const { data } = useSWR("/api/rental", fetcher, { refreshInterval: 1000 });
 
-  // Use live data if available, otherwise fall back to initial props
   const books = data?.books ?? initialBooks;
   const users = data?.users ?? initialUsers;
   const rentals = data?.rentals ?? initialRentals;
@@ -67,28 +64,24 @@ export default function Rental({
     try {
       const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!res.ok) {
-        enqueueSnackbar(
+        toast.error(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(
+      toast.success(
         `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`,
       );
       handleBookSearchSetFocus();
     } catch (error) {
-      enqueueSnackbar(
+      toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" },
       );
     }
   };
@@ -99,43 +92,37 @@ export default function Rental({
     const newbook = replaceBookStringDate(book) as any;
 
     if (sameDay(newbook.dueDate, newDueDate)) {
-      enqueueSnackbar(
+      toast.warning(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
-        { variant: "warning" },
       );
       return;
     }
 
     newbook.renewalCount = newbook.renewalCount + 1;
     newbook.dueDate = newDueDate.toDate();
-
-    delete newbook.user; // not needed for update
-    delete newbook._id; // SWR helper id; not needed for update
+    delete newbook.user;
+    delete newbook._id;
 
     try {
       const res = await fetch(`/api/book/${bookid}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newbook),
       });
 
       if (!res.ok) {
-        enqueueSnackbar(
+        toast.error(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(`Buch - ${book.title} - verlängert`);
+      toast.success(`Buch - ${book.title} - verlängert`);
       handleBookSearchSetFocus();
     } catch (error) {
-      enqueueSnackbar(
+      toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" },
       );
     }
   };
@@ -144,48 +131,34 @@ export default function Rental({
     try {
       const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!res.ok) {
-        enqueueSnackbar(
+        toast.error(
           "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-          { variant: "error" },
         );
         return;
       }
 
       await res.json();
-      enqueueSnackbar(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
+      toast.success(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
       handleBookSearchSetFocus();
     } catch (error) {
-      enqueueSnackbar(
+      toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-        { variant: "error" },
       );
     }
   };
 
   return (
     <Layout>
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="flex-start"
-        spacing={2}
-        sx={{ my: 1 }}
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-2 px-2"
+        style={{ overflow: "visible" }}
         data-cy="rental_page_container"
       >
-        {/* Use sm instead of md so iPad (≥768px) shows two columns.
-            Also allow overflow to ensure right-side icons are visible. */}
-        <Grid
-          size={{ xs: 12, sm: 6 }}
-          sx={{ overflow: "visible" }}
-          data-cy="rental_user_column"
-        >
+        <div style={{ overflow: "visible" }} data-cy="rental_user_column">
           <UserRentalList
             users={users}
             books={books}
@@ -197,15 +170,11 @@ export default function Rental({
             searchFieldRef={userFocusRef}
             handleBookSearchSetFocus={handleBookSearchSetFocus}
           />
-        </Grid>
-        <Grid
-          size={{ xs: 12, sm: 6 }}
-          sx={{ overflow: "visible" }}
-          data-cy="rental_book_column"
-        >
+        </div>
+        <div style={{ overflow: "visible" }} data-cy="rental_book_column">
           <BookRentalList
             books={books}
-            users={users} // to figure out the user name who rented
+            users={users}
             handleExtendBookButton={handleExtendBookButton}
             handleReturnBookButton={handleReturnBookButton}
             handleRentBookButton={handleRentBookButton}
@@ -215,8 +184,8 @@ export default function Rental({
             extensionDueDate={newDueDate}
             sortBy={bookSortBy}
           />
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Layout>
   );
 }
@@ -224,12 +193,10 @@ export default function Rental({
 export const getServerSideProps: GetServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  // In test/dev environment, force fresh Prisma connection
   if (process.env.NODE_ENV !== "production") {
     await reconnectPrisma();
   }
 
-  // Disable all caching
   context.res.setHeader(
     "Cache-Control",
     "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
@@ -241,9 +208,8 @@ export const getServerSideProps: GetServerSideProps = async (
   const bookSortBy = process.env.RENTAL_SORT_BOOKS || "title_asc";
 
   const allUsers = await getAllUsers(prisma);
-
   const users = allUsers.map((u) => {
-    const newUser = { ...u } as any; // TODO: tighten type to convert Date -> string
+    const newUser = { ...u } as any;
     newUser.createdAt = convertDateToDayString(u.createdAt);
     newUser.updatedAt = convertDateToDayString(u.updatedAt);
     return newUser;
@@ -251,7 +217,6 @@ export const getServerSideProps: GetServerSideProps = async (
 
   const allRentals = await getRentedBooksWithUsers(prisma);
   const rentals = allRentals.map((r: any) => {
-    // calculate remaining days for the rental
     const due = dayjs(r.dueDate);
     const today = dayjs();
     const diff = today.diff(due, "days");
@@ -270,7 +235,7 @@ export const getServerSideProps: GetServerSideProps = async (
 
   const allBooks = await getAllBooks(prisma);
   const books = allBooks.map((b) => {
-    const newBook = { ...b } as any; // TODO: tighten type to convert Date -> string
+    const newBook = { ...b } as any;
     newBook.createdAt = convertDateToDayString(b.createdAt);
     newBook.updatedAt = convertDateToDayString(b.updatedAt);
     newBook.rentedDate = b.rentedDate

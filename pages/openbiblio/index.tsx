@@ -1,4 +1,3 @@
-import { Button, Container, Grid, TextField, Typography } from "@mui/material";
 import React, { ChangeEvent, FormEvent, useState, type JSX } from "react";
 
 interface ActivityLog {
@@ -13,7 +12,6 @@ interface Props {
 }
 
 export default function MergeFiles() {
-  // State to store the file contents
   const [biblio_copy, setBiblio_copy] = useState(null);
   const [users, setUsers] = useState(null);
   const [biblio, setBiblio] = useState(null);
@@ -22,10 +20,9 @@ export default function MergeFiles() {
   const [merged, setMerged] = useState("");
   const [activityLog, setActivityLog] = useState(["Migration engine ready.."]);
 
-  // Handler for file change events
   const handleFileChange = (
     fileIndex: number,
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -37,7 +34,6 @@ export default function MergeFiles() {
           const content = JSON.parse(e.target?.result as string);
           const recordCount = content[2]?.data?.length || 0;
 
-          // Assign content to the right state based on file index
           switch (fileIndex) {
             case 1:
               setBiblio_copy(content);
@@ -99,9 +95,7 @@ export default function MergeFiles() {
     try {
       const response = await fetch("/api/openbiblioimport/migrateUsers", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(users),
       });
 
@@ -123,11 +117,11 @@ export default function MergeFiles() {
     }
 
     const merged = {
-      biblio_copy: biblio_copy,
-      users: users,
-      biblio: biblio,
-      biblio_hist: biblio_hist,
-      fields: fields,
+      biblio_copy,
+      users,
+      biblio,
+      biblio_hist,
+      fields,
     };
 
     console.log("Merged data to be imported", merged);
@@ -135,9 +129,7 @@ export default function MergeFiles() {
     try {
       const response = await fetch("/api/openbiblioimport/migrateBooks", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(merged),
       });
 
@@ -150,97 +142,75 @@ export default function MergeFiles() {
     }
   };
 
+  const fileFields = [
+    { index: 1, label: "Biblio Copy" },
+    { index: 2, label: "Members" },
+    { index: 3, label: "Biblio" },
+    { index: 4, label: "Biblio History" },
+    { index: 5, label: "Fields" },
+  ];
+
   return (
-    <Container maxWidth="sm">
-      <Typography variant="h5" color={"black"} gutterBottom>
-        Biblio Copy
-      </Typography>
-      <TextField
-        type="file"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(1, e)}
-        fullWidth
-        InputLabelProps={{
-          shrink: true,
-        }}
-        variant="outlined"
-      />
-      <Typography variant="h5" color={"black"} gutterBottom>
-        Members
-      </Typography>
-      <TextField
-        type="file"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(2, e)}
-        fullWidth
-        InputLabelProps={{
-          shrink: true,
-        }}
-        variant="outlined"
-      />
-      <Typography variant="h5" color={"black"} gutterBottom>
-        Biblio
-      </Typography>
-      <TextField
-        type="file"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(3, e)}
-        fullWidth
-        InputLabelProps={{
-          shrink: true,
-        }}
-        variant="outlined"
-      />
-      <Typography variant="h5" color={"black"} gutterBottom>
-        Biblio History
-      </Typography>
-      <TextField
-        type="file"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(4, e)}
-        fullWidth
-        InputLabelProps={{
-          shrink: true,
-        }}
-        variant="outlined"
-      />
-      <Typography variant="h5" color={"black"} gutterBottom>
-        Fields
-      </Typography>
-      <TextField
-        type="file"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => handleFileChange(5, e)}
-        fullWidth
-        InputLabelProps={{
-          shrink: true,
-        }}
-        variant="outlined"
-      />
-      <Grid container spacing={2} sx={{ marginTop: 2 }}>
-        <Grid size={{ xs: 12 }}>
-          <Button
-            onClick={handleMigrateUsers}
-            fullWidth
-            variant="contained"
-            color="primary"
-          >
-            User importieren
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12 }}>
-          <Button
-            onClick={handleMigrateBooks}
-            fullWidth
-            variant="contained"
-            color="primary"
-          >
-            Bücher importieren
-          </Button>
-        </Grid>
-      </Grid>
-      <Grid>
+    <div className="max-w-xl mx-auto px-4 py-6">
+      {fileFields.map(({ index, label }) => (
+        <div key={index} className="mb-4">
+          <h2 className="text-lg font-semibold text-foreground mb-1">
+            {label}
+          </h2>
+          <input
+            type="file"
+            accept="application/json"
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              handleFileChange(index, e)
+            }
+            className="
+              w-full text-sm text-foreground
+              file:mr-3 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-medium
+              file:bg-primary file:text-white
+              file:cursor-pointer
+              hover:file:bg-primary-dark
+              border border-gray-200 rounded-md p-1
+            "
+          />
+        </div>
+      ))}
+
+      <div className="flex flex-col gap-3 mt-6">
+        <button
+          type="button"
+          onClick={handleMigrateUsers}
+          className="
+            w-full py-2.5 px-4 text-sm font-medium text-white
+            bg-primary rounded-lg
+            hover:bg-primary-dark transition-colors
+            cursor-pointer
+          "
+        >
+          User importieren
+        </button>
+        <button
+          type="button"
+          onClick={handleMigrateBooks}
+          className="
+            w-full py-2.5 px-4 text-sm font-medium text-white
+            bg-primary rounded-lg
+            hover:bg-primary-dark transition-colors
+            cursor-pointer
+          "
+        >
+          Bücher importieren
+        </button>
+      </div>
+
+      <div className="mt-6 space-y-1">
         {[...activityLog].reverse().map((a: string, i: number) => (
-          <div key={i}>
-            <Typography color={"black"}>{a.substring(0, 200)}</Typography>
-          </div>
+          <p key={i} className="text-sm text-foreground truncate">
+            {a.substring(0, 200)}
+          </p>
         ))}
-      </Grid>
-    </Container>
+      </div>
+    </div>
   );
 }

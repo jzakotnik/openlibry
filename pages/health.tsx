@@ -1,37 +1,36 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
-  Book,
-  CheckCircle,
-  DataObject,
-  Error as ErrorIcon,
-  EventNote,
-  Folder,
-  InsertDriveFile,
-  Memory,
-  Refresh,
-  Schedule,
-  Storage,
-  Warning,
-} from "@mui/icons-material";
-import {
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Container,
-  Divider,
-  IconButton,
-  LinearProgress,
-  Paper,
-  Stack,
   Tooltip,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertTriangle,
+  BookOpen,
+  CalendarClock,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  Database,
+  File,
+  Folder,
+  Library,
+  Loader2,
+  RefreshCw,
+  Server,
+  XCircle,
+} from "lucide-react";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 
-// Types matching the API response
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
 type CheckStatus = "ok" | "warning" | "error";
 
 interface CheckResult {
@@ -74,32 +73,38 @@ interface HealthCheckResponse {
   };
 }
 
-// Status styling
+/* ------------------------------------------------------------------ */
+/*  Config                                                             */
+/* ------------------------------------------------------------------ */
+
 const statusConfig = {
   ok: {
     color: "#10b981",
-    bgColor: "#d1fae5",
-    textColor: "#065f46",
-    icon: CheckCircle,
+    bg: "#d1fae5",
+    text: "#065f46",
     label: "OK",
+    Icon: CheckCircle2,
   },
   warning: {
     color: "#f59e0b",
-    bgColor: "#fef3c7",
-    textColor: "#92400e",
-    icon: Warning,
+    bg: "#fef3c7",
+    text: "#92400e",
     label: "Warnung",
+    Icon: AlertTriangle,
   },
   error: {
     color: "#ef4444",
-    bgColor: "#fee2e2",
-    textColor: "#991b1b",
-    icon: ErrorIcon,
+    bg: "#fee2e2",
+    text: "#991b1b",
     label: "Fehler",
+    Icon: XCircle,
   },
 };
 
-// Format bytes
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
 function formatBytes(bytes: number): string {
   const units = ["B", "KB", "MB", "GB"];
   let i = 0;
@@ -110,88 +115,84 @@ function formatBytes(bytes: number): string {
   return `${bytes.toFixed(1)} ${units[i]}`;
 }
 
-// Format uptime
 function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-
   const parts = [];
   if (days > 0) parts.push(`${days}d`);
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (parts.length === 0) parts.push(`${seconds}s`);
-
   return parts.join(" ");
 }
 
-// Status badge component
-function StatusBadge({ status }: { status: CheckStatus }) {
-  const config = statusConfig[status];
-  const Icon = config.icon;
+/* ------------------------------------------------------------------ */
+/*  Status Badge                                                       */
+/* ------------------------------------------------------------------ */
 
+function StatusBadge({ status }: { status: CheckStatus }) {
+  const cfg = statusConfig[status];
+  const Icon = cfg.Icon;
   return (
-    <Chip
-      icon={<Icon sx={{ fontSize: 16 }} />}
-      label={config.label}
-      size="small"
-      sx={{
-        bgcolor: config.bgColor,
-        color: config.textColor,
-        fontWeight: 600,
-        "& .MuiChip-icon": { color: config.color },
-      }}
-    />
+    <Badge
+      className="gap-1 font-semibold"
+      style={{ backgroundColor: cfg.bg, color: cfg.text }}
+    >
+      <Icon size={13} style={{ color: cfg.color }} />
+      {cfg.label}
+    </Badge>
   );
 }
 
-// Check card component
+/* ------------------------------------------------------------------ */
+/*  Stat Card                                                          */
+/* ------------------------------------------------------------------ */
+
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+}: {
+  title: string;
+  value: string | number;
+  icon: typeof BookOpen;
+  color: string;
+}) {
+  return (
+    <div
+      className="rounded-xl border bg-white p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+      style={{ borderColor: `${color}20` }}
+    >
+      <div
+        className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg"
+        style={{ backgroundColor: `${color}14` }}
+      >
+        <Icon size={22} style={{ color }} />
+      </div>
+      <p className="text-2xl font-bold" style={{ color }}>
+        {typeof value === "number" ? value.toLocaleString("de-DE") : value}
+      </p>
+      <p className="mt-0.5 text-xs text-gray-500">{title}</p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Check Card                                                         */
+/* ------------------------------------------------------------------ */
+
 function CheckCard({
   title,
   icon: Icon,
   check,
 }: {
   title: string;
-  icon: typeof Storage;
+  icon: typeof Database;
   check: CheckResult;
 }) {
-  const config = statusConfig[check.status];
-
-  const formatDetailValue = (key: string, value: unknown): string => {
-    if (typeof value === "object" && value !== null) {
-      const obj = value as Record<string, unknown>;
-
-      // Folder status
-      if ("exists" in obj && "writable" in obj && !("configured" in obj)) {
-        const exists = obj.exists ? "✓ vorhanden" : "✗ fehlt";
-        const writable = obj.writable ? ", beschreibbar" : "";
-        const fileCount =
-          typeof obj.fileCount === "number"
-            ? ` (${obj.fileCount.toLocaleString("de-DE")} Bilder)`
-            : "";
-        return `${exists}${writable}${fileCount}`;
-      }
-
-      // File status
-      if ("exists" in obj && "configured" in obj) {
-        const status = obj.exists ? "✓ vorhanden" : "✗ fehlt";
-        const configured = obj.configured ? " (konfiguriert)" : " (Standard)";
-        return `${status}${configured}`;
-      }
-
-      return JSON.stringify(obj);
-    }
-
-    if (typeof value === "number") {
-      return value.toLocaleString("de-DE");
-    }
-
-    if (typeof value === "boolean") {
-      return value ? "Ja" : "Nein";
-    }
-
-    return String(value);
-  };
+  const cfg = statusConfig[check.status];
 
   const getKeyLabel = (key: string): string => {
     const labels: Record<string, string> = {
@@ -211,7 +212,30 @@ function CheckCard({
     return labels[key] || key;
   };
 
-  // Filter out raw size if formatted size exists
+  const formatDetailValue = (key: string, value: unknown): string => {
+    if (typeof value === "object" && value !== null) {
+      const obj = value as Record<string, unknown>;
+      if ("exists" in obj && "writable" in obj && !("configured" in obj)) {
+        const exists = obj.exists ? "✓ vorhanden" : "✗ fehlt";
+        const writable = obj.writable ? ", beschreibbar" : "";
+        const fileCount =
+          typeof obj.fileCount === "number"
+            ? ` (${obj.fileCount.toLocaleString("de-DE")} Bilder)`
+            : "";
+        return `${exists}${writable}${fileCount}`;
+      }
+      if ("exists" in obj && "configured" in obj) {
+        const status = obj.exists ? "✓ vorhanden" : "✗ fehlt";
+        const configured = obj.configured ? " (konfiguriert)" : " (Standard)";
+        return `${status}${configured}`;
+      }
+      return JSON.stringify(obj);
+    }
+    if (typeof value === "number") return value.toLocaleString("de-DE");
+    if (typeof value === "boolean") return value ? "Ja" : "Nein";
+    return String(value);
+  };
+
   const filteredDetails = check.details
     ? Object.fromEntries(
         Object.entries(check.details).filter(
@@ -222,119 +246,64 @@ function CheckCard({
 
   return (
     <Card
-      sx={{
-        height: "100%",
-        borderLeft: 4,
-        borderColor: config.color,
-        transition: "transform 0.2s, box-shadow 0.2s",
-        "&:hover": {
-          transform: "translateY(-2px)",
-          boxShadow: 3,
-        },
-      }}
+      className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+      style={{ borderLeft: `4px solid ${cfg.color}` }}
     >
-      <CardContent>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={1}
-        >
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Icon sx={{ color: config.color }} />
-            <Typography variant="h6" component="h3">
-              {title}
-            </Typography>
-          </Stack>
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon size={20} style={{ color: cfg.color }} />
+            <h3 className="text-base font-semibold">{title}</h3>
+          </div>
           <StatusBadge status={check.status} />
-        </Stack>
+        </div>
 
-        <Typography color="text.secondary" variant="body2" mb={1}>
-          {check.message}
-        </Typography>
+        <p className="mb-2 text-sm text-gray-500">{check.message}</p>
 
+        {/* Details */}
         {filteredDetails && Object.keys(filteredDetails).length > 0 && (
-          <Box
-            sx={{
-              mt: 2,
-              p: 1.5,
-              bgcolor: "grey.50",
-              borderRadius: 1,
-              fontFamily: "monospace",
-              fontSize: "0.8rem",
-            }}
-          >
+          <div className="mt-3 rounded-lg bg-gray-50 p-3 font-mono text-xs">
             {Object.entries(filteredDetails).map(([key, value]) => (
-              <Box
-                key={key}
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  py: 0.25,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Typography
-                  component="span"
-                  sx={{
-                    color: "text.secondary",
-                    minWidth: 120,
-                    fontFamily: "inherit",
-                    fontSize: "inherit",
-                  }}
-                >
+              <div key={key} className="flex flex-wrap gap-1 py-0.5">
+                <span className="min-w-[120px] text-gray-400">
                   {getKeyLabel(key)}:
-                </Typography>
-                <Typography
-                  component="span"
-                  sx={{
-                    color: "text.primary",
-                    fontFamily: "inherit",
-                    fontSize: "inherit",
-                    wordBreak: "break-all",
-                  }}
-                >
+                </span>
+                <span className="break-all text-gray-700">
                   {formatDetailValue(key, value)}
-                </Typography>
-              </Box>
+                </span>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
       </CardContent>
     </Card>
   );
 }
 
-// Stat card component
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  color = "primary",
-}: {
-  title: string;
-  value: string | number;
-  icon: typeof Book;
-  color?: string;
-}) {
+/* ------------------------------------------------------------------ */
+/*  Meta item (version, env, etc.)                                     */
+/* ------------------------------------------------------------------ */
+
+function MetaItem({ label, value }: { label: string; value: string }) {
   return (
-    <Paper sx={{ p: 2, textAlign: "center" }}>
-      <Icon sx={{ fontSize: 32, color, mb: 1 }} />
-      <Typography variant="h4" fontWeight="bold">
-        {typeof value === "number" ? value.toLocaleString("de-DE") : value}
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-    </Paper>
+    <div>
+      <p className="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400">
+        {label}
+      </p>
+      <p className="font-bold text-gray-800">{value}</p>
+    </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function HealthPage() {
   const [data, setData] = useState<HealthCheckResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchHealth = async () => {
     setLoading(true);
@@ -347,7 +316,6 @@ export default function HealthPage() {
       } else {
         setData(json);
       }
-      setLastRefresh(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fehler beim Laden");
     } finally {
@@ -357,311 +325,233 @@ export default function HealthPage() {
 
   useEffect(() => {
     fetchHealth();
-
-    // Auto-refresh every 30 seconds
     const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const mainStatus = data?.status || "ok";
-  const mainConfig = statusConfig[mainStatus];
-  const MainIcon = mainConfig.icon;
+  const mainCfg = statusConfig[mainStatus];
+  const MainIcon = mainCfg.Icon;
+
+  const memPercent = data?.system.memory.usedPercent ?? 0;
+  const memColor =
+    memPercent > 90 ? "#ef4444" : memPercent > 70 ? "#f59e0b" : "#10b981";
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       <Head>
         <title>System Health | OpenLibry</title>
       </Head>
 
-      <Box
-        sx={{
-          minHeight: "100vh",
+      <div
+        className="min-h-screen py-6"
+        style={{
           background: "linear-gradient(135deg, #1e3a5f 0%, #0f1c2e 100%)",
-          py: 4,
         }}
       >
-        <Container maxWidth="lg">
-          {/* Header */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="center"
-            spacing={2}
-            mb={4}
-          >
-            <Book sx={{ fontSize: 48, color: "#60a5fa" }} />
-            <Typography variant="h3" fontWeight="bold" color="white">
-              OpenLibry
-            </Typography>
-          </Stack>
-          <Typography variant="h6" color="#94a3b8" textAlign="center" mb={4}>
-            Installation Health Check
-          </Typography>
+        <div className="mx-auto max-w-screen-lg px-4 sm:px-6">
+          {/* ── Header ── */}
+          <div className="mb-8 text-center">
+            <div className="mb-2 flex items-center justify-center gap-3">
+              <Library size={40} className="text-blue-400" />
+              <h1 className="text-3xl font-bold text-white sm:text-4xl">
+                OpenLibry
+              </h1>
+            </div>
+            <p className="text-slate-400">Installation Health Check</p>
+          </div>
 
-          {/* Main Status Card */}
-          <Paper sx={{ p: 3, mb: 3 }}>
+          {/* ── Main status card ── */}
+          <div className="mb-4 rounded-2xl border border-white/10 bg-white p-5 shadow-lg">
             {loading && !data ? (
-              <Box textAlign="center" py={4}>
-                <CircularProgress />
-                <Typography color="text.secondary" mt={2}>
+              <div className="flex flex-col items-center py-8">
+                <Loader2 size={36} className="animate-spin text-gray-400" />
+                <p className="mt-3 text-sm text-gray-500">
                   Lade Systemstatus...
-                </Typography>
-              </Box>
+                </p>
+              </div>
             ) : error ? (
-              <Box textAlign="center" py={4}>
-                <ErrorIcon sx={{ fontSize: 64, color: "error.main", mb: 2 }} />
-                <Typography variant="h5" color="error.main">
+              <div className="flex flex-col items-center py-8">
+                <XCircle size={48} className="mb-2 text-red-400" />
+                <p className="text-lg font-semibold text-red-600">
                   Fehler beim Laden
-                </Typography>
-                <Typography color="text.secondary">{error}</Typography>
-              </Box>
+                </p>
+                <p className="text-sm text-gray-500">{error}</p>
+              </div>
             ) : data ? (
               <>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  alignItems="center"
-                  spacing={2}
-                  mb={2}
-                >
-                  <Box
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: "50%",
-                      bgcolor: mainConfig.bgColor,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                {/* Status + refresh */}
+                <div className="flex flex-col items-center gap-4 sm:flex-row">
+                  <div
+                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: mainCfg.bg }}
                   >
-                    <MainIcon sx={{ fontSize: 32, color: mainConfig.color }} />
-                  </Box>
-                  <Box flex={1}>
-                    <Typography
-                      variant="h5"
-                      fontWeight="bold"
-                      color={mainConfig.textColor}
+                    <MainIcon size={30} style={{ color: mainCfg.color }} />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h2
+                      className="text-xl font-bold"
+                      style={{ color: mainCfg.text }}
                     >
                       {mainStatus === "ok" && "Alles in Ordnung"}
                       {mainStatus === "warning" && "Warnungen vorhanden"}
                       {mainStatus === "error" && "Fehler erkannt"}
-                    </Typography>
-                    <Typography color="text.secondary">
+                    </h2>
+                    <p className="text-sm text-gray-500">
                       Stand: {new Date(data.timestamp).toLocaleString("de-DE")}
-                    </Typography>
-                  </Box>
-                  <Tooltip title="Aktualisieren">
-                    <IconButton onClick={fetchHealth} disabled={loading}>
-                      <Refresh
-                        sx={{
-                          animation: loading
-                            ? "spin 1s linear infinite"
-                            : "none",
-                          "@keyframes spin": {
-                            "0%": { transform: "rotate(0deg)" },
-                            "100%": { transform: "rotate(360deg)" },
-                          },
-                        }}
-                      />
-                    </IconButton>
+                    </p>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={fetchHealth}
+                        disabled={loading}
+                        className="shrink-0"
+                      >
+                        <RefreshCw
+                          size={18}
+                          className={loading ? "animate-spin" : ""}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Aktualisieren</p>
+                    </TooltipContent>
                   </Tooltip>
-                </Stack>
+                </div>
 
-                <Divider sx={{ my: 2 }} />
+                <Separator className="my-4" />
 
-                {/* Meta info */}
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      display="block"
-                    >
-                      VERSION
-                    </Typography>
-                    <Typography fontWeight="bold">
-                      {data.version || "unbekannt"}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      display="block"
-                    >
-                      UMGEBUNG
-                    </Typography>
-                    <Typography fontWeight="bold">
-                      {data.environment.nodeEnv}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      display="block"
-                    >
-                      AUTHENTIFIZIERUNG
-                    </Typography>
-                    <Typography fontWeight="bold">
-                      {data.environment.authEnabled
-                        ? "Aktiviert"
-                        : "Deaktiviert"}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      display="block"
-                    >
-                      NODE.JS
-                    </Typography>
-                    <Typography fontWeight="bold">
-                      {data.environment.nodeVersion}
-                    </Typography>
-                  </Grid>
-                </Grid>
+                {/* Meta grid */}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <MetaItem
+                    label="Version"
+                    value={data.version || "unbekannt"}
+                  />
+                  <MetaItem label="Umgebung" value={data.environment.nodeEnv} />
+                  <MetaItem
+                    label="Authentifizierung"
+                    value={
+                      data.environment.authEnabled ? "Aktiviert" : "Deaktiviert"
+                    }
+                  />
+                  <MetaItem
+                    label="Node.js"
+                    value={data.environment.nodeVersion}
+                  />
+                </div>
               </>
             ) : null}
-          </Paper>
+          </div>
 
           {data && (
             <>
-              {/* System Stats */}
-              <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <StatCard
-                    title="Speicher belegt"
-                    value={`${data.system.memory.usedPercent}%`}
-                    icon={Memory}
-                    color="#8b5cf6"
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <StatCard
-                    title="Uptime"
-                    value={formatUptime(data.system.uptime)}
-                    icon={Schedule}
-                    color="#06b6d4"
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <StatCard
-                    title="Aktive Ausleihen"
-                    value={data.stats?.activeRentals ?? "-"}
-                    icon={Book}
-                    color="#10b981"
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <StatCard
-                    title="Überfällig"
-                    value={data.stats?.overdueBooks ?? "-"}
-                    icon={EventNote}
-                    color={
-                      data.stats?.overdueBooks && data.stats.overdueBooks > 0
-                        ? "#ef4444"
-                        : "#10b981"
-                    }
-                  />
-                </Grid>
-              </Grid>
+              {/* ── Stats row ── */}
+              <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <StatCard
+                  title="Speicher belegt"
+                  value={`${data.system.memory.usedPercent}%`}
+                  icon={Cpu}
+                  color="#8b5cf6"
+                />
+                <StatCard
+                  title="Uptime"
+                  value={formatUptime(data.system.uptime)}
+                  icon={Clock}
+                  color="#06b6d4"
+                />
+                <StatCard
+                  title="Aktive Ausleihen"
+                  value={data.stats?.activeRentals ?? "-"}
+                  icon={BookOpen}
+                  color="#10b981"
+                />
+                <StatCard
+                  title="Überfällig"
+                  value={data.stats?.overdueBooks ?? "-"}
+                  icon={CalendarClock}
+                  color={
+                    data.stats?.overdueBooks && data.stats.overdueBooks > 0
+                      ? "#ef4444"
+                      : "#10b981"
+                  }
+                />
+              </div>
 
-              {/* Memory Bar */}
-              <Paper sx={{ p: 2, mb: 3 }}>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={1}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Speichernutzung
-                  </Typography>
-                  <Typography variant="body2">
+              {/* ── Memory bar ── */}
+              <div className="mb-4 rounded-2xl border border-white/10 bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Speichernutzung</span>
+                  <span className="text-sm font-medium">
                     {formatBytes(data.system.memory.used)} /{" "}
                     {formatBytes(data.system.memory.total)}
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={data.system.memory.usedPercent}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    bgcolor: "grey.200",
-                    "& .MuiLinearProgress-bar": {
-                      bgcolor:
-                        data.system.memory.usedPercent > 90
-                          ? "error.main"
-                          : data.system.memory.usedPercent > 70
-                            ? "warning.main"
-                            : "success.main",
-                      borderRadius: 4,
-                    },
-                  }}
+                  </span>
+                </div>
+                {/* 
+                  shadcn Progress doesn't support custom bar color via props,
+                  so we use a native div-based bar for full control.
+                */}
+                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${memPercent}%`,
+                      backgroundColor: memColor,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* ── Check cards ── */}
+              <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <CheckCard
+                  title="Datenbank"
+                  icon={Database}
+                  check={data.checks.database}
                 />
-              </Paper>
+                <CheckCard
+                  title="Datenbestand"
+                  icon={Server}
+                  check={data.checks.data}
+                />
+                <CheckCard
+                  title="Verzeichnisse"
+                  icon={Folder}
+                  check={data.checks.folders}
+                />
+                <CheckCard
+                  title="Dateien"
+                  icon={File}
+                  check={data.checks.files}
+                />
+              </div>
 
-              {/* Check Cards */}
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <CheckCard
-                    title="Datenbank"
-                    icon={Storage}
-                    check={data.checks.database}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <CheckCard
-                    title="Datenbestand"
-                    icon={DataObject}
-                    check={data.checks.data}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <CheckCard
-                    title="Verzeichnisse"
-                    icon={Folder}
-                    check={data.checks.folders}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <CheckCard
-                    title="Dateien"
-                    icon={InsertDriveFile}
-                    check={data.checks.files}
-                  />
-                </Grid>
-              </Grid>
-
-              {/* Footer */}
-              <Box textAlign="center" mt={4}>
-                <Typography color="#64748b" variant="body2">
-                  <a
-                    href="/api/health"
-                    style={{ color: "#60a5fa", textDecoration: "none" }}
-                  >
-                    JSON-API
-                  </a>
-                  {" · "}
-                  <a
-                    href="https://github.com/jzakotnik/openlibry"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "#60a5fa", textDecoration: "none" }}
-                  >
-                    GitHub
-                  </a>
-                  {" · "}
-                  {data.system.platform} ({data.system.arch})
-                </Typography>
-              </Box>
+              {/* ── Footer ── */}
+              <div className="mt-6 text-center text-sm text-slate-500">
+                <a
+                  href="/api/health"
+                  className="text-blue-400 transition-colors hover:text-blue-300"
+                >
+                  JSON-API
+                </a>
+                {" · "}
+                <a
+                  href="https://github.com/jzakotnik/openlibry"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 transition-colors hover:text-blue-300"
+                >
+                  GitHub
+                </a>
+                {" · "}
+                {data.system.platform} ({data.system.arch})
+              </div>
             </>
           )}
-        </Container>
-      </Box>
-    </>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }

@@ -1,34 +1,26 @@
 import Layout from "@/components/layout/Layout";
-import Box from "@mui/material/Box";
 import { useMemo, useState } from "react";
 
 import { AuditType } from "@/entities/AuditType";
 import { getAllAudit } from "@/entities/audit";
-import { convertDateToTimeString } from "@/lib/utils/dateutils";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import HistoryIcon from "@mui/icons-material/History";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import PersonIcon from "@mui/icons-material/Person";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import PersonOffIcon from "@mui/icons-material/PersonOff";
-import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
-import SearchIcon from "@mui/icons-material/Search";
-import UpdateIcon from "@mui/icons-material/Update";
-import {
-  InputAdornment,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
-
 import { prisma } from "@/entities/db";
+import { convertDateToTimeString } from "@/lib/utils/dateutils";
+
+import {
+  BookOpen,
+  CirclePlus,
+  ClipboardCheck,
+  History,
+  Pencil,
+  RefreshCw,
+  Search,
+  Trash2,
+  UserCheck,
+  UserMinus,
+  UserPlus,
+  UserRound,
+  UserX,
+} from "lucide-react";
 
 interface AuditPropsType {
   audits: Array<AuditType>;
@@ -45,11 +37,10 @@ interface ParsedAudit {
 
 function parseEventContent(
   eventType: string,
-  eventContent: string
+  eventContent: string,
 ): { sentence: string; details: Record<string, string> } {
   const details: Record<string, string> = {};
 
-  // Parse common patterns from eventContent
   const userIdMatch = eventContent.match(/User id:\s*(\d+)/i);
   const bookIdMatch =
     eventContent.match(/Book id:\s*(\d+)/i) ||
@@ -62,19 +53,16 @@ function parseEventContent(
   if (bookIdMatch) details.bookId = bookIdMatch[1];
   if (bookTitleMatch) details.bookTitle = bookTitleMatch[1].trim();
 
-  // If eventContent is just a number (book ID), treat it as book ID
   if (/^\d+$/.test(eventContent.trim())) {
     details.bookId = eventContent.trim();
   }
 
-  // If eventContent contains "book id X, Title" pattern
   const simpleBookPattern = eventContent.match(/book id\s*(\d+),?\s*(.+)?/i);
   if (simpleBookPattern) {
     details.bookId = simpleBookPattern[1];
     if (simpleBookPattern[2]) details.bookTitle = simpleBookPattern[2].trim();
   }
 
-  // Generate human-readable sentence based on event type
   let sentence = "";
 
   switch (eventType.toLowerCase()) {
@@ -122,7 +110,6 @@ function parseEventContent(
       sentence = `Buch #${eventContent} wurde gelöscht`;
       break;
 
-    // User events
     case "add user": {
       const userNameMatch = eventContent.match(/^\d+,\s*(.+)$/);
       if (userNameMatch) {
@@ -166,32 +153,32 @@ function getEventIcon(eventType: string): {
   icon: React.ReactNode;
   color: string;
 } {
+  const size = 20;
   switch (eventType.toLowerCase()) {
     case "rent book":
-      return { icon: <MenuBookIcon />, color: "#1976d2" };
+      return { icon: <BookOpen size={size} />, color: "text-blue-600" };
     case "return book":
-      return { icon: <AssignmentReturnIcon />, color: "#2e7d32" };
+      return { icon: <ClipboardCheck size={size} />, color: "text-green-700" };
     case "extend book":
-      return { icon: <UpdateIcon />, color: "#ed6c02" };
+      return { icon: <RefreshCw size={size} />, color: "text-orange-500" };
     case "add book":
-      return { icon: <AddCircleIcon />, color: "#9c27b0" };
+      return { icon: <CirclePlus size={size} />, color: "text-purple-600" };
     case "update book":
-      return { icon: <EditIcon />, color: "#0288d1" };
+      return { icon: <Pencil size={size} />, color: "text-sky-600" };
     case "delete book":
-      return { icon: <DeleteIcon />, color: "#d32f2f" };
-    // User events
+      return { icon: <Trash2 size={size} />, color: "text-red-600" };
     case "add user":
-      return { icon: <PersonAddIcon />, color: "#9c27b0" };
+      return { icon: <UserPlus size={size} />, color: "text-purple-600" };
     case "update user":
-      return { icon: <PersonIcon />, color: "#0288d1" };
+      return { icon: <UserRound size={size} />, color: "text-sky-600" };
     case "delete user":
-      return { icon: <PersonRemoveIcon />, color: "#d32f2f" };
+      return { icon: <UserMinus size={size} />, color: "text-red-600" };
     case "disable user":
-      return { icon: <PersonOffIcon />, color: "#f57c00" };
+      return { icon: <UserX size={size} />, color: "text-orange-600" };
     case "enable user":
-      return { icon: <PersonAddIcon />, color: "#388e3c" };
+      return { icon: <UserCheck size={size} />, color: "text-green-600" };
     default:
-      return { icon: <HistoryIcon />, color: "#757575" };
+      return { icon: <History size={size} />, color: "text-gray-500" };
   }
 }
 
@@ -202,7 +189,7 @@ export default function Audit({ audits }: AuditPropsType) {
     return audits.map((audit) => {
       const { sentence } = parseEventContent(
         audit.eventType,
-        audit.eventContent
+        audit.eventContent,
       );
       const { icon, color } = getEventIcon(audit.eventType);
 
@@ -225,83 +212,73 @@ export default function Audit({ audits }: AuditPropsType) {
       (audit) =>
         audit.sentence.toLowerCase().includes(query) ||
         audit.eventType.toLowerCase().includes(query) ||
-        audit.timestamp.toLowerCase().includes(query)
+        audit.timestamp.toLowerCase().includes(query),
     );
   }, [parsedAudits, searchQuery]);
 
   return (
     <Layout>
-      <Box sx={{ width: "100%", mt: 3, px: 2 }}>
-        <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Suche nach Büchern, Aktionen oder Datum..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-              },
-            }}
-          />
-        </Paper>
+      <div className="w-full mt-3 px-2">
+        {/* Search bar */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 mb-3">
+          <div className="relative">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="text"
+              placeholder="Suche nach Büchern, Aktionen oder Datum..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="
+                w-full pl-10 pr-4 py-2.5
+                rounded-lg border border-gray-200
+                text-sm placeholder:text-muted-foreground/60
+                focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+                transition-colors
+              "
+            />
+          </div>
+        </div>
 
-        <Paper elevation={2} sx={{ maxHeight: "70vh", overflow: "auto" }}>
+        {/* Audit list */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 max-h-[70vh] overflow-auto">
           {filteredAudits.length > 0 ? (
-            <List>
-              {filteredAudits.map((audit, index) => (
-                <ListItem
+            <ul className="divide-y divide-gray-100">
+              {filteredAudits.map((audit) => (
+                <li
                   key={audit.id}
-                  divider={index < filteredAudits.length - 1}
-                  sx={{
-                    "&:hover": {
-                      backgroundColor: "rgba(0, 0, 0, 0.04)",
-                    },
-                  }}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/60 transition-colors"
                 >
-                  <ListItemIcon sx={{ color: audit.color, minWidth: 48 }}>
+                  <span className={`shrink-0 ${audit.color}`}>
                     {audit.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={audit.sentence}
-                    secondary={audit.timestamp}
-                    primaryTypographyProps={{
-                      sx: { fontWeight: 400 },
-                    }}
-                    secondaryTypographyProps={{
-                      sx: { color: "text.secondary", fontSize: "0.85rem" },
-                    }}
-                  />
-                </ListItem>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-900">{audit.sentence}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {audit.timestamp}
+                    </p>
+                  </div>
+                </li>
               ))}
-            </List>
+            </ul>
           ) : (
-            <Box sx={{ p: 4, textAlign: "center" }}>
-              <Typography color="text.secondary">
+            <div className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">
                 {searchQuery
                   ? "Keine Ergebnisse gefunden"
                   : "Keine Aktivitäten verfügbar"}
-              </Typography>
-            </Box>
+              </p>
+            </div>
           )}
-        </Paper>
+        </div>
 
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mt: 1, textAlign: "right" }}
-        >
+        {/* Count */}
+        <p className="text-xs text-muted-foreground mt-2 text-right">
           {filteredAudits.length} von {parsedAudits.length} Einträgen
-        </Typography>
-      </Box>
+        </p>
+      </div>
     </Layout>
   );
 }

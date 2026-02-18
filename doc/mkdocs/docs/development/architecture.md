@@ -6,7 +6,7 @@ Technischer Überblick über OpenLibry.
 
 | Schicht | Technologie |
 |---------|-------------|
-| **Frontend** | React 19, Material-UI 7 |
+| **Frontend** | React 19, Shadcn/ui, Tailwind |
 | **Backend** | Next.js 15 (Pages Router) |
 | **Datenbank** | SQLite via Prisma ORM 7 |
 | **PDF-Generierung** | @react-pdf/renderer |

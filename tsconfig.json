@@ -31,7 +31,8 @@
     "pages/api/book/[id]",
     ".next/types/**/*.ts",
     "cypress/support/commands.js",
-    "prisma.config.mjs"
+    "prisma.config.mjs",
+    "tailwind.config.js"
   ],
   "exclude": ["node_modules"]
 }

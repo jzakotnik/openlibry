@@ -1,20 +1,4 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  Stack,
-  Typography,
-} from "@mui/material";
-import router from "next/router";
-import {
-  cardAccentSx,
-  cardActionButtonSx,
-  cardBaseSx,
-  metricSx,
-} from "./cardConstants";
-import palette from "@/styles/palette";
+import { useRouter } from "next/router";
 
 type ReportCardProps = {
   title: string;
@@ -31,54 +15,67 @@ export default function ReportCard({
   link,
   totalNumber,
 }: ReportCardProps) {
+  const router = useRouter();
   const dataCy = `report-card-${unit}`;
 
   return (
-    <Card sx={cardBaseSx} data-cy={dataCy}>
-      <Box sx={cardAccentSx(palette.secondary.main)} />
-      <CardContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ fontWeight: 600, color: palette.text.secondary, mb: 2 }}
+    <div
+      className="
+        group min-w-[275px] min-h-[210px] rounded-2xl overflow-hidden
+        shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]
+        transition-all duration-200 ease-out
+        hover:shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(0,0,0,0.06)]
+        hover:-translate-y-0.5
+        bg-white
+      "
+      data-cy={dataCy}
+    >
+      {/* Accent bar */}
+      <div className="h-1 w-full bg-gradient-to-r from-secondary to-secondary/50" />
+
+      {/* Content */}
+      <div className="px-4 pt-3 pb-1">
+        <h3
+          className="text-lg font-semibold text-muted-foreground mb-3"
           data-cy={`${dataCy}-title`}
         >
           {title}
-        </Typography>
+        </h3>
 
-        <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 1 }}>
-          <Typography sx={metricSx} data-cy={`${dataCy}-count`}>
-            {totalNumber.toLocaleString("de-DE")}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: "0.875rem",
-              color: palette.text.disabled,
-              fontWeight: 500,
-            }}
+        <div className="flex items-baseline gap-2 mb-1">
+          <span
+            className="text-3xl font-bold text-primary leading-tight"
+            data-cy={`${dataCy}-count`}
           >
-            {unit}
-          </Typography>
-        </Stack>
+            {totalNumber.toLocaleString("de-DE")}
+          </span>
+          <span className="text-sm font-medium text-disabled">{unit}</span>
+        </div>
 
-        <Typography
-          variant="body2"
-          sx={{ color: palette.text.disabled, lineHeight: 1.5 }}
+        <p
+          className="text-sm text-disabled leading-relaxed"
           data-cy={`${dataCy}-subtitle`}
         >
           {subtitle}
-        </Typography>
-      </CardContent>
-      <CardActions sx={{ px: 3, pb: 2 }}>
-        <Button
-          size="small"
+        </p>
+      </div>
+
+      {/* Action */}
+      <div className="px-4 pb-3">
+        <button
+          type="button"
           onClick={() => router.push(link)}
-          sx={cardActionButtonSx}
           data-cy={`${dataCy}-button`}
+          className="
+            text-sm font-semibold text-primary
+            px-3 py-1.5 rounded-lg
+            hover:bg-primary/5
+            transition-colors cursor-pointer
+          "
         >
           Erzeuge Tabelle
-        </Button>
-      </CardActions>
-    </Card>
+        </button>
+      </div>
+    </div>
   );
 }

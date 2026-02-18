@@ -1,47 +1,48 @@
-import { List, ListItem, Typography } from "@mui/material";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+interface BookAntolinDialogProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  antolinBooks: any;
+}
 
 export default function BookAntolinDialog({
   open,
   setOpen,
   antolinBooks,
-}: any) {
-  const handleClose = () => {
-    setOpen(false);
-  };
-  //console.log("Antolin Books for the dialog", antolinBooks);
+}: BookAntolinDialogProps) {
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="antolin-info-dialog-title"
-      aria-describedby="antolin-info-dialog-description"
-    >
-      <DialogTitle id="antolin-info-dialog-title">
-        {"Bücher aus der Antolin Datenbank"}
-      </DialogTitle>
-      <DialogContent>
-        <List>
-          {antolinBooks?.items.slice(0, 10).map((b: any) => {
-            return (
-              <ListItem key={b.book_id}>
-                <Typography component={"span"} key={b.book_id}>
-                  - {b.Titel}
-                </Typography>
-              </ListItem>
-            );
-          })}
-        </List>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Bücher aus der Antolin Datenbank</DialogTitle>
+        </DialogHeader>
+
+        <ul className="space-y-1.5">
+          {antolinBooks?.items?.slice(0, 10).map((b: any) => (
+            <li
+              key={b.book_id}
+              className="text-sm text-muted-foreground leading-relaxed"
+            >
+              <span className="text-muted-foreground/50 mr-1.5">–</span>
+              {b.Titel}
+            </li>
+          ))}
+        </ul>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)} autoFocus>
+            Schließen
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} autoFocus>
-          Schliessen
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

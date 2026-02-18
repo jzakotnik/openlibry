@@ -1,31 +1,11 @@
-import palette from "@/styles/palette";
 import {
-  AdminPanelSettings,
-  LibraryBooks,
-  Menu as MenuIcon,
-} from "@mui/icons-material";
-import {
-  alpha,
-  AppBar,
-  Box,
-  Button,
-  Container,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-  Toolbar,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+  Cross2Icon,
+  GearIcon,
+  HamburgerMenuIcon,
+  ReaderIcon,
+} from "@radix-ui/react-icons";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { publicNavItems } from "./NavigationItems";
 
 interface TopBarProps {
@@ -34,8 +14,6 @@ interface TopBarProps {
 
 export default function TopBar({ showAdminButton = true }: TopBarProps) {
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavigation = (slug: string) => {
@@ -47,356 +25,235 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
     return router.pathname === slug || router.pathname.startsWith(slug + "/");
   };
 
-  const handleAdminClick = () => {
-    router.push("/admin");
-  };
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <>
-      <AppBar
-        position="sticky"
-        elevation={0}
+      {/* Sticky App Bar */}
+      <nav
         data-cy="topbar"
-        sx={{
-          background: `linear-gradient(135deg, ${palette.primary.main} 0%, ${
-            palette.primary.dark
-          } 50%, ${alpha(palette.primary.main, 0.95)} 100%)`,
-          backdropFilter: "blur(10px)",
-          borderBottom: `1px solid ${alpha(palette.primary.light, 0.2)}`,
-          boxShadow: `0 4px 30px ${alpha(palette.primary.dark, 0.3)}`,
+        className="sticky top-0 z-50 backdrop-blur-[10px] border-b border-white/20"
+        style={{
+          background:
+            "linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, var(--primary) 100%)",
+          boxShadow: "0 4px 30px rgba(18, 85, 111, 0.3)",
         }}
       >
-        <Container maxWidth="xl">
-          <Toolbar disableGutters sx={{ minHeight: { xs: 64, md: 70 } }}>
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex items-center min-h-16 md:min-h-[70px]">
             {/* Logo & Brand - Desktop */}
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1.5}
-              sx={{
-                display: { xs: "none", md: "flex" },
-                cursor: "pointer",
-                mr: 4,
-                "&:hover": {
-                  "& .logo-icon": {
-                    transform: "rotate(-10deg) scale(1.1)",
-                  },
-                },
-              }}
+            <div
+              className="hidden md:flex items-center gap-3 cursor-pointer mr-8 group"
               onClick={() => router.push("/")}
             >
-              <Box
-                className="logo-icon"
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 42,
-                  height: 42,
-                  borderRadius: 2,
-                  bgcolor: alpha("#ffffff", 0.15),
-                  border: `1px solid ${alpha("#ffffff", 0.2)}`,
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <LibraryBooks
-                  sx={{ fontSize: 24, color: "#ffffff" }}
+              <div className="flex items-center justify-center w-[42px] h-[42px] rounded-lg text-white bg-white/15 border border-white/20 transition-transform duration-300 group-hover:-rotate-[10deg] group-hover:scale-110">
+                <ReaderIcon
+                  width={24}
+                  height={24}
                   data-cy="topbar_logo_desktop"
                 />
-              </Box>
-              <Typography
-                variant="h6"
-                noWrap
-                sx={{
-                  fontWeight: 700,
-                  letterSpacing: ".15rem",
-                  color: "#ffffff",
-                  textDecoration: "none",
-                }}
+              </div>
+              <span
+                className="text-white font-bold text-lg tracking-wider"
                 data-cy="topbar_title_desktop"
               >
                 OpenLibry
-              </Typography>
-            </Stack>
+              </span>
+            </div>
 
             {/* Mobile Menu Button */}
-            <IconButton
-              size="large"
-              aria-label="Navigation öffnen"
+            <button
+              className="md:hidden p-2 rounded-lg text-white mr-2 transition-colors hover:bg-white/10"
               onClick={() => setMobileMenuOpen(true)}
-              sx={{
-                display: { xs: "flex", md: "none" },
-                color: "#ffffff",
-                mr: 1,
-                "&:hover": {
-                  bgcolor: alpha("#ffffff", 0.1),
-                },
-              }}
+              aria-label="Navigation öffnen"
               data-cy="topbar_menu_button_mobile"
             >
-              <MenuIcon />
-            </IconButton>
+              <HamburgerMenuIcon width={24} height={24} />
+            </button>
 
             {/* Logo & Brand - Mobile */}
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1}
-              sx={{
-                display: { xs: "flex", md: "none" },
-                flexGrow: 1,
-                cursor: "pointer",
-              }}
+            <div
+              className="flex md:hidden items-center gap-2 flex-grow cursor-pointer text-white"
               onClick={() => router.push("/")}
             >
-              <LibraryBooks
-                sx={{ fontSize: 24, color: "#ffffff" }}
-                data-cy="topbar_logo_mobile"
-              />
-              <Typography
-                variant="h6"
-                noWrap
-                sx={{
-                  fontWeight: 700,
-                  letterSpacing: ".1rem",
-                  color: "#ffffff",
-                }}
+              <ReaderIcon width={24} height={24} data-cy="topbar_logo_mobile" />
+              <span
+                className="font-bold text-lg tracking-wide"
                 data-cy="topbar_title_mobile"
               >
                 OpenLibry
-              </Typography>
-            </Stack>
+              </span>
+            </div>
 
             {/* Desktop Navigation */}
-            <Box
-              sx={{
-                flexGrow: 1,
-                display: { xs: "none", md: "flex" },
-                gap: 0.5,
-              }}
-            >
+            <div className="hidden md:flex flex-grow gap-1">
               {publicNavItems.map((page) => {
                 const isActive = isActivePage(page.slug);
                 return (
-                  <Button
+                  <button
                     key={page.title}
                     onClick={() => handleNavigation(page.slug)}
-                    data-cy={`topbar_nav_button_${page.slug.replace(
-                      /\//g,
-                      "_",
-                    )}`}
-                    sx={{
-                      px: 2,
-                      py: 1,
-                      color: "#ffffff",
-                      fontWeight: isActive ? 600 : 500,
-                      fontSize: "0.9rem",
-                      textTransform: "none",
-                      borderRadius: 2,
-                      position: "relative",
-                      bgcolor: isActive
-                        ? alpha("#ffffff", 0.15)
-                        : "transparent",
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        bottom: 6,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: isActive ? "60%" : "0%",
-                        height: 2,
-                        bgcolor: palette.primary.light,
-                        borderRadius: 1,
-                        transition: "width 0.3s ease",
-                      },
-                      "&:hover": {
-                        bgcolor: alpha("#ffffff", 0.1),
-                        "&::after": {
-                          width: "60%",
-                        },
-                      },
-                    }}
+                    data-cy={`topbar_nav_button_${page.slug.replace(/\//g, "_")}`}
+                    className={`
+                      relative px-4 py-2 text-white text-[0.9rem] rounded-lg transition-colors
+                      ${isActive ? "font-semibold bg-white/15" : "font-medium hover:bg-white/10"}
+                    `}
                   >
                     {page.title}
-                  </Button>
+                    <span
+                      className={`
+                        absolute bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 rounded bg-primary-light
+                        transition-all duration-300
+                        ${isActive ? "w-[60%]" : "w-0"}
+                      `}
+                    />
+                  </button>
                 );
               })}
-            </Box>
+            </div>
 
             {/* Admin Button */}
             {showAdminButton && (
-              <Tooltip title="Administration">
-                <IconButton
-                  onClick={handleAdminClick}
-                  aria-label="Administration"
-                  data-cy="topbar_admin_button"
-                  sx={{
-                    ml: 1,
-                    color: "#ffffff",
-                    bgcolor: isActivePage("/admin")
-                      ? alpha("#ffffff", 0.2)
-                      : alpha("#ffffff", 0.1),
-                    border: `1px solid ${alpha("#ffffff", 0.2)}`,
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      bgcolor: alpha("#ffffff", 0.2),
-                      transform: "translateY(-2px)",
-                      boxShadow: `0 4px 12px ${alpha(
-                        palette.primary.dark,
-                        0.4,
-                      )}`,
-                    },
-                  }}
-                >
-                  <AdminPanelSettings />
-                </IconButton>
-              </Tooltip>
+              <button
+                onClick={() => router.push("/admin")}
+                aria-label="Administration"
+                title="Administration"
+                data-cy="topbar_admin_button"
+                className={`
+                  ml-2 p-2 rounded-lg text-white border border-white/20
+                  transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20
+                  ${isActivePage("/admin") ? "bg-white/20" : "bg-white/10"}
+                `}
+              >
+                <GearIcon width={24} height={24} />
+              </button>
             )}
-          </Toolbar>
-        </Container>
-      </AppBar>
+          </div>
+        </div>
+      </nav>
 
-      {/* Mobile Drawer Menu */}
-      <Drawer
-        anchor="left"
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
+      {/* Mobile Drawer - Backdrop */}
+      <div
+        className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ${
+          mobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
         data-cy="topbar_menu_mobile"
-        PaperProps={{
-          sx: {
-            width: 280,
-            bgcolor: palette.background.paper,
-            backgroundImage: `linear-gradient(180deg, ${alpha(
-              palette.primary.main,
-              0.03,
-            )} 0%, transparent 100%)`,
-          },
-        }}
+      />
+
+      {/* Mobile Drawer - Panel */}
+      <div
+        className={`
+          fixed top-0 left-0 z-50 h-full w-[280px] flex flex-col
+          bg-background-paper
+          transition-transform duration-300 ease-in-out
+          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
       >
         {/* Drawer Header */}
-        <Box
-          sx={{
-            p: 3,
-            background: `linear-gradient(135deg, ${palette.primary.main} 0%, ${palette.primary.dark} 100%)`,
+        <div
+          className="p-5 flex items-center justify-between"
+          style={{
+            background:
+              "linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)",
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 44,
-                height: 44,
-                borderRadius: 2,
-                bgcolor: alpha("#ffffff", 0.15),
-                border: `1px solid ${alpha("#ffffff", 0.2)}`,
-              }}
-            >
-              <LibraryBooks sx={{ fontSize: 26, color: "#ffffff" }} />
-            </Box>
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  color: "#ffffff",
-                  letterSpacing: ".1rem",
-                }}
-              >
-                OpenLibry
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: alpha("#ffffff", 0.7) }}
-              >
-                Bibliotheksverwaltung
-              </Typography>
-            </Box>
-          </Stack>
-        </Box>
+          <div className="flex items-center gap-3 text-white">
+            <div className="flex items-center justify-center w-11 h-11 rounded-lg bg-white/15 border border-white/20">
+              <ReaderIcon width={26} height={26} />
+            </div>
+            <div>
+              <div className="font-bold tracking-wide">OpenLibry</div>
+              <div className="text-white/70 text-xs">Bibliotheksverwaltung</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-white/80 hover:text-white p-1"
+            aria-label="Menü schließen"
+          >
+            <Cross2Icon width={24} height={24} />
+          </button>
+        </div>
 
         {/* Navigation Items */}
-        <List sx={{ px: 1, py: 2 }}>
-          {publicNavItems.map((page) => {
-            const isActive = isActivePage(page.slug);
-            return (
-              <ListItem key={page.title} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  onClick={() => handleNavigation(page.slug)}
-                  data-cy={`topbar_menu_item_${page.slug.replace(/\//g, "_")}`}
-                  sx={{
-                    borderRadius: 2,
-                    mx: 1,
-                    bgcolor: isActive
-                      ? alpha(palette.primary.main, 0.1)
-                      : "transparent",
-                    borderLeft: isActive
-                      ? `3px solid ${palette.primary.main}`
-                      : "3px solid transparent",
-                    "&:hover": {
-                      bgcolor: alpha(palette.primary.main, 0.08),
-                    },
-                  }}
-                >
-                  {page.icon && (
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 40,
-                        color: isActive
-                          ? palette.primary.main
-                          : palette.text.secondary,
-                      }}
+        <nav className="flex-grow px-3 py-4">
+          <ul className="space-y-1">
+            {publicNavItems.map((page) => {
+              const isActive = isActivePage(page.slug);
+              return (
+                <li key={page.title}>
+                  <button
+                    onClick={() => handleNavigation(page.slug)}
+                    data-cy={`topbar_menu_item_${page.slug.replace(/\//g, "_")}`}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors mx-1
+                      border-l-[3px]
+                      ${
+                        isActive
+                          ? "bg-primary/10 border-l-primary"
+                          : "border-l-transparent hover:bg-primary/5"
+                      }
+                    `}
+                  >
+                    {page.icon && (
+                      <span
+                        className={`flex items-center justify-center w-10 ${
+                          isActive ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {page.icon}
+                      </span>
+                    )}
+                    <span
+                      className={
+                        isActive
+                          ? "font-semibold text-primary"
+                          : "font-medium text-muted-foreground"
+                      }
                     >
-                      {page.icon}
-                    </ListItemIcon>
-                  )}
-                  <ListItemText
-                    primary={page.title}
-                    primaryTypographyProps={{
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive
-                        ? palette.primary.main
-                        : palette.text.secondary,
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
+                      {page.title}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
         {/* Admin Button in Drawer */}
         {showAdminButton && (
-          <Box sx={{ px: 2, pb: 2, mt: "auto" }}>
-            <Button
-              fullWidth
-              variant={isActivePage("/admin") ? "contained" : "outlined"}
-              startIcon={<AdminPanelSettings />}
+          <div className="px-4 pb-4 mt-auto">
+            <button
               onClick={() => handleNavigation("/admin")}
               data-cy="topbar_menu_item_admin"
-              sx={{
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 500,
-                borderColor: alpha(palette.primary.main, 0.3),
-                color: isActivePage("/admin")
-                  ? "#ffffff"
-                  : palette.primary.main,
-                "&:hover": {
-                  borderColor: palette.primary.main,
-                  bgcolor: isActivePage("/admin")
-                    ? palette.primary.dark
-                    : alpha(palette.primary.main, 0.05),
-                },
-              }}
+              className={`
+                w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium
+                transition-colors border border-primary/30
+                ${
+                  isActivePage("/admin")
+                    ? "bg-primary text-white hover:bg-primary-dark"
+                    : "text-primary hover:border-primary hover:bg-primary/5"
+                }
+              `}
             >
+              <GearIcon width={20} height={20} />
               Administration
-            </Button>
-          </Box>
+            </button>
+          </div>
         )}
-      </Drawer>
+      </div>
     </>
   );
 }

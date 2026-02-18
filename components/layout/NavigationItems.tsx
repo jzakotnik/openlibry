@@ -1,9 +1,9 @@
 import {
-  AssessmentOutlined,
-  AutoStoriesOutlined,
-  PeopleOutlined,
-  SwapHorizOutlined,
-} from "@mui/icons-material";
+  BarChartIcon,
+  PersonIcon,
+  ReaderIcon,
+  ShuffleIcon,
+} from "@radix-ui/react-icons";
 import { ReactNode } from "react";
 
 interface NavItem {
@@ -18,24 +18,24 @@ export const publicNavItems: NavItem[] = [
     title: "Leihe",
     subtitle: "Entleihe und Rückgabe",
     slug: "/rental",
-    icon: <SwapHorizOutlined />,
+    icon: <ShuffleIcon width={24} height={24} />,
   },
   {
     title: "Nutzer",
     subtitle: "Verwaltung der User",
     slug: "/user",
-    icon: <PeopleOutlined />,
+    icon: <PersonIcon width={24} height={24} />,
   },
   {
     title: "Bücher",
     subtitle: "Bestand aller Medien",
     slug: "/book",
-    icon: <AutoStoriesOutlined />,
+    icon: <ReaderIcon width={24} height={24} />,
   },
   {
     title: "Reports",
     subtitle: "Überblick über Bestand",
     slug: "/reports",
-    icon: <AssessmentOutlined />,
+    icon: <BarChartIcon width={24} height={24} />,
   },
 ];

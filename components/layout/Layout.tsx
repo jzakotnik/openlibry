@@ -1,5 +1,3 @@
-import Container from "@mui/material/Container";
-
 import Footer from "./Footer";
 import TopBar from "./TopBar";
 
@@ -17,7 +15,7 @@ export default function Layout({
   return (
     <div>
       {!publicView && <TopBar showAdminButton={showAdminButton} />}
-      <Container maxWidth="lg">{children}</Container>
+      <div className="max-w-5xl mx-auto px-4 md:px-6">{children}</div>
       <Footer />
     </div>
   );

@@ -8,7 +8,7 @@ OpenLibry ist ein Open-Source-Projekt, das von vielen Menschen ermöglicht wird.
 OpenLibry verwendet:
 
 - [Next.js](https://nextjs.org/) – React-Framework
-- [Material-UI](https://mui.com/) – UI-Komponenten
+- [Shadcn](https://ui.shadcn.com/) – UI-Komponenten
 - [Prisma](https://prisma.io/) – Datenbank-ORM
 - [React-PDF](https://react-pdf.org/) – PDF-Generierung
 

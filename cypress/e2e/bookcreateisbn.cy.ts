@@ -49,7 +49,7 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     // Enter ISBN in the unified ISBN field (now at the top of the form)
     // The ISBN field uses data-cy="book-isbn-field"
-    cy.get("[data-cy=book-isbn-field]").find("input").clear().type(testIsbn);
+    cy.get("[data-cy=book-isbn-field]").clear().type(testIsbn);
 
     // Click the autofill button (data-cy="autofill-button")
     cy.get("[data-cy=autofill-button]").should("not.be.disabled").click();
@@ -71,17 +71,17 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     // Verify that the title field has been populated
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .should("not.have.value", "");
 
     // Verify that the author field has been populated
     cy.get("[data-cy=book-author-field]")
-      .find("input")
+
       .should("not.have.value", "");
 
     // Store the autofilled title for later verification
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .invoke("val")
       .then((title) => {
         cy.log("Autofilled title:", title as string);
@@ -127,7 +127,7 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     // Search for the created book by ID
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .clear()
       .type(bookId.toString());
 
@@ -143,7 +143,7 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     // Store the original title for verification
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .invoke("val")
       .then((originalTitle) => {
         cy.log("Original title:", originalTitle as string);
@@ -151,11 +151,11 @@ describe("Book creation with ISBN autofill and editing", () => {
       });
 
     // Clear and enter the new title
-    cy.get("[data-cy=book-title-field]").find("input").clear().type(newTitle);
+    cy.get("[data-cy=book-title-field]").clear().type(newTitle);
 
     // Verify the title field has the new value
     cy.get("[data-cy=book-title-field]")
-      .find("input")
+
       .should("have.value", newTitle);
 
     // Intercept the save API call (editing existing books uses PUT)
@@ -177,7 +177,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .clear()
       .type(bookId.toString());
 
@@ -213,7 +213,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     // Navigate to the book edit page
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]")
-      .find("input")
+
       .clear()
       .type(bookId.toString());
 
@@ -265,7 +265,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.intercept("GET", "/api/book/FillBookByIsbn?isbn=*").as("fillByIsbn");
 
     // Enter ISBN
-    cy.get("[data-cy=book-isbn-field]").find("input").clear().type(testIsbn);
+    cy.get("[data-cy=book-isbn-field]").clear().type(testIsbn);
 
     // Click autofill button
     cy.get("[data-cy=autofill-button]").click();

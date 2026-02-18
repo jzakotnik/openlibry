@@ -1,90 +1,86 @@
-import palette from "@/styles/palette";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
-  DeleteForeverOutlined,
-  DeleteForeverRounded,
-  DoneAll,
-  PersonAdd,
-  PlusOne,
-  Search,
-  TuneRounded,
-} from "@mui/icons-material";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
-  alpha,
-  Badge,
-  Box,
-  Collapse,
-  Divider,
-  IconButton,
-  InputBase,
   Tooltip,
-} from "@mui/material";
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import {
+  CheckCheck,
+  GraduationCap,
+  MoreVertical,
+  Search,
+  SlidersHorizontal,
+  Trash2,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { ChangeEvent, ReactNode } from "react";
 
+/* ------------------------------------------------------------------ */
+/*  Action-button (icon-only with tooltip)                            */
+/* ------------------------------------------------------------------ */
 interface ActionButtonProps {
   icon: ReactNode;
   tooltip: string;
   onClick: () => void;
-  color?: "default" | "primary" | "error" | "warning";
-  visible?: boolean;
-  badge?: number;
+  active?: boolean;
+  badgeCount?: number;
+  "data-cy"?: string;
 }
 
 function ActionButton({
   icon,
   tooltip,
   onClick,
-  color = "primary",
-  visible = true,
-  badge,
+  active = true,
+  badgeCount,
+  ...rest
 }: ActionButtonProps) {
-  if (!visible) return null;
-
-  const colorMap = {
-    default: palette.text.secondary,
-    primary: palette.primary.main,
-    error: palette.error.main,
-    warning: palette.warning.main,
-  };
-
-  const button = (
-    <IconButton
-      onClick={onClick}
-      sx={{
-        color: colorMap[color],
-        transition: "all 0.2s ease",
-        "&:hover": {
-          bgcolor: alpha(colorMap[color], 0.1),
-          transform: "scale(1.05)",
-        },
-      }}
-    >
-      {icon}
-    </IconButton>
-  );
-
   return (
-    <Tooltip title={tooltip}>
-      {badge !== undefined && badge > 0 ? (
-        <Badge
-          badgeContent={badge}
-          color="primary"
-          sx={{
-            "& .MuiBadge-badge": {
-              fontSize: "0.65rem",
-              height: 16,
-              minWidth: 16,
-            },
-          }}
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onClick}
+          className={cn(
+            "relative h-9 w-9 transition-all duration-200 hover:scale-105",
+            active ? "text-primary" : "text-muted-foreground",
+          )}
+          {...rest}
         >
-          {button}
-        </Badge>
-      ) : (
-        button
-      )}
+          {icon}
+          {badgeCount !== undefined && badgeCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] font-semibold text-primary-foreground">
+              {badgeCount}
+            </span>
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltip}</p>
+      </TooltipContent>
     </Tooltip>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Main search bar                                                   */
+/* ------------------------------------------------------------------ */
 interface UserSearchBarProps {
   searchValue: string;
   onSearchChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
@@ -116,120 +112,120 @@ export default function UserSearchBar({
   const hasSelection = selectedCount > 0;
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 600 }}>
-      {/* Main Search Bar */}
-      <Box
-        component="form"
-        onSubmit={(e) => e.preventDefault()}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 0.5,
-          px: 2,
-          py: 1,
-          borderRadius: 3,
-          bgcolor: alpha(palette.background.paper, 0.9),
-          backdropFilter: "blur(12px)",
-          border: `1px solid ${alpha(palette.primary.main, 0.12)}`,
-          boxShadow: `0 4px 20px ${alpha(palette.primary.main, 0.08)}`,
-          transition: "all 0.3s ease",
-          "&:hover": {
-            border: `1px solid ${alpha(palette.primary.main, 0.25)}`,
-            boxShadow: `0 6px 24px ${alpha(palette.primary.main, 0.12)}`,
-          },
-          "&:focus-within": {
-            border: `1px solid ${palette.primary.main}`,
-            boxShadow: `0 6px 24px ${alpha(palette.primary.main, 0.15)}`,
-          },
-        }}
-      >
-        {/* Search Icon & Input */}
-        <Search sx={{ color: palette.text.disabled, ml: 0.5 }} />
-        <InputBase
-          value={searchValue}
-          onChange={onSearchChange}
-          placeholder="Suche nach Name oder ID..."
-          inputProps={{ "aria-label": "search users" }}
-          data-cy="rental_input_searchuser"
-          sx={{
-            flex: 1,
-            ml: 1,
-            "& input": {
-              py: 0.75,
-              "&::placeholder": {
-                color: palette.text.disabled,
-                opacity: 1,
-              },
-            },
-          }}
-        />
+    <TooltipProvider delayDuration={300}>
+      <div className="w-full max-w-[600px] space-y-2">
+        {/* ── Main search row ── */}
+        <div className="flex items-center gap-1 rounded-2xl border border-primary/10 bg-card/90 px-3 py-1.5 shadow-[0_4px_20px_hsl(var(--primary)/0.08)] backdrop-blur-xl transition-all duration-300 focus-within:shadow-lg hover:shadow-md">
+          <Search
+            size={20}
+            className="ml-1 shrink-0 text-muted-foreground/50"
+          />
 
-        {/* Settings Toggle */}
-        <ActionButton
-          icon={<TuneRounded />}
-          tooltip="Sucheinstellungen"
-          onClick={onToggleSettings}
-          color={showSettings ? "primary" : "default"}
-        />
+          <Input
+            type="text"
+            value={searchValue}
+            onChange={
+              onSearchChange as unknown as React.ChangeEventHandler<HTMLInputElement>
+            }
+            placeholder="Suche nach Name oder ID..."
+            aria-label="search users"
+            data-cy="rental_input_searchuser"
+            className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
+          />
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+          <ActionButton
+            icon={<SlidersHorizontal size={18} />}
+            tooltip="Sucheinstellungen"
+            onClick={onToggleSettings}
+            active={showSettings}
+          />
 
-        {/* Select All */}
-        <ActionButton
-          icon={<DoneAll />}
-          tooltip={hasSelection ? "Auswahl aufheben" : "Alle auswählen"}
-          onClick={onSelectAll}
-          badge={hasSelection ? selectedCount : undefined}
-        />
+          <Separator orientation="vertical" className="mx-0.5 h-6" />
 
-        {/* Create User */}
-        <ActionButton
-          icon={<PersonAdd />}
-          tooltip="Neue Nutzerin erzeugen"
-          onClick={onCreateUser}
-        />
+          <ActionButton
+            icon={<CheckCheck size={18} />}
+            tooltip={hasSelection ? "Auswahl aufheben" : "Alle auswählen"}
+            onClick={onSelectAll}
+            badgeCount={hasSelection ? selectedCount : undefined}
+          />
 
-        {/* Selection Actions - only visible when items selected */}
-        {hasSelection && (
-          <>
-            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+          <ActionButton
+            icon={<UserPlus size={18} />}
+            tooltip="Neue Nutzerin erzeugen"
+            onClick={onCreateUser}
+          />
+        </div>
 
-            <ActionButton
-              icon={<PlusOne />}
-              tooltip="Klasse erhöhen"
-              onClick={onIncreaseGrade}
-            />
+        {/* ── Selection action bar (slides in below) ── */}
+        <Collapsible open={hasSelection}>
+          <CollapsibleContent>
+            <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-primary/5 px-4 py-2">
+              <div className="flex items-center gap-2">
+                <Badge className="rounded-full">{selectedCount}</Badge>
+                <span className="text-sm font-medium text-muted-foreground">
+                  ausgewählt
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSelectAll}
+                  className="ml-1 h-7 gap-1 px-2 text-xs text-muted-foreground"
+                >
+                  <X size={12} />
+                  Aufheben
+                </Button>
+              </div>
 
-            <ActionButton
-              icon={
-                confirmDelete ? (
-                  <DeleteForeverOutlined />
-                ) : (
-                  <DeleteForeverRounded />
-                )
-              }
-              tooltip={confirmDelete ? "Wirklich löschen?" : "User löschen"}
-              onClick={onDeleteUsers}
-              color={confirmDelete ? "error" : "primary"}
-            />
-          </>
-        )}
-      </Box>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground"
+                  >
+                    <MoreVertical size={18} />
+                    <span className="sr-only">Aktionen</span>
+                  </Button>
+                </DropdownMenuTrigger>
 
-      {/* Settings Panel */}
-      <Collapse in={showSettings}>
-        <Box
-          sx={{
-            mt: 1,
-            p: 2,
-            borderRadius: 2,
-            bgcolor: alpha(palette.primary.light, 0.06),
-            border: `1px solid ${alpha(palette.primary.main, 0.1)}`,
-          }}
-        >
-          {settingsContent}
-        </Box>
-      </Collapse>
-    </Box>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem
+                    onClick={onIncreaseGrade}
+                    className="gap-3 text-primary"
+                  >
+                    <GraduationCap size={16} />
+                    Klasse erhöhen
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={onDeleteUsers}
+                    className={cn(
+                      "gap-3",
+                      confirmDelete
+                        ? "font-semibold text-destructive focus:text-destructive"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    <Trash2 size={16} />
+                    {confirmDelete ? "Wirklich löschen?" : "Nutzer löschen"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* ── Settings panel ── */}
+        <Collapsible open={showSettings}>
+          <CollapsibleContent>
+            <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
+              {settingsContent}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    </TooltipProvider>
   );
 }

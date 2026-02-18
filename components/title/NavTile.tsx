@@ -1,5 +1,3 @@
-import palette from "@/styles/palette";
-import { alpha, Box, Typography } from "@mui/material";
 import { ReactNode } from "react";
 
 interface NavTileProps {
@@ -18,106 +16,64 @@ export default function NavTile({
   onClick,
 }: NavTileProps) {
   return (
-    <Box
+    <button
+      type="button"
       onClick={onClick}
       data-cy={`index_${slug.substring(1)}_button`}
-      sx={{
-        width: 220,
-        height: 180,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        p: 3,
-        borderRadius: 4,
-        cursor: "pointer",
-        position: "relative",
-        overflow: "hidden",
-        bgcolor: alpha(palette.background.paper, 0.85),
-        backdropFilter: "blur(12px)",
-        border: `1px solid ${alpha(palette.primary.main, 0.15)}`,
-        boxShadow: `0 8px 32px ${alpha(palette.primary.dark, 0.15)}`,
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: `linear-gradient(90deg, ${palette.primary.main}, ${palette.primary.light})`,
-          opacity: 0,
-          transition: "opacity 0.3s ease",
-        },
-        "&:hover": {
-          transform: "translateY(-8px)",
-          boxShadow: `0 16px 48px ${alpha(palette.primary.main, 0.25)}`,
-          border: `1px solid ${alpha(palette.primary.main, 0.3)}`,
-          "&::before": {
-            opacity: 1,
-          },
-          "& .nav-icon": {
-            transform: "scale(1.1)",
-            color: palette.primary.main,
-          },
-          "& .nav-title": {
-            color: palette.primary.main,
-          },
-        },
-        "&:active": {
-          transform: "translateY(-4px)",
-        },
-      }}
+      className="
+        group relative w-[220px] h-[180px]
+        flex flex-col items-center justify-center text-center
+        p-6 rounded-2xl cursor-pointer overflow-hidden
+        bg-white/85 backdrop-blur-xl
+        border border-primary/15
+        shadow-[0_8px_32px_rgba(18,85,111,0.15)]
+        transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        hover:-translate-y-2
+        hover:shadow-[0_16px_48px_rgba(18,85,111,0.25)]
+        hover:border-primary/30
+        active:-translate-y-1
+      "
     >
+      {/* Top accent bar — visible on hover */}
+      <span
+        className="
+          absolute top-0 left-0 right-0 h-1
+          bg-gradient-to-r from-primary to-primary-light
+          opacity-0 group-hover:opacity-100
+          transition-opacity duration-300
+        "
+      />
+
       {/* Icon */}
       {icon && (
-        <Box
-          className="nav-icon"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 56,
-            height: 56,
-            borderRadius: 3,
-            bgcolor: alpha(palette.primary.main, 0.1),
-            color: palette.primary.dark,
-            mb: 2,
-            transition: "all 0.3s ease",
-            "& svg": {
-              fontSize: 28,
-            },
-          }}
+        <span
+          className="
+            flex items-center justify-center
+            w-14 h-14 rounded-xl mb-3
+            bg-primary/10 text-primary-dark
+            transition-all duration-300
+            group-hover:scale-110 group-hover:text-primary
+          "
         >
           {icon}
-        </Box>
+        </span>
       )}
 
       {/* Title */}
-      <Typography
-        className="nav-title"
-        variant="h6"
-        sx={{
-          fontWeight: 600,
-          color: palette.primary.dark,
-          mb: 0.5,
-          transition: "color 0.3s ease",
-        }}
+      <span
+        className="
+          text-lg font-semibold text-primary-dark
+          mb-1 transition-colors duration-300
+          group-hover:text-primary
+        "
       >
         {title}
-      </Typography>
+      </span>
 
       {/* Subtitle */}
-      <Typography
-        variant="body2"
-        sx={{
-          color: palette.text.secondary,
-          lineHeight: 1.4,
-        }}
-      >
+      <span className="text-sm text-muted-foreground leading-snug">
         {subtitle}
-      </Typography>
-    </Box>
+      </span>
+    </button>
   );
 }

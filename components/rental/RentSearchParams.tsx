@@ -1,19 +1,9 @@
-import {
-  Box,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-} from "@mui/material";
 import React, { useEffect } from "react";
 
 interface RentSearchParamsType {
   overdue: boolean;
   grade: string[];
-  setUserSearchInput: any;
+  setUserSearchInput: (value: string) => void;
 }
 
 export default function RentSearchParams({
@@ -21,64 +11,56 @@ export default function RentSearchParams({
   grade,
   setUserSearchInput,
 }: RentSearchParamsType) {
-  console.log("Search params", overdue, grade);
   const [isOverdue, setIsOverdue] = React.useState(overdue);
   const [selectedGrade, setSelectedGrade] = React.useState<string>(grade[0]);
-  const [updatedSearchString, setUpdatedSearchString] =
-    React.useState<string>("");
 
   useEffect(() => {
     setUserSearchInput(
       (isOverdue ? "fällig? " : " ") +
-        (selectedGrade != "" ? "klasse?" + selectedGrade : " ")
+        (selectedGrade !== "" ? "klasse?" + selectedGrade : " "),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setter is stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setState is stable
   }, [isOverdue, selectedGrade]);
 
-  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsOverdue(event.target.checked);
-  };
-
-  const handleDropdownChange = (event: any) => {
-    setSelectedGrade(event.target.value as string);
-  };
-
   return (
-    <Paper>
-      {" "}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          p: 2,
-          width: "100%",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox checked={isOverdue} onChange={handleCheckboxChange} />
-          }
-          label="Überfällig"
-        />
-        <FormControl sx={{ mt: 2, minWidth: 120 }}>
-          <InputLabel id="grade-label">Klasse</InputLabel>
-          <Select
-            labelId="grade-label"
-            id="grade"
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex flex-row items-center gap-4">
+        {/* Overdue checkbox */}
+        <label className="flex items-center gap-2 cursor-pointer select-none text-sm">
+          <input
+            type="checkbox"
+            checked={isOverdue}
+            onChange={(e) => setIsOverdue(e.target.checked)}
+            className="h-4 w-4 rounded border-border text-primary
+                       focus:ring-2 focus:ring-primary/20 focus:ring-offset-0"
+          />
+          Überfällig
+        </label>
+
+        {/* Grade select */}
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="grade-select"
+            className="text-xs font-medium text-muted-foreground"
+          >
+            Klasse
+          </label>
+          <select
+            id="grade-select"
             value={selectedGrade}
-            onChange={handleDropdownChange}
-            label="Klasse"
+            onChange={(e) => setSelectedGrade(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card px-3 text-sm
+                       text-foreground
+                       focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             {grade.map((g, index) => (
-              <MenuItem key={index} value={g}>
+              <option key={index} value={g}>
                 {g}
-              </MenuItem>
+              </option>
             ))}
-          </Select>
-        </FormControl>
-      </Box>
-    </Paper>
+          </select>
+        </div>
+      </div>
+    </div>
   );
 }

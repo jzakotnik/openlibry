@@ -16,7 +16,7 @@ Informationen für Entwickler, die OpenLibry verstehen, erweitern oder verbesser
 
 | Komponente | Technologie |
 |------------|-------------|
-| Frontend | React 19, Material-UI |
+| Frontend | React 19, Shadcn/ui, Tailwind |
 | Backend | Next.js 15 |
 | Datenbank | SQLite via Prisma 7 |
 | Sprache | TypeScript |

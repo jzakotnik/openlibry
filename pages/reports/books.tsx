@@ -4,13 +4,6 @@ import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
-import { Download, PictureAsPdf } from "@mui/icons-material";
-import { Button, Stack, Typography } from "@mui/material";
-import Box from "@mui/material/Box";
-import { deDE as coreDeDE } from "@mui/material/locale";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DataGrid } from "@mui/x-data-grid";
-import { deDE } from "@mui/x-data-grid/locales";
 import {
   Document,
   Page,
@@ -19,22 +12,22 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table";
 import Excel from "exceljs";
-import { useEffect, useState } from "react";
+import { Download, FileText } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-const theme = createTheme(
-  {
-    palette: {
-      primary: { main: "#1976d2" },
-    },
-  },
-  deDE,
-  coreDeDE,
-);
-
-interface BookPropsType {
-  books: Array<BookType>;
-}
+// =============================================================================
+// Column width config
+// =============================================================================
 
 const COLUMN_WIDTHS: Record<string, number> = {
   id: 40,
@@ -50,7 +43,7 @@ function getWidth(columnName: string = ""): number {
 }
 
 // =============================================================================
-// PDF Styles
+// PDF Styles (unchanged)
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -151,13 +144,13 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component
+// PDF Document Component (unchanged)
 // =============================================================================
 
 interface BooksPdfProps {
   rentedBooks: BookType[];
   availableBooks: BookType[];
-  columns: any[];
+  columns: { field: string; headerName: string }[];
 }
 
 const BooksPdfDocument = ({
@@ -168,7 +161,7 @@ const BooksPdfDocument = ({
   const today = new Date().toLocaleDateString("de-DE");
 
   const getColumnHeader = (field: string) => {
-    const col = columns.find((c: any) => c.field === field);
+    const col = columns.find((c) => c.field === field);
     return col?.headerName || field;
   };
 
@@ -232,8 +225,7 @@ const BooksPdfDocument = ({
 
   return (
     <Document>
-      <Page size="A4" style={pdfStyles.page}>
-        {/* Header */}
+      <Page size="A4" style={pdfStyles.page} orientation="landscape">
         <View style={pdfStyles.header}>
           <Text style={pdfStyles.title}>Bestandsübersicht</Text>
           <Text style={pdfStyles.subtitle}>
@@ -245,7 +237,6 @@ const BooksPdfDocument = ({
           </Text>
         </View>
 
-        {/* Rented Books Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitleRented}>
             📚 Ausgeliehene Bücher ({rentedBooks.length})
@@ -262,7 +253,6 @@ const BooksPdfDocument = ({
           )}
         </View>
 
-        {/* Available Books Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
             Verfügbare Bücher ({availableBooks.length})
@@ -279,7 +269,6 @@ const BooksPdfDocument = ({
           )}
         </View>
 
-        {/* Footer */}
         <Text style={pdfStyles.footer}>
           OpenLibry • Bestandsbericht vom {today}
         </Text>
@@ -288,11 +277,14 @@ const BooksPdfDocument = ({
   );
 };
 
-/**
- * Export data to PDF and trigger download
- */
-async function exportToPdf(columns: any[], rows: BookType[]) {
-  // Split into rented and available
+// =============================================================================
+// Excel & PDF export functions (unchanged)
+// =============================================================================
+
+async function exportToPdf(
+  columns: { field: string; headerName: string }[],
+  rows: BookType[],
+) {
   const rentedBooks = rows
     .filter((r) => r.rentalStatus === "rented")
     .sort((a, b) => (a.title || "").localeCompare(b.title || "", "de"));
@@ -301,7 +293,6 @@ async function exportToPdf(columns: any[], rows: BookType[]) {
     .filter((r) => r.rentalStatus !== "rented")
     .sort((a, b) => (a.title || "").localeCompare(b.title || "", "de"));
 
-  // Generate PDF blob
   const blob = await pdf(
     <BooksPdfDocument
       rentedBooks={rentedBooks}
@@ -310,7 +301,6 @@ async function exportToPdf(columns: any[], rows: BookType[]) {
     />,
   ).toBlob();
 
-  // Download
   const today = new Date().toISOString().split("T")[0];
   const filename = `bestand_${today}.pdf`;
 
@@ -321,26 +311,24 @@ async function exportToPdf(columns: any[], rows: BookType[]) {
   URL.revokeObjectURL(link.href);
 }
 
-/**
- * Export data to Excel and trigger download
- */
-async function exportToExcel(columns: any[], rows: any[]) {
+async function exportToExcel(
+  columns: { field: string; headerName: string; width?: number }[],
+  rows: any[],
+) {
   const workbook = new Excel.Workbook();
   workbook.creator = "OpenLibry";
   workbook.created = new Date();
 
   const sheet = workbook.addWorksheet("Bücher");
 
-  // Set up columns from DataGrid columns
   sheet.columns = columns
-    .filter((col: any) => col.field !== "__check__")
-    .map((col: any) => ({
+    .filter((col) => col.field !== "__check__")
+    .map((col) => ({
       header: col.headerName || col.field,
       key: col.field,
-      width: Math.max(col.width / 7, 10),
+      width: Math.max((col.width || 100) / 7, 10),
     }));
 
-  // Style header row
   const headerRow = sheet.getRow(1);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -353,11 +341,8 @@ async function exportToExcel(columns: any[], rows: any[]) {
   });
   headerRow.height = 22;
 
-  // Add data rows
   rows.forEach((row) => {
     const excelRow = sheet.addRow(row);
-
-    // Highlight rented rows
     if (row.rentalStatus === "rented") {
       excelRow.eachCell((cell) => {
         cell.font = { color: { argb: "FFE65100" }, bold: true };
@@ -370,7 +355,6 @@ async function exportToExcel(columns: any[], rows: any[]) {
     }
   });
 
-  // Add autofilter
   if (rows.length > 0) {
     sheet.autoFilter = {
       from: { row: 1, column: 1 },
@@ -378,10 +362,8 @@ async function exportToExcel(columns: any[], rows: any[]) {
     };
   }
 
-  // Freeze header row
   sheet.views = [{ state: "frozen", ySplit: 1 }];
 
-  // Generate file and download
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -397,127 +379,277 @@ async function exportToExcel(columns: any[], rows: any[]) {
   URL.revokeObjectURL(link.href);
 }
 
+// =============================================================================
+// Page component
+// =============================================================================
+
+interface BookPropsType {
+  books: Array<BookType>;
+}
+
 export default function Books({ books }: BookPropsType) {
-  const [reportData, setReportData] = useState<{ columns: any[]; rows: any[] }>(
-    {
-      columns: [],
-      rows: [],
-    },
-  );
+  const [reportColumns, setReportColumns] = useState<
+    { field: string; headerName: string; width: number }[]
+  >([]);
+  const [reportRows, setReportRows] = useState<any[]>([]);
   const [reportDataAvailable, setReportDataAvailable] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
     setReportDataAvailable(books.length > 0);
     if (books && books.length > 0) {
       const colTitles = books[0];
-      const fields = Object.keys(colTitles) as any;
-      const columns = fields.map((f: string) => {
+      const fields = Object.keys(colTitles);
+      const cols = fields.map((f) => {
         const fieldTranslation = (translations as any)["books"][f];
-        const col = {
+        return {
           field: f,
           headerName: fieldTranslation,
           width: getWidth(f),
         };
-        return col;
       });
 
-      const rows = books.map((r: any) => {
-        const rowCopy = {
-          id: r.id,
-          ...r,
-        };
-        return rowCopy;
-      });
+      const rows = books.map((r: any) => ({
+        id: r.id,
+        ...r,
+      }));
 
-      if (rows) {
-        setReportData({ columns: columns, rows: rows as any });
-      }
+      setReportColumns(cols);
+      setReportRows(rows);
     }
   }, [books]);
 
+  // Build TanStack columns from the dynamic field list
+  const tanstackColumns = useMemo<ColumnDef<any>[]>(() => {
+    return reportColumns.map((col) => ({
+      accessorKey: col.field,
+      header: col.headerName ?? col.field,
+      size: col.width,
+    }));
+  }, [reportColumns]);
+
+  const table = useReactTable({
+    data: reportRows,
+    columns: tanstackColumns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: { pageSize: 25 },
+    },
+  });
+
   const handleExcelExport = () => {
-    exportToExcel(reportData.columns, reportData.rows);
+    exportToExcel(reportColumns, reportRows);
   };
 
   const handlePdfExport = () => {
-    exportToPdf(reportData.columns, reportData.rows);
+    exportToPdf(reportColumns, reportRows);
   };
 
-  const rentedCount = reportData.rows.filter(
+  const rentedCount = reportRows.filter(
     (r: any) => r.rentalStatus === "rented",
   ).length;
-  const totalCount = reportData.rows.length;
+  const totalCount = reportRows.length;
+
+  const pageIndex = table.getState().pagination.pageIndex;
+  const pageCount = table.getPageCount();
 
   return (
     <Layout>
-      <ThemeProvider theme={theme}>
-        <Box
-          sx={{
-            backgroundColor: "#CFCFCF",
-            width: "100%",
-            mt: 5,
-            p: 2,
-          }}
-          data-cy="books-datagrid"
-        >
-          {reportDataAvailable ? (
-            <>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ mb: 2 }}
+      <div
+        className="w-full mt-5 p-2 bg-background-table rounded-xl"
+        data-cy="books-datagrid"
+      >
+        {reportDataAvailable ? (
+          <>
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+              <h2
+                className="text-base font-bold text-primary"
+                data-cy="books-status"
               >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    color: "#1976d2",
-                    fontWeight: "bold",
-                  }}
-                  data-cy="books-status"
+                📚 {totalCount} Bücher • {rentedCount} ausgeliehen •{" "}
+                {totalCount - rentedCount} verfügbar
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleExcelExport}
+                  data-cy="books-excel-export"
+                  className="
+                    inline-flex items-center gap-2 px-4 py-2
+                    text-sm font-medium text-white
+                    bg-primary rounded-lg
+                    hover:bg-primary-dark transition-colors
+                    cursor-pointer
+                  "
                 >
-                  📚 {totalCount} Bücher • {rentedCount} ausgeliehen •{" "}
-                  {totalCount - rentedCount} verfügbar
-                </Typography>
-                <Stack direction="row" spacing={2}>
-                  <Button
-                    variant="contained"
-                    startIcon={<Download />}
-                    onClick={handleExcelExport}
-                    data-cy="books-excel-export"
+                  <Download size={16} />
+                  Excel Export
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePdfExport}
+                  data-cy="books-pdf-export"
+                  className="
+                    inline-flex items-center gap-2 px-4 py-2
+                    text-sm font-medium text-white
+                    bg-secondary rounded-lg
+                    hover:bg-secondary-dark transition-colors
+                    cursor-pointer
+                  "
+                >
+                  <FileText size={16} />
+                  PDF Export
+                </button>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+              <table className="w-full text-sm">
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr
+                      key={headerGroup.id}
+                      className="border-b border-gray-200"
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
+                          className="
+                            px-3 py-2.5 text-left text-xs font-semibold
+                            text-muted-foreground uppercase tracking-wider
+                            bg-gray-50 cursor-pointer select-none
+                            hover:bg-gray-100 transition-colors
+                          "
+                          style={{
+                            width: header.getSize(),
+                            minWidth: header.getSize(),
+                          }}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                            {{
+                              asc: " ↑",
+                              desc: " ↓",
+                            }[header.column.getIsSorted() as string] ?? ""}
+                          </span>
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {table.getRowModel().rows.map((row) => {
+                    const isRented = row.original.rentalStatus === "rented";
+                    return (
+                      <tr
+                        key={row.id}
+                        className={
+                          isRented
+                            ? "bg-orange-50/60 hover:bg-orange-50"
+                            : "hover:bg-gray-50/60"
+                        }
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <td
+                            key={cell.id}
+                            className="px-3 py-2 text-sm text-gray-700 truncate"
+                            style={{
+                              maxWidth: cell.column.getSize(),
+                            }}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>Zeilen pro Seite:</span>
+                <select
+                  value={table.getState().pagination.pageSize}
+                  onChange={(e) => table.setPageSize(Number(e.target.value))}
+                  className="
+                    border border-gray-200 rounded-md px-2 py-1 text-sm
+                    bg-white focus:outline-none focus:ring-2 focus:ring-primary/20
+                  "
+                >
+                  {[25, 50, 80].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span>
+                  Seite {pageIndex + 1} von {pageCount}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => table.firstPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    Excel Export
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    startIcon={<PictureAsPdf />}
-                    onClick={handlePdfExport}
-                    data-cy="books-pdf-export"
+                    «
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    PDF Export
-                  </Button>
-                </Stack>
-              </Stack>
-              <DataGrid
-                autoHeight
-                columns={reportData.columns}
-                rows={reportData.rows}
-                initialState={{
-                  pagination: {
-                    paginationModel: { pageSize: 25 },
-                  },
-                }}
-                pageSizeOptions={[25, 50, 80]}
-              />
-            </>
-          ) : (
-            <Typography data-cy="books-no-data">
-              Keine Daten verfügbar
-            </Typography>
-          )}
-        </Box>
-      </ThemeProvider>
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                    className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    ›
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => table.lastPage()}
+                    disabled={!table.getCanNextPage()}
+                    className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    »
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p
+            className="text-muted-foreground py-8 text-center"
+            data-cy="books-no-data"
+          >
+            Keine Daten verfügbar
+          </p>
+        )}
+      </div>
     </Layout>
   );
 }

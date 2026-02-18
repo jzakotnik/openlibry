@@ -1,41 +1,30 @@
 import Layout from "@/components/layout/Layout";
 import palette from "@/styles/palette";
 import {
-  ArrowForward,
+  AlertTriangle,
+  ArrowRight,
   Book,
+  CalendarClock,
   CheckCircle,
-  CloudDownload,
-  Error as ErrorIcon,
-  EventNote,
-  HealthAndSafety,
+  Clock,
+  Cpu,
+  Download,
+  HeartPulse,
   Info,
-  Memory,
-  People,
-  Schedule,
+  Loader2,
+  RefreshCw,
   Settings,
-  Warning,
-} from "@mui/icons-material";
-import {
-  alpha,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Container,
-  Divider,
-  LinearProgress,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+  Users,
+  XCircle,
+} from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-// Types matching the API response
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
 type CheckStatus = "ok" | "warning" | "error";
 
 interface CheckResult {
@@ -78,32 +67,44 @@ interface HealthCheckResponse {
   };
 }
 
-// Status styling
+// ─────────────────────────────────────────────────────────────────────────────
+// Status config
+// ─────────────────────────────────────────────────────────────────────────────
+
 const statusConfig = {
   ok: {
     color: "#10b981",
-    bgColor: "#d1fae5",
-    textColor: "#065f46",
+    bg: "bg-emerald-50",
+    text: "text-emerald-800",
     icon: CheckCircle,
     label: "Alles in Ordnung",
+    gradientFrom: "from-emerald-500/10",
+    gradientTo: "to-emerald-500/5",
   },
   warning: {
     color: "#f59e0b",
-    bgColor: "#fef3c7",
-    textColor: "#92400e",
-    icon: Warning,
+    bg: "bg-amber-50",
+    text: "text-amber-800",
+    icon: AlertTriangle,
     label: "Warnungen vorhanden",
+    gradientFrom: "from-amber-500/10",
+    gradientTo: "to-amber-500/5",
   },
   error: {
     color: "#ef4444",
-    bgColor: "#fee2e2",
-    textColor: "#991b1b",
-    icon: ErrorIcon,
+    bg: "bg-red-50",
+    text: "text-red-800",
+    icon: XCircle,
     label: "Fehler erkannt",
+    gradientFrom: "from-red-500/10",
+    gradientTo: "to-red-500/5",
   },
 };
 
-// Format bytes
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
 function formatBytes(bytes: number): string {
   const units = ["B", "KB", "MB", "GB"];
   let i = 0;
@@ -114,22 +115,22 @@ function formatBytes(bytes: number): string {
   return `${bytes.toFixed(1)} ${units[i]}`;
 }
 
-// Format uptime
 function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-
   const parts = [];
   if (days > 0) parts.push(`${days}d`);
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (parts.length === 0) parts.push(`${seconds}s`);
-
   return parts.join(" ");
 }
 
-// Quick action card component
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────────────────────
+
 function ActionCard({
   title,
   description,
@@ -137,64 +138,53 @@ function ActionCard({
   onClick,
   color = palette.primary.main,
   loading = false,
+  dataCy,
 }: {
   title: string;
   description: string;
-  icon: typeof CloudDownload;
+  icon: React.ElementType;
   onClick: () => void;
   color?: string;
   loading?: boolean;
+  dataCy?: string;
 }) {
   return (
-    <Card
-      sx={{
-        height: "100%",
-        cursor: "pointer",
-        transition: "all 0.2s ease",
-        border: `1px solid ${alpha(color, 0.2)}`,
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: `0 8px 24px ${alpha(color, 0.15)}`,
-          borderColor: color,
-        },
-      }}
+    <button
+      data-cy={dataCy}
       onClick={onClick}
+      disabled={loading}
+      className="w-full h-full text-left bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-70"
+      style={{
+        borderColor: `${color}33`,
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = color;
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = `${color}33`;
+      }}
     >
-      <CardContent>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: 2,
-              bgcolor: alpha(color, 0.1),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {loading ? (
-              <CircularProgress size={24} sx={{ color }} />
-            ) : (
-              <Icon sx={{ color, fontSize: 24 }} />
-            )}
-          </Box>
-          <Box flex={1}>
-            <Typography variant="subtitle1" fontWeight={600}>
-              {title}
-            </Typography>
-            <Typography variant="body2" color="text.primary">
-              {description}
-            </Typography>
-          </Box>
-          <ArrowForward sx={{ color: "text.disabled" }} />
-        </Stack>
-      </CardContent>
-    </Card>
+      <div className="flex items-center gap-3">
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${color}15` }}
+        >
+          {loading ? (
+            <Loader2 className="w-6 h-6 animate-spin" style={{ color }} />
+          ) : (
+            <Icon className="w-6 h-6" style={{ color }} />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900">{title}</p>
+          <p className="text-sm text-gray-500">{description}</p>
+        </div>
+        <ArrowRight className="w-5 h-5 text-gray-300 shrink-0" />
+      </div>
+    </button>
   );
 }
 
-// Stat card component
 function StatCard({
   title,
   value,
@@ -204,49 +194,110 @@ function StatCard({
 }: {
   title: string;
   value: string | number;
-  icon: typeof Book;
+  icon: React.ElementType;
   color?: string;
   subtitle?: string;
 }) {
   return (
-    <Paper
-      sx={{
-        p: 2,
-        height: "100%",
-        borderLeft: `4px solid ${color}`,
-      }}
+    <div
+      className="h-full bg-white rounded-xl shadow-sm p-4"
+      style={{ borderLeft: `4px solid ${color}` }}
     >
-      <Stack direction="row" alignItems="center" spacing={2}>
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            bgcolor: alpha(color, 0.1),
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+      <div className="flex items-center gap-3">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${color}15` }}
         >
-          <Icon sx={{ color, fontSize: 20 }} />
-        </Box>
-        <Box>
-          <Typography variant="h5" fontWeight="bold" color="text.primary">
+          <Icon className="w-5 h-5" style={{ color }} />
+        </div>
+        <div>
+          <p className="text-xl font-bold text-gray-900">
             {typeof value === "number" ? value.toLocaleString("de-DE") : value}
-          </Typography>
-          <Typography variant="body2" color="text.primary">
-            {title}
-          </Typography>
-          {subtitle && (
-            <Typography variant="caption" color="text.disabled">
-              {subtitle}
-            </Typography>
-          )}
-        </Box>
-      </Stack>
-    </Paper>
+          </p>
+          <p className="text-sm text-gray-500">{title}</p>
+          {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+        </div>
+      </div>
+    </div>
   );
 }
+
+function MemoryBar({
+  percent,
+  used,
+  total,
+}: {
+  percent: number;
+  used: number;
+  total: number;
+}) {
+  const barColor =
+    percent > 90
+      ? "bg-red-500"
+      : percent > 70
+        ? "bg-amber-500"
+        : "bg-emerald-500";
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-gray-600">Speichernutzung</span>
+        </div>
+        <span className="text-sm font-semibold text-gray-900">
+          {formatBytes(used)} / {formatBytes(total)}
+        </span>
+      </div>
+      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between py-2.5">
+      <span className="text-sm text-gray-600">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function Badge({
+  label,
+  variant = "default",
+}: {
+  label: string;
+  variant?: "default" | "success" | "warning";
+}) {
+  const classes = {
+    default: "bg-gray-100 text-gray-700",
+    success: "bg-emerald-100 text-emerald-700",
+    warning: "bg-amber-100 text-amber-700",
+  };
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${classes[variant]}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Page
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
   const router = useRouter();
@@ -290,9 +341,7 @@ export default function AdminPage() {
       const url = window.URL.createObjectURL(blob);
 
       const today = new Date();
-      const dateStr = `${today.getFullYear()}_${String(
-        today.getMonth() + 1,
-      ).padStart(2, "0")}_${String(today.getDate()).padStart(2, "0")}`;
+      const dateStr = `${today.getFullYear()}_${String(today.getMonth() + 1).padStart(2, "0")}_${String(today.getDate()).padStart(2, "0")}`;
       const filename = `Backup_OpenLibry_${dateStr}.xlsx`;
 
       const link = document.createElement("a");
@@ -321,328 +370,222 @@ export default function AdminPage() {
         <title>Administration | OpenLibry</title>
       </Head>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Page Header */}
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={4}
-        ></Stack>{" "}
-        {/* Quick Actions */}
-        <Typography variant="h6" fontWeight={600} mb={2}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* ── Quick Actions ──────────────────────────────────────────── */}
+        <h2 className="text-base font-semibold text-gray-900 mb-3">
           Schnellaktionen
-        </Typography>
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <ActionCard
-              title="Excel-Backup"
-              description="Alle Daten als Excel herunterladen"
-              icon={CloudDownload}
-              onClick={handleBackup}
-              color="#10b981"
-              loading={backupLoading}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <ActionCard
-              title="System-Health"
-              description="Detaillierte Systemdiagnose"
-              icon={HealthAndSafety}
-              onClick={() => router.push("/admin/health")}
-              color="#6366f1"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <ActionCard
-              title="Einstellungen"
-              description="Konfiguration anzeigen"
-              icon={Settings}
-              onClick={() => router.push("/admin/settings")}
-              color="#8b5cf6"
-            />
-          </Grid>
-        </Grid>
-        {/* Health Status Banner */}
-        <Paper
-          sx={{
-            p: 3,
-            mb: 4,
-            background: loading
-              ? undefined
-              : `linear-gradient(135deg, ${alpha(mainConfig.color, 0.1)} 0%, ${alpha(mainConfig.color, 0.05)} 100%)`,
-            border: `1px solid ${alpha(mainConfig.color, 0.2)}`,
-          }}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+          <ActionCard
+            title="Excel-Backup"
+            dataCy="admin-excel-backup-button"
+            description="Alle Daten als Excel herunterladen"
+            icon={Download}
+            onClick={handleBackup}
+            color="#10b981"
+            loading={backupLoading}
+          />
+          <ActionCard
+            title="System-Health"
+            description="Detaillierte Systemdiagnose"
+            icon={HeartPulse}
+            onClick={() => router.push("/admin/health")}
+            color="#6366f1"
+          />
+          <ActionCard
+            title="Einstellungen"
+            description="Konfiguration anzeigen"
+            icon={Settings}
+            onClick={() => router.push("/admin/settings")}
+            color="#8b5cf6"
+          />
+        </div>
+
+        {/* ── Health Status Banner ───────────────────────────────────── */}
+        <div
+          className={`rounded-2xl border p-5 mb-8 bg-gradient-to-br ${mainConfig.gradientFrom} ${mainConfig.gradientTo}`}
+          style={{ borderColor: `${mainConfig.color}33` }}
         >
           {loading && !data ? (
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <CircularProgress size={24} />
-              <Typography color="text.primary">Lade Systemstatus...</Typography>
-            </Stack>
+            <div className="flex items-center gap-3">
+              <RefreshCw className="w-5 h-5 animate-spin text-gray-400" />
+              <span className="text-sm text-gray-500">
+                Lade Systemstatus...
+              </span>
+            </div>
           ) : error ? (
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <ErrorIcon sx={{ color: "error.main" }} />
-              <Box>
-                <Typography fontWeight={600} color="error.main">
+            <div className="flex items-center gap-3">
+              <XCircle className="w-5 h-5 text-red-500" />
+              <div>
+                <p className="text-sm font-semibold text-red-700">
                   Fehler beim Laden
-                </Typography>
-                <Typography variant="body2" color="text.primary">
-                  {error}
-                </Typography>
-              </Box>
-            </Stack>
+                </p>
+                <p className="text-sm text-gray-500">{error}</p>
+              </div>
+            </div>
           ) : data ? (
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              alignItems={{ xs: "flex-start", sm: "center" }}
-              justifyContent="space-between"
-              spacing={2}
-            >
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Box
-                  sx={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: "50%",
-                    bgcolor: mainConfig.bgColor,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: `${mainConfig.color}20` }}
                 >
-                  <MainIcon sx={{ fontSize: 28, color: mainConfig.color }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant="h6"
-                    fontWeight="bold"
-                    color={mainConfig.textColor}
+                  <MainIcon
+                    className="w-7 h-7"
+                    style={{ color: mainConfig.color }}
+                  />
+                </div>
+                <div>
+                  <p
+                    className="text-base font-bold"
+                    style={{ color: mainConfig.color }}
                   >
                     {mainConfig.label}
-                  </Typography>
-                  <Typography variant="body2" color="text.primary">
+                  </p>
+                  <p className="text-sm text-gray-500">
                     Version {data.version || "unbekannt"} · Aktualisiert:{" "}
                     {new Date(data.timestamp).toLocaleTimeString("de-DE")}
-                  </Typography>
-                </Box>
-              </Stack>
-              <Button
-                variant="outlined"
-                startIcon={<HealthAndSafety />}
+                  </p>
+                </div>
+              </div>
+              <button
                 onClick={() => router.push("/admin/health")}
-                sx={{
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
+                style={{
                   borderColor: mainConfig.color,
                   color: mainConfig.color,
-                  "&:hover": {
-                    borderColor: mainConfig.color,
-                    bgcolor: alpha(mainConfig.color, 0.05),
-                  },
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor =
+                    `${mainConfig.color}0D`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor =
+                    "transparent";
                 }}
               >
+                <HeartPulse className="w-4 h-4" />
                 Details anzeigen
-              </Button>
-            </Stack>
+              </button>
+            </div>
           ) : null}
-        </Paper>
+        </div>
+
         {data && (
           <>
-            {/* Statistics */}
-            <Typography variant="h6" fontWeight={600} mb={2}>
+            {/* ── Statistics ──────────────────────────────────────────── */}
+            <h2 className="text-base font-semibold text-gray-900 mb-3">
               Statistiken
-            </Typography>
-            <Grid container spacing={2} sx={{ mb: 4 }}>
-              <Grid size={{ xs: 6, sm: 3 }}>
-                <StatCard
-                  title="Bücher"
-                  value={(data.checks.data.details?.books as number) ?? "-"}
-                  icon={Book}
-                  color="#3b82f6"
-                />
-              </Grid>
-              <Grid size={{ xs: 6, sm: 3 }}>
-                <StatCard
-                  title="Nutzer"
-                  value={(data.checks.data.details?.users as number) ?? "-"}
-                  icon={People}
-                  color="#8b5cf6"
-                />
-              </Grid>
-              <Grid size={{ xs: 6, sm: 3 }}>
-                <StatCard
-                  title="Aktive Ausleihen"
-                  value={data.stats?.activeRentals ?? "-"}
-                  icon={Book}
-                  color="#10b981"
-                />
-              </Grid>
-              <Grid size={{ xs: 6, sm: 3 }}>
-                <StatCard
-                  title="Überfällig"
-                  value={data.stats?.overdueBooks ?? "-"}
-                  icon={EventNote}
-                  color={
-                    data.stats?.overdueBooks && data.stats.overdueBooks > 0
-                      ? "#ef4444"
-                      : "#10b981"
-                  }
-                />
-              </Grid>
-            </Grid>
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+              <StatCard
+                title="Bücher"
+                value={(data.checks.data.details?.books as number) ?? "-"}
+                icon={Book}
+                color="#3b82f6"
+              />
+              <StatCard
+                title="Nutzer"
+                value={(data.checks.data.details?.users as number) ?? "-"}
+                icon={Users}
+                color="#8b5cf6"
+              />
+              <StatCard
+                title="Aktive Ausleihen"
+                value={data.stats?.activeRentals ?? "-"}
+                icon={Book}
+                color="#10b981"
+              />
+              <StatCard
+                title="Überfällig"
+                value={data.stats?.overdueBooks ?? "-"}
+                icon={CalendarClock}
+                color={
+                  data.stats?.overdueBooks && data.stats.overdueBooks > 0
+                    ? "#ef4444"
+                    : "#10b981"
+                }
+              />
+            </div>
 
-            {/* System Info */}
-            <Typography variant="h6" fontWeight={600} mb={2}>
+            {/* ── System Info ─────────────────────────────────────────── */}
+            <h2 className="text-base font-semibold text-gray-900 mb-3">
               Systeminfo
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Paper sx={{ p: 3 }}>
-                  <Stack spacing={2}>
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Memory sx={{ color: "text.primary" }} />
-                        <Typography variant="body2" color="text.primary">
-                          Speichernutzung
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" fontWeight={600}>
-                        {formatBytes(data.system.memory.used)} /{" "}
-                        {formatBytes(data.system.memory.total)}
-                      </Typography>
-                    </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={data.system.memory.usedPercent}
-                      sx={{
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: "grey.200",
-                        "& .MuiLinearProgress-bar": {
-                          bgcolor:
-                            data.system.memory.usedPercent > 90
-                              ? "error.main"
-                              : data.system.memory.usedPercent > 70
-                                ? "warning.main"
-                                : "success.main",
-                          borderRadius: 4,
-                        },
-                      }}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left: Memory & Uptime */}
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+                <MemoryBar
+                  percent={data.system.memory.usedPercent}
+                  used={data.system.memory.used}
+                  total={data.system.memory.total}
+                />
+
+                <div className="h-px bg-gray-100" />
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Uptime</span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formatUptime(data.system.uptime)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right: Environment info */}
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <div className="divide-y divide-gray-100">
+                  <InfoRow label="Umgebung">
+                    <Badge
+                      label={data.environment.nodeEnv}
+                      variant={
+                        data.environment.nodeEnv === "production"
+                          ? "success"
+                          : "warning"
+                      }
                     />
-                    <Divider />
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Schedule sx={{ color: "text.primary" }} />
-                        <Typography variant="body2" color="text.primary">
-                          Uptime
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" fontWeight={600}>
-                        {formatUptime(data.system.uptime)}
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                </Paper>
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Paper sx={{ p: 3 }}>
-                  <Stack spacing={2}>
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography variant="body2" color="text.primary">
-                        Umgebung
-                      </Typography>
-                      <Chip
-                        label={data.environment.nodeEnv}
-                        size="small"
-                        color={
-                          data.environment.nodeEnv === "production"
-                            ? "success"
-                            : "warning"
-                        }
-                      />
-                    </Stack>
-                    <Divider />
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography variant="body2" color="text.primary">
-                        Node.js
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {data.environment.nodeVersion}
-                      </Typography>
-                    </Stack>
-                    <Divider />
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography variant="body2" color="text.primary">
-                        Plattform
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {data.system.platform} ({data.system.arch})
-                      </Typography>
-                    </Stack>
-                    <Divider />
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography variant="body2" color="text.primary">
-                        Authentifizierung
-                      </Typography>
-                      <Chip
-                        label={
-                          data.environment.authEnabled
-                            ? "Aktiviert"
-                            : "Deaktiviert"
-                        }
-                        size="small"
-                        color={
-                          data.environment.authEnabled ? "success" : "default"
-                        }
-                      />
-                    </Stack>
-                  </Stack>
-                </Paper>
-              </Grid>
-            </Grid>
+                  </InfoRow>
+                  <InfoRow label="Node.js">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {data.environment.nodeVersion}
+                    </span>
+                  </InfoRow>
+                  <InfoRow label="Plattform">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {data.system.platform} ({data.system.arch})
+                    </span>
+                  </InfoRow>
+                  <InfoRow label="Authentifizierung">
+                    <Badge
+                      label={
+                        data.environment.authEnabled
+                          ? "Aktiviert"
+                          : "Deaktiviert"
+                      }
+                      variant={
+                        data.environment.authEnabled ? "success" : "default"
+                      }
+                    />
+                  </InfoRow>
+                </div>
+              </div>
+            </div>
 
             {/* Last Activity */}
             {data.stats?.lastActivity && (
-              <Box mt={3}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                  color="text.primary"
-                >
-                  <Info fontSize="small" />
-                  <Typography variant="body2">
-                    Letzte Aktivität:{" "}
-                    {new Date(data.stats.lastActivity).toLocaleString("de-DE")}
-                  </Typography>
-                </Stack>
-              </Box>
+              <div className="mt-6 flex items-center gap-2 text-gray-500">
+                <Info className="w-4 h-4" />
+                <span className="text-sm">
+                  Letzte Aktivität:{" "}
+                  {new Date(data.stats.lastActivity).toLocaleString("de-DE")}
+                </span>
+              </div>
             )}
           </>
         )}
-      </Container>
+      </div>
     </Layout>
   );
 }
