@@ -225,7 +225,7 @@ const BooksPdfDocument = ({
 
   return (
     <Document>
-      <Page size="A4" style={pdfStyles.page}>
+      <Page size="A4" style={pdfStyles.page} orientation="landscape">
         <View style={pdfStyles.header}>
           <Text style={pdfStyles.title}>Bestandsübersicht</Text>
           <Text style={pdfStyles.subtitle}>
