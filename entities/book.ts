@@ -439,10 +439,9 @@ export async function rentBook(
   client: PrismaClient,
   userid: number,
   bookid: number,
-  duration: number = rentalConfig.extensionDays,
+  duration: number,
 ) {
-  //change due date, connect to user
-  //put all into one transaction
+  //console.log("Renting book with duration", duration);
 
   //if the book is rented already, you cannot rent it
   const book = await getBook(client, bookid);

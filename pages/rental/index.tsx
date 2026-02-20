@@ -13,7 +13,7 @@ import { getBookFromID } from "@/lib/utils/lookups";
 import { calcExtensionDueDate, extendBookApi } from "@/lib/utils/rentalUtils";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
@@ -56,12 +56,6 @@ export default function Rental({
   const users = data?.users ?? initialUsers;
   const rentals = data?.rentals ?? initialRentals;
 
-  // Stable across renders; only recomputes if extensionDays config changes
-  const newDueDate = useMemo(
-    () => calcExtensionDueDate(extensionDays),
-    [extensionDays],
-  );
-
   const handleReturnBookButton = async (bookid: number, userid: number) => {
     try {
       const res = await fetch(`/api/book/${bookid}/user/${userid}`, {
@@ -89,7 +83,7 @@ export default function Rental({
   };
 
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
-    const result = await extendBookApi(bookid, book, newDueDate);
+    const result = await extendBookApi(bookid);
 
     if (result === "already_extended") {
       toast.warning(
@@ -164,7 +158,7 @@ export default function Rental({
             userExpanded={userExpanded}
             searchFieldRef={bookFocusRef}
             handleUserSearchSetFocus={handleUserSearchSetFocus}
-            extensionDueDate={newDueDate}
+            extensionDueDate={calcExtensionDueDate(extensionDays)}
             maxExtensions={maxExtensions}
             sortBy={bookSortBy}
           />

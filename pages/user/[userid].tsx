@@ -91,7 +91,7 @@ export default function UserDetail({
 
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
     const newDueDate = calcExtensionDueDate(extensionDays);
-    const result = await extendBookApi(bookid, book, newDueDate);
+    const result = await extendBookApi(bookid);
 
     if (result === "already_extended") {
       toast.info(

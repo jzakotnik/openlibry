@@ -53,12 +53,6 @@ type Sorting<T> = {
   order: "asc" | "desc";
 };
 
-/* ────────────────────────────────────────────────────────────────
- * Memoised book list – only re-renders when its props actually
- * change (i.e. after the debounced search produces a new
- * renderedBooks array). Typing into the search input no longer
- * forces React to diff 100 complex book cards on every keystroke.
- * ──────────────────────────────────────────────────────────────── */
 const BookList = React.memo(function BookList({
   renderedBooks,
   users,

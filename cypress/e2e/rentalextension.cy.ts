@@ -3,24 +3,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Rental extension tests
 //
-// Strategy for DOM assertions after mutations:
-//   After every API mutation (rent / extend) we call cy.reload().
-//   This forces a clean server-side render via getServerSideProps, so the DOM
-//   always reflects the real DB state without fighting SWR + React.memo +
-//   debounce timing.
+// Extend path: POST /api/book/{id}/extend  (server computes date from env)
+// Rent   path: POST /api/book/{id}/user/{userid}
 //
-// DB assertions use cy.task("verifyBook") as the authoritative source of truth.
+// After every mutation we cy.reload() to get a clean SSR response from the
+// real DB state — no SWR / React.memo timing to fight.
 //
-// Prerequisites – cypress.env.json:
+// DB assertions via cy.task("verifyBook") are the authoritative truth.
+//
+// cypress.env.json must match the server's .env EXACTLY:
 //   {
-//     "RENTAL_DURATION_DAYS": 30,
-//     "EXTENSION_DURATION_DAYS": 7,
-//     "MAX_EXTENSIONS": 2
+//     "RENTAL_DURATION_DAYS": <same as server>,
+//     "EXTENSION_DURATION_DAYS": <same as server>,
+//     "MAX_EXTENSIONS": <same as server>
 //   }
-//   Values must match the running server's .env exactly.
 // ─────────────────────────────────────────────────────────────────────────────
-
-// ── Date helpers ──────────────────────────────────────────────────────────────
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const formatDE = (d: Date) =>
@@ -30,8 +27,6 @@ const addDays = (days: number): Date => {
   d.setDate(d.getDate() + days);
   return d;
 };
-
-// ── Config ────────────────────────────────────────────────────────────────────
 
 const RENTAL_DURATION_DAYS: number = Cypress.env("RENTAL_DURATION_DAYS") ?? 21;
 const EXTENSION_DURATION_DAYS: number =
@@ -46,7 +41,7 @@ describe("Rental extension logic", () => {
   let bookBUserColId: number; // rented, 0 renewals → user column extension
   let bookBBookColId: number; // rented, 0 renewals → book column extension
   let bookBUserPageId: number; // rented, 0 renewals → user detail page extension
-  let bookCId: number; // rented, MAX_EXTENSIONS renewals → all disabled tests
+  let bookCId: number; // rented, MAX_EXTENSIONS renewals → disabled tests
 
   before(() => {
     cy.task("resetDatabase");
@@ -75,7 +70,6 @@ describe("Rental extension logic", () => {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  /** Navigate to /rental, search for our test user, expand their accordion. */
   const openRentalUserAccordion = () => {
     cy.get("[data-cy=index_rental_button]").click();
     cy.url().should("include", "/rental");
@@ -87,13 +81,11 @@ describe("Rental extension logic", () => {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 1. FRESH RENTAL – /rental page, book column
-  //    API: POST /api/book/{id}/user/{userId}
-  //    Expected due date: today + RENTAL_DURATION_DAYS (NOT EXTENSION_DURATION_DAYS)
+  // 1. FRESH RENTAL – POST /api/book/{id}/user/{userId}
+  //    Expected due date: today + RENTAL_DURATION_DAYS
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("rents Book A and verifies due date = today + RENTAL_DURATION_DAYS", () => {
-    // Sanity guard: ensure the two durations differ, otherwise the test proves nothing
     expect(
       RENTAL_DURATION_DAYS,
       "RENTAL_DURATION_DAYS must differ from EXTENSION_DURATION_DAYS",
@@ -105,11 +97,9 @@ describe("Rental extension logic", () => {
     cy.get("[data-cy=index_rental_button]").click();
     cy.url().should("include", "/rental");
 
-    // Select user so the rent button is active
     cy.get("[data-cy=user_search_input]").type("Rentaltest");
     cy.get(`[data-cy=user_accordion_${userId}]`).click();
 
-    // Find Book A and rent it
     cy.get("[data-cy=book_search_input]").type(String(bookAId));
     cy.get(`[data-cy=book_item_${bookAId}]`).should("be.visible");
 
@@ -133,7 +123,6 @@ describe("Rental extension logic", () => {
     });
 
     // ── DOM check after reload ────────────────────────────────────────────
-    // Reload forces a fresh getServerSideProps, bypassing all SWR/memo timing.
     cy.reload();
     cy.get("[data-cy=index_rental_button]").click();
     cy.get("[data-cy=book_search_input]").type(String(bookAId));
@@ -143,9 +132,9 @@ describe("Rental extension logic", () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 2. EXTENSION – /rental page, user column (UserRentalList)
-  //    API: PUT /api/book/{id}
-  //    Expected due date: today + EXTENSION_DURATION_DAYS (NOT RENTAL_DURATION_DAYS)
+  // 2. EXTENSION – user column (UserRentalList)
+  //    POST /api/book/{id}/extend  (server computes date from EXTENSION_DURATION_DAYS)
+  //    Expected due date: today + EXTENSION_DURATION_DAYS
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("extends Book B (user column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
@@ -158,7 +147,8 @@ describe("Rental extension logic", () => {
       "be.visible",
     );
 
-    cy.intercept("PUT", `/api/book/${bookBUserColId}`).as("extendBook");
+    // New endpoint: POST /api/book/{id}/extend
+    cy.intercept("POST", `/api/book/${bookBUserColId}/extend`).as("extendBook");
     cy.get(`[data-cy=book_extend_button_${bookBUserColId}]`)
       .should("not.be.disabled")
       .click();
@@ -187,7 +177,7 @@ describe("Rental extension logic", () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 3. EXTENSION – /rental page, book column (BookRentalList)
+  // 3. EXTENSION – book column (BookRentalList)
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("extends Book B (book column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
@@ -197,14 +187,15 @@ describe("Rental extension logic", () => {
     cy.get("[data-cy=index_rental_button]").click();
     cy.url().should("include", "/rental");
 
-    // User must be selected for action buttons to be active
     cy.get("[data-cy=user_search_input]").type("Rentaltest");
     cy.get(`[data-cy=user_accordion_${userId}]`).click();
 
     cy.get("[data-cy=book_search_input]").type(String(bookBBookColId));
     cy.get(`[data-cy=book_item_${bookBBookColId}]`).should("be.visible");
 
-    cy.intercept("PUT", `/api/book/${bookBBookColId}`).as("extendBookCol");
+    cy.intercept("POST", `/api/book/${bookBBookColId}/extend`).as(
+      "extendBookCol",
+    );
     cy.get(`[data-cy=book_item_${bookBBookColId}]`)
       .find(`[data-cy=book_extend_button_${bookBBookColId}]`)
       .should("not.be.disabled")
@@ -236,10 +227,6 @@ describe("Rental extension logic", () => {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4. EXTENSION – /user/[id] detail page (UserEditForm)
-  //
-  //    UserEditForm.BookRow has no data-cy on its extend button.
-  //    We locate the button by traversing from the book title.
-  //    BookRow layout: [return-button(eq0)] [extend-button(eq1)] [title] [badge?] [date]
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("extends Book B from the user detail page and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
@@ -249,9 +236,10 @@ describe("Rental extension logic", () => {
     cy.visit(`/user/${userId}`);
     cy.url().should("include", `/user/${userId}`);
 
-    cy.intercept("PUT", `/api/book/${bookBUserPageId}`).as("extendUserPage");
+    cy.intercept("POST", `/api/book/${bookBUserPageId}/extend`).as(
+      "extendUserPage",
+    );
 
-    // Find the extend (Clock) button – second button in the BookRow
     cy.contains("Cypress Verlaengerbar UserPage")
       .closest("div.rounded-lg")
       .find("button")
@@ -285,12 +273,10 @@ describe("Rental extension logic", () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 5. MAX EXTENSIONS – /rental page, user column
-  //    Book C has renewalCount == MAX_EXTENSIONS → extend button must be disabled
+  // 5. MAX EXTENSIONS – user column, extend button disabled
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("disables the extend button for Book C (user column) when MAX_EXTENSIONS reached", () => {
-    // Guard: DB state must match what we seeded
     cy.task("verifyBook", bookCId).then((book: any) => {
       expect(
         book.renewalCount,
@@ -303,7 +289,7 @@ describe("Rental extension logic", () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 6. MAX EXTENSIONS – /rental page, book column
+  // 6. MAX EXTENSIONS – book column, extend button disabled
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("disables the extend button for Book C (book column) when MAX_EXTENSIONS reached", () => {
