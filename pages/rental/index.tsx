@@ -50,7 +50,9 @@ export default function Rental({
     userFocusRef.current?.select();
   };
 
-  const { data } = useSWR("/api/rental", fetcher, { refreshInterval: 1000 });
+  const { data, mutate } = useSWR("/api/rental", fetcher, {
+    refreshInterval: 1000,
+  });
 
   const books = data?.books ?? initialBooks;
   const users = data?.users ?? initialUsers;
@@ -80,6 +82,7 @@ export default function Rental({
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
       );
     }
+    mutate();
   };
 
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
