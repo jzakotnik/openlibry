@@ -7,16 +7,12 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
-import {
-  convertDateToDayString,
-  extendDays,
-  replaceBookStringDate,
-  sameDay,
-} from "@/lib/utils/dateutils";
+import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { getBookFromID } from "@/lib/utils/lookups";
+import { calcExtensionDueDate, extendBookApi } from "@/lib/utils/rentalUtils";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -26,6 +22,7 @@ interface RentalPropsType {
   users: Array<UserType>;
   rentals: Array<RentalsUserType>;
   extensionDays: number;
+  maxExtensions: number;
   bookSortBy: string;
 }
 
@@ -36,9 +33,9 @@ export default function Rental({
   users: initialUsers,
   rentals: initialRentals,
   extensionDays,
+  maxExtensions,
   bookSortBy,
 }: RentalPropsType) {
-  const router = useRouter();
   const [userExpanded, setUserExpanded] = useState<number | false>(false);
 
   const bookFocusRef = useRef<HTMLInputElement>(null);
@@ -53,12 +50,17 @@ export default function Rental({
     userFocusRef.current?.select();
   };
 
-  // Use SWR for live updates
   const { data } = useSWR("/api/rental", fetcher, { refreshInterval: 1000 });
 
   const books = data?.books ?? initialBooks;
   const users = data?.users ?? initialUsers;
   const rentals = data?.rentals ?? initialRentals;
+
+  // Stable across renders; only recomputes if extensionDays config changes
+  const newDueDate = useMemo(
+    () => calcExtensionDueDate(extensionDays),
+    [extensionDays],
+  );
 
   const handleReturnBookButton = async (bookid: number, userid: number) => {
     try {
@@ -79,55 +81,31 @@ export default function Rental({
         `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`,
       );
       handleBookSearchSetFocus();
-    } catch (error) {
+    } catch {
       toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
       );
     }
   };
 
-  const newDueDate = useMemo(
-    () => extendDays(new Date(), extensionDays),
-    [extensionDays], // only changes if extensionDays config changes, which might be practically never
-  );
-
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
-    const newbook = replaceBookStringDate(book) as any;
+    const result = await extendBookApi(bookid, book, newDueDate);
 
-    if (sameDay(newbook.dueDate, newDueDate)) {
+    if (result === "already_extended") {
       toast.warning(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
       );
       return;
     }
-
-    newbook.renewalCount = newbook.renewalCount + 1;
-    newbook.dueDate = newDueDate.toDate();
-    delete newbook.user;
-    delete newbook._id;
-
-    try {
-      const res = await fetch(`/api/book/${bookid}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newbook),
-      });
-
-      if (!res.ok) {
-        toast.error(
-          "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-        );
-        return;
-      }
-
-      await res.json();
-      toast.success(`Buch - ${book.title} - verlängert`);
-      handleBookSearchSetFocus();
-    } catch (error) {
+    if (result === "error") {
       toast.error(
-        "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
+        "Leider hat es nicht geklappt, der Server ist aber erreichbar",
       );
+      return;
     }
+
+    toast.success(`Buch - ${book.title} - verlängert`);
+    handleBookSearchSetFocus();
   };
 
   const handleRentBookButton = async (bookid: number, userid: number) => {
@@ -147,7 +125,7 @@ export default function Rental({
       await res.json();
       toast.success(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
       handleBookSearchSetFocus();
-    } catch (error) {
+    } catch {
       toast.error(
         "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
       );
@@ -172,6 +150,8 @@ export default function Rental({
             userExpanded={userExpanded}
             searchFieldRef={userFocusRef}
             handleBookSearchSetFocus={handleBookSearchSetFocus}
+            extensionDurationDays={extensionDays}
+            maxExtensions={maxExtensions}
           />
         </div>
         <div style={{ overflow: "visible" }} data-cy="rental_book_column">
@@ -185,6 +165,7 @@ export default function Rental({
             searchFieldRef={bookFocusRef}
             handleUserSearchSetFocus={handleUserSearchSetFocus}
             extensionDueDate={newDueDate}
+            maxExtensions={maxExtensions}
             sortBy={bookSortBy}
           />
         </div>
@@ -207,7 +188,7 @@ export const getServerSideProps: GetServerSideProps = async (
   context.res.setHeader("Pragma", "no-cache");
   context.res.setHeader("Expires", "0");
 
-  const extensionDays = Number(process.env.EXTENSION_DURATION_DAYS) || 14;
+  const { extensionDays, maxExtensions } = getRentalConfig();
   const bookSortBy = process.env.RENTAL_SORT_BOOKS || "title_asc";
 
   const allUsers = await getAllUsers(prisma);
@@ -248,5 +229,7 @@ export const getServerSideProps: GetServerSideProps = async (
     return newBook;
   });
 
-  return { props: { books, users, rentals, extensionDays, bookSortBy } };
+  return {
+    props: { books, users, rentals, extensionDays, maxExtensions, bookSortBy },
+  };
 };
