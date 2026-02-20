@@ -307,21 +307,25 @@ export async function extendBook(
   bookid: number,
   days: number,
 ) {
-  //to extend a book, count the renewal counter and updated the due date
   try {
     const book = await getBook(client, bookid);
-    if (!book?.dueDate) return; //you can't extend a book without a due date
-    const updatedDueDate = dayjs(book?.dueDate).add(days, "day").toISOString();
-    await client.book.update({
+    if (!book?.dueDate) return null; // you can't extend a book without a due date
+
+    const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
+
+    const updatedBook = await client.book.update({
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
     });
+
     await addAudit(
       client,
       "Extend book",
       "book id " + bookid.toString() + ", " + book.title,
       bookid,
     );
+
+    return updatedBook;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -340,7 +344,6 @@ export async function extendBook(
     throw e;
   }
 }
-
 export async function returnBook(client: PrismaClient, bookid: number) {
   try {
     //get the user for that book

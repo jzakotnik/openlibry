@@ -29,7 +29,7 @@ import React, {
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
-import { canExtendBook } from "@/lib/utils/rentalUtils";
+import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
 import { toast } from "sonner";
 
 const SEARCH_DEBOUNCE_MS = 180;
@@ -43,7 +43,7 @@ interface BookPropsType {
   userExpanded: number | false;
   searchFieldRef: React.Ref<HTMLInputElement>;
   handleUserSearchSetFocus: () => void;
-  extensionDueDate: dayjs.Dayjs;
+  extensionDurationDays: number;
   maxExtensions: number;
   sortBy: any;
 }
@@ -57,7 +57,7 @@ const BookList = React.memo(function BookList({
   renderedBooks,
   users,
   userExpanded,
-  extensionDueDate,
+  extensionDurationDays,
   maxExtensions,
   handleExtendBookButton,
   handleReturnBookButton,
@@ -66,23 +66,20 @@ const BookList = React.memo(function BookList({
   renderedBooks: Array<BookType>;
   users: Array<UserType>;
   userExpanded: number | false;
-  extensionDueDate: dayjs.Dayjs;
+  extensionDurationDays: number;
   maxExtensions: number;
   handleExtendBookButton: (id: number, b: BookType) => void;
   handleReturnBookButton: (bookid: number, userid: number) => void;
   handleRentBookButton: (id: number, userid: number) => void;
 }) {
+  const extensionDueDate = calcExtensionDueDate(extensionDurationDays);
   return (
     <div
       className="flex flex-col gap-2 px-0.5 mt-2"
       data-cy="book_list_container"
     >
       {renderedBooks.slice(0, 100).map((b: BookType) => {
-        const allowExtendBookRent = canExtendBook(
-          b,
-          extensionDueDate,
-          maxExtensions,
-        );
+        const allowExtendBookRent = canExtendBook(b, maxExtensions);
         const extendTooltip = allowExtendBookRent
           ? "Verlängern"
           : "Maximale Ausleihzeit erreicht";
@@ -231,7 +228,7 @@ export default function BookRentalList({
   userExpanded,
   searchFieldRef,
   handleUserSearchSetFocus,
-  extensionDueDate,
+  extensionDurationDays,
   maxExtensions,
   sortBy,
 }: BookPropsType) {
@@ -389,7 +386,7 @@ export default function BookRentalList({
           renderedBooks={renderedBooks}
           users={users}
           userExpanded={userExpanded}
-          extensionDueDate={extensionDueDate}
+          extensionDurationDays={extensionDurationDays}
           maxExtensions={maxExtensions}
           handleExtendBookButton={handleExtendBookButton}
           handleReturnBookButton={handleReturnBookButton}

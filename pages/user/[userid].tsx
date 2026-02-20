@@ -10,7 +10,7 @@ import {
   convertDateToDayString,
   replaceUserDateString,
 } from "@/lib/utils/dateutils";
-import { calcExtensionDueDate, extendBookApi } from "@/lib/utils/rentalUtils";
+import { extendBookApi } from "@/lib/utils/rentalUtils";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
 import { useEffect, useState } from "react";
@@ -90,17 +90,15 @@ export default function UserDetail({
   };
 
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
-    const newDueDate = calcExtensionDueDate(extensionDays);
     const result = await extendBookApi(bookid);
 
-    if (result === "already_extended") {
+    if (result.status === "already_extended") {
       toast.info(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
       );
       return;
     }
-
-    if (result === "error") {
+    if (result.status === "error") {
       toast.error(
         "Leider hat es nicht geklappt, der Server ist aber erreichbar",
       );
@@ -108,14 +106,14 @@ export default function UserDetail({
     }
 
     toast.success("Buch verlängert, super!");
-    // This page manages its own book list (no SWR), so update local state manually.
+    // Use the server's computed date instead of guessing client-side
     setUserBooks((prev) =>
       prev.map((b) =>
         b.id === bookid
           ? {
               ...b,
-              renewalCount: b.renewalCount + 1,
-              dueDate: newDueDate.toDate(),
+              renewalCount: result.renewalCount,
+              dueDate: result.newDueDate,
             }
           : b,
       ),

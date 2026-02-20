@@ -10,7 +10,7 @@ import { getAllUsers } from "@/entities/user";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { getBookFromID } from "@/lib/utils/lookups";
-import { calcExtensionDueDate, extendBookApi } from "@/lib/utils/rentalUtils";
+import { extendBookApi } from "@/lib/utils/rentalUtils";
 import dayjs from "dayjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRef, useState } from "react";
@@ -85,13 +85,13 @@ export default function Rental({
   const handleExtendBookButton = async (bookid: number, book: BookType) => {
     const result = await extendBookApi(bookid);
 
-    if (result === "already_extended") {
+    if (result.status === "already_extended") {
       toast.warning(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
       );
       return;
     }
-    if (result === "error") {
+    if (result.status === "error") {
       toast.error(
         "Leider hat es nicht geklappt, der Server ist aber erreichbar",
       );
@@ -100,6 +100,7 @@ export default function Rental({
 
     toast.success(`Buch - ${book.title} - verlängert`);
     handleBookSearchSetFocus();
+    // No need to use result.newDueDate here — SWR will refresh the data automatically
   };
 
   const handleRentBookButton = async (bookid: number, userid: number) => {
@@ -158,7 +159,7 @@ export default function Rental({
             userExpanded={userExpanded}
             searchFieldRef={bookFocusRef}
             handleUserSearchSetFocus={handleUserSearchSetFocus}
-            extensionDueDate={calcExtensionDueDate(extensionDays)}
+            extensionDurationDays={extensionDays}
             maxExtensions={maxExtensions}
             sortBy={bookSortBy}
           />

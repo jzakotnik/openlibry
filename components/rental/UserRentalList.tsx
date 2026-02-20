@@ -267,7 +267,6 @@ export default function UserRentalList({
                         rentalsUser.map((r: RentalsUserType) => {
                           const allowExtendBookRent = canExtendBook(
                             r,
-                            extensionDueDate,
                             maxExtensions,
                           );
                           const extendTooltip = allowExtendBookRent

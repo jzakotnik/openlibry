@@ -55,7 +55,12 @@ export default async function handler(
       return res.status(409).json({ result: "already_extended" });
     }
 
-    await extendBook(prisma, id, extensionDays);
+    const updatedBook = await extendBook(prisma, id, extensionDays);
+    if (!updatedBook) {
+      return res
+        .status(400)
+        .json({ result: "Book has no due date – is it rented?" });
+    }
 
     businessLogger.info(
       {
@@ -66,8 +71,11 @@ export default async function handler(
       },
       "Book extended successfully",
     );
-
-    return res.status(200).json({ result: "ok" });
+    return res.status(200).json({
+      result: "ok",
+      newDueDate: updatedBook.dueDate,
+      renewalCount: updatedBook.renewalCount,
+    });
   } catch (error) {
     errorLogger.error(
       {

@@ -30,14 +30,9 @@ export function calcExtensionDueDate(extensionDays: number): dayjs.Dayjs {
  */
 export function canExtendBook(
   book: ExtendableBook,
-  extensionDueDate: dayjs.Dayjs,
   maxExtensions: number,
 ): boolean {
-  //console.log("CHECK CAN EXTEND BOOK", maxExtensions, book.renewalCount);
-  if ((book.renewalCount ?? 0) >= maxExtensions) return false;
-  if (!book.dueDate) return false;
-  //return extensionDueDate.isAfter(book.dueDate, "day");
-  return extensionDueDate.isSameOrAfter(book.dueDate, "day");
+  return (book.renewalCount ?? 0) < maxExtensions;
 }
 
 /**
@@ -51,19 +46,30 @@ export function canExtendBook(
  *   "ok"                – extended successfully
  *   "error"             – network or server error
  */
+type ExtendBookApiResult =
+  | { status: "ok"; newDueDate: string; renewalCount: number }
+  | { status: "already_extended" }
+  | { status: "error" };
+
 export async function extendBookApi(
   bookid: number,
-): Promise<"already_extended" | "ok" | "error"> {
+): Promise<ExtendBookApiResult> {
   try {
     const res = await fetch(`/api/book/${bookid}/extend`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
 
-    if (res.status === 409) return "already_extended";
-    if (!res.ok) return "error";
-    return "ok";
+    if (res.status === 409) return { status: "already_extended" };
+    if (!res.ok) return { status: "error" };
+
+    const data = await res.json();
+    return {
+      status: "ok",
+      newDueDate: data.newDueDate,
+      renewalCount: data.renewalCount,
+    };
   } catch {
-    return "error";
+    return { status: "error" };
   }
 }
