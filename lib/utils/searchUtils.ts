@@ -31,7 +31,13 @@ export function filterUsers(
   const exactMatchUserIdDefault = -1;
   if (searchString.length === 0) return [users, exactMatchUserIdDefault]; // nothing to do
 
-  const lowerCaseSearch = searchString.toLowerCase();
+  // If the search string is purely numeric, strip leading zeros
+  // (barcodes may have leading zeros, but user IDs are stored without them)
+  const strippedSearch = /^\d+$/.test(searchString)
+    ? String(parseInt(searchString, 10))
+    : searchString;
+
+  const lowerCaseSearch = strippedSearch.toLowerCase();
 
   // Extract search modifiers (klasse, overdue)
   const { foundKlasse, klasse, updatedString } =
