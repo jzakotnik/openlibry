@@ -365,6 +365,8 @@ export async function returnBook(client: PrismaClient, bookid: number) {
         data: {
           renewalCount: 0,
           rentalStatus: "available",
+          dueDate: null,
+          rentedDate: "",
         },
       }),
     );
@@ -507,17 +509,17 @@ export async function rentBook(
       },
     }),
   );
+  const now = dayjs();
+  const dueDate = now.add(duration, "day");
   transaction.push(
     client.book.update({
       where: { id: bookid },
-      data: { rentalStatus: "rented", renewalCount: 0 },
-    }),
-  );
-  const nowDate = dayjs().add(duration, "day");
-  transaction.push(
-    client.book.update({
-      where: { id: bookid },
-      data: { dueDate: nowDate.toISOString() },
+      data: {
+        rentalStatus: "rented",
+        renewalCount: 0,
+        rentedDate: now.toISOString(),
+        dueDate: dueDate.toISOString(),
+      },
     }),
   );
   try {

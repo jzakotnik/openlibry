@@ -29,7 +29,7 @@ import React, {
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
-import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
+import { canExtendBook } from "@/lib/utils/rentalUtils";
 import { toast } from "sonner";
 
 const SEARCH_DEBOUNCE_MS = 180;
@@ -72,7 +72,6 @@ const BookList = React.memo(function BookList({
   handleReturnBookButton: (bookid: number, userid: number) => void;
   handleRentBookButton: (id: number, userid: number) => void;
 }) {
-  const extensionDueDate = calcExtensionDueDate(extensionDurationDays);
   return (
     <div
       className="flex flex-col gap-2 px-0.5 mt-2"
