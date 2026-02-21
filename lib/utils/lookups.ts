@@ -3,7 +3,7 @@ import { UserType } from "@/entities/UserType";
 
 export function getBookFromID(id: number, books: Array<BookType>) {
   const firstMatch = books.filter((item) => item.id == id);
-  console.log("First match", firstMatch);
+  //console.log("First match", firstMatch);
   return firstMatch[0];
 }
 export function stripZerosFromSearch(query: string): string {

@@ -12,7 +12,7 @@ dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
 export function convertDateToDayString(
-  d: string | Date | null | undefined
+  d: string | Date | null | undefined,
 ): string {
   return d ? dayjs(d).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
 }
@@ -22,7 +22,7 @@ export function convertDayToISOString(d: string): string {
 }
 
 export function convertDateToTimeString(
-  d: string | Date | null | undefined
+  d: string | Date | null | undefined,
 ): string {
   return d
     ? dayjs(d).format("YYYY-MM-DD HH:mm")
@@ -45,24 +45,12 @@ export function sameDay(d: Date, o: Dayjs): boolean {
 }
 
 export function extendDays(d: Date, days: number): Dayjs {
-
   const newDate = dayjs(d).add(days, "day");
   return newDate;
 }
 
 export function currentTime(): Date {
   return dayjs().toDate();
-}
-
-export function replaceUsersDateString(users: Array<User>): Array<UserType> {
-  const convertedUsers = users.map((u) => {
-    return {
-      ...u,
-      createdAt: convertDateToDayString(u.createdAt),
-      updatedAt: convertDateToDayString(u.updatedAt),
-    };
-  });
-  return convertedUsers;
 }
 
 export function replaceUserDateString(user: User): UserType {

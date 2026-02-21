@@ -8,7 +8,7 @@ import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import {
   convertDateToDayString,
-  replaceUsersDateString,
+  replaceUserDateString,
 } from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -25,7 +25,7 @@ type Error = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | Error>
+  res: NextApiResponse<Data | Error>,
 ) {
   if (req.method !== "GET") {
     return res.status(405).end(`${req.method} Not Allowed`);
@@ -34,7 +34,7 @@ export default async function handler(
   try {
     //get all the users
     const users = await getAllUsers(prisma);
-    const convertedUsers = replaceUsersDateString(users);
+    const convertedUsers = users.map(replaceUserDateString);
     if (!users) {
       return res.status(400).json({ result: "ERROR: User not found" });
     }
@@ -82,7 +82,7 @@ export default async function handler(
         method: "GET",
         error: error instanceof Error ? error.message : String(error),
       },
-      "Error fetching rental summary data"
+      "Error fetching rental summary data",
     );
     res.status(400).json({ result: "ERROR: " + error });
   }

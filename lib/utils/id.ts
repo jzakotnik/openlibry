@@ -8,6 +8,14 @@ export default function getMaxId(array: Array<{ id?: number }>): number {
     return id > max ? id : max;
   }, array[0].id ?? 0);
 }
+
+export function increaseNumberInString(text: any) {
+  return text.replace(/\d+/g, function (match: any) {
+    // Convert the matched substring to a number, add 1, and return it
+    return parseInt(match, 10) + 1;
+  });
+}
+
 /**
  * ID generation utilities
  */
