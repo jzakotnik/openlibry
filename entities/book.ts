@@ -366,7 +366,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
           renewalCount: 0,
           rentalStatus: "available",
           dueDate: null,
-          rentedDate: "",
+          rentedDate: new Date().toISOString(),
         },
       }),
     );
