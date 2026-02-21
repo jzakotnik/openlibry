@@ -10,7 +10,7 @@ export function searchAndRemoveKlasse(inputString: string) {
   const regex = /klasse\?\s?([\d,\w,\u00F0-\u02AF]+)/gi;
 
   const match = regex.exec(inputString);
-  console.log("Klassenmatch", inputString, match);
+  //console.log("Klassenmatch", inputString, match);
   const foundKlasse = !!match;
   const klasse = match ? match[1] : "";
   const updatedString = inputString.replace(regex, "").trim();
