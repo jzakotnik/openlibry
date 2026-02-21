@@ -1,6 +1,7 @@
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
 import { defineConfig } from "cypress";
+import * as dotenv from "dotenv";
 import ExcelJS from "exceljs";
 import * as fs from "fs";
 import * as path from "path";
@@ -21,6 +22,27 @@ function getPrismaClient() {
   }
   return testPrisma;
 }
+
+// Load server env vars into Cypress env so tests stay in sync automatically
+function loadServerEnv(config: Cypress.PluginConfigOptions) {
+  const envFile = fs.existsSync(".env.test.local") ? ".env.test.local" : ".env";
+  const parsed = dotenv.config({ path: envFile }).parsed ?? {};
+
+  const keys = [
+    "RENTAL_DURATION_DAYS",
+    "EXTENSION_DURATION_DAYS",
+    "MAX_EXTENSIONS",
+  ];
+
+  keys.forEach((key) => {
+    if (parsed[key] !== undefined) {
+      config.env[key] = Number(parsed[key]);
+    }
+  });
+
+  return config;
+}
+
 export default defineConfig({
   e2e: {
     experimentalRunAllSpecs: true,
@@ -33,6 +55,7 @@ export default defineConfig({
     screenshotsFolder: "cypress/screenshots",
 
     setupNodeEvents(on, config) {
+      loadServerEnv(config); // ← add this
       on("task", {
         async seedRentalData() {
           const client = getPrismaClient();
