@@ -1,11 +1,12 @@
 import { BookType } from "@/entities/BookType";
+import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { addAudit } from "./audit";
 
-const extensionDays = parseInt(process.env.EXTENSION_DURATION_DAYS!) || 21;
+const rentalConfig = getRentalConfig();
 export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
 }
@@ -28,7 +29,7 @@ export async function getAllTopics(client: PrismaClient) {
           operation: "getAllTopics",
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error getting all topics"
+        "Error getting all topics",
       );
     }
     throw e;
@@ -55,7 +56,7 @@ export async function getAllBooks(client: PrismaClient) {
           operation: "getAllBooks",
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error getting all books"
+        "Error getting all books",
       );
     }
     throw e;
@@ -98,7 +99,7 @@ export async function getRentedBooksWithUsers(client: PrismaClient) {
           operation: "getRentedBooksWithUsers",
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error getting rented books with users"
+        "Error getting rented books with users",
       );
     }
     throw e;
@@ -144,7 +145,7 @@ export async function getRentedBooksForUser(client: PrismaClient, id: number) {
           userId: id,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error getting rented books for user"
+        "Error getting rented books for user",
       );
     }
     throw e;
@@ -165,7 +166,7 @@ export async function countBook(client: PrismaClient) {
           operation: "countBook",
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error counting books"
+        "Error counting books",
       );
     }
     throw e;
@@ -179,7 +180,7 @@ export async function addBook(client: PrismaClient, book: BookType) {
       bookId: book.id,
       title: book.title,
     },
-    "Adding book"
+    "Adding book",
   );
   try {
     addAudit(client, "Add book", book.title, book.id);
@@ -199,7 +200,7 @@ export async function addBook(client: PrismaClient, book: BookType) {
           title: book.title,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error creating a new book"
+        "Error creating a new book",
       );
     }
     throw e;
@@ -209,7 +210,7 @@ export async function addBook(client: PrismaClient, book: BookType) {
 export async function updateBook(
   client: PrismaClient,
   id: number,
-  book: BookType
+  book: BookType,
 ) {
   businessLogger.debug(
     {
@@ -217,7 +218,7 @@ export async function updateBook(
       bookId: id,
       title: book.title,
     },
-    "Updating book"
+    "Updating book",
   );
   const { id: _id, userId: _userId, ...bookData } = book; //apparently in prisma 7, the id should not be included in the data itself
   try {
@@ -225,7 +226,7 @@ export async function updateBook(
       client,
       "Update book",
       book.id ? book.id.toString() + ", " + book.title : "undefined",
-      id
+      id,
     );
     return await client.book.update({
       where: {
@@ -246,7 +247,7 @@ export async function updateBook(
           title: book.title,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error updating a book"
+        "Error updating a book",
       );
     }
     throw e;
@@ -273,7 +274,7 @@ export async function deleteBook(client: PrismaClient, id: number) {
           bookId: id,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error deleting one book"
+        "Error deleting one book",
       );
     }
     throw e;
@@ -294,7 +295,7 @@ export async function deleteAllBooks(client: PrismaClient) {
           operation: "deleteAllBooks",
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error deleting all books"
+        "Error deleting all books",
       );
     }
     throw e;
@@ -304,23 +305,27 @@ export async function deleteAllBooks(client: PrismaClient) {
 export async function extendBook(
   client: PrismaClient,
   bookid: number,
-  days: number
+  days: number,
 ) {
-  //to extend a book, count the renewal counter and updated the due date
   try {
     const book = await getBook(client, bookid);
-    if (!book?.dueDate) return; //you can't extend a book without a due date
-    const updatedDueDate = dayjs(book?.dueDate).add(days, "day").toISOString();
-    await client.book.update({
+    if (!book?.dueDate) return null; // you can't extend a book without a due date
+
+    const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
+
+    const updatedBook = await client.book.update({
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
     });
+
     await addAudit(
       client,
       "Extend book",
       "book id " + bookid.toString() + ", " + book.title,
-      bookid
+      bookid,
     );
+
+    return updatedBook;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -333,13 +338,12 @@ export async function extendBook(
           bookId: bookid,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error extending a book"
+        "Error extending a book",
       );
     }
     throw e;
   }
 }
-
 export async function returnBook(client: PrismaClient, bookid: number) {
   try {
     //get the user for that book
@@ -352,7 +356,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
       client,
       "Return book",
       "book id " + bookid.toString() + ", " + book.title,
-      bookid
+      bookid,
     );
     const transaction = [];
     transaction.push(
@@ -361,8 +365,10 @@ export async function returnBook(client: PrismaClient, bookid: number) {
         data: {
           renewalCount: 0,
           rentalStatus: "available",
+          dueDate: null,
+          rentedDate: new Date().toISOString(),
         },
-      })
+      }),
     );
     transaction.push(
       client.user.update({
@@ -372,7 +378,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
             disconnect: { id: bookid },
           },
         },
-      })
+      }),
     );
 
     return await client.$transaction(transaction);
@@ -388,7 +394,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
           bookId: bookid,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error returning a book"
+        "Error returning a book",
       );
     }
     throw e;
@@ -398,7 +404,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
 export async function hasRentedBook(
   client: PrismaClient,
   bookid: number,
-  userid: number
+  userid: number,
 ) {
   try {
     const book = await client.book.findFirst({ where: { id: bookid } });
@@ -410,7 +416,7 @@ export async function hasRentedBook(
         rentalStatus: book?.rentalStatus,
         bookUserId: book?.userId,
       },
-      "Rent check performed"
+      "Rent check performed",
     );
     if (book?.userId == userid && book.rentalStatus == "rented") return true;
     else return false;
@@ -427,7 +433,7 @@ export async function hasRentedBook(
           userId: userid,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error getting status of a book"
+        "Error getting status of a book",
       );
     }
     throw e;
@@ -438,10 +444,9 @@ export async function rentBook(
   client: PrismaClient,
   userid: number,
   bookid: number,
-  duration: number = extensionDays
+  duration: number,
 ) {
-  //change due date, connect to user
-  //put all into one transaction
+  //console.log("Renting book with duration", duration);
 
   //if the book is rented already, you cannot rent it
   const book = await getBook(client, bookid);
@@ -454,7 +459,7 @@ export async function rentBook(
           userId: userid,
           reason: "Book already rented",
         },
-        "Attempted to rent already rented book"
+        "Attempted to rent already rented book",
       );
       return "ERROR, book is rented";
     }
@@ -471,7 +476,7 @@ export async function rentBook(
           userId: userid,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error renting a book"
+        "Error renting a book",
       );
     }
     throw e;
@@ -486,7 +491,7 @@ export async function rentBook(
       ", book title: " +
       book?.title,
     bookid,
-    userid
+    userid,
   );
   const transaction = [];
 
@@ -502,20 +507,20 @@ export async function rentBook(
           },
         },
       },
-    })
+    }),
   );
+  const now = dayjs();
+  const dueDate = now.add(duration, "day");
   transaction.push(
     client.book.update({
       where: { id: bookid },
-      data: { rentalStatus: "rented", renewalCount: 0 },
-    })
-  );
-  const nowDate = dayjs().add(duration, "day");
-  transaction.push(
-    client.book.update({
-      where: { id: bookid },
-      data: { dueDate: nowDate.toISOString() },
-    })
+      data: {
+        rentalStatus: "rented",
+        renewalCount: 0,
+        rentedDate: now.toISOString(),
+        dueDate: dueDate.toISOString(),
+      },
+    }),
   );
   try {
     return await client.$transaction(transaction);
@@ -532,7 +537,7 @@ export async function rentBook(
           userId: userid,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error renting a book"
+        "Error renting a book",
       );
     }
     throw e;

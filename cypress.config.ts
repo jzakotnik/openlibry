@@ -1,6 +1,7 @@
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
 import { defineConfig } from "cypress";
+import * as dotenv from "dotenv";
 import ExcelJS from "exceljs";
 import * as fs from "fs";
 import * as path from "path";
@@ -21,6 +22,27 @@ function getPrismaClient() {
   }
   return testPrisma;
 }
+
+// Load server env vars into Cypress env so tests stay in sync automatically
+function loadServerEnv(config: Cypress.PluginConfigOptions) {
+  const envFile = fs.existsSync(".env.test.local") ? ".env.test.local" : ".env";
+  const parsed = dotenv.config({ path: envFile }).parsed ?? {};
+
+  const keys = [
+    "RENTAL_DURATION_DAYS",
+    "EXTENSION_DURATION_DAYS",
+    "MAX_EXTENSIONS",
+  ];
+
+  keys.forEach((key) => {
+    if (parsed[key] !== undefined) {
+      config.env[key] = Number(parsed[key]);
+    }
+  });
+
+  return config;
+}
+
 export default defineConfig({
   e2e: {
     experimentalRunAllSpecs: true,
@@ -33,15 +55,127 @@ export default defineConfig({
     screenshotsFolder: "cypress/screenshots",
 
     setupNodeEvents(on, config) {
+      loadServerEnv(config); // ← add this
       on("task", {
+        async seedRentalData() {
+          const client = getPrismaClient();
+
+          const today = new Date();
+
+          // dueDate = yesterday so that:
+          //  • today + EXTENSION_DURATION_DAYS is always strictly after it  →  date
+          //    half of canExtendBook() is true
+          //  • after an extension the new dueDate = today + EXTENSION_DURATION_DAYS,
+          //    which is strictly after yesterday, so the DB assertion always passes
+          const yesterday = new Date(today);
+          yesterday.setDate(today.getDate() - 1);
+
+          const rentedWeekAgo = new Date(today);
+          rentedWeekAgo.setDate(today.getDate() - 7);
+
+          // One shared test user
+          const user = await client.user.create({
+            data: {
+              firstName: "Cypress",
+              lastName: "Rentaltest",
+              schoolGrade: "3b",
+            },
+          });
+
+          // ── bookA: available ──────────────────────────────────────────────────────
+          // Used by the fresh-rental test only.
+          const bookA = await client.book.create({
+            data: {
+              title: "Cypress Buch Erstausleihe",
+              author: "Cypress Test",
+              rentalStatus: "available",
+              renewalCount: 0,
+            },
+          });
+
+          // ── bookBUserCol: rented, renewalCount=0 ─────────────────────────────────
+          // Used by the extension test in the USER column of /rental.
+          const bookBUserCol = await client.book.create({
+            data: {
+              title: "Cypress Verlaengerbar UserCol",
+              author: "Cypress Test",
+              rentalStatus: "rented",
+              rentedDate: rentedWeekAgo,
+              dueDate: yesterday,
+              renewalCount: 0,
+              userId: user.id,
+            },
+          });
+
+          // ── bookBBookCol: rented, renewalCount=0 ─────────────────────────────────
+          // Used by the extension test in the BOOK column of /rental.
+          const bookBBookCol = await client.book.create({
+            data: {
+              title: "Cypress Verlaengerbar BookCol",
+              author: "Cypress Test",
+              rentalStatus: "rented",
+              rentedDate: rentedWeekAgo,
+              dueDate: yesterday,
+              renewalCount: 0,
+              userId: user.id,
+            },
+          });
+
+          // ── bookBUserPage: rented, renewalCount=0 ────────────────────────────────
+          // Used by the extension test on the /user/[id] detail page.
+          const bookBUserPage = await client.book.create({
+            data: {
+              title: "Cypress Verlaengerbar UserPage",
+              author: "Cypress Test",
+              rentalStatus: "rented",
+              rentedDate: rentedWeekAgo,
+              dueDate: yesterday,
+              renewalCount: 0,
+              userId: user.id,
+            },
+          });
+
+          // ── bookC: rented, renewalCount = MAX_EXTENSIONS (2) ────────────────────
+          // Used by all three max-extensions tests. The extend button must be disabled.
+          const bookC = await client.book.create({
+            data: {
+              title: "Cypress Buch MaxVerlaengerungen",
+              author: "Cypress Test",
+              rentalStatus: "rented",
+              rentedDate: rentedWeekAgo,
+              dueDate: yesterday,
+              renewalCount: 2,
+              userId: user.id,
+            },
+          });
+
+          console.log(
+            `✓ seedRentalData: user=${user.id}` +
+              ` bookA=${bookA.id}` +
+              ` bookBUserCol=${bookBUserCol.id}` +
+              ` bookBBookCol=${bookBBookCol.id}` +
+              ` bookBUserPage=${bookBUserPage.id}` +
+              ` bookC=${bookC.id}`,
+          );
+
+          return {
+            userId: user.id,
+            bookAId: bookA.id,
+            bookBUserColId: bookBUserCol.id,
+            bookBBookColId: bookBBookCol.id,
+            bookBUserPageId: bookBUserPage.id,
+            bookCId: bookC.id,
+          };
+        },
+
         async resetDatabase() {
           const sourceDb = path.join(
             __dirname,
-            "cypress/fixtures/automated-test-db-init.db"
+            "cypress/fixtures/automated-test-db-init.db",
           );
           const targetDb = path.join(
             __dirname,
-            "prisma/database/automated-test-db.db"
+            "prisma/database/automated-test-db.db",
           );
 
           try {
@@ -82,7 +216,7 @@ export default defineConfig({
             // 8. Verify the restore worked
             const bookCount = await freshPrisma.book.count();
             console.log(
-              `✓ Database reset: ${stats.size} bytes copied, ${bookCount} books found`
+              `✓ Database reset: ${stats.size} bytes copied, ${bookCount} books found`,
             );
 
             // 9. Clear downloads folder for Excel export tests
@@ -108,7 +242,7 @@ export default defineConfig({
         async cleanupDatabase() {
           const targetDb = path.join(
             __dirname,
-            "prisma/database/automated-test-db.db"
+            "prisma/database/automated-test-db.db",
           );
 
           try {
@@ -165,7 +299,7 @@ export default defineConfig({
 
             console.log(
               `Book ${bookId} verification:`,
-              book ? "EXISTS" : "NOT FOUND"
+              book ? "EXISTS" : "NOT FOUND",
             );
             return book;
           } catch (error) {
@@ -251,7 +385,7 @@ export default defineConfig({
           } catch (error) {
             console.error(
               `❌ Error deleting cover images for book ${bookId}:`,
-              error
+              error,
             );
             // Don't throw - image deletion failures shouldn't fail tests
             return null;
@@ -269,7 +403,7 @@ export default defineConfig({
                 fs.unlinkSync(path.join(downloadPath, file));
               });
               console.log(
-                `✓ Downloads folder cleared: ${files.length} files deleted`
+                `✓ Downloads folder cleared: ${files.length} files deleted`,
               );
             } else {
               fs.mkdirSync(downloadPath, { recursive: true });
@@ -332,7 +466,7 @@ export default defineConfig({
             });
 
             console.log(
-              `✓ Book columns validated: ${columns.length} columns found`
+              `✓ Book columns validated: ${columns.length} columns found`,
             );
             console.log(`  Columns: ${columns.join(", ")}`);
             return columns;
@@ -362,7 +496,7 @@ export default defineConfig({
             });
 
             console.log(
-              `✓ User columns validated: ${columns.length} columns found`
+              `✓ User columns validated: ${columns.length} columns found`,
             );
             console.log(`  Columns: ${columns.join(", ")}`);
             return columns;
@@ -392,7 +526,7 @@ export default defineConfig({
             console.log(
               `✓ Excel data validated: ${result.booksRowCount - 1} books, ${
                 result.usersRowCount - 1
-              } users`
+              } users`,
             );
             return result;
           } catch (error) {
@@ -433,7 +567,7 @@ export default defineConfig({
                 if (header && bookDateColumns.includes(header)) {
                   bookColumnIndices[header] = colNumber;
                 }
-              }
+              },
             );
 
             bookSheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
@@ -446,10 +580,10 @@ export default defineConfig({
 
                   if (value && value.trim() !== "" && !dateRegex.test(value)) {
                     invalidDates.push(
-                      `Book row ${rowNumber}, ${header}: ${value}`
+                      `Book row ${rowNumber}, ${header}: ${value}`,
                     );
                   }
-                }
+                },
               );
             });
 
@@ -465,7 +599,7 @@ export default defineConfig({
                 if (header && userDateColumns.includes(header)) {
                   userColumnIndices[header] = colNumber;
                 }
-              }
+              },
             );
 
             userSheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
@@ -478,10 +612,10 @@ export default defineConfig({
 
                   if (value && value.trim() !== "" && !dateRegex.test(value)) {
                     invalidDates.push(
-                      `User row ${rowNumber}, ${header}: ${value}`
+                      `User row ${rowNumber}, ${header}: ${value}`,
                     );
                   }
-                }
+                },
               );
             });
 
@@ -494,7 +628,7 @@ export default defineConfig({
               console.log(`✓ Date formats validated: All dates valid`);
             } else {
               console.log(
-                `⚠ Date format issues found: ${invalidDates.length} invalid dates`
+                `⚠ Date format issues found: ${invalidDates.length} invalid dates`,
               );
             }
 
@@ -546,7 +680,7 @@ export default defineConfig({
             };
 
             console.log(
-              `✓ Rental data checked: ${rentedBooksCount} rented, ${availableBooksCount} available`
+              `✓ Rental data checked: ${rentedBooksCount} rented, ${availableBooksCount} available`,
             );
             return result;
           } catch (error) {

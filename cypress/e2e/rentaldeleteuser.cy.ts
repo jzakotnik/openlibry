@@ -39,15 +39,23 @@ describe("Rental cleanup on user deletion", () => {
         const userId = dataCy!.replace("user_accordion_", "");
         cy.wrap(userId).as("rentedUserId");
       });
+
     // Search for an available book (BookRentalList component)
     cy.get("[data-cy=book_search_input]").should("be.visible").type("Dorf");
 
-    // Store the book title for later verification
+    // Store the book ID and a reliable title substring for later verification
     cy.get("[data-cy^=book_item_]")
       .first()
-      .invoke("text")
-      .then((bookText) => {
-        cy.wrap(bookText).as("rentedBookText");
+      .then(($el) => {
+        const bookText = $el.text();
+        // Extract the book number (e.g. "Nr. 2002") to use as a stable identifier
+        const nrMatch = bookText.match(/Nr\.\s*(\d+)/);
+        const bookNr = nrMatch ? nrMatch[1] : null;
+        // Extract title (text before "Nr.")
+        const title = bookText.split("Nr.")[0].trim();
+        cy.wrap(bookNr).as("rentedBookNr");
+        cy.wrap(title).as("rentedBookTitle");
+        cy.log(`Renting book: "${title}" (Nr. ${bookNr})`);
       });
 
     // Find an available book (not rented) and click the rent button
@@ -57,17 +65,17 @@ describe("Rental cleanup on user deletion", () => {
         cy.get("[data-cy^=book_rent_button_]").click();
       });
 
-    cy.wait(5000);
-
     // Verify rental success message appears
-    cy.contains("ausgeliehen").should("be.visible");
+    cy.contains("ausgeliehen", { timeout: 8000 }).should("be.visible");
 
     // The book should now appear in the user's rented books list
-    cy.get("[data-cy^=user_accordion_details_]")
-      .first()
-      .within(() => {
-        cy.contains("Dorf").should("be.visible");
-      });
+    cy.get("@rentedBookTitle").then((title) => {
+      cy.get("[data-cy^=user_accordion_details_]")
+        .first()
+        .within(() => {
+          cy.contains(title as unknown as string).should("be.visible");
+        });
+    });
 
     // Now navigate to the user detail page to delete the user
     cy.get("@rentedUserId").then((userId) => {
@@ -77,25 +85,18 @@ describe("Rental cleanup on user deletion", () => {
     // Wait for the user detail page to load
     cy.url().should("include", "/user/");
 
-    // The user detail page should be in edit mode (initiallyEditable=true)
-    // Find and hold the delete button (HoldButton) to delete the user
-    // The HoldButton requires holding for deleteSafetySeconds (default 3 seconds)
-    // After the hold duration, the delete action fires automatically and the app
-    // routes to /user, so we don't need to release the button manually
+    // Hold the delete button - HoldButton fires automatically after hold duration
     cy.contains("button", "Löschen")
       .should("be.visible")
       .trigger("mousedown", { force: true });
 
-    // The HoldButton will trigger the delete action after the hold duration
-    // and the app will automatically navigate to /user
     // Verify user deletion success message appears
     cy.contains("Nutzer gelöscht", { timeout: 10000 }).should("be.visible");
 
     // Should be redirected to user list
-    cy.url().should("include", "/user");
-    cy.url().should("not.include", "/user/");
+    cy.url({ timeout: 5000 }).should("match", /\/user$/);
 
-    // Now navigate to book list to verify the book is also deleted
+    // Navigate to book list to verify the book is also deleted
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_book_button]").click();
 
@@ -103,30 +104,23 @@ describe("Rental cleanup on user deletion", () => {
     cy.url().should("include", "/book");
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
 
-    // Search for the book that was rented by the deleted user
-    cy.get("[data-cy=rental_input_searchbook]").type("Dorf");
+    // Search for the rented book by its number to confirm it was deleted
+    cy.get("@rentedBookNr").then((bookNr) => {
+      cy.get("[data-cy=rental_input_searchbook]").type(
+        bookNr as unknown as string,
+      );
 
-    // Wait for search results to update
-    cy.wait(1000);
+      // Wait for search results to settle
+      cy.wait(2000);
 
-    // Verify the book is no longer in the list (it should be deleted along with the user)
-    cy.get("body").then(($body) => {
-      if ($body.find("[data-cy^=book_item_]").length > 0) {
-        // If there are books, verify the rented book is not among them
-        cy.get("[data-cy^=book_item_]").should("not.exist");
-      } else {
-        // No books found matching the search - this is expected
-        cy.log(
-          "No books found matching 'Dorf' - book was successfully deleted with user",
-        );
-      }
+      // The book should no longer exist
+      cy.get("[data-cy^=book_item_]").should("not.exist");
     });
 
-    // Navigate to user list to verify it renders correctly
+    // Navigate to user list to verify Magnus is gone
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_user_button]").click();
 
-    // Verify user list page is loaded
     cy.url().should("include", "/user");
     cy.get("[data-cy=rental_input_searchuser]").should("be.visible");
 
@@ -136,25 +130,11 @@ describe("Rental cleanup on user deletion", () => {
     // Wait for search results to update
     cy.wait(1000);
 
-    // Verify the deleted user is not in the list
-    // The user list should either be empty or not contain the deleted user
-    cy.get("body").then(($body) => {
-      // Check if any user items exist after searching
-      if ($body.find("[data-cy^=user_list_item_]").length > 0) {
-        // If there are users, verify Magnus is not among them
-        cy.get("[data-cy^=user_list_item_]").should("not.contain", "Magnus");
-      } else {
-        // No users found matching the search - this is expected
-        cy.log(
-          "No users found matching 'Magnus' - user was successfully deleted",
-        );
-      }
-    });
+    // Verify Magnus is not in the list
+    cy.get("[data-cy^=user_list_item_]").should("not.exist");
 
-    // Clear search and verify the user list still renders properly
+    // Clear search and verify the user list component is still functional
     cy.get("[data-cy=rental_input_searchuser]").clear();
-
-    // Verify the user list component is still functional
     cy.get("[data-cy=rental_input_searchuser]").should("be.visible");
   });
 });

@@ -29,6 +29,7 @@ import React, {
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
+import { canExtendBook } from "@/lib/utils/rentalUtils";
 import { toast } from "sonner";
 
 const SEARCH_DEBOUNCE_MS = 180;
@@ -42,7 +43,8 @@ interface BookPropsType {
   userExpanded: number | false;
   searchFieldRef: React.Ref<HTMLInputElement>;
   handleUserSearchSetFocus: () => void;
-  extensionDueDate: dayjs.Dayjs;
+  extensionDurationDays: number;
+  maxExtensions: number;
   sortBy: any;
 }
 
@@ -51,17 +53,12 @@ type Sorting<T> = {
   order: "asc" | "desc";
 };
 
-/* ────────────────────────────────────────────────────────────────
- * Memoised book list – only re-renders when its props actually
- * change (i.e. after the debounced search produces a new
- * renderedBooks array). Typing into the search input no longer
- * forces React to diff 100 complex book cards on every keystroke.
- * ──────────────────────────────────────────────────────────────── */
 const BookList = React.memo(function BookList({
   renderedBooks,
   users,
   userExpanded,
-  extensionDueDate,
+  extensionDurationDays,
+  maxExtensions,
   handleExtendBookButton,
   handleReturnBookButton,
   handleRentBookButton,
@@ -69,7 +66,8 @@ const BookList = React.memo(function BookList({
   renderedBooks: Array<BookType>;
   users: Array<UserType>;
   userExpanded: number | false;
-  extensionDueDate: dayjs.Dayjs;
+  extensionDurationDays: number;
+  maxExtensions: number;
   handleExtendBookButton: (id: number, b: BookType) => void;
   handleReturnBookButton: (bookid: number, userid: number) => void;
   handleRentBookButton: (id: number, userid: number) => void;
@@ -80,7 +78,7 @@ const BookList = React.memo(function BookList({
       data-cy="book_list_container"
     >
       {renderedBooks.slice(0, 100).map((b: BookType) => {
-        const allowExtendBookRent = extensionDueDate.isAfter(b.dueDate, "day");
+        const allowExtendBookRent = canExtendBook(b, maxExtensions);
         const extendTooltip = allowExtendBookRent
           ? "Verlängern"
           : "Maximale Ausleihzeit erreicht";
@@ -229,7 +227,8 @@ export default function BookRentalList({
   userExpanded,
   searchFieldRef,
   handleUserSearchSetFocus,
-  extensionDueDate,
+  extensionDurationDays,
+  maxExtensions,
   sortBy,
 }: BookPropsType) {
   // bookSearchInput drives the <Input> immediately — no delay, always snappy.
@@ -386,7 +385,8 @@ export default function BookRentalList({
           renderedBooks={renderedBooks}
           users={users}
           userExpanded={userExpanded}
-          extensionDueDate={extensionDueDate}
+          extensionDurationDays={extensionDurationDays}
+          maxExtensions={maxExtensions}
           handleExtendBookButton={handleExtendBookButton}
           handleReturnBookButton={handleReturnBookButton}
           handleRentBookButton={handleRentBookButton}

@@ -21,6 +21,7 @@ describe("Rental of books", () => {
 
     // Search for and select a user (UserRentalList component)
     cy.get("[data-cy=user_search_input]").should("be.visible").type("Magnus");
+    cy.wait(1000);
 
     // Click on the first user accordion to expand it
     cy.get("[data-cy^=user_accordion_]").first().click();
@@ -30,6 +31,7 @@ describe("Rental of books", () => {
 
     // Search for an available book (BookRentalList component)
     cy.get("[data-cy=book_search_input]").should("be.visible").type("Dorf");
+    cy.wait(1000); //this is asynchronous now!
 
     // Find an available book (not rented) and click the rent button
     cy.get("[data-cy^=book_item_]")

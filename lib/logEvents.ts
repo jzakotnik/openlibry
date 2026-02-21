@@ -77,6 +77,7 @@ export const LogEvents = {
 
   // System events
   API_ERROR: "api.error",
+  CONFIG_ERROR: "config.error",
   DB_ERROR: "db.error",
   DB_RECONNECTED: "db.reconnected",
   STARTUP: "system.startup",

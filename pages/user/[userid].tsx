@@ -5,13 +5,12 @@ import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { getUser } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { getRentalConfig } from "@/lib/config/rentalConfig";
 import {
   convertDateToDayString,
-  extendDays,
-  replaceBookStringDate,
   replaceUserDateString,
-  sameDay,
 } from "@/lib/utils/dateutils";
+import { extendBookApi } from "@/lib/utils/rentalUtils";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next/types";
 import { useEffect, useState } from "react";
@@ -21,6 +20,7 @@ type UserDetailPropsType = {
   user: UserType;
   books: Array<BookType>;
   extensionDays: number;
+  maxExtensions: number;
   deleteSafetySeconds: number;
 };
 
@@ -28,6 +28,7 @@ export default function UserDetail({
   user,
   books,
   extensionDays,
+  maxExtensions,
   deleteSafetySeconds,
 }: UserDetailPropsType) {
   const router = useRouter();
@@ -88,39 +89,31 @@ export default function UserDetail({
       });
   };
 
-  const handleExtendBookButton = (bookid: number, book: BookType) => {
-    const newbook = replaceBookStringDate(book) as any;
-    const newDueDate = extendDays(new Date(), extensionDays);
+  const handleExtendBookButton = async (bookid: number, book: BookType) => {
+    const result = await extendBookApi(bookid);
 
-    if (sameDay(newbook.dueDate, newDueDate)) {
+    if (result.status === "already_extended") {
       toast.info(
         `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
       );
       return;
     }
+    if (result.status === "error") {
+      toast.error(
+        "Leider hat es nicht geklappt, der Server ist aber erreichbar",
+      );
+      return;
+    }
 
-    newbook.dueDate = newDueDate.toDate();
-    newbook.renewalCount = newbook.renewalCount + 1;
-    delete newbook.user;
-
-    fetch("/api/book/" + bookid, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newbook),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        toast.success("Buch verlängert, super!");
-      });
-
+    toast.success("Buch verlängert, super!");
+    // Use the server's computed date instead of guessing client-side
     setUserBooks((prev) =>
       prev.map((b) =>
         b.id === bookid
           ? {
               ...b,
-              renewalCount: b.renewalCount + 1,
-              dueDate: newDueDate.toDate(),
+              renewalCount: result.renewalCount,
+              dueDate: result.newDueDate,
             }
           : b,
       ),
@@ -162,10 +155,7 @@ export default function UserDetail({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const extensionDays = parseInt(
-    process.env.EXTENSION_DURATION_DAYS || "14",
-    10,
-  );
+  const { extensionDays, maxExtensions } = getRentalConfig();
   const deleteSafetySeconds = parseInt(
     process.env.DELETE_SAFETY_SECONDS || "3",
     10,
@@ -199,5 +189,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return newBook;
   });
 
-  return { props: { user, books, extensionDays, deleteSafetySeconds } };
+  return {
+    props: { user, books, extensionDays, maxExtensions, deleteSafetySeconds },
+  };
 }

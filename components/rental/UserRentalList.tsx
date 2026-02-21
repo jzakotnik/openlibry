@@ -20,7 +20,7 @@ import { Dispatch, useMemo, useState } from "react";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import { extendDays } from "@/lib/utils/dateutils";
+import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
 import { booksForUser, filterUsers } from "@/lib/utils/searchUtils";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
@@ -39,6 +39,7 @@ type UserPropsType = {
   searchFieldRef: any;
   handleBookSearchSetFocus: () => void;
   extensionDurationDays?: number;
+  maxExtensions?: number;
 };
 
 export default function UserRentalList({
@@ -52,6 +53,7 @@ export default function UserRentalList({
   searchFieldRef,
   handleBookSearchSetFocus,
   extensionDurationDays = 14,
+  maxExtensions = 2,
 }: UserPropsType) {
   const [userSearchInput, setUserSearchInput] = useState("");
   const [returnedBooks, setReturnedBooks] = useState<Record<number, number>>(
@@ -107,7 +109,7 @@ export default function UserRentalList({
       return unique;
     }, []);
 
-  const extensionDays = extendDays(new Date(), extensionDurationDays);
+  const extensionDueDate = calcExtensionDueDate(extensionDurationDays);
 
   // shadcn Accordion value is a string; map user ids to strings
   const accordionValue = userExpanded !== false ? String(userExpanded) : "";
@@ -263,9 +265,9 @@ export default function UserRentalList({
                         </p>
                       ) : (
                         rentalsUser.map((r: RentalsUserType) => {
-                          const allowExtendBookRent = extensionDays.isAfter(
-                            r.dueDate,
-                            "day",
+                          const allowExtendBookRent = canExtendBook(
+                            r,
+                            maxExtensions,
                           );
                           const extendTooltip = allowExtendBookRent
                             ? "Verlängern"

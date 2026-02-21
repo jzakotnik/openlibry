@@ -6,9 +6,9 @@ import {
   AlertTriangle,
   BookOpen,
   CheckCircle2,
-  Clock,
   Edit3,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Undo2,
@@ -186,7 +186,7 @@ function BookRow({
             onClick={onExtend}
             className="h-8 w-8 shrink-0 text-muted-foreground"
           >
-            <Clock size={16} />
+            <RefreshCw size={16} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
