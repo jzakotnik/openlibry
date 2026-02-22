@@ -7,17 +7,21 @@ Vollständige Referenz aller Einstellungen in der `.env`-Datei.
 | Variable | Beschreibung | Standard |
 |----------|--------------|----------|
 | `DATABASE_URL` | Pfad zur SQLite-Datenbank | `file:./database/dev.db` |
+| `COVERIMAGE_FILESTORAGE_PATH` | Pfad zu Cover Images | `/app/images` |
+
 
 ```env
 DATABASE_URL=file:./database/dev.db
 ```
 
-## Authentifizierung
+## Authentifizierung und Sicherheit
 
 | Variable | Beschreibung | Standard |
 |----------|--------------|----------|
 | `AUTH_ENABLED` | Login erforderlich? | `true` |
-| `NEXTAUTH_SECRET` | Geheimnis für Session-Tokens | *(muss gesetzt werden)* |
+| `NEXTAUTH_SECRET` | Geheimer Seed für Session-Tokens | *(muss gesetzt werden)* |
+| `SECURITY_HEADERS` | CSRP headers für HTTP calls | `insecure` |
+
 
 ```env
 AUTH_ENABLED=true
@@ -75,7 +79,7 @@ MAX_EXTENSIONS=2
 | `BOOKLABEL_LINE_ABOVE` | Zeile über Barcode | `["Text",10,"center"]` |
 | `BOOKLABEL_LINE_BELOW_1` | 1. Zeile unter Barcode | `["Book.title",10,"left"]` |
 | `BOOKLABEL_LINE_BELOW_2` | 2. Zeile unter Barcode | `["Book.topics",8,"left"]` |
-| `BOOKLABEL_LOGO` | Logo-Datei (im public/) | `school_logo.png` |
+| `BOOKLABEL_LOGO` | Logo-Datei (im public/) | `schoollogo.png` |
 
 **Format**: `["Inhalt", Schriftgröße, Ausrichtung]`
 
@@ -128,38 +132,6 @@ Mehr Details: [Mahnschreiben konfigurieren](reminders.md)
 | `MAX_MIGRATION_SIZE` | Max. Import-Größe (MB) | `250` |
 | `RENTAL_SORT_BOOKS` | Sortierung in Leihe | `title_asc` |
 
-## Beispiel-Konfiguration
-
-```env title=".env"
-# Datenbank
-DATABASE_URL=file:./database/dev.db
-
-# Authentifizierung
-AUTH_ENABLED=true
-NEXTAUTH_SECRET=meinSuperGeheimesPasswort123!
-
-# Ausleihzeiten
-RENTAL_DURATION_DAYS=21
-EXTENSION_DURATION_DAYS=14
-MAX_EXTENSIONS=2
-
-# Schulinformationen
-SCHOOL_NAME="Grundschule Beispielstadt"
-SCHOOL_ADDRESS="Schulstraße 1"
-SCHOOL_CITY="12345 Beispielstadt"
-
-# Bücherlabels (AVERY Zweckform L4732)
-BOOKLABEL_MARGIN_LEFT=0.6
-BOOKLABEL_MARGIN_TOP=1.3
-BOOKLABEL_LABEL_WIDTH=3.56
-BOOKLABEL_LABEL_HEIGHT=1.69
-BOOKLABEL_ROWSONPAGE=16
-BOOKLABEL_COLUMNSONPAGE=4
-
-# Benutzerausweise
-USERID_LABEL_IMAGE=ausweis_hintergrund.png
-USERLABEL_WIDTH=9cm
-```
 
 ## Nach Änderungen
 
