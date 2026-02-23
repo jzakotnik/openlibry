@@ -72,7 +72,7 @@ function parseEventContent(
   switch (eventType.toLowerCase()) {
     case "rent book":
       if (details.bookTitle && details.userName) {
-        sentence = `Buch "${details.bookTitle}" wurde an ${details.userName} ausgeliehen`;
+        sentence = `Buch "${details.bookTitle}" wurde an ${details.userName} (${details.userId}) ausgeliehen`;
       } else if (details.bookTitle && details.userId) {
         sentence = `Buch "${details.bookTitle}" wurde an Benutzer #${details.userId} ausgeliehen`;
       } else if (details.bookTitle) {
