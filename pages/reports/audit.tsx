@@ -48,6 +48,10 @@ function parseEventContent(
   const bookTitleMatch =
     eventContent.match(/book title:\s*(.+?)(?:,|$)/i) ||
     eventContent.match(/,\s*(.+)$/);
+  const userNameMatch = eventContent.match(
+    /User id:\s*\d+\s+(.+?),\s*Book id/i,
+  );
+  if (userNameMatch) details.userName = userNameMatch[1].trim();
 
   if (userIdMatch) details.userId = userIdMatch[1];
   if (bookIdMatch) details.bookId = bookIdMatch[1];
@@ -67,7 +71,9 @@ function parseEventContent(
 
   switch (eventType.toLowerCase()) {
     case "rent book":
-      if (details.bookTitle && details.userId) {
+      if (details.bookTitle && details.userName) {
+        sentence = `Buch "${details.bookTitle}" wurde an ${details.userName} (${details.userId}) ausgeliehen`;
+      } else if (details.bookTitle && details.userId) {
         sentence = `Buch "${details.bookTitle}" wurde an Benutzer #${details.userId} ausgeliehen`;
       } else if (details.bookTitle) {
         sentence = `Buch "${details.bookTitle}" wurde ausgeliehen`;

@@ -5,6 +5,7 @@ import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import { addAudit } from "./audit";
+import { getUser } from "./user";
 
 const rentalConfig = getRentalConfig();
 export async function getBook(client: PrismaClient, id: number) {
@@ -450,6 +451,8 @@ export async function rentBook(
 
   //if the book is rented already, you cannot rent it
   const book = await getBook(client, bookid);
+  const user = await getUser(client, userid);
+
   try {
     if (book?.rentalStatus == "rented") {
       businessLogger.warn(
@@ -486,6 +489,10 @@ export async function rentBook(
     "Rent book",
     "User id: " +
       userid.toString() +
+      " " +
+      user?.firstName +
+      " " +
+      user?.lastName +
       ", Book id: " +
       bookid.toString() +
       ", book title: " +
