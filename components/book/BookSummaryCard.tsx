@@ -19,7 +19,7 @@ import { BookType } from "@/entities/BookType";
 const CARD_WIDTH = 200;
 const CARD_HEIGHT = 290;
 const MAX_VISIBLE_TOPICS = 2;
-const MAX_TOPICS_LENGTH = 5;
+const MAX_TOPICS_LENGTH = 10;
 
 // =============================================================================
 // Helper Functions
@@ -28,10 +28,12 @@ const MAX_TOPICS_LENGTH = 5;
 /** Parse semicolon-separated topics string into array */
 const parseTopics = (topics: string | undefined | null): string[] => {
   if (!topics) return [];
-  return topics
+  const parts = topics
     .split(";")
-    .map((t) => t.trim().substring(0, MAX_TOPICS_LENGTH))
+    .map((t) => t.trim())
     .filter(Boolean);
+  const maxLength = parts.length === 1 ? 10 : 5;
+  return parts.map((t) => t.substring(0, maxLength));
 };
 
 // =============================================================================
