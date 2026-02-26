@@ -56,10 +56,15 @@ const DEFAULT_USERLABEL_LINES: Array<
 const labelImagePath =
   process.env.USERID_LABEL_IMAGE || DEFAULT_USERLABEL_IMAGE;
 let base64Image: string | null = null;
+let labelImageMimeType: string = "image/jpeg";
 try {
   const resolvedImagePath = resolveCustomPath(labelImagePath);
   base64Image = fs.readFileSync(resolvedImagePath, { encoding: "base64" });
-  console.log(`User label background loaded: ${resolvedImagePath}`);
+  const ext = resolvedImagePath.split(".").pop()?.toLowerCase();
+  labelImageMimeType = ext === "png" ? "image/png" : "image/jpeg";
+  console.log(
+    `User label background loaded: ${resolvedImagePath} (${labelImageMimeType})`,
+  );
 } catch (error) {
   console.warn(
     `Warning: Could not load user label image "${labelImagePath}" ` +
@@ -280,7 +285,7 @@ const generateLabels = async (users: Array<UserType>) => {
               <PdfImage
                 key={`img-${u.id}`}
                 style={styles.image}
-                src={"data:image/jpg;base64, " + base64Image}
+                src={`data:${labelImageMimeType};base64, ${base64Image}`}
               />
             )}
             {colorbar({ id: u.id! })}

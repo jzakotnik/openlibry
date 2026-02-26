@@ -16,23 +16,14 @@ import {
 
 import dayjs from "dayjs";
 import "dayjs/locale/de";
-import debounce from "debounce";
-import itemsjs from "itemsjs";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
-import userNameforBook, { stripZerosFromSearch } from "@/lib/utils/lookups";
+import { useBookSearch } from "@/hooks/useBookSearch";
+import userNameforBook from "@/lib/utils/lookups";
 import { canExtendBook } from "@/lib/utils/rentalUtils";
 import { toast } from "sonner";
-
-const SEARCH_DEBOUNCE_MS = 180;
 
 interface BookPropsType {
   books: Array<BookType>;
@@ -48,16 +39,10 @@ interface BookPropsType {
   sortBy: any;
 }
 
-type Sorting<T> = {
-  field: keyof T | (keyof T)[];
-  order: "asc" | "desc";
-};
-
 const BookList = React.memo(function BookList({
   renderedBooks,
   users,
   userExpanded,
-  extensionDurationDays,
   maxExtensions,
   handleExtendBookButton,
   handleReturnBookButton,
@@ -102,7 +87,6 @@ const BookList = React.memo(function BookList({
                 {b.title}
               </span>
 
-              {/* Action buttons */}
               <div
                 className="flex items-center gap-0.5 shrink-0 overflow-visible relative z-[1]"
                 data-cy={`book_actions_${b.id}`}
@@ -117,9 +101,7 @@ const BookList = React.memo(function BookList({
                           size="icon"
                           aria-label="extend"
                           disabled={!allowExtendBookRent}
-                          onClick={() => {
-                            handleExtendBookButton(b.id!, b);
-                          }}
+                          onClick={() => handleExtendBookButton(b.id!, b)}
                           data-cy={`book_extend_button_${b.id}`}
                           className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
                         >
@@ -138,9 +120,7 @@ const BookList = React.memo(function BookList({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
-                          handleReturnBookButton(b.id!, b.userId!);
-                        }}
+                        onClick={() => handleReturnBookButton(b.id!, b.userId!)}
                         aria-label="zurückgeben"
                         data-cy={`book_return_button_${b.id}`}
                         className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
@@ -159,9 +139,9 @@ const BookList = React.memo(function BookList({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
-                          handleRentBookButton(b.id!, userExpanded);
-                        }}
+                        onClick={() =>
+                          handleRentBookButton(b.id!, userExpanded)
+                        }
                         aria-label="ausleihen"
                         data-cy={`book_rent_button_${b.id}`}
                         className="h-8 w-8 text-primary hover:bg-primary/10"
@@ -231,79 +211,22 @@ export default function BookRentalList({
   maxExtensions,
   sortBy,
 }: BookPropsType) {
-  // bookSearchInput drives the <Input> immediately — no delay, always snappy.
-  // debouncedSearch trails behind it and is the only thing that triggers the
-  // expensive itemsjs search, keeping the two concerns fully decoupled.
-  const [bookSearchInput, setBookSearchInput] = useState("");
-  const [renderedBooks, setRenderedBooks] = useState<Array<BookType>>(books);
+  const { renderedBooks, bookSearchInput, handleInputChange, handleClear } =
+    useBookSearch(books, { sort: sortBy, perPage: 100 });
 
-  // Ref keeps the current search input accessible inside the books-refresh
-  // effect without adding bookSearchInput to its dependency array.
-  const bookSearchInputRef = useRef(bookSearchInput);
-  bookSearchInputRef.current = bookSearchInput;
-
-  const sortings = useMemo(
-    () =>
-      ({
-        id_asc: { field: "id", order: "asc" },
-        id_desc: { field: "id", order: "desc" },
-        title_asc: { field: "title", order: "asc" },
-        title_desc: { field: "title", order: "desc" },
-      }) as const satisfies Record<
-        "id_asc" | "id_desc" | "title_asc" | "title_desc",
-        Sorting<BookType>
-      >,
-    [],
+  const handleInputChangeEvent = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      handleInputChange(e.target.value),
+    [handleInputChange],
   );
 
-  const searchEngine = useMemo(
-    () =>
-      itemsjs(books, {
-        searchableFields: ["title", "author", "subtitle", "id"],
-        sortings,
-      }),
-    [books, sortings],
-  );
-
-  const searchBooks = useCallback(
-    (query: any) => {
-      const found = searchEngine.search({ per_page: 100, sort: sortBy, query });
-      setRenderedBooks(found.data.items);
+  const handleClearMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      handleClear();
     },
-    [searchEngine, sortBy],
+    [handleClear],
   );
-
-  // Debounced search — same pattern as books/index.tsx.
-  // useMemo recreates the debounced function only when searchBooks changes;
-  // the cleanup effect calls .clear() so no stale search fires after unmount.
-  const debouncedSearch = useMemo(
-    () => debounce((query: string) => searchBooks(query), SEARCH_DEBOUNCE_MS),
-    [searchBooks],
-  );
-
-  useEffect(() => {
-    return () => debouncedSearch.clear();
-  }, [debouncedSearch]);
-
-  // Re-run search when books data changes externally (e.g. SWR refresh)
-  // while a query is active.  Uses a ref for the current input so this
-  // effect does NOT fire on every keystroke — only when the underlying
-  // books array or searchBooks function changes.
-  useEffect(() => {
-    searchBooks(stripZerosFromSearch(bookSearchInputRef.current));
-  }, [books, searchBooks]);
-
-  const handleClear = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setBookSearchInput("");
-    searchBooks("");
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setBookSearchInput(value);
-    debouncedSearch(stripZerosFromSearch(value));
-  };
 
   const handleKeyUp = useCallback(
     (e: React.KeyboardEvent): void => {
@@ -311,22 +234,19 @@ export default function BookRentalList({
         if (bookSearchInput === "") {
           handleUserSearchSetFocus();
         } else {
-          setBookSearchInput("");
-          searchBooks("");
+          handleClear();
         }
       }
 
       if (e.key === "Enter" && userExpanded) {
-        // Use bookSearchInput directly (not the debounced search) so barcode
-        // scanning + Enter feels instant without waiting for the debounce.
-        const trimmedInput = bookSearchInput.trim();
-        const bookId = parseInt(trimmedInput, 10);
+        // Bypass debounce for barcode scan + Enter — feels instant.
+        const bookId = parseInt(bookSearchInput.trim(), 10);
         const book = books.find((b) => b.id === bookId);
 
         if (book && book.rentalStatus === "available") {
           handleRentBookButton(book.id!, userExpanded);
-          setBookSearchInput("");
-        } else if (book && book.rentalStatus !== "available") {
+          handleClear();
+        } else if (book) {
           toast.warning(`Buch ${bookId} ist bereits ausgeliehen`);
         } else {
           toast.warning(`Buch ${bookId} nicht gefunden`);
@@ -336,10 +256,10 @@ export default function BookRentalList({
     [
       bookSearchInput,
       handleUserSearchSetFocus,
+      handleClear,
       userExpanded,
       books,
       handleRentBookButton,
-      searchBooks,
     ],
   );
 
@@ -354,7 +274,7 @@ export default function BookRentalList({
             id="book-search-input"
             type="text"
             value={bookSearchInput}
-            onChange={handleInputChange}
+            onChange={handleInputChangeEvent}
             onKeyUp={handleKeyUp}
             placeholder="Suche Buch"
             data-cy="book_search_input"
@@ -367,7 +287,7 @@ export default function BookRentalList({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onMouseDown={handleClear}
+                  onMouseDown={handleClearMouseDown}
                   data-cy="book_search_clear_button"
                   aria-label="Suche löschen"
                   className="absolute right-1 h-6 w-6"
