@@ -1,8 +1,7 @@
 import Layout from "@/components/layout/Layout";
-import debounce from "debounce";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
@@ -11,12 +10,9 @@ import BookSummaryRow from "@/components/book/BookSummaryRow";
 import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
+import { useBookSearch } from "@/hooks/useBookSearch";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
-import { stripZerosFromSearch } from "@/lib/utils/lookups";
-import itemsjs from "itemsjs";
 import { toast } from "sonner";
-
-const DEBOUNCE_MS = 100;
 
 interface SearchableBookType extends BookType {
   searchableTopics: Array<string>;
@@ -37,7 +33,6 @@ interface DetailCardContainerProps {
   onReturnBook: (id: number, userId: number) => void;
 }
 
-// Fetcher function for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const DetailCardContainer = memo(function DetailCardContainer({
@@ -48,12 +43,9 @@ const DetailCardContainer = memo(function DetailCardContainer({
 }: DetailCardContainerProps) {
   return (
     <div>
-      {/* Responsive grid: 1 col on mobile, 2 on sm, 3 on lg */}
       <div
         className="grid gap-3 justify-items-center py-2"
-        style={{
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-        }}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}
       >
         {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
           <BookSummaryCard
@@ -67,19 +59,15 @@ const DetailCardContainer = memo(function DetailCardContainer({
         <div className="flex justify-center mt-4">
           <button
             onClick={onLoadMore}
-            className="px-4 py-2 text-sm font-medium text-primary
-                       hover:bg-primary/10 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
-            Weitere Bücher...
-            {Math.max(0, renderedBooks.length - pageIndex)}
+            Weitere Bücher... {Math.max(0, renderedBooks.length - pageIndex)}
           </button>
         </div>
       )}
     </div>
   );
 });
-
-// -----------------------------------------------------------------------------
 
 interface SummaryRowContainerProps {
   renderedBooks: BookType[];
@@ -107,11 +95,9 @@ const SummaryRowContainer = memo(function SummaryRowContainer({
         <div className="flex justify-center mt-4">
           <button
             onClick={onLoadMore}
-            className="px-4 py-2 text-sm font-medium text-primary
-                       hover:bg-primary/10 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
-            Weitere Bücher...
-            {Math.max(0, renderedBooks.length - pageIndex)}
+            Weitere Bücher... {Math.max(0, renderedBooks.length - pageIndex)}
           </button>
         </div>
       )}
@@ -130,7 +116,6 @@ export default function Books({
 }: BookPropsType) {
   const router = useRouter();
 
-  // SWR hook to fetch fresh data
   const { data: freshData, mutate } = useSWR("/api/book", fetcher, {
     fallbackData: { books: initialBooks },
     refreshInterval: 0,
@@ -141,87 +126,55 @@ export default function Books({
 
   const books = freshData?.books || initialBooks;
 
-  const [renderedBooks, setRenderedBooks] = useState(books);
-  const [bookSearchInput, setBookSearchInput] = useState("");
   const [detailView, setDetailView] = useState(true);
-  const [searchResultNumber, setSearchResultNumber] = useState(books.length);
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
-  // Memoize search engine — only rebuild when books data changes
-  const searchEngine = useMemo(
-    () =>
-      itemsjs(books, {
-        searchableFields: [
-          "title",
-          "author",
-          "subtitle",
-          "searchableTopics",
-          "id",
-        ],
-      }),
-    [books],
-  );
+  const {
+    renderedBooks: searchedBooks,
+    bookSearchInput,
+    handleInputChange,
+    resultCount,
+  } = useBookSearch(books, {
+    extraSearchableFields: ["searchableTopics"],
+    perPage: maxBooks,
+  });
 
-  const searchBooks = useCallback(
-    (searchString: string) => {
-      const stripZeros = stripZerosFromSearch(searchString); // if book is number only, 000321 should be 321
-      const foundBooks = searchEngine.search({
-        sort: "name_asc",
-        per_page: maxBooks,
-        query: stripZeros,
-      });
+  // Numeric-query priority sort: if the query contains digits, bubble books
+  // whose title contains those digits to the top. Runs only when the query
+  // or the base results change — no extra state needed.
+  const renderedBooks = useMemo(() => {
+    const numbersInQuery = bookSearchInput.match(/\d+/g);
+    if (!numbersInQuery) return searchedBooks;
 
-      let items = foundBooks.data.items;
+    return [...searchedBooks].sort((a, b) => {
+      const aMatch = numbersInQuery.some((n) =>
+        a.title?.toString().includes(n),
+      );
+      const bMatch = numbersInQuery.some((n) =>
+        b.title?.toString().includes(n),
+      );
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      return 0;
+    });
+  }, [searchedBooks, bookSearchInput]);
 
-      // If query contains a number, prioritize title matches
-      const numbersInQuery = searchString.match(/\d+/g);
-      if (numbersInQuery) {
-        items = [...items].sort((a, b) => {
-          const aTitle = a.title?.toString() ?? "";
-          const bTitle = b.title?.toString() ?? "";
-          const aTitleMatch = numbersInQuery.some((n) => aTitle.includes(n));
-          const bTitleMatch = numbersInQuery.some((n) => bTitle.includes(n));
-
-          if (aTitleMatch && !bTitleMatch) return -1;
-          if (!aTitleMatch && bTitleMatch) return 1;
-          return 0;
-        });
-      }
-
+  // Adapt hook's string-based handler to the event-based signature
+  // BookSearchBar expects, and reset pagination on every new search.
+  const handleInputChangeEvent = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+      handleInputChange(e.target.value);
       setPageIndex(numberBooksToShow);
-      setRenderedBooks(items);
-      setSearchResultNumber(foundBooks.pagination.total);
     },
-    [searchEngine, maxBooks, numberBooksToShow],
+    [handleInputChange, numberBooksToShow],
   );
-
-  // Debounced search
-  const debouncedSearch = useMemo(
-    () => debounce((query: string) => searchBooks(query), DEBOUNCE_MS),
-    [searchBooks],
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedSearch.clear();
-    };
-  }, [debouncedSearch]);
-
-  // Update rendered books when fresh data arrives
-  useEffect(() => {
-    setRenderedBooks(books);
-    setSearchResultNumber(books.length);
-    if (bookSearchInput) {
-      searchBooks(bookSearchInput);
-    }
-  }, [books, bookSearchInput, searchBooks]);
 
   const handleCreateNewBook = useCallback(() => {
     router.push("/book/new");
   }, [router]);
 
   const handleCopyBook = useCallback(
-    (book: BookType) => {
+    (_book: BookType) => {
       router.push("/book/new");
       toast.info(
         "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
@@ -230,6 +183,8 @@ export default function Books({
     [router],
   );
 
+  // No optimistic update here — mutate() triggers SWR revalidation which
+  // flows back into the hook and re-renders with fresh data.
   const handleReturnBook = useCallback(
     (id: number, userid: number) => {
       fetch(`/api/book/${id}/user/${userid}`, {
@@ -238,12 +193,6 @@ export default function Books({
       })
         .then((res) => res.json())
         .then(() => {
-          // Optimistic update
-          setRenderedBooks((prev: any) =>
-            prev.map((b: any) =>
-              b.id === id ? { ...b, rentalStatus: "available" } : b,
-            ),
-          );
           mutate();
           toast.success("Buch zurückgegeben");
         })
@@ -254,18 +203,10 @@ export default function Books({
     [mutate],
   );
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-  ) => {
-    const searchString = e.target.value;
-    setBookSearchInput(searchString);
-    debouncedSearch(searchString);
-  };
-
-  const toggleView = () => {
+  const toggleView = useCallback(() => {
     setDetailView((prev) => !prev);
     setPageIndex(numberBooksToShow);
-  };
+  }, [numberBooksToShow]);
 
   const handleLoadMore = useCallback(() => {
     setPageIndex((prev) => prev + numberBooksToShow);
@@ -274,12 +215,12 @@ export default function Books({
   return (
     <Layout>
       <BookSearchBar
-        handleInputChange={handleInputChange}
+        handleInputChange={handleInputChangeEvent}
         handleNewBook={handleCreateNewBook}
         bookSearchInput={bookSearchInput}
         toggleView={toggleView}
         detailView={detailView}
-        searchResultNumber={searchResultNumber}
+        searchResultNumber={resultCount}
       />
       {detailView ? (
         <DetailCardContainer
@@ -324,7 +265,6 @@ export const getServerSideProps: GetServerSideProps = async (
     const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
       ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
       : 10;
-
     const maxBooks = process.env.NUMBER_BOOKS_MAX
       ? parseInt(process.env.NUMBER_BOOKS_MAX)
       : 1000000;
@@ -342,12 +282,7 @@ export const getServerSideProps: GetServerSideProps = async (
     });
 
     return {
-      props: {
-        books,
-        numberBooksToShow,
-        maxBooks,
-        _timestamp: Date.now(),
-      },
+      props: { books, numberBooksToShow, maxBooks, _timestamp: Date.now() },
     };
   } catch (error) {
     console.error("Error fetching books:", error);
