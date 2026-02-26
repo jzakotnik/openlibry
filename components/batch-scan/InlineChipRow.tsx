@@ -20,7 +20,7 @@ export function InlineChipRow({
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-dashed border-gray-100">
       <InlineChipField
-        label="Themen"
+        label="Schlagwörter"
         value={entry.bookData.topics || ""}
         onChange={(v) => onUpdateBookData(entry.id, "topics", v)}
         placeholder="Abenteuer;Fantasy"

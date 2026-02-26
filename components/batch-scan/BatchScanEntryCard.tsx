@@ -271,7 +271,7 @@ export function BatchScanEntryCard({
                   }
                 />
                 <EditField
-                  label="Themen"
+                  label="Schlagwörter"
                   value={entry.bookData.topics || ""}
                   onChange={(v) => onUpdateBookData(entry.id, "topics", v)}
                 />
