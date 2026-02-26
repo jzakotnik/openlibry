@@ -69,7 +69,7 @@ export default async function handler(
         const { topics, ...bookDataWithoutTopics } = bookData;
         const normalizedData = Object.fromEntries(
           Object.entries({
-            ...bookData,
+            ...bookDataWithoutTopics,
             title: cleanTitle(bookData.title),
             subtitle: cleanTitle(bookData.subtitle),
             pages: pagesNum ? pagesNum : null,
