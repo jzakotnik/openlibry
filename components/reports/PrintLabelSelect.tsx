@@ -50,25 +50,6 @@ export default function PrintLabelSelect({
 
   const handleLeftClick = (index: number) => {
     const newGrid = [...grid];
-    if (newGrid[index].status === "off") return;
-
-    if (newGrid[index].book != null) {
-      setIdButtons([...idButtons, newGrid[index].book as BookType]);
-      newGrid[index] = { book: null, status: "empty" };
-    } else {
-      if (idButtons.length === 0) return;
-      const newId = idButtons[0];
-      newGrid[index] = { book: newId, status: "full" };
-      setIdButtons(idButtons.slice(1));
-    }
-
-    setGrid(newGrid);
-  };
-
-  const handleRightClick = (index: number, event: React.MouseEvent) => {
-    event.preventDefault();
-    const newGrid = [...grid];
-
     if (newGrid[index].book != null) {
       setIdButtons([...idButtons, newGrid[index].book as BookType]);
       newGrid[index] = { book: null, status: "empty" };
@@ -78,6 +59,27 @@ export default function PrintLabelSelect({
       ...newGrid[index],
       status: grid[index].status === "off" ? "empty" : "off",
     };
+
+    setGrid(newGrid);
+  };
+
+  // toogle up to right click
+  const handleRightClick = (index: number, event: React.MouseEvent) => {
+    event.preventDefault();
+    const newGrid = [...grid];
+
+    const newStatus = grid[index].status === "off" ? "empty" : "off";
+
+    for (let i = 0; i <= index; i++) {
+      if (newGrid[i].book != null) {
+        setIdButtons((prev) => [...prev, newGrid[i].book as BookType]);
+      }
+      newGrid[i] = {
+        book: null,
+        status: newStatus,
+      };
+    }
+
     setGrid(newGrid);
   };
 
@@ -162,12 +164,11 @@ export default function PrintLabelSelect({
         {grid.map((rect, index) => (
           <div
             key={index}
-            className={`flex flex-col items-center justify-center border rounded cursor-pointer transition-colors overflow-hidden ${
-              rect.status === "off"
-                ? "bg-red-200 border-red-400"
-                : "bg-white border-gray-300 hover:bg-gray-50"
-            }`}
-            onClick={(e) => handleRightClick(index, e)}
+            className={`flex flex-col items-center justify-center border rounded cursor-pointer transition-colors overflow-hidden ${rect.status === "off"
+              ? "bg-red-200 border-red-400"
+              : "bg-white border-gray-300 hover:bg-gray-50"
+              }`}
+            onClick={(e) => handleLeftClick(index)}
             onContextMenu={(e) => handleRightClick(index, e)}
           >
             {rect.book && (

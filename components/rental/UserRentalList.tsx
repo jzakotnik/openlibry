@@ -70,6 +70,16 @@ export default function UserRentalList({
     [users, userSearchInput, rentals],
   );
 
+  // Reorder users: selected user first
+  const reorderedUsers = useMemo(() => {
+    if (userExpanded === false) return filteredUsers;
+
+    return [
+      filteredUsers.find((u) => u.id === userExpanded)!,
+      ...filteredUsers.filter((u) => u.id !== userExpanded),
+    ];
+  }, [filteredUsers, userExpanded]);
+
   // ── Handlers ────────────────────────────────────────────────────────────
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -218,7 +228,7 @@ export default function UserRentalList({
             className="mt-2 flex flex-col gap-0.5"
             data-cy="user_accordion_list"
           >
-            {filteredUsers.map((u: UserType) => {
+            {reorderedUsers.map((u: UserType) => {
               const rentalsUser = booksForUser(u.id!, rentals);
 
               return (
