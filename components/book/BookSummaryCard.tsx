@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
 
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +10,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import CoverModal from "./CoverModal";
+import StatusBadge from "./StatusBadge";
+import TopicChips from "./TopicChips";
 
 // =============================================================================
 // Constants
@@ -18,8 +20,6 @@ import { BookType } from "@/entities/BookType";
 
 const CARD_WIDTH = 200;
 const CARD_HEIGHT = 290;
-const MAX_VISIBLE_TOPICS = 2;
-const MAX_TOPICS_LENGTH = 10;
 
 // =============================================================================
 // Helper Functions
@@ -35,161 +35,6 @@ const parseTopics = (topics: string | undefined | null): string[] => {
   const maxLength = parts.length === 1 ? 10 : 5;
   return parts.map((t) => t.substring(0, maxLength));
 };
-
-// =============================================================================
-// Sub-Components
-// =============================================================================
-
-interface CoverModalProps {
-  open: boolean;
-  onClose: () => void;
-  src: string;
-  title: string;
-  subtitle?: string;
-  author: string;
-}
-
-const CoverModal = memo(function CoverModal({
-  open,
-  onClose,
-  src,
-  title,
-  subtitle,
-  author,
-}: CoverModalProps) {
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent
-        className="max-w-[90vw] max-h-[90vh] w-auto bg-transparent border-none
-                   shadow-none p-0 flex flex-col items-center gap-4
-                   [&>button]:text-white [&>button]:bg-white/10
-                   [&>button]:hover:bg-white/20 [&>button]:top-2 [&>button]:right-2"
-        aria-describedby={undefined}
-      >
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-
-        {/* Cover image container */}
-        <div
-          className="relative w-[85vw] sm:w-[70vw] md:w-[50vw] lg:w-[400px]
-                     h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[600px]
-                     max-w-[500px] max-h-[750px]
-                     rounded-xl overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.5)]"
-        >
-          <Image
-            src={src}
-            alt={title ?? "Book cover"}
-            fill
-            loading="lazy"
-            placeholder="blur"
-            blurDataURL="/coverimages/default.jpg"
-            sizes="(max-width: 600px) 85vw, (max-width: 900px) 70vw, 500px"
-            style={{
-              objectFit: "contain",
-              backgroundColor: "var(--foreground)",
-            }}
-          />
-        </div>
-
-        {/* Title + author below image */}
-        <div className="text-center text-white">
-          <h2 className="text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="text-sm text-white/60 mt-0.5">{subtitle}</p>
-          )}
-          <p className="text-sm text-white/70 mt-1">{author}</p>
-        </div>
-
-        <p className="text-xs text-white/40 whitespace-nowrap">
-          Klicken zum Schließen oder ESC drücken
-        </p>
-      </DialogContent>
-    </Dialog>
-  );
-});
-
-// -----------------------------------------------------------------------------
-
-interface StatusBadgeProps {
-  isRented: boolean;
-}
-
-const StatusBadge = memo(function StatusBadge({ isRented }: StatusBadgeProps) {
-  return (
-    <div
-      className={`absolute top-2.5 left-2.5 z-[4] flex items-center gap-1.5
-                  px-2 py-1 rounded-full backdrop-blur-lg shadow-[0_2px_8px_rgba(0,0,0,0.2)]
-                  ${isRented ? "bg-destructive/90" : "bg-success/90"}`}
-      role="status"
-      aria-label={isRented ? "Buch ist ausgeliehen" : "Buch ist verfügbar"}
-    >
-      <span
-        className={`h-1.5 w-1.5 rounded-full bg-white ${
-          !isRented ? "animate-pulse" : ""
-        }`}
-      />
-      <span className="text-[0.65rem] font-semibold text-white uppercase tracking-wide">
-        {isRented ? "Ausgeliehen" : "Verfügbar"}
-      </span>
-    </div>
-  );
-});
-
-// -----------------------------------------------------------------------------
-
-interface TopicChipsProps {
-  topics: string[];
-}
-
-const TopicChips = memo(function TopicChips({ topics }: TopicChipsProps) {
-  const visibleTopics = topics.slice(0, MAX_VISIBLE_TOPICS);
-  const hiddenTopics = topics.slice(MAX_VISIBLE_TOPICS);
-  const extraCount = hiddenTopics.length;
-
-  if (visibleTopics.length === 0) return null;
-
-  return (
-    <TooltipProvider>
-      <div
-        className="flex flex-wrap gap-1 mt-0.5"
-        role="list"
-        aria-label="Schlagwörter"
-      >
-        {visibleTopics.map((topic) => (
-          <span
-            key={topic}
-            role="listitem"
-            className="inline-flex items-center h-[18px] px-1.5
-                       text-[0.55rem] font-medium text-white
-                       bg-white/20 backdrop-blur-sm
-                       border border-white/15 rounded-full"
-          >
-            {topic}
-          </span>
-        ))}
-        {extraCount > 0 && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                role="listitem"
-                aria-label={`${extraCount} weitere Schlagwörter: ${hiddenTopics.join(", ")}`}
-                className="inline-flex items-center h-[18px] px-1.5
-                           text-[0.55rem] font-medium text-white cursor-pointer
-                           bg-secondary/50 hover:bg-secondary/70
-                           backdrop-blur-sm border border-white/15 rounded-full
-                           transition-colors"
-              >
-                +{extraCount}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{hiddenTopics.join(", ")}</TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-    </TooltipProvider>
-  );
-});
 
 // =============================================================================
 // Main Component
@@ -297,7 +142,7 @@ function BookSummaryCard({
         />
 
         {/* Status Badge */}
-        <StatusBadge isRented={isRented} />
+        <StatusBadge rentalStatus={book.rentalStatus} />
 
         {/* Top-right: Book ID + Return Button */}
         <div className="absolute top-2.5 right-2.5 z-[4] flex items-center gap-1">
@@ -372,7 +217,7 @@ function BookSummaryCard({
           {/* Topics */}
           <TopicChips topics={topics} />
 
-          {/* Action Buttons — bigger, more accessible edit button */}
+          {/* Action Buttons */}
           {showDetailsControl && (
             <div
               className="flex gap-1.5 mt-1
