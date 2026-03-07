@@ -35,6 +35,8 @@ describe("Rental of books", () => {
 
     // Search for an available book
     cy.get("[data-cy=book_search_input]").should("be.visible").type("Dorf");
+    // doesn't work: cy.get("[data-cy^=book_item_]").should("have.length.at.least", 5);
+    cy.wait(1500);
     cy.get("[data-cy^=book_item_]").first().should("be.visible");
 
     // Wait for rent buttons to appear — they only render once userExpanded
@@ -99,6 +101,7 @@ describe("Rental of books", () => {
 
     // Verify the book is available again in the book list
     cy.get("[data-cy=book_search_input]").clear().type("Dorf");
+    cy.wait(1500);
     cy.get("[data-cy^=book_item_]").first().should("be.visible");
     cy.get("[data-cy^=book_rent_button_]").first().should("be.visible");
     cy.get("[data-cy^=book_item_]")
