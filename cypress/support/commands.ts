@@ -7,6 +7,7 @@ declare namespace Cypress {
     deleteBookCoverImage(bookId: string): Chainable<any>;
     deleteFile(filePath: string): Chainable<any>;
     cleanupDatabase(): Chainable<any>;
+    navigateToBookEdit(bookId: string): Chainable<any>;
   }
 }
 
