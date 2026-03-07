@@ -48,3 +48,17 @@ Cypress.Commands.add("deleteBookCoverImage", (bookId: string) => {
 Cypress.Commands.add("deleteFile", (filePath: string) => {
   cy.task("deleteFile", filePath);
 });
+
+Cypress.Commands.add("navigateToBookEdit", (bookId: string) => {
+  cy.get("[data-cy=index_book_button]").click();
+  cy.get("[data-cy=rental_input_searchbook]").should("be.visible").type(bookId);
+
+  // Scope to the exact card matching this book ID
+  cy.get(`[data-cy=book_summary_card_${bookId}]`)
+    .should("be.visible")
+    .within(() => {
+      cy.get("[data-cy=book_card_editbutton]").click();
+    });
+
+  cy.get("[data-cy=book-edit-form]").should("be.visible");
+});

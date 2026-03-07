@@ -245,7 +245,7 @@ function BookSummaryCard({
     <TooltipProvider>
       <article
         aria-label={`${book.title} von ${book.author}`}
-        data-cy="book_summary_card"
+        data-cy={`book_summary_card_${book.id}`}
         className="group/card relative overflow-hidden cursor-pointer
                    transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
                    shadow-[0_4px_12px_rgba(0,0,0,0.1)]
