@@ -292,7 +292,7 @@ export default function Audit({ audits }: AuditPropsType) {
 export async function getServerSideProps() {
   const allAudits = await getAllAudit(prisma);
 
-  const audits = allAudits.map((a: AuditType) => {
+  const audits = allAudits.map((a: any) => {
     const newAudit = { ...a } as any;
     newAudit.createdAt = convertDateToTimeString(a.createdAt);
     newAudit.updatedAt = convertDateToTimeString(a.updatedAt);
