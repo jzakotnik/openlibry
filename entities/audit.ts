@@ -1,14 +1,15 @@
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Audit, Prisma, PrismaClient } from "@prisma/client";
 
-export async function getLastAudit(client: PrismaClient) {
+export async function getLastAudit(
+  client: PrismaClient,
+): Promise<Audit | null> {
   try {
-    const lastAudit = await client.audit.findMany({
+    // findFirst is idiomatic for "get one record" – no need for findMany + take: 1
+    return await client.audit.findFirst({
       orderBy: { id: "desc" },
-      take: 1,
     });
-    return lastAudit[0];
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -20,7 +21,28 @@ export async function getLastAudit(client: PrismaClient) {
           operation: "getLastAudit",
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error in get Audit Log"
+        "Error in getLastAudit",
+      );
+    }
+    throw e;
+  }
+}
+
+export async function countAudit(client: PrismaClient): Promise<number> {
+  try {
+    return await client.audit.count();
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "countAudit",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in countAudit",
       );
     }
     throw e;
@@ -29,15 +51,13 @@ export async function getLastAudit(client: PrismaClient) {
 
 export async function getAllAudit(
   client: PrismaClient,
-  take: number = 1000
-): Promise<Array<any>> {
+  take: number = 1000,
+): Promise<Audit[]> {
   try {
-    const lastAudits = await client.audit.findMany({
+    return await client.audit.findMany({
       orderBy: { id: "desc" },
-      take: take,
+      take,
     });
-
-    return lastAudits;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -50,7 +70,7 @@ export async function getAllAudit(
           take,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error in get Audit Log"
+        "Error in getAllAudit",
       );
     }
     throw e;
@@ -61,16 +81,18 @@ export async function addAudit(
   client: PrismaClient,
   eventType: string,
   eventContent: string,
-  bookid: number = 0,
-  userid: number = 0
-) {
+  // Schema has bookid/userid as Int? (nullable) – use undefined, not 0,
+  // to avoid writing a fake foreign key value into the DB
+  bookid?: number,
+  userid?: number,
+): Promise<Audit> {
   try {
     return await client.audit.create({
       data: {
-        eventType: eventType,
-        eventContent: eventContent,
-        bookid: bookid,
-        userid: userid,
+        eventType,
+        eventContent,
+        bookid: bookid ?? null,
+        userid: userid ?? null,
       },
     });
   } catch (e) {
@@ -87,7 +109,7 @@ export async function addAudit(
           userid,
           error: e instanceof Error ? e.message : String(e),
         },
-        "Error in adding Audit"
+        "Error in addAudit",
       );
     }
     throw e;

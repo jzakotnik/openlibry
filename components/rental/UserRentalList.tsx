@@ -354,7 +354,7 @@ export default function UserRentalList({
                                           [r.id]: Date.now(),
                                         }));
                                       }}
-                                      data-cy={`book_extend_button_${r.id}`}
+                                      data-cy={`book_user_extend_button_${r.id}`}
                                       className="h-8 w-8 shrink-0 hover:bg-primary/10 hover:text-primary"
                                     >
                                       <RefreshCw className="h-4 w-4" />

@@ -11,6 +11,7 @@ import UserLabelsCard from "@/components/reports/cards/UserLabelsCard";
 import { useBookLabelFilters } from "@/components/reports/hooks/useBookLabelFilters";
 import { useUserLabelFilters } from "@/components/reports/hooks/useUserLabelFilters";
 import TagCloudDashboard from "@/components/reports/TagCloud";
+import { countAudit } from "@/entities/audit";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
@@ -30,6 +31,7 @@ interface ReportPropsType {
   nonExtendableCount: number;
   tagSet: Array<{ topic: string; count: number }>;
   schoolGradeSet: Array<{ topic: string; count: number }>;
+  auditCount: number;
 }
 
 export default function Reports({
@@ -40,6 +42,7 @@ export default function Reports({
   nonExtendableCount,
   tagSet,
   schoolGradeSet,
+  auditCount = 0,
 }: ReportPropsType) {
   const bookLabelFilters = useBookLabelFilters();
   const userLabelFilters = useUserLabelFilters();
@@ -88,8 +91,8 @@ export default function Reports({
         <ReportCard
           title="Historie"
           subtitle="Aktivitäten Bücher/User"
-          unit="audits"
-          totalNumber={1000}
+          unit="Einträge"
+          totalNumber={auditCount}
           link="reports/audit"
         />
         <BookLabelsCard
@@ -209,6 +212,7 @@ export async function getServerSideProps() {
     },
     "Reports page loaded",
   );
+  const auditCount = (await countAudit(prisma)) ?? 0;
 
   return {
     props: {
@@ -219,6 +223,7 @@ export async function getServerSideProps() {
       nonExtendableCount,
       tagSet,
       schoolGradeSet,
+      auditCount,
     },
   };
 }

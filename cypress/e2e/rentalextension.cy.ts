@@ -103,6 +103,7 @@ describe("Rental extension logic", () => {
     cy.url().should("include", "/rental");
 
     cy.get("[data-cy=user_search_input]").type("Rentaltest");
+    cy.wait(1500);
     cy.get(`[data-cy=user_accordion_${userId}]`).click();
 
     cy.get("[data-cy=book_search_input]").type(String(bookAId));
@@ -213,6 +214,7 @@ describe("Rental extension logic", () => {
       cy.get(`[data-cy=user_accordion_${userId}]`).click();
 
       cy.get("[data-cy=book_search_input]").type(String(bookBBookColId));
+      cy.wait(1500);
       cy.get(`[data-cy=book_item_${bookBBookColId}]`).should("be.visible");
 
       cy.intercept("POST", `/api/book/${bookBBookColId}/extend`).as(
@@ -243,6 +245,7 @@ describe("Rental extension logic", () => {
       cy.visit("/");
       cy.get("[data-cy=index_rental_button]").click();
       cy.get("[data-cy=book_search_input]").type(String(bookBBookColId));
+      cy.wait(1500);
       cy.get(`[data-cy=book_info_${bookBBookColId}]`, { timeout: 6000 })
         .should("contain", `ausgeliehen bis ${expectedDue}`)
         .and("not.contain", `ausgeliehen bis ${wrongDue}`);
