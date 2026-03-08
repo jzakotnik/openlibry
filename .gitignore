@@ -149,3 +149,4 @@ cypress/screenshots/
 doc/mkdocs/site/
 public/labels/
 /prisma/database
+/database
