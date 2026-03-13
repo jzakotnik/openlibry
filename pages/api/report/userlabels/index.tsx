@@ -1,4 +1,3 @@
-import { UserType } from "@/entities/UserType";
 import {
   countUser,
   getAllUsersBySchoolGrade,
@@ -9,8 +8,9 @@ import {
 } from "@/entities/user";
 import { chunkArray } from "@/lib/utils/chunkArray";
 import { resolveCustomPath } from "@/lib/utils/customPath";
+import { UserLabelConfig } from "@/lib/utils/userLabelConfig";
+import { loadUserLabelConfig } from "@/lib/utils/userLabelConfigServer";
 import ReactPDF, {
-  Canvas,
   Document,
   Page,
   Image as PdfImage,
@@ -19,89 +19,107 @@ import ReactPDF, {
   View,
 } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
+import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
+import path from "path";
 
 import { prisma } from "@/entities/db";
-var fs = require("fs");
 
 // =============================================================================
-// Default configuration values (matching documentation in environment-variables.md)
+// Constants
 // =============================================================================
-const DEFAULT_USERLABEL_IMAGE = "userlabeltemplate.jpg";
-const DEFAULT_USERLABEL_WIDTH = "42vw";
-const DEFAULT_USERLABEL_PER_PAGE = 6;
-const DEFAULT_USERLABEL_BARCODE: [string, string, string, string, string] = [
-  "80%",
-  "63%",
-  "3cm",
-  "1.6cm",
-  "code128",
-];
+
 const DEFAULT_BARCODE_MINCODELENGTH = 4;
-
-// Default user label lines if none configured in environment
-const DEFAULT_USERLABEL_LINES: Array<
-  [string, string, string, string, string, string, number]
-> = [
-  ["User.firstName User.lastName", "75%", "3%", "35vw", "2pt", "black", 14],
-  ["User.schoolGrade", "80%", "3%", "35vw", "2pt", "black", 12],
-];
+const CUSTOM_DIR = path.join(process.cwd(), "database", "custom");
 
 // =============================================================================
-// Configuration loading with fallbacks
+// Image loading (per-request)
 // =============================================================================
 
-// Load background image with fallback and error handling
-// Checks database/custom/ first, falls back to public/
-const labelImagePath =
-  process.env.USERID_LABEL_IMAGE || DEFAULT_USERLABEL_IMAGE;
-let base64Image: string | null = null;
-let labelImageMimeType: string = "image/jpeg";
-try {
-  const resolvedImagePath = resolveCustomPath(labelImagePath);
-  base64Image = fs.readFileSync(resolvedImagePath, { encoding: "base64" });
-  const ext = resolvedImagePath.split(".").pop()?.toLowerCase();
-  labelImageMimeType = ext === "png" ? "image/png" : "image/jpeg";
-  console.log(
-    `User label background loaded: ${resolvedImagePath} (${labelImageMimeType})`,
-  );
-} catch (error) {
-  console.warn(
-    `Warning: Could not load user label image "${labelImagePath}" ` +
-      `in database/custom/ or public/. Please ensure the file exists or set USERID_LABEL_IMAGE in your .env file.`,
-  );
+interface ImageData {
+  src: string | null; // base64 data URI, e.g. "data:image/jpeg;base64,..."
 }
 
-// Barcode settings: [top, left, width, height, barcode_type]
-const BARCODE_SETTINGS: [string, string, string, string, string] | null =
-  process.env.USERLABEL_BARCODE != null
-    ? JSON.parse(process.env.USERLABEL_BARCODE)
-    : DEFAULT_USERLABEL_BARCODE;
+/**
+ * Checks whether a JPEG buffer is a progressive JPEG.
+ * pdfkit (used by react-pdf) only supports baseline JPEGs.
+ * Progressive JPEGs cause the "Unknown version" error.
+ */
+function isProgressiveJpeg(buffer: Buffer): boolean {
+  // Scan for SOF2 marker (0xFFC2) which indicates progressive JPEG
+  for (let i = 0; i < buffer.length - 1; i++) {
+    if (buffer[i] === 0xff && buffer[i + 1] === 0xc2) {
+      return true;
+    }
+  }
+  return false;
+}
 
-// Labels per page (typically 6 or 8)
-const labelsPerPage: number =
-  process.env.USERLABEL_PER_PAGE != null
-    ? Number(process.env.USERLABEL_PER_PAGE)
-    : DEFAULT_USERLABEL_PER_PAGE;
+function loadLabelImage(imageFilename: string): ImageData {
+  const tryLoad = (filePath: string): ImageData | null => {
+    if (!fs.existsSync(filePath)) {
+      console.log(`[userlabels] Not found: ${filePath}`);
+      return null;
+    }
+    try {
+      const buffer = fs.readFileSync(filePath);
+      const ext = filePath.split(".").pop()?.toLowerCase();
+      const mimeType = ext === "png" ? "image/png" : "image/jpeg";
 
-// Label width (CSS units: cm, px, vw)
-const labelWidth: string =
-  process.env.USERLABEL_WIDTH || DEFAULT_USERLABEL_WIDTH;
+      // Warn if progressive JPEG — pdfkit will fail silently or with "Unknown version"
+      if (mimeType === "image/jpeg" && isProgressiveJpeg(buffer)) {
+        console.error(
+          `[userlabels] WARNING: "${filePath}" is a PROGRESSIVE JPEG. ` +
+            `pdfkit only supports baseline JPEGs. ` +
+            `Please re-save the image as a baseline (standard) JPEG in any image editor.`,
+        );
+      }
 
-// Minimum barcode length (will be zero-padded)
-const barcodeMinLength: number =
-  process.env.BARCODE_MINCODELENGTH != null
-    ? parseInt(process.env.BARCODE_MINCODELENGTH)
-    : DEFAULT_BARCODE_MINCODELENGTH;
+      const base64 = buffer.toString("base64");
+      const src = `data:${mimeType};base64,${base64}`;
+      console.log(
+        `[userlabels] Loaded: ${filePath} (${buffer.length} bytes, ${mimeType})`,
+      );
+      return { src };
+    } catch (e) {
+      console.warn(`[userlabels] Could not read: ${filePath}`, e);
+      return null;
+    }
+  };
+
+  // 1. Uploaded file in database/custom/
+  for (const ext of ["jpg", "jpeg", "png"]) {
+    const p = path.join(CUSTOM_DIR, `userlabel-background.${ext}`);
+    const result = tryLoad(p);
+    if (result) return result;
+  }
+
+  // 2. resolveCustomPath (database/custom/ -> public/)
+  try {
+    const resolvedPath = resolveCustomPath(imageFilename);
+    const result = tryLoad(resolvedPath);
+    if (result) return result;
+  } catch (e) {
+    console.warn(
+      `[userlabels] resolveCustomPath failed for "${imageFilename}":`,
+      e,
+    );
+  }
+
+  // 3. public/ directly
+  const publicPath = path.join(process.cwd(), "public", imageFilename);
+  const result = tryLoad(publicPath);
+  if (result) return result;
+
+  console.error(`[userlabels] No usable image found for "${imageFilename}".`);
+  return { src: null };
+}
 
 // =============================================================================
 // Styles
 // =============================================================================
+
 const styles = StyleSheet.create({
-  image: {
-    width: labelWidth,
-    height: "auto",
-  },
   pageContainer: {
     flexDirection: "column",
     alignContent: "flex-start",
@@ -110,118 +128,90 @@ const styles = StyleSheet.create({
 });
 
 // =============================================================================
-// Helper functions
+// Helper: replace User.* placeholders with actual values
 // =============================================================================
 
-/**
- * Get configured label lines from environment or use defaults.
- * Lines are sorted by their key name (USERLABEL_LINE_1, USERLABEL_LINE_2, etc.)
- */
-const getLabelLineConfigs = (): Array<
-  [string, string, string, string, string, string, number]
-> => {
-  const envLines = Object.entries(process.env)
-    .filter(
-      ([key, value]) => key.startsWith("USERLABEL_LINE_") && value != null,
-    )
-    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
-    .map(([_, value]) => JSON.parse(value!));
-
-  if (envLines.length > 0) {
-    return envLines;
-  }
-  return DEFAULT_USERLABEL_LINES;
-};
-
-/**
- * Replace User.* placeholders with actual user data.
- * Example: "User.firstName User.lastName" -> "Max Mustermann"
- */
-const replacePlaceholder = (text: string, user: UserType): string => {
+function replacePlaceholder(text: string, user: any): string {
   try {
     let result = text;
     while (result.includes("User.")) {
-      const nextReplace = String(
-        result.split(" ").find((item: string) => item.includes("User.")),
-      );
-      const propertyName = nextReplace.split(".")[1] as keyof UserType;
+      const token = result.split(" ").find((item) => item.includes("User."));
+      if (!token) break;
+      const propertyName = token.split(".")[1] as keyof any;
       const userValue = user[propertyName];
       result = result.replaceAll(
-        nextReplace,
+        token,
         userValue != null ? String(userValue) : "",
       );
     }
     return result;
   } catch (error) {
-    console.error("Error replacing placeholder in user label:", error);
-    return "Configuration error in environment";
+    console.error("[userlabels] Error replacing placeholder:", error);
+    return "Configuration error";
   }
-};
+}
 
-/**
- * Generate text lines for a user label based on configuration.
- */
-const generateInfolines = (user: UserType) => {
-  const lineConfigs = getLabelLineConfigs();
+// =============================================================================
+// Helper: convert a "75%" string to cm given the total dimension in cm.
+// react-pdf / yoga does not reliably resolve % on absolutely positioned
+// children, so we convert everything to explicit cm values.
+// Non-percentage values (e.g. "2cm") are passed through unchanged.
+// =============================================================================
 
-  return lineConfigs.map((valueArr, index) => {
-    const replacement = replacePlaceholder(valueArr[0], user);
-    const style = {
-      position: "absolute",
-      top: valueArr[1],
-      left: valueArr[2],
-      width: valueArr[3],
-      margin: valueArr[4],
-      color: valueArr[5],
-      fontSize: valueArr[6],
-    } as any;
+function pctToCm(value: string, totalCm: number): string {
+  const trimmed = value.trim();
+  if (trimmed.endsWith("%")) {
+    const num = parseFloat(trimmed);
+    if (!isNaN(num)) {
+      return (num / 100) * totalCm + "cm";
+    }
+  }
+  return trimmed; // already "Xcm" or similar
+}
+
+// =============================================================================
+// Generate text lines for a single label
+// =============================================================================
+
+function generateInfolines(user: any, config: UserLabelConfig) {
+  const { widthCm, heightCm } = config.label;
+  return config.lines.map((line, index) => {
+    const text = replacePlaceholder(line.text, user);
     return (
-      <Text key={`${user.id}-line-${index}`} style={style}>
-        {replacement}
+      <Text
+        key={`${user.id}-line-${index}`}
+        style={
+          {
+            position: "absolute",
+            top: pctToCm(line.top, heightCm),
+            left: pctToCm(line.left, widthCm),
+            color: line.color,
+            fontSize: line.fontSize,
+          } as any
+        }
+      >
+        {text}
       </Text>
     );
   });
-};
+}
 
-/**
- * Generate optional colorbar element.
- * Configuration: USERLABEL_SEPARATE_COLORBAR=[width, height, color]
- */
-const colorbar = ({ id }: { id: number | string }) => {
-  if (process.env.USERLABEL_SEPARATE_COLORBAR == null) {
-    return null;
-  }
+// =============================================================================
+// Generate barcode image
+// =============================================================================
 
-  const colorbarConfig = JSON.parse(process.env.USERLABEL_SEPARATE_COLORBAR);
-  if (colorbarConfig == null) {
-    return null;
-  }
+async function generateBarcode(id: string, config: UserLabelConfig) {
+  if (!config.barcode.enabled) return null;
 
-  return (
-    <Canvas
-      key={`colorbar-${id}`}
-      paint={(painterObject) =>
-        painterObject
-          .save()
-          .rect(0, 0, colorbarConfig[0], colorbarConfig[1])
-          .fill(colorbarConfig[2])
-      }
-    />
-  );
-};
+  const minLength = process.env.BARCODE_MINCODELENGTH
+    ? parseInt(process.env.BARCODE_MINCODELENGTH)
+    : DEFAULT_BARCODE_MINCODELENGTH;
 
-/**
- * Generate barcode image for a user ID.
- */
-const generateBarcode = async (id: string) => {
-  if (BARCODE_SETTINGS == null) return null;
-
-  // Pad the ID to minimum length with leading zeros
-  const barId = id.padStart(barcodeMinLength, "0");
+  const barId = id.padStart(minLength, "0");
 
   try {
     const png = await bwipjs.toBuffer({
-      bcid: BARCODE_SETTINGS[4], // Barcode type (e.g., 'code128')
+      bcid: "code128",
       text: barId,
       scale: 3,
       height: 10,
@@ -229,66 +219,93 @@ const generateBarcode = async (id: string) => {
       textxalign: "center",
     });
 
+    const { widthCm, heightCm } = config.label;
+
     return (
       <PdfImage
-        src={"data:image/png;base64, " + png.toString("base64")}
+        src={"data:image/png;base64," + png.toString("base64")}
         style={{
           position: "absolute",
-          width: BARCODE_SETTINGS[2],
-          height: BARCODE_SETTINGS[3],
-          top: BARCODE_SETTINGS[0],
-          left: BARCODE_SETTINGS[1],
+          top: pctToCm(config.barcode.top, heightCm),
+          left: pctToCm(config.barcode.left, widthCm),
+          width: config.barcode.width,
+          height: config.barcode.height,
         }}
       />
     );
   } catch (error) {
-    console.error(`Error generating barcode for ID ${id}:`, error);
+    console.error(`[userlabels] Barcode error for ID ${id}:`, error);
     return null;
   }
-};
+}
 
-/**
- * Generate label elements for all users.
- */
-const generateLabels = async (users: Array<UserType>) => {
-  const allcodes = await Promise.all(
-    users.map(async (u: UserType, i: number) => {
-      // Calculate position on page (2 columns layout)
-      const pos = {
-        left: (i % labelsPerPage <= labelsPerPage / 2 - 1 ? 1 : 11) + "cm",
-        top:
-          (29 / (labelsPerPage / 2) + 0.5) * (i % (labelsPerPage / 2)) + "cm",
-      };
+// =============================================================================
+// Generate all label elements
+// =============================================================================
 
-      const infolines = generateInfolines(u);
-      const barcode = await generateBarcode(u.id!.toString());
+async function generateLabels(
+  users: Array<any>,
+  config: UserLabelConfig,
+  imageData: ImageData,
+) {
+  const { grid, label } = config;
+  const labelsPerPage = grid.columns * grid.rows;
+
+  return Promise.all(
+    users.map(async (user: any, i: number) => {
+      const pageIndex = i % labelsPerPage;
+      const col = Math.floor(pageIndex / grid.rows);
+      const row = pageIndex % grid.rows;
+
+      const leftCm =
+        grid.marginLeftCm + col * (label.widthCm + grid.spacingHCm);
+      const topCm = grid.marginTopCm + row * (label.heightCm + grid.spacingVCm);
+
+      const infolines = generateInfolines(user, config);
+      const barcode = await generateBarcode(user.id!.toString(), config);
+
+      console.log(
+        `[userlabels] Rendering label for user ${user.id}: ` +
+          `pos=(${leftCm.toFixed(2)}cm, ${topCm.toFixed(2)}cm) ` +
+          `size=(${label.widthCm}cm x ${label.heightCm}cm) ` +
+          `image=${imageData.src ? "data URI (" + imageData.src.length + " chars)" : "NULL"}`,
+      );
 
       return (
+        // Outer View: absolutely placed on the page at the grid position
         <View
-          key={u.id!}
+          key={user.id!}
           style={{
             position: "absolute",
-            flexDirection: "column",
-            left: pos.left,
-            top: pos.top,
-            width: "42vw",
-            padding: 0,
-            margin: 0,
+            left: leftCm + "cm",
+            top: topCm + "cm",
+            width: label.widthCm + "cm",
+            height: label.heightCm + "cm",
+            overflow: "hidden",
+            border: label.showBorder ? "1pt dashed #aaaaaa" : undefined,
           }}
         >
+          {/* Background image: normal flow, fills full label size */}
+          {imageData.src && (
+            <PdfImage
+              src={imageData.src}
+              style={{
+                width: label.widthCm + "cm",
+                height: label.heightCm + "cm",
+              }}
+            />
+          )}
+
+          {/* Overlay View: sits on top of the image, same size, for text + barcode */}
           <View
             style={{
-              flexDirection: "column",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: label.widthCm + "cm",
+              height: label.heightCm + "cm",
             }}
           >
-            {base64Image && (
-              <PdfImage
-                key={`img-${u.id}`}
-                style={styles.image}
-                src={`data:${labelImageMimeType};base64, ${base64Image}`}
-              />
-            )}
-            {colorbar({ id: u.id! })}
             {infolines}
             {barcode}
           </View>
@@ -296,28 +313,33 @@ const generateLabels = async (users: Array<UserType>) => {
       );
     }),
   );
-  return allcodes;
-};
+}
 
-/**
- * Create PDF document with user labels.
- */
-async function createUserPDF(users: Array<UserType>) {
-  const barcodes = await generateLabels(users);
-  console.log("Labels per page:", labelsPerPage);
-  const barcodesSections = chunkArray(barcodes, labelsPerPage);
+// =============================================================================
+// Create PDF document
+// =============================================================================
 
-  const pdfstream = await ReactPDF.renderToStream(
+async function createUserPDF(
+  users: Array<any>,
+  config: UserLabelConfig,
+  imageData: ImageData,
+) {
+  const labelsPerPage = config.grid.columns * config.grid.rows;
+  const labels = await generateLabels(users, config, imageData);
+  const pages = chunkArray(labels, labelsPerPage);
+
+  console.log(
+    `[userlabels] Generating PDF: ${users.length} users, ${labelsPerPage} per page (${config.grid.columns}×${config.grid.rows})`,
+  );
+
+  return ReactPDF.renderToStream(
     <Document>
-      {barcodesSections.map((chunk: any, i: any) => (
+      {pages.map((chunk: any, i: number) => (
         <Page
           wrap
           key={i}
           size="A4"
-          style={{
-            flexDirection: "column",
-            backgroundColor: "#FFFFFF",
-          }}
+          style={{ flexDirection: "column", backgroundColor: "#FFFFFF" }}
         >
           <View key={`page-${i}`} style={styles.pageContainer}>
             {chunk}
@@ -326,134 +348,139 @@ async function createUserPDF(users: Array<UserType>) {
       ))}
     </Document>,
   );
-
-  return pdfstream;
 }
 
 // =============================================================================
 // API Handler
 // =============================================================================
+
 export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  switch (req.method) {
-    case "GET":
-      console.log("Printing user labels via API");
-      try {
-        // Four different ways to call:
-        // - start & end: for last created users ordered by ID (with optional schoolGrade filter)
-        // - startId & endId: for users in ID range (with optional schoolGrade filter)
-        // - id: specific single user
-        // - (no params): all users
-        let printableUsers;
+  if (req.method !== "GET") {
+    return res.status(405).end(`${req.method} Not Allowed`);
+  }
 
-        if ("start" in req.query || "schoolGrade" in req.query) {
-          // Filter by school grade and/or slice by position
-          const users =
-            "schoolGrade" in req.query
-              ? ((await getAllUsersBySchoolGrade(
-                  prisma,
-                  req.query.schoolGrade as string,
-                )) as any)
-              : ((await getAllUsersOrderById(prisma)) as any);
+  console.log("[userlabels] PDF generation requested");
 
-          const startUserID = "start" in req.query ? req.query.start : "0";
-          const endUserID =
-            "end" in req.query ? req.query.end : String(users.length);
+  try {
+    // Load config per-request: JSON file → env vars → defaults
+    const config = loadUserLabelConfig();
 
-          printableUsers = users
-            .reverse()
-            .slice(
-              parseInt(startUserID as string),
-              parseInt(endUserID as string),
-            );
+    // ---- DIAGNOSTIC LOGGING ----
+    console.log("[userlabels] process.cwd():", process.cwd());
+    console.log("[userlabels] config.label.image:", config.label.image);
+    console.log(
+      "[userlabels] config.label.widthCm:",
+      config.label.widthCm,
+      "heightCm:",
+      config.label.heightCm,
+    );
+    console.log("[userlabels] config.grid:", JSON.stringify(config.grid));
+    console.log("[userlabels] config.lines:", JSON.stringify(config.lines));
 
-          console.log(
-            "Printing labels for users (by position):",
-            startUserID,
-            "to",
-            endUserID,
-            "count:",
-            printableUsers.length,
-          );
-        } else if ("startId" in req.query) {
-          // Filter by ID range
-          let startId =
-            "startId" in req.query ? parseInt(req.query.startId as string) : 0;
-          let endId =
-            "endId" in req.query
-              ? parseInt(req.query.endId as string)
-              : await countUser(prisma);
-
-          // Swap if user mixed up start and end
-          if (startId > endId) {
-            console.log("Swapping startId and endId (were reversed)");
-            const temp = endId;
-            endId = startId;
-            startId = temp;
-          }
-
-          printableUsers =
-            "schoolGrade" in req.query
-              ? ((await getUsersInIdRangeForSchoolgrade(
-                  prisma,
-                  startId,
-                  endId,
-                  req.query.schoolGrade as string,
-                )) as any)
-              : await getUsersInIdRange(prisma, startId, endId);
-
-          console.log(
-            "Printing labels for users (by ID range):",
-            startId,
-            "to",
-            endId,
-            "count:",
-            printableUsers?.length,
-          );
-        } else if ("id" in req.query) {
-          // Single user by ID
-          printableUsers = new Array<any>();
-          const user = await getUser(prisma, parseInt(req.query.id as string));
-          if (user) {
-            printableUsers.push(user);
-          }
-          console.log("Printing label for single user ID:", req.query.id);
-        } else {
-          // Default: print all users
-          printableUsers = await getAllUsersOrderById(prisma);
-          console.log(
-            "Printing labels for all users, count:",
-            printableUsers?.length,
-          );
-        }
-
-        // Validate we have users to print
-        if (!printableUsers) {
-          return res.status(400).json({ data: "ERROR: Users not found" });
-        }
-
-        if (printableUsers.length === 0 || printableUsers[0] == null) {
-          return res
-            .status(400)
-            .json({ data: "ERROR: No users match search criteria" });
-        }
-
-        // Generate and return PDF
-        const labels = await createUserPDF(printableUsers);
-        res.writeHead(200, {
-          "Content-Type": "application/pdf",
-        });
-        labels.pipe(res);
-      } catch (error) {
-        console.error("Error generating user labels:", error);
-        res.status(400).json({ data: "ERROR: " + error });
+    // List database/custom/ contents
+    try {
+      const customDir = path.join(process.cwd(), "database", "custom");
+      if (fs.existsSync(customDir)) {
+        const files = fs.readdirSync(customDir);
+        console.log("[userlabels] database/custom/ contents:", files);
+      } else {
+        console.log("[userlabels] database/custom/ does NOT exist");
       }
-      break;
+    } catch (e) {
+      console.log("[userlabels] Could not list database/custom/:", e);
+    }
 
-    default:
-      res.status(405).end(`${req.method} Not Allowed`);
-      break;
+    // List public/ contents (first level)
+    try {
+      const publicDir = path.join(process.cwd(), "public");
+      const files = fs.readdirSync(publicDir);
+      console.log("[userlabels] public/ contents:", files);
+    } catch (e) {
+      console.log("[userlabels] Could not list public/:", e);
+    }
+    // ---- END DIAGNOSTIC ----
+
+    const imageData = loadLabelImage(config.label.image);
+    console.log(
+      "[userlabels] Image loaded:",
+      imageData.src
+        ? "data URI, length=" + imageData.src.length
+        : "NULL - no image found",
+    );
+
+    // -------------------------------------------------------------------------
+    // User selection (four modes)
+    // -------------------------------------------------------------------------
+    let printableUsers: any[] | undefined;
+
+    if ("start" in req.query || "schoolGrade" in req.query) {
+      const users =
+        "schoolGrade" in req.query
+          ? ((await getAllUsersBySchoolGrade(
+              prisma,
+              req.query.schoolGrade as string,
+            )) as any[])
+          : ((await getAllUsersOrderById(prisma)) as any[]);
+
+      const startPos =
+        "start" in req.query ? parseInt(req.query.start as string) : 0;
+      const endPos =
+        "end" in req.query ? parseInt(req.query.end as string) : users.length;
+
+      printableUsers = users.reverse().slice(startPos, endPos);
+      console.log(
+        `[userlabels] By position ${startPos}–${endPos}: ${printableUsers.length} users`,
+      );
+    } else if ("startId" in req.query) {
+      let startId = parseInt(req.query.startId as string) || 0;
+      let endId =
+        "endId" in req.query
+          ? parseInt(req.query.endId as string)
+          : await countUser(prisma);
+
+      if (startId > endId) {
+        [startId, endId] = [endId, startId];
+        console.log("[userlabels] Swapped startId/endId (were reversed)");
+      }
+
+      printableUsers = (
+        "schoolGrade" in req.query
+          ? await getUsersInIdRangeForSchoolgrade(
+              prisma,
+              startId,
+              endId,
+              req.query.schoolGrade as string,
+            )
+          : await getUsersInIdRange(prisma, startId, endId)
+      ) as any[];
+
+      console.log(
+        `[userlabels] By ID range ${startId}–${endId}: ${printableUsers?.length} users`,
+      );
+    } else if ("id" in req.query) {
+      printableUsers = [];
+      const user = await getUser(prisma, parseInt(req.query.id as string));
+      if (user) printableUsers.push(user as any);
+      console.log(`[userlabels] Single user ID: ${req.query.id}`);
+    } else {
+      printableUsers = (await getAllUsersOrderById(prisma)) as any[];
+      console.log(`[userlabels] All users: ${printableUsers?.length}`);
+    }
+
+    if (!printableUsers || printableUsers.length === 0) {
+      return res
+        .status(400)
+        .json({ data: "ERROR: No users match search criteria" });
+    }
+
+    const pdfStream = await createUserPDF(printableUsers, config, imageData);
+    res.writeHead(200, { "Content-Type": "application/pdf" });
+    pdfStream.pipe(res);
+  } catch (error) {
+    console.error("[userlabels] Error generating PDF:", error);
+    res.status(500).json({ data: "ERROR: " + error });
   }
 }

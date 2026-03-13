@@ -1,4 +1,5 @@
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { type TopicCount } from "./cardConstants";
 
@@ -63,6 +64,7 @@ export default function UserLabelsCard({
   setTopicsFilter,
   allTopics,
 }: UserLabelsCardProps) {
+  const router = useRouter();
   const [comboboxOpen, setComboboxOpen] = useState(false);
 
   const getUserUrl = () => {
@@ -82,7 +84,7 @@ export default function UserLabelsCard({
       className="overflow-hidden border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200"
       data-cy="user-labels-card"
     >
-      {/* Accent bar — secondary */}
+      {/* Accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-secondary to-secondary/50" />
 
       <CardHeader className="pb-2">
@@ -229,7 +231,7 @@ export default function UserLabelsCard({
         </div>
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="flex gap-2">
         <Button
           variant="ghost"
           size="sm"
@@ -238,6 +240,16 @@ export default function UserLabelsCard({
           data-cy="user-labels-generate-button"
         >
           Erzeuge PDF
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/reports/userlabels/configure")}
+          className="text-muted-foreground hover:text-foreground gap-1.5"
+          data-cy="user-labels-configure-button"
+        >
+          <Settings2 size={13} />
+          Konfigurieren
         </Button>
       </CardFooter>
     </Card>
