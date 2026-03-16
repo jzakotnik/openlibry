@@ -114,6 +114,18 @@ Beim ersten Start erstellt OpenLibry automatisch einen Ordner `database/custom/`
 | `ausweis_hintergrund.png` | Hintergrundbild für Benutzerausweise | Standard-Hintergrund |
 | `antolin/antolingesamt.csv` | Antolin-Datenliste | nicht enthalten |
 
+**Wichtig**: Bei eigenen Dateien musst Du in der Konfigurationsdatei `.env` die entsprechenden Pfade und Dateinamen hinterlegen. Wenn z.B. die Mahnungsdatei `meine_mahnung.docx` heisst, dann ist in der `.env` Datei dieser Pfad zu ändern:
+```
+...
+#############################################
+# 📧 REMINDER (MAHNUNG) CONFIGURATION
+#############################################
+
+# 📄 Path to the reminder (mahnung) Word template
+REMINDER_TEMPLATE_DOC=/app/database/custom/meine_mahnung.docx
+...
+```
+
 Da der `custom/`-Ordner innerhalb des `database`-Volumes liegt, bleiben deine Anpassungen bei Container-Updates automatisch erhalten und werden auch bei einem regulären Datenbank-Backup mitgesichert.
 
 ### Beispiel
