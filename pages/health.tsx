@@ -206,6 +206,7 @@ function CheckCard({
       public: "Public-Ordner",
       prisma: "Prisma-Ordner",
       covers: "Cover-Bilder",
+      custom: "Custom-Ordner",
       size: "Größe",
       sizeFormatted: "Dateigröße",
     };
@@ -220,7 +221,7 @@ function CheckCard({
         const writable = obj.writable ? ", beschreibbar" : "";
         const fileCount =
           typeof obj.fileCount === "number"
-            ? ` (${obj.fileCount.toLocaleString("de-DE")} Bilder)`
+            ? ` (${obj.fileCount.toLocaleString("de-DE")} Dateien)`
             : "";
         return `${exists}${writable}${fileCount}`;
       }
@@ -265,11 +266,28 @@ function CheckCard({
         {filteredDetails && Object.keys(filteredDetails).length > 0 && (
           <div className="mt-3 rounded-lg bg-gray-50 p-3 font-mono text-xs">
             {Object.entries(filteredDetails).map(([key, value]) => (
-              <div key={key} className="flex flex-wrap gap-1 py-0.5">
-                <span className="min-w-[120px] text-gray-400">
+              <div
+                key={key}
+                className={`flex flex-wrap gap-1 py-0.5 ${
+                  key === "path" ? "rounded bg-gray-100 px-1" : ""
+                }`}
+              >
+                <span
+                  className={`min-w-[120px] ${
+                    key === "path"
+                      ? "font-semibold text-gray-600"
+                      : "text-gray-400"
+                  }`}
+                >
                   {getKeyLabel(key)}:
                 </span>
-                <span className="break-all text-gray-700">
+                <span
+                  className={`break-all ${
+                    key === "path"
+                      ? "font-semibold text-gray-800"
+                      : "text-gray-700"
+                  }`}
+                >
                   {formatDetailValue(key, value)}
                 </span>
               </div>
@@ -489,10 +507,6 @@ export default function HealthPage() {
                     {formatBytes(data.system.memory.total)}
                   </span>
                 </div>
-                {/* 
-                  shadcn Progress doesn't support custom bar color via props,
-                  so we use a native div-based bar for full control.
-                */}
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
                     className="h-full rounded-full transition-all duration-500"

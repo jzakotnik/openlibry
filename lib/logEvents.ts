@@ -48,6 +48,8 @@ export const LogEvents = {
   REPORT_BOOKS_EXPORTED: "report.books.exported",
   REPORT_USERS_EXPORTED: "report.users.exported",
   REPORT_EXCEL_EXPORTED: "report.excel.exported",
+  REMINDER_TEMPLATE_LOADED: "report.template.loaded",
+  REMINDER_TEMPLATE_NOT_FOUND: "report.template.notfound",
 
   // Import operations
   IMPORT_EXCEL_STARTED: "import.excel.started",
