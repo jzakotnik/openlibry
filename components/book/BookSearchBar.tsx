@@ -19,6 +19,7 @@ interface BookSearchBarProps {
   detailView: boolean;
   searchResultNumber: number;
   showNewBookControl?: boolean;
+  showViewToggle?: boolean;
 }
 
 export default function BookSearchBar({
@@ -29,6 +30,7 @@ export default function BookSearchBar({
   detailView,
   searchResultNumber,
   showNewBookControl = true,
+  showViewToggle = true,
 }: BookSearchBarProps) {
   return (
     <TooltipProvider>
@@ -70,29 +72,31 @@ export default function BookSearchBar({
 
           {/* ── Action buttons ──────────────────────────────────── */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* View toggle */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={toggleView}
-                  aria-label="Ansicht wechseln"
-                  className="flex items-center justify-center
-                             h-10 w-10 rounded-lg border border-border bg-card/90
-                             text-muted-foreground
-                             shadow-sm backdrop-blur-xl
-                             transition-all duration-200
-                             hover:border-primary/25 hover:text-primary hover:shadow-md
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-                >
-                  {detailView ? (
-                    <LayoutList className="h-4 w-4" />
-                  ) : (
-                    <Grid2x2 className="h-4 w-4" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Ansicht wechseln</TooltipContent>
-            </Tooltip>
+            {/* View toggle — hidden on public catalog (card-only view) */}
+            {showViewToggle && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleView}
+                    aria-label="Ansicht wechseln"
+                    className="flex items-center justify-center
+                               h-10 w-10 rounded-lg border border-border bg-card/90
+                               text-muted-foreground
+                               shadow-sm backdrop-blur-xl
+                               transition-all duration-200
+                               hover:border-primary/25 hover:text-primary hover:shadow-md
+                               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                  >
+                    {detailView ? (
+                      <LayoutList className="h-4 w-4" />
+                    ) : (
+                      <Grid2x2 className="h-4 w-4" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Ansicht wechseln</TooltipContent>
+              </Tooltip>
+            )}
 
             {showNewBookControl && (
               <>

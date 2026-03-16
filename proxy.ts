@@ -3,10 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export default withAuth(
   function proxy(req: NextRequest) {
-    //console.log("Middleware triggered with ", req);
-    //set CSP headers
     const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-    //console.log("Nonce", nonce);
     const cspHeader = `
     default-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'unsafe-inline';
     script-src 'self'  'unsafe-eval' 'unsafe-inline';
@@ -26,7 +23,6 @@ export default withAuth(
       requestHeaders.set("x-nonce", nonce);
       requestHeaders.set(
         "Content-Security-Policy",
-        // Replace newline characters and spaces
         cspHeader.replace(/\s{2,}/g, " ").trim(),
       );
     }
@@ -41,34 +37,27 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ req, token }) => {
-        //console.log("Middleware request:", req);
-        //console.log("Middleware received the token:", token);
-        //console.log("Middleware caught path:", req.nextUrl.pathname);
-        //console.log("Middleware role:", req.headers);
-        //we need the auth endpoint do be without authorization available
+        const { pathname } = req.nextUrl;
 
-        /*console.log(
-          "Do we have authorization enabled?",
-          process.env.AUTH_ENABLED
-        );*/
-        //I think we don't need the endpoint since everything is handled in the ..nextAuth.ts
-        //exclude the public page and the images API from authentication
-        if (
-          req.nextUrl.pathname == "/publicbookview" ||
-          req.nextUrl.pathname.includes("/api/images")
-        )
-          return true;
+        // Routes explicitly excluded from authentication.
+        // Keep this list narrow — every entry here is a public attack surface.
+        const isPublicRoute =
+          pathname === "/publicbookview" ||
+          pathname === "/catalog" ||
+          pathname.startsWith("/api/images") ||
+          pathname.startsWith("/api/public/");
+
+        if (isPublicRoute) return true;
+
         if (
           token === null &&
-          req.nextUrl.pathname != "/auth/login" &&
-          req.nextUrl.pathname != "/auth/error" &&
+          pathname !== "/auth/login" &&
+          pathname !== "/auth/error" &&
           process.env.AUTH_ENABLED == "true"
         ) {
-          //console.log("Middleware: not authorized");
-          //if (token === null) {
           return false;
         }
-        //console.log("Middleware:  authorized");
+
         return true;
       },
     },
