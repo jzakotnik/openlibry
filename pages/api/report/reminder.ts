@@ -10,6 +10,8 @@ import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger } from "@/lib/logger";
 
 // =============================================================================
 // Default configuration values
@@ -35,19 +37,57 @@ const REMINDER_TEMPLATE_DOC =
   process.env.REMINDER_TEMPLATE_DOC || DEFAULT_REMINDER_TEMPLATE_DOC;
 
 // Load template with error handling
+// Resolution order:
+//   1. Absolute path as-is (e.g. /database/custom/mahnung-template.docx for Docker volumes)
+//   2. Relative to cwd/public/ (bare-metal fallback)
 let template: Buffer | null = null;
-try {
-  template = fs.readFileSync(
-    join(process.cwd(), "/public/" + REMINDER_TEMPLATE_DOC),
-  );
-  console.log(`Reminder template loaded: /public/${REMINDER_TEMPLATE_DOC}`);
-} catch (error) {
-  console.warn(
-    `Warning: Could not load reminder template at /public/${REMINDER_TEMPLATE_DOC}. ` +
-      `Reminder generation will not work until template is provided.`,
-  );
+let loadedTemplatePath: string | null = null;
+
+const templateCandidates = [
+  REMINDER_TEMPLATE_DOC,
+  join(process.cwd(), "/public/", REMINDER_TEMPLATE_DOC),
+];
+
+for (const candidatePath of templateCandidates) {
+  try {
+    template = fs.readFileSync(candidatePath);
+    loadedTemplatePath = candidatePath;
+    const isFallback = candidatePath !== templateCandidates[0];
+    if (isFallback) {
+      businessLogger.warn(
+        {
+          event: LogEvents.REMINDER_TEMPLATE_LOADED,
+          path: candidatePath,
+          fallback: true,
+          primaryPath: templateCandidates[0],
+        },
+        "Reminder template loaded from fallback path (primary path not found)",
+      );
+    } else {
+      businessLogger.info(
+        {
+          event: LogEvents.REMINDER_TEMPLATE_LOADED,
+          path: candidatePath,
+          fallback: false,
+        },
+        "Reminder template loaded",
+      );
+    }
+    break;
+  } catch {
+    // Try next candidate
+  }
 }
 
+if (!template) {
+  businessLogger.error(
+    {
+      event: LogEvents.REMINDER_TEMPLATE_NOT_FOUND,
+      triedPaths: templateCandidates,
+    },
+    "Reminder template not found at any candidate path",
+  );
+}
 // =============================================================================
 // Type definitions
 // =============================================================================
@@ -88,8 +128,9 @@ export default async function handle(
       if (!template) {
         return res.status(500).json({
           data:
-            `ERROR: Reminder template not found at /public/${REMINDER_TEMPLATE_DOC}. ` +
-            `Please create the template file or set REMINDER_TEMPLATE_DOC in your .env file.`,
+            `ERROR: Reminder template not found. Tried:\n` +
+            templateCandidates.map((p) => `  - ${p}`).join("\n") +
+            `\nPlease place the template at one of these paths or set REMINDER_TEMPLATE_DOC in your .env file.`,
         });
       }
 
