@@ -3,6 +3,7 @@ export const LogEvents = {
   BOOK_CREATED: "book.created",
   BOOK_UPDATED: "book.updated",
   BOOK_DELETED: "book.deleted",
+  BOOK_LIST_FETCHED: "book.list.fetched",
 
   // Rental operations
   BOOK_RENTED: "book.rented",

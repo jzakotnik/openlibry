@@ -88,6 +88,17 @@ docker run --rm --network host jzakotnik/openlibry-demoseeder:release
 
 **Das war's!** Das Buch ist jetzt an Max Mustermann ausgeliehen.
 
+### 4. Öffentlichen Katalog ansehen
+
+OpenLibry hat eine öffentliche Katalogseite, die **ohne Login** erreichbar ist:
+
+**[http://localhost:3000/catalog](http://localhost:3000/catalog)**
+
+Dort können Schülerinnen und Schüler den Buchbestand durchsuchen und sehen, ob ein Buch gerade verfügbar oder ausgeliehen ist — ohne Zugang zum Verwaltungsbereich zu brauchen. Du kannst den Link z.B. auf der Schulwebseite oder im Klassenzimmer aushängen.
+
+!!! tip "Katalog teilen"
+    Der Katalog zeigt nur Buchtitel, Autor, Themen und den Verfügbarkeitsstatus. Keine Nutzerdaten, keine Ausleihhistorie.
+
 ## Beenden und aufräumen
 
 ### OpenLibry stoppen
@@ -119,4 +130,3 @@ Du hast OpenLibry ausprobiert und bist überzeugt? Super!
 - [Docker-Installation](../installation/container.md) – Produktive Docker-Installation
 - [Bare Metal](../installation/ohne-container.md) – Installation ohne Docker (z.B. Raspberry Pi)
 - [Erste Einrichtung](first-steps.md) – Deine Bibliothek einrichten
-

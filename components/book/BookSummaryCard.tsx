@@ -178,21 +178,31 @@ function BookSummaryCard({
 
         {/* Content Area */}
         <div className="absolute bottom-0 left-0 right-0 p-3 z-[3] flex flex-col gap-1">
-          {/* Title */}
-          <Link
-            href={`/book/${book.id}`}
-            aria-label={`Details zu ${book.title}`}
-            className="no-underline"
-          >
+          {/* Title — linked to detail page only when controls are enabled */}
+          {showDetailsControl ? (
+            <Link
+              href={`/book/${book.id}`}
+              aria-label={`Details zu ${book.title}`}
+              className="no-underline"
+            >
+              <h3
+                data-cy="book_title"
+                className="text-[0.85rem] font-semibold text-white leading-tight
+                           line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]
+                           transition-colors duration-200 hover:text-primary-light"
+              >
+                {book.title}
+              </h3>
+            </Link>
+          ) : (
             <h3
               data-cy="book_title"
               className="text-[0.85rem] font-semibold text-white leading-tight
-                         line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]
-                         transition-colors duration-200 hover:text-primary-light"
+                         line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
             >
               {book.title}
             </h3>
-          </Link>
+          )}
 
           {/* Subtitle (Untertitel) */}
           {book.subtitle && (
