@@ -215,12 +215,13 @@ function getFieldText(content: LabelFieldContent, book: BookLabelData): string {
       return process.env.SCHOOL_NAME || "";
     case "topics": {
       if (!book.topics) return "";
-      const topicList = book.topics
+      const topicStr = book.topics
         .split(";")
         .map((t) => t.trim())
         .filter(Boolean)
-        .slice(0, 3);
-      return topicList.join(", ");
+        .slice(0, 3)
+        .join(", ");
+      return topicStr.length > 17 ? topicStr.substring(0, 17) + ".." : topicStr; //if too long, add some dots
     }
     case "barcode":
       return ""; // Barcodes are rendered as images, not text
