@@ -1,0 +1,13 @@
+{
+  "id": "default",
+  "name": "Standard Buchetikett",
+  "sheetConfigId": "zweckform-3474",
+  "spineWidthPercent": 25,
+  "padding": 2,
+  "fields": {
+    "spine":       { "content": "id",      "fontSizeMax": 14, "align": "center" },
+    "horizontal1": { "content": "title",   "fontSizeMax": 11, "align": "left" },
+    "horizontal2": { "content": "author",  "fontSizeMax": 9,  "align": "left" },
+    "horizontal3": { "content": "barcode", "fontSizeMax": 0,  "align": "center" }
+  }
+}

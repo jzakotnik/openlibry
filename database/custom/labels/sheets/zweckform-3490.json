@@ -1,0 +1,12 @@
+{
+  "id": "zweckform-3490",
+  "name": "Avery Zweckform 3490",
+  "description": "Universal-Etiketten 70 × 36 mm, 24 Stück/Blatt (3 Spalten × 8 Reihen). Gleiches Layout wie 3475.",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 70, "height": 36 },
+  "grid": { "columns": 3, "rows": 8 },
+  "margins": { "top": 4.5, "left": 0, "right": 0, "bottom": 4.5 },
+  "gap": { "horizontal": 0, "vertical": 0 },
+  "labelsPerSheet": 24
+}

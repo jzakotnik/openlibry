@@ -1,0 +1,29 @@
+{
+  "id": "jure",
+  "name": "Jure",
+  "sheetConfigId": "zweckform-3475",
+  "spineWidthPercent": 19,
+  "padding": 2,
+  "fields": {
+    "spine": {
+      "content": "author",
+      "fontSizeMax": 14,
+      "align": "center"
+    },
+    "horizontal1": {
+      "content": "title",
+      "fontSizeMax": 10,
+      "align": "center"
+    },
+    "horizontal2": {
+      "content": "barcode",
+      "fontSizeMax": 0,
+      "align": "center"
+    },
+    "horizontal3": {
+      "content": "topics",
+      "fontSizeMax": 10,
+      "align": "center"
+    }
+  }
+}

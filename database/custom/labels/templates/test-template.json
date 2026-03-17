@@ -1,0 +1,29 @@
+{
+  "id": "test-template",
+  "name": "Test Vorlage",
+  "sheetConfigId": "zweckform-3474",
+  "spineWidthPercent": 30,
+  "padding": 1.5,
+  "fields": {
+    "spine": {
+      "content": "author",
+      "fontSizeMax": 10,
+      "align": "center"
+    },
+    "horizontal1": {
+      "content": "title",
+      "fontSizeMax": 12,
+      "align": "left"
+    },
+    "horizontal2": {
+      "content": "id",
+      "fontSizeMax": 10,
+      "align": "left"
+    },
+    "horizontal3": {
+      "content": "subtitle",
+      "fontSizeMax": 8,
+      "align": "left"
+    }
+  }
+}
