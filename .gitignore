@@ -102,3 +102,22 @@ public/~$hnung-template.docx
 
 # ─── MkDocs build output ───────────────────────────────────────────
 doc/mkdocs/site/
+
+# ─── Label system configs (database/custom/labels/) ────────────────
+# Ship default configs, ignore user-created ones in the same folders
+
+database/custom/labels/sheets/*
+!database/custom/labels/sheets/avery-l7160.json
+!database/custom/labels/sheets/avery-l7163.json
+!database/custom/labels/sheets/herma-4360.json
+!database/custom/labels/sheets/text-only.json
+!database/custom/labels/sheets/zweckform-3420.json
+!database/custom/labels/sheets/zweckform-3422.json
+!database/custom/labels/sheets/zweckform-3474.json
+!database/custom/labels/sheets/zweckform-3475.json
+!database/custom/labels/sheets/zweckform-3490.json
+!database/custom/labels/sheets/zweckform-3659.json
+
+database/custom/labels/templates/*
+!database/custom/labels/templates/default.json
+!database/custom/labels/templates/test-template.json
