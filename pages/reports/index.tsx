@@ -94,8 +94,11 @@ export default function Reports({
           totalNumber={auditCount}
           link="reports/audit"
         />
-        <BookLabelPrintCard />
-        <BookLabelEditorCard />
+        {/* Etiketten cards stacked in one column */}
+        <div className="flex flex-col gap-3">
+          <BookLabelPrintCard />
+          <BookLabelEditorCard />
+        </div>
         <UserLabelsCard
           title="Ausweise"
           subtitle="Liste aller Ausweise"
