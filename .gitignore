@@ -42,12 +42,13 @@ yarn-error.log*
 next-env.d.ts
 
 # ─── Database ───────────────────────────────────────────────────────
-# SQLite dev/test databases (production DB lives in prisma/database/)
+# SQLite dev/test databases (production DB lives in database/)
 prisma/dev.db
 prisma/dev.db-journal
 prisma/dev_clean.db
 prisma/dev_original.db
 prisma/dev_anonymised.db
+database/dev.db
 
 # Production database directory (volume-mounted in Docker)
 prisma/database/*
@@ -63,10 +64,21 @@ public/coverimages/*
 public/labels/
 
 # ─── Label system configs (database/custom/labels/) ────────────────
-# Sheet configs: shipped with the project, always tracked
-# (no ignore rule needed — they're committed)
+# Ship default configs only; user-created files are ignored.
+# Must stay in sync with .dockerignore so the builder stage is clean.
 
-# Templates: only ship defaults, ignore user-created ones
+database/custom/labels/sheets/*
+!database/custom/labels/sheets/avery-l7160.json
+!database/custom/labels/sheets/avery-l7163.json
+!database/custom/labels/sheets/herma-4360.json
+!database/custom/labels/sheets/text-only.json
+!database/custom/labels/sheets/zweckform-3420.json
+!database/custom/labels/sheets/zweckform-3422.json
+!database/custom/labels/sheets/zweckform-3474.json
+!database/custom/labels/sheets/zweckform-3475.json
+!database/custom/labels/sheets/zweckform-3490.json
+!database/custom/labels/sheets/zweckform-3659.json
+
 database/custom/labels/templates/*
 !database/custom/labels/templates/default.json
 !database/custom/labels/templates/text-only.json
@@ -76,7 +88,6 @@ public/antolin/antolingesamt.csv
 
 # ─── Backups ────────────────────────────────────────────────────────
 /backups
-database/dev.db
 
 # ─── OpenBiblio migration (legacy import tooling) ──────────────────
 openbiblio_migration/*
@@ -102,22 +113,3 @@ public/~$hnung-template.docx
 
 # ─── MkDocs build output ───────────────────────────────────────────
 doc/mkdocs/site/
-
-# ─── Label system configs (database/custom/labels/) ────────────────
-# Ship default configs, ignore user-created ones in the same folders
-
-database/custom/labels/sheets/*
-!database/custom/labels/sheets/avery-l7160.json
-!database/custom/labels/sheets/avery-l7163.json
-!database/custom/labels/sheets/herma-4360.json
-!database/custom/labels/sheets/text-only.json
-!database/custom/labels/sheets/zweckform-3420.json
-!database/custom/labels/sheets/zweckform-3422.json
-!database/custom/labels/sheets/zweckform-3474.json
-!database/custom/labels/sheets/zweckform-3475.json
-!database/custom/labels/sheets/zweckform-3490.json
-!database/custom/labels/sheets/zweckform-3659.json
-
-database/custom/labels/templates/*
-!database/custom/labels/templates/default.json
-!database/custom/labels/templates/test-template.json

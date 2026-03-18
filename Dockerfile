@@ -47,6 +47,11 @@ COPY --from=builder /app/prisma ./prisma
 # Prisma 7 config file for CLI commands (migrate deploy, db push)
 COPY --from=builder /app/prisma.config.mjs ./
 
+# Default label sheet/template definitions shipped with the image.
+# The entrypoint seeds these into database/custom/labels/ on first run
+# (existing files are never overwritten, so school customisations survive).
+COPY --from=builder /app/database/custom/labels /app/defaults/labels
+
 # Ensure DB directory exists and fix perms
 RUN mkdir -p /app/database && chown -R node:node /app
 
