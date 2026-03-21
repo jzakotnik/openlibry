@@ -184,7 +184,7 @@ async function generateBarcodeDataUri(text: string): Promise<string | null> {
       bcid: "code128",
       text: padded,
       scale: 3,
-      height: 10,
+      height: 15,
       includetext: true,
       textxalign: "center",
     });
@@ -386,8 +386,8 @@ function HorizontalField({
         <PdfImage
           src={barcodeUri}
           style={{
-            maxWidth: mm(widthMm),
-            maxHeight: mm(heightMm * 0.9),
+            width: mm(widthMm),
+            height: mm(heightMm),
             objectFit: "contain",
           }}
         />
