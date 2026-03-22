@@ -81,6 +81,8 @@ export interface LabelFieldConfig {
   fontSizeMax: number;
   /** Text alignment within the field */
   align: TextAlign;
+  //sometimes titles are too long
+  maxLength?: number;
 }
 
 export interface LabelTemplate {

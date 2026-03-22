@@ -133,6 +133,11 @@ function labelOrigin(
   };
 }
 
+function truncate(text: string, maxLength?: number): string {
+  if (!maxLength || text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 1) + "…";
+}
+
 // ─── Text Auto-Sizing ──────────────────────────────────────────────
 
 /**
@@ -201,37 +206,50 @@ async function generateBarcodeDataUri(text: string): Promise<string | null> {
 /**
  * Get the text value for a field content type from a book.
  */
-function getFieldText(content: LabelFieldContent, book: BookLabelData): string {
+function getFieldText(
+  content: LabelFieldContent,
+  book: BookLabelData,
+  maxLength?: number, // ← new
+): string {
+  let text: string;
   switch (content) {
     case "title":
-      return book.title || "";
+      text = book.title || "";
+      break;
     case "subtitle":
-      return book.subtitle || "";
+      text = book.subtitle || "";
+      break;
     case "author":
-      return book.author || "";
+      text = book.author || "";
+      break;
     case "id":
-      return book.id || "";
+      text = book.id || "";
+      break;
     case "school":
-      return process.env.SCHOOL_NAME || "";
+      text = process.env.SCHOOL_NAME || "";
+      break;
     case "topics": {
-      if (!book.topics) return "";
-      const topicStr = book.topics
+      if (!book.topics) {
+        text = "";
+        break;
+      }
+      text = book.topics
         .split(";")
         .map((t) => t.trim())
         .filter(Boolean)
         .slice(0, 3)
         .join(", ");
-      return topicStr.length > 17 ? topicStr.substring(0, 17) + ".." : topicStr; //if too long, add some dots
+      break;
+      // Note: the old hardcoded 17-char cap is now removed —
+      // use maxLength in the config instead
     }
     case "barcode":
-      return ""; // Barcodes are rendered as images, not text
     case "none":
-      return "";
     default:
-      return "";
+      text = "";
   }
+  return truncate(text, maxLength);
 }
-
 // ─── Single Label Component ────────────────────────────────────────
 
 interface LabelProps {
@@ -267,7 +285,11 @@ function LabelContent({
   const contentWidth = labelWidth - spineWidth;
   const rowHeight = (labelHeight - 2 * padding) / 3;
 
-  const spineText = getFieldText(template.fields.spine.content, book);
+  const spineText = getFieldText(
+    template.fields.spine.content,
+    book,
+    template.fields.spine.maxLength,
+  );
   const spineFontSize = autoFontSize(
     spineText,
     labelHeight - 2 * padding, // rotated: "width" is the label height
@@ -401,7 +423,7 @@ function HorizontalField({
   }
 
   // Text field
-  const text = getFieldText(fieldConfig.content, book);
+  const text = getFieldText(fieldConfig.content, book, fieldConfig.maxLength);
   const fontSize = autoFontSize(
     text,
     widthMm,
