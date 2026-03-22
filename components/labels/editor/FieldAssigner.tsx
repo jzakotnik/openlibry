@@ -2,7 +2,8 @@
  * Field assignment controls for the template editor.
  *
  * Four rows — one per field zone (spine, horizontal1–3).
- * Each row has a content dropdown, font size input, and alignment toggle.
+ * Each row has a content dropdown, font size input, max length input,
+ * and alignment toggle.
  */
 
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ const CONTENT_OPTIONS: { value: LabelFieldContent; label: string }[] = [
 
 /** Human-readable labels for the 4 field zones */
 const FIELD_LABELS: Record<string, string> = {
-  spine: "Buchrücken",
+  spine: "Rücken",
   horizontal1: "Zeile 1",
   horizontal2: "Zeile 2",
   horizontal3: "Zeile 3",
@@ -61,19 +62,24 @@ export default function FieldAssigner({
   ];
 
   return (
-    <div className="space-y-4">
-      <Label>Feldzuordnung</Label>
+    <div className="space-y-3">
+      <Label>Feldzuordnung (Label, Größe, max Zeichen, Orientierung)</Label>
+
       {fieldKeys.map((key) => {
         const field = fields[key];
         const isBarcode = field.content === "barcode";
+        const isNone = field.content === "none";
+        const disableTextControls = isBarcode || isNone;
 
         return (
           <div
             key={key}
-            className="grid grid-cols-[120px_1fr_70px_auto] items-center gap-2"
+            // 70px zone label | 1fr select | 44px pt | 44px chars | auto toggles
+            // At 374px card inner width: 70+44+44+~88+32gaps = 278px fixed → ~96px for 1fr
+            className="grid grid-cols-[70px_1fr_44px_44px_auto] items-center gap-2"
           >
             {/* Zone label */}
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground truncate">
               {FIELD_LABELS[key]}
             </span>
 
@@ -84,13 +90,19 @@ export default function FieldAssigner({
                 onChange(key, {
                   ...field,
                   content: value as LabelFieldContent,
-                  // Auto-set font size to 0 for barcode
                   fontSizeMax:
                     value === "barcode" ? 0 : field.fontSizeMax || 10,
+                  maxLength:
+                    value === "barcode" || value === "none"
+                      ? undefined
+                      : field.maxLength,
                 })
               }
             >
-              <SelectTrigger className="h-8" data-cy={`field-content-${key}`}>
+              <SelectTrigger
+                className="h-7 text-xs min-w-0"
+                data-cy={`field-content-${key}`}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -102,23 +114,48 @@ export default function FieldAssigner({
               </SelectContent>
             </Select>
 
-            {/* Font size */}
+            {/* Font size — placeholder doubles as column header */}
             <Input
               type="number"
               min={4}
               max={28}
-              className="h-8 text-center"
-              value={isBarcode ? "" : field.fontSizeMax}
+              className="h-7 text-center text-xs px-1"
+              value={disableTextControls ? "" : field.fontSizeMax}
               onChange={(e) =>
                 onChange(key, {
                   ...field,
                   fontSizeMax: parseInt(e.target.value) || 10,
                 })
               }
-              disabled={isBarcode}
-              placeholder={isBarcode ? "–" : "pt"}
+              disabled={disableTextControls}
+              placeholder={disableTextControls ? "–" : "pt"}
               title="Maximale Schriftgröße (pt)"
               data-cy={`field-fontsize-${key}`}
+            />
+
+            {/* Max length — ∞ signals "no limit" without extra chrome */}
+            <Input
+              type="number"
+              min={1}
+              max={999}
+              className="h-7 text-center text-xs px-1"
+              value={
+                disableTextControls || field.maxLength == null
+                  ? ""
+                  : field.maxLength
+              }
+              onChange={(e) => {
+                const raw = e.target.value;
+                onChange(key, {
+                  ...field,
+                  maxLength:
+                    raw === "" ? undefined : parseInt(raw) || undefined,
+                });
+              }}
+              disabled={disableTextControls}
+              placeholder={disableTextControls ? "–" : "∞"}
+              title="Maximale Zeichenanzahl (leer = unbegrenzt)"
+              data-cy={`field-maxlength-${key}`}
             />
 
             {/* Alignment toggle */}
@@ -132,14 +169,14 @@ export default function FieldAssigner({
               }}
               data-cy={`field-align-${key}`}
             >
-              <ToggleGroupItem value="left" className="h-8 w-8 p-0">
-                <AlignLeft className="h-3.5 w-3.5" />
+              <ToggleGroupItem value="left" className="h-7 w-7 p-0">
+                <AlignLeft className="h-3 w-3" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="center" className="h-8 w-8 p-0">
-                <AlignCenter className="h-3.5 w-3.5" />
+              <ToggleGroupItem value="center" className="h-7 w-7 p-0">
+                <AlignCenter className="h-3 w-3" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="right" className="h-8 w-8 p-0">
-                <AlignRight className="h-3.5 w-3.5" />
+              <ToggleGroupItem value="right" className="h-7 w-7 p-0">
+                <AlignRight className="h-3 w-3" />
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
