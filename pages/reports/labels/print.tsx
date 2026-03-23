@@ -6,17 +6,12 @@
  * start position on the sheet, and download the PDF.
  */
 
-import { useRouter } from "next/router";
 import { ArrowLeft, Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/router";
 
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 import SheetSelector from "@/components/labels/SheetSelector";
@@ -24,8 +19,15 @@ import TemplateSelector from "@/components/labels/TemplateSelector";
 import BookFilterForm from "@/components/labels/print/BookFilterForm";
 import PositionPicker from "@/components/labels/print/PositionPicker";
 import { useLabelPrint } from "@/components/labels/print/useLabelPrint";
+import { prisma } from "@/entities/db";
+import { getUniqueTopics } from "@/lib/utils/getUniqueTopics";
+import type { GetServerSideProps } from "next";
 
-export default function LabelPrintPage() {
+interface LabelPrintPageProps {
+  topics: string[];
+}
+
+export default function LabelPrintPage({ topics }: LabelPrintPageProps) {
   const router = useRouter();
   const {
     sheets,
@@ -89,7 +91,11 @@ export default function LabelPrintPage() {
                   loading={loading}
                 />
                 <Separator />
-                <BookFilterForm filter={filter} onChange={setFilter} />
+                <BookFilterForm
+                  filter={filter}
+                  onChange={setFilter}
+                  topics={topics}
+                />
               </CardContent>
             </Card>
           </div>
@@ -98,7 +104,9 @@ export default function LabelPrintPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Position auf dem Bogen</CardTitle>
+                <CardTitle className="text-base">
+                  Position auf dem Bogen
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {selectedSheet ? (
@@ -152,3 +160,10 @@ export default function LabelPrintPage() {
     </Layout>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<
+  LabelPrintPageProps
+> = async () => {
+  const topics = await getUniqueTopics(prisma);
+  return { props: { topics } };
+};
