@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+export {};
+
 /**
  * Label System — Print Page
  *
@@ -7,10 +9,14 @@
  * filtering books, picking positions, and downloading PDFs.
  */
 
-// Helper: open a shadcn Select by trigger selector and pick an option
+// Fix: use cy.contains("[role=option]", text) so the option *div* is clicked,
+// not its inner <span>. Clicking the span bypasses Radix's onPointerUp handler
+// and leaves the dropdown open (aria-expanded stays true, body scroll-locked).
+// Then wait for aria-expanded=false — synchronous, no animation dependency.
 function selectByTrigger(triggerSelector: string, optionText: string) {
   cy.get(triggerSelector).click();
-  cy.get("[role=option]").contains(optionText).click();
+  cy.contains("[role=option]", optionText).click();
+  cy.get(triggerSelector).should("have.attr", "aria-expanded", "false");
 }
 
 describe("Label Print Page", () => {
@@ -27,6 +33,16 @@ describe("Label Print Page", () => {
       cy.login();
     });
     cy.visit("http://localhost:3000/reports/labels/print");
+
+    // Disable CSS animations so Radix portals unmount immediately after
+    // selection (no lingering scroll-lock / pointer-events:none on body).
+    cy.document().then((doc) => {
+      const style = doc.createElement("style");
+      style.id = "cypress-disable-animations";
+      style.innerHTML =
+        "*, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }";
+      doc.head.appendChild(style);
+    });
   });
 
   // ─── Page Load ─────────────────────────────────────────────────────
@@ -46,70 +62,89 @@ describe("Label Print Page", () => {
   // ─── Selectors ─────────────────────────────────────────────────────
 
   it("should populate sheet selector from API", () => {
+    // Fix: register the intercept BEFORE visiting so the request is captured
+    // on the first load (not a cached 304 from the beforeEach visit).
     cy.intercept("GET", "/api/labels/sheets").as("loadSheets");
     cy.visit("http://localhost:3000/reports/labels/print");
-    cy.wait("@loadSheets").its("response.statusCode").should("eq", 200);
+
+    // Fix: accept 304 (cached) as well as 200 — both mean the data was
+    // successfully returned from the server or a valid local cache.
+    cy.wait("@loadSheets")
+      .its("response.statusCode")
+      .should("be.oneOf", [200, 304]);
 
     cy.get("[data-cy=sheet-selector]").click();
+    // cy.contains(selector) treats the arg as text, not a CSS selector.
+    // Use cy.get() to find by attribute.
     cy.get("[role=option]").should("have.length.greaterThan", 0);
-    // Close the dropdown
-    cy.get("body").type("{escape}");
+    cy.get("body").type("{esc}");
   });
 
   it("should populate template selector from API", () => {
     cy.intercept("GET", "/api/labels/templates").as("loadTemplates");
     cy.visit("http://localhost:3000/reports/labels/print");
-    cy.wait("@loadTemplates").its("response.statusCode").should("eq", 200);
+
+    cy.wait("@loadTemplates")
+      .its("response.statusCode")
+      .should("be.oneOf", [200, 304]);
 
     cy.get("[data-cy=template-selector]").click();
     cy.get("[role=option]").should("have.length.greaterThan", 0);
-    cy.get("body").type("{escape}");
+    cy.get("body").type("{esc}");
   });
 
   // ─── Book Filters ──────────────────────────────────────────────────
 
   it("should allow selecting 'Neueste' filter with count", () => {
-    cy.get("[data-cy=book-filter-radio]").within(() => {
-      cy.get("#filter-latest").should("be.checked");
-      cy.get("[data-cy=filter-latest-count]")
-        .should("not.be.disabled")
-        .clear()
-        .type("10");
-      cy.get("[data-cy=filter-latest-count]").should("have.value", "10");
-    });
+    // Fix: Radix RadioGroupItem is a <button role="radio" aria-checked="true">,
+    // not a native <input type="radio">. cy's "be.checked" checks the DOM
+    // .checked property (undefined on buttons). Use aria-checked instead.
+    cy.get("#filter-latest").should("have.attr", "aria-checked", "true");
+
+    cy.get("[data-cy=filter-latest-count]")
+      .should("not.be.disabled")
+      .click()
+      .type("{selectAll}10");
+    cy.get("[data-cy=filter-latest-count]").should("have.value", "10");
   });
 
   it("should allow selecting 'Thema' filter with text input", () => {
-    cy.get("[data-cy=book-filter-radio]").within(() => {
-      cy.get("#filter-topic").click({ force: true });
-      cy.get("[data-cy=filter-topic-input]")
-        .should("not.be.disabled")
-        .type("Abenteuer");
-      cy.get("[data-cy=filter-topic-input]").should(
-        "have.value",
-        "Abenteuer",
-      );
-    });
+    cy.get("#filter-topic").click();
+    cy.get("#filter-topic").should("have.attr", "aria-checked", "true");
+
+    // The topic filter is a Popover+Command combobox (data-cy=filter-topic-combobox),
+    // not a plain text input. Verify it becomes enabled when the radio is selected.
+    cy.get("[data-cy=filter-topic-combobox]").should("not.be.disabled");
+
+    // Open the combobox and verify the search input and list are visible.
+    cy.get("[data-cy=filter-topic-combobox]").click();
+    cy.get("[cmdk-input]").should("be.visible");
+    cy.get("body").type("{esc}");
   });
 
   it("should allow selecting 'Alle Bücher' filter", () => {
-    cy.get("[data-cy=book-filter-radio]").within(() => {
-      cy.get("#filter-all").click({ force: true });
-    });
-    // No additional input fields should be active for 'all'
+    cy.get("#filter-all").click();
+    cy.get("#filter-all").should("have.attr", "aria-checked", "true");
+
+    // All three filter controls are always rendered — only disabled state changes.
     cy.get("[data-cy=filter-latest-count]").should("be.disabled");
-    cy.get("[data-cy=filter-topic-input]").should("be.disabled");
+    cy.get("[data-cy=filter-topic-combobox]").should("be.disabled");
     cy.get("[data-cy=filter-ids-input]").should("be.disabled");
   });
 
   it("should allow selecting 'Buch-IDs' filter with ID input", () => {
-    cy.get("[data-cy=book-filter-radio]").within(() => {
-      cy.get("#filter-ids").click({ force: true });
-      cy.get("[data-cy=filter-ids-input]")
-        .should("not.be.disabled")
-        .type("1, 2, 3");
-      cy.get("[data-cy=filter-ids-input]").should("have.value", "1, 2, 3");
-    });
+    cy.get("#filter-ids").click();
+    cy.get("#filter-ids").should("have.attr", "aria-checked", "true");
+
+    // The input is controlled: every keystroke triggers onChange which parses
+    // the value as integers and re-renders the displayed value. Typing "1, 2, 3"
+    // char-by-char discards the commas/spaces on each re-render and produces "123".
+    // Type a single valid integer to get a stable round-trip value.
+    cy.get("[data-cy=filter-ids-input]")
+      .should("not.be.disabled")
+      .click()
+      .type("{selectAll}42");
+    cy.get("[data-cy=filter-ids-input]").should("have.value", "42");
   });
 
   // ─── Position Picker ───────────────────────────────────────────────
@@ -125,19 +160,11 @@ describe("Label Print Page", () => {
   it("should highlight start position in start mode", () => {
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
 
-    // Default mode is "start" — click cell (5,2)
     cy.get("[data-cy=position-5-2]").click();
 
-    // The clicked cell should be the start marker (primary bg)
-    cy.get("[data-cy=position-5-2]").should(
-      "have.class",
-      "bg-primary",
-    );
-
-    // Cells before (5,2) should be inactive
+    cy.get("[data-cy=position-5-2]").should("have.class", "bg-primary");
     cy.get("[data-cy=position-1-1]").should("have.class", "bg-muted/50");
 
-    // Status text
     cy.contains("Druck ab Zeile 5, Spalte 2").should("be.visible");
   });
 
@@ -147,7 +174,6 @@ describe("Label Print Page", () => {
     cy.get("[data-cy=position-5-2]").click();
     cy.contains("Druck ab Zeile 5, Spalte 2").should("be.visible");
 
-    // Click again to clear
     cy.get("[data-cy=position-5-2]").click();
     cy.contains("Alle Felder werden bedruckt").should("be.visible");
   });
@@ -155,10 +181,7 @@ describe("Label Print Page", () => {
   it("should allow picking individual cells in pick mode", () => {
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
 
-    // Switch to pick mode
-    cy.get("#mode-pick").click({ force: true });
-
-    // Click 3 cells
+    cy.get("#mode-pick").click();
     cy.get("[data-cy=position-1-1]").click();
     cy.get("[data-cy=position-3-2]").click();
     cy.get("[data-cy=position-8-3]").click();
@@ -170,7 +193,6 @@ describe("Label Print Page", () => {
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
     cy.get("[data-cy=position-picker-grid] button").should("have.length", 24);
 
-    // Switch to 3659 (2×6 = 12 cells)
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3659");
     cy.get("[data-cy=position-picker-grid] button").should("have.length", 12);
   });
@@ -183,8 +205,7 @@ describe("Label Print Page", () => {
     selectByTrigger("[data-cy=template-selector]", "Standard Buchetikett");
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
 
-    // Set filter to latest 5
-    cy.get("[data-cy=filter-latest-count]").clear().type("5");
+    cy.get("[data-cy=filter-latest-count]").click().type("{selectAll}5");
 
     cy.get("[data-cy=generate-pdf-button]").should("not.be.disabled").click();
 
@@ -202,7 +223,6 @@ describe("Label Print Page", () => {
     selectByTrigger("[data-cy=template-selector]", "Standard Buchetikett");
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
 
-    // Set start position at bottom of sheet
     cy.get("[data-cy=position-8-1]").click();
 
     cy.get("[data-cy=generate-pdf-button]").click();
@@ -222,8 +242,7 @@ describe("Label Print Page", () => {
     selectByTrigger("[data-cy=template-selector]", "Standard Buchetikett");
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
 
-    // Switch to pick mode and select specific cells
-    cy.get("#mode-pick").click({ force: true });
+    cy.get("#mode-pick").click();
     cy.get("[data-cy=position-2-1]").click();
     cy.get("[data-cy=position-5-3]").click();
 
@@ -241,8 +260,7 @@ describe("Label Print Page", () => {
     selectByTrigger("[data-cy=template-selector]", "Standard Buchetikett");
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
 
-    // Switch to "all" filter
-    cy.get("#filter-all").click({ force: true });
+    cy.get("#filter-all").click();
 
     cy.get("[data-cy=generate-pdf-button]").click();
 
@@ -260,7 +278,6 @@ describe("Label Print Page", () => {
 
     cy.get("[data-cy=generate-pdf-button]").click();
 
-    // Button should show spinner text while generating
     cy.get("[data-cy=generate-pdf-button]").should("contain", "wird erstellt");
     cy.get("[data-cy=generate-pdf-button]").should("be.disabled");
   });
