@@ -12,6 +12,7 @@ cypress/videos/
 cypress/cypress.env.json
 cypress.env.json
 .env.test
+cypress/downloads/
 
 # ─── Next.js ────────────────────────────────────────────────────────
 /.next/
