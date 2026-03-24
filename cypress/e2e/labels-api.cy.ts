@@ -21,6 +21,11 @@ describe("Label API", () => {
     cy.task("deleteFile", TEMPLATE_FILE);
     cy.cleanupDatabase();
   });
+  beforeEach(() => {
+    cy.session("user-session", () => {
+      cy.login();
+    });
+  });
 
   // ─── Sheet Config Endpoints ────────────────────────────────────────
 
@@ -190,20 +195,27 @@ describe("Label API", () => {
     });
 
     it("should generate a PDF with bookFilter: IDs", () => {
-      // Use IDs that exist in the test database
-      cy.request({
-        method: "POST",
-        url: `${API}/generate`,
-        body: {
-          sheetConfigId: "zweckform-3474",
-          templateId: "default",
-          bookFilter: { type: "ids", ids: [1, 2] },
+      // Dynamisch echte IDs aus der Test-DB holen
+      cy.request("GET", "http://localhost:3000/api/book").then(
+        (booksResponse) => {
+          const ids = booksResponse.body.slice(0, 2).map((b: any) => b.id);
+          expect(ids).to.have.length.greaterThan(0);
+
+          cy.request({
+            method: "POST",
+            url: `${API}/generate`,
+            body: {
+              sheetConfigId: "zweckform-3474",
+              templateId: "default",
+              bookFilter: { type: "ids", ids },
+            },
+            encoding: "binary",
+          }).then((response) => {
+            expect(response.status).to.eq(200);
+            expect(response.body.substring(0, 5)).to.eq("%PDF-");
+          });
         },
-        encoding: "binary",
-      }).then((response) => {
-        expect(response.status).to.eq(200);
-        expect(response.body.substring(0, 5)).to.eq("%PDF-");
-      });
+      );
     });
 
     it("should generate a PDF with startPosition", () => {
