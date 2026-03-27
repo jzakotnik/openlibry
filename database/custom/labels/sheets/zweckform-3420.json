@@ -1,0 +1,12 @@
+{
+  "id": "zweckform-3420",
+  "name": "Avery Zweckform 3420",
+  "description": "Mini-Etiketten 70 × 16.9 mm, 51 Stück/Blatt (3 Spalten × 17 Reihen). Gut geeignet für reine Buchrücken-Etiketten.",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 70, "height": 16.9 },
+  "grid": { "columns": 3, "rows": 17 },
+  "margins": { "top": 4.85, "left": 0, "right": 0, "bottom": 4.85 },
+  "gap": { "horizontal": 0, "vertical": 0 },
+  "labelsPerSheet": 51
+}

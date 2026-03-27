@@ -45,52 +45,6 @@ EXTENSION_DURATION_DAYS=14
 MAX_EXTENSIONS=2
 ```
 
-## Bücherlabels
-
-### Layout
-
-| Variable | Beschreibung | Standard |
-|----------|--------------|----------|
-| `BOOKLABEL_MARGIN_LEFT` | Linker Rand (cm) | `1` |
-| `BOOKLABEL_MARGIN_TOP` | Oberer Rand (cm) | `2` |
-| `BOOKLABEL_LABEL_WIDTH` | Breite eines Labels (cm) | `5.0` |
-| `BOOKLABEL_LABEL_HEIGHT` | Höhe eines Labels (cm) | `3.0` |
-| `BOOKLABEL_ROWSONPAGE` | Zeilen pro Seite | `5` |
-| `BOOKLABEL_COLUMNSONPAGE` | Spalten pro Seite | `2` |
-| `BOOKLABEL_LABEL_SPACING_HORIZONTAL` | Horizontaler Abstand (cm) | `0` |
-| `BOOKLABEL_LABEL_SPACING_VERTICAL` | Vertikaler Abstand (cm) | `0` |
-| `BOOKLABEL_MARGIN_IN_LABEL` | Innenrand im Label (cm) | `0` |
-| `BOOKLABEL_PRINT_LABEL_FRAME` | Rahmen zeichnen? | `false` |
-
-### Barcode
-
-| Variable | Beschreibung | Standard |
-|----------|--------------|----------|
-| `BOOKLABEL_BARCODE_WIDTH` | Breite des Barcodes | `3cm` |
-| `BOOKLABEL_BARCODE_HEIGHT` | Höhe des Barcodes | `1.6cm` |
-| `BOOKLABEL_BARCODE_VERSION` | Barcode-Format | `code128` |
-| `BARCODE_MINCODELENGTH` | Minimale Code-Länge | `4` |
-
-### Inhalt
-
-| Variable | Beschreibung | Format |
-|----------|--------------|--------|
-| `BOOKLABEL_AUTHORLINE` | Seitliche Autorenzeile | `["Book.author",8,"left"]` |
-| `BOOKLABEL_LINE_ABOVE` | Zeile über Barcode | `["Text",10,"center"]` |
-| `BOOKLABEL_LINE_BELOW_1` | 1. Zeile unter Barcode | `["Book.title",10,"left"]` |
-| `BOOKLABEL_LINE_BELOW_2` | 2. Zeile unter Barcode | `["Book.topics",8,"left"]` |
-| `BOOKLABEL_LOGO` | Logo-Datei (im public/) | `schoollogo.png` |
-
-**Format**: `["Inhalt", Schriftgröße, Ausrichtung]`
-
-**Platzhalter**:
-- `Book.title` – Buchtitel
-- `Book.author` – Autor
-- `Book.topics` – Schlagworte
-- `Book.isbn` – ISBN
-- `firstTopic` – Erstes Schlagwort
-
-Mehr Details: [Bücherlabels konfigurieren](book-labels.md)
 
 ## Benutzerausweise
 

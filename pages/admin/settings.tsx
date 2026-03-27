@@ -17,7 +17,6 @@ import {
   RefreshCw,
   Server,
   Settings,
-  Tag,
   User,
 } from "lucide-react";
 import Head from "next/head";
@@ -215,14 +214,14 @@ const CONFIG_SECTIONS: ConfigSection[] = [
   {
     id: "school",
     title: "Schulkonfiguration",
-    description: "Name, Logo und Ausleihfristen",
+    description: "Name, Logo, Ausleihfristen und Etiketten",
     icon: BookOpen,
     fields: [
       {
         key: "SCHOOL_NAME",
         label: "Schulname",
         description:
-          "Vollständiger Name der Schule — wird in der Oberfläche, auf Ausweisen und in Berichten angezeigt.",
+          "Vollständiger Name der Schule — wird in der Oberfläche, auf Ausweisen, Etiketten und in Berichten angezeigt.",
         hint: 'Beispiel: "Grundschule Mammolshain"',
         type: "text",
         default: "Mustermann Schule",
@@ -263,6 +262,16 @@ const CONFIG_SECTIONS: ConfigSection[] = [
         type: "number",
         default: "2",
       },
+      {
+        key: "LABEL_CONFIG_DIR",
+        label: "Etiketten-Konfigurationsverzeichnis",
+        description:
+          "Verzeichnis für Etikettenbögen (sheets/) und Vorlagen (templates/). Etikettenbögen und Vorlagen werden als JSON-Dateien in Unterordnern gespeichert.",
+        hint: "Standard: ./database/custom/labels — in Docker wird database/custom/ als Volume gemountet, sodass eigene Konfigurationen bei Updates erhalten bleiben.",
+        type: "text",
+        default: "./database/custom/labels",
+        advanced: true,
+      },
     ],
   },
   {
@@ -302,185 +311,6 @@ const CONFIG_SECTIONS: ConfigSection[] = [
           "Wie oft eine Mahnung verlängert werden kann, bevor eine Eskalation erfolgt.",
         type: "number",
         default: "5",
-      },
-    ],
-  },
-  {
-    id: "booklabels",
-    title: "Bücherlabels",
-    description: "Layout, Maße und Inhalt der gedruckten Bücherschilder",
-    icon: Tag,
-    advanced: true,
-    fields: [
-      {
-        key: "BOOKLABEL_MARGIN_LEFT",
-        label: "Linker Rand (cm)",
-        description:
-          "Abstand vom linken Blattrand bis zum ersten Label. Abhängig vom verwendeten Etikettenformat.",
-        hint: "Für Avery Zweckform L4732: 0.6",
-        type: "number",
-        default: "3",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_MARGIN_TOP",
-        label: "Oberer Rand (cm)",
-        description: "Abstand vom oberen Blattrand bis zum ersten Label.",
-        hint: "Für Avery Zweckform L4732: 1.3",
-        type: "number",
-        default: "2",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_LABEL_WIDTH",
-        label: "Label-Breite (cm)",
-        description: "Breite eines einzelnen Etiketts.",
-        type: "number",
-        default: "7.0",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_LABEL_HEIGHT",
-        label: "Label-Höhe (cm)",
-        description: "Höhe eines einzelnen Etiketts.",
-        type: "number",
-        default: "3.2",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_ROWSONPAGE",
-        label: "Zeilen pro Seite",
-        description: "Anzahl der Etikettenzeilen pro A4-Seite.",
-        type: "number",
-        default: "5",
-      },
-      {
-        key: "BOOKLABEL_COLUMNSONPAGE",
-        label: "Spalten pro Seite",
-        description: "Anzahl der Etikettenspalten pro A4-Seite.",
-        type: "number",
-        default: "2",
-      },
-      {
-        key: "BOOKLABEL_LABEL_SPACING_HORIZONTAL",
-        label: "Horizontaler Abstand (cm)",
-        description: "Abstand zwischen zwei nebeneinanderliegenden Labels.",
-        type: "number",
-        default: "1.7",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_LABEL_SPACING_VERTICAL",
-        label: "Vertikaler Abstand (cm)",
-        description: "Abstand zwischen zwei übereinanderliegenden Labels.",
-        type: "number",
-        default: "2.2",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_MARGIN_IN_LABEL",
-        label: "Innenrand im Label (cm)",
-        description:
-          "Innerer Rand innerhalb des Labels, um Druckerversatz auszugleichen.",
-        type: "number",
-        default: "0.05",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_PRINT_LABEL_FRAME",
-        label: "Rahmen drucken",
-        description:
-          "Zeichnet einen sichtbaren Rahmen um jedes Etikett. Hilfreich zur Kalibrierung.",
-        type: "boolean",
-        default: "false",
-      },
-      {
-        key: "BOOKLABEL_AUTHORLINE",
-        label: "Autorenzeile",
-        description:
-          'Konfiguration der seitlichen Autorenzeile. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        hint: "Mögliche Inhalte: Book.author, Book.title, Book.topics, Book.isbn, firstTopic",
-        type: "json",
-        default: '["Book.author",9,"center"]',
-      },
-      {
-        key: "BOOKLABEL_AUTHOR_SPACING",
-        label: "Autorenzeilen-Abstand (cm)",
-        description: "Abstand der Autorenzeile vom linken Rand.",
-        type: "number",
-        default: "1.8",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_MAX_AUTHORLINE_LENGTH",
-        label: "Max. Zeichenanzahl Autorenzeile",
-        description:
-          "Maximale Anzahl Zeichen in der Autorenzeile. 19 ≈ eine Zeile, 38 ≈ zwei Zeilen.",
-        type: "number",
-        default: "38",
-      },
-      {
-        key: "BOOKLABEL_LINE_ABOVE",
-        label: "Zeile über Barcode",
-        description:
-          'Textzeile über dem Barcode. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        type: "json",
-        default: '["Book.title",10,"left"]',
-      },
-      {
-        key: "BOOKLABEL_LINE_ABOVE_USE_MAX_SPACE",
-        label: "Obere Zeile: vollen Platz nutzen",
-        description:
-          "Wenn aktiv, darf die Zeile über dem Barcode die volle Label-Breite nutzen.",
-        type: "boolean",
-        default: "true",
-      },
-      {
-        key: "BOOKLABEL_LINE_BELOW_1",
-        label: "1. Zeile unter Barcode",
-        description:
-          'Erste Textzeile unterhalb des Barcodes. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        type: "json",
-        default: '["firstTopic",10,"left"]',
-      },
-      {
-        key: "BOOKLABEL_LINE_BELOW_1_LENGTH",
-        label: "Max. Länge 1. Unterzeile",
-        description:
-          "Maximale Zeichenanzahl der ersten Unterzeile. 32 Zeichen ≈ eine Zeile.",
-        type: "number",
-        default: "32",
-      },
-      {
-        key: "BOOKLABEL_LINE_BELOW_2",
-        label: "2. Zeile unter Barcode",
-        description:
-          'Zweite Textzeile unterhalb des Barcodes. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        hint: "Fester Text ist möglich, z.B. der Schulname",
-        type: "json",
-        default: '["Mustermann Schule",10,"left"]',
-      },
-      {
-        key: "BOOKLABEL_LOGO",
-        label: "Logo-Datei",
-        description:
-          "Dateiname des Logos für Bücherlabels (im public/-Verzeichnis).",
-        type: "text",
-        default: "schullogo_buchlabel.png",
-      },
-      {
-        key: "BOOKLABEL_BARCODE_WIDTH",
-        label: "Barcode-Breite",
-        description: "Breite des Barcodes auf dem Label (CSS-Einheit).",
-        type: "text",
-        default: "3cm",
-      },
-      {
-        key: "BOOKLABEL_BARCODE_HEIGHT",
-        label: "Barcode-Höhe",
-        description: "Höhe des Barcodes auf dem Label (CSS-Einheit).",
-        type: "text",
-        default: "1.6cm",
       },
     ],
   },
@@ -602,7 +432,6 @@ function generateEnvContent(values: Record<string, string>): string {
     technical: "🔧 TECHNISCHE KONFIGURATION",
     school: "🏫 SCHULKONFIGURATION",
     reminder: "📧 MAHNWESEN",
-    booklabels: "🏷️ BÜCHERLABELS",
     userlabels: "🆔 BENUTZERAUSWEISE",
   };
 

@@ -12,18 +12,54 @@ node_modules
 .env*
 
 # ================================
+# Testing (never needed in image)
+# ================================
+/coverage
+cypress/screenshots/
+cypress/videos/
+cypress/cypress.env.json
+cypress.env.json
+.env.test
+
+# ================================
 # Runtime Data (generated at runtime)
 # ================================
-public/coverimages
-!public/coverimages/default*
-!public/userlabeltemplate*
-!public/schullogo*
-!public/mahnung-template*
+public/coverimages/*
+!public/coverimages/default.png
+!public/coverimages/default.jpg
+!public/coverimages/defaultBlurred.jpg
 public/antolin
 /backups
 /prisma/database
 database/*.db
 database/*.sqlite
+# Additional SQLite variants tracked in .gitignore
+prisma/dev.db
+prisma/dev.db-journal
+prisma/dev_clean.db
+prisma/dev_original.db
+prisma/dev_anonymised.db
+
+# ================================
+# Label system (database/custom/labels/)
+# Only ship the default configs; exclude any user-created files.
+# This must mirror .gitignore so the builder stage stays clean.
+# ================================
+database/custom/labels/sheets/*
+!database/custom/labels/sheets/avery-l7160.json
+!database/custom/labels/sheets/avery-l7163.json
+!database/custom/labels/sheets/herma-4360.json
+!database/custom/labels/sheets/text-only.json
+!database/custom/labels/sheets/zweckform-3420.json
+!database/custom/labels/sheets/zweckform-3422.json
+!database/custom/labels/sheets/zweckform-3474.json
+!database/custom/labels/sheets/zweckform-3475.json
+!database/custom/labels/sheets/zweckform-3490.json
+!database/custom/labels/sheets/zweckform-3659.json
+
+database/custom/labels/templates/*
+!database/custom/labels/templates/default.json
+!database/custom/labels/templates/text-only.json
 
 # ================================
 # Version Control
@@ -44,18 +80,22 @@ docker-compose*
 .vscode
 .DS_Store
 *.swp
+*.pem
 
 # ================================
 # Documentation
 # ================================
 README.md
 LICENSE
+doc/mkdocs/site/
 
 # ================================
 # Logs
 # ================================
 *.log
-npm-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # ================================
 # Scripts (dev/deployment only)

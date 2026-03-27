@@ -196,7 +196,7 @@ function CheckCard({
         const writable = obj.writable ? ", beschreibbar" : "";
         const fileCount =
           typeof obj.fileCount === "number"
-            ? ` (${obj.fileCount.toLocaleString("de-DE")} Bilder)`
+            ? ` (${obj.fileCount.toLocaleString("de-DE")} Files)`
             : "";
         return `${exists}${writable}${fileCount}`;
       }

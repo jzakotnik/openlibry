@@ -1,129 +1,98 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-
-
-# dependencies
+# ─── Dependencies ───────────────────────────────────────────────────
 /node_modules
 /.pnp
 .pnp.js
 
-# testing
+# ─── Testing ────────────────────────────────────────────────────────
 /coverage
+cypress/screenshots/
+cypress/videos/
+cypress/cypress.env.json
+cypress.env.json
+.env.test
+cypress/downloads/
 
-# next.js
+# ─── Next.js ────────────────────────────────────────────────────────
 /.next/
 /out/
 
-# production
+# ─── Production build ──────────────────────────────────────────────
 /build
 
-# misc
+# ─── OS / editor ───────────────────────────────────────────────────
 .DS_Store
 *.pem
 
-# debug
+# ─── Debug logs ─────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
+# ─── Environment / secrets ──────────────────────────────────────────
+.env
 .env*.local
-.env.test
 
-# vercel
+# ─── Vercel ─────────────────────────────────────────────────────────
 .vercel
 
-# typescript
+# ─── TypeScript ─────────────────────────────────────────────────────
 *.tsbuildinfo
 next-env.d.ts
 
-.env
+# ─── Database ───────────────────────────────────────────────────────
+# SQLite dev/test databases (production DB lives in database/)
 prisma/dev.db
 prisma/dev.db-journal
-openbiblio_migration/*
-pages/api/openbiblioimport/member.json
 prisma/dev_clean.db
+prisma/dev_original.db
+prisma/dev_anonymised.db
+database/dev.db
 
+# Production database directory (volume-mounted in Docker)
+prisma/database/*
+!prisma/database/automated-test-db-init.db
+
+# ─── Cover images (user-uploaded, not shipped) ─────────────────────
 public/coverimages/*
 !public/coverimages/default.png
 !public/coverimages/default.jpg
 !public/coverimages/defaultBlurred.jpg
-prisma/dev_original.db
-prisma/dev_anonymised.db
-importscripts/openbiblio/input/biblio_copy.frm
-importscripts/openbiblio/input/biblio_copy.MYD
-importscripts/openbiblio/input/biblio_copy.MYI
-importscripts/openbiblio/input/biblio_field.frm
-importscripts/openbiblio/input/biblio_field.MYD
-importscripts/openbiblio/input/biblio_field.MYI
-importscripts/openbiblio/input/biblio_hold.frm
-importscripts/openbiblio/input/biblio_hold.MYD
-importscripts/openbiblio/input/biblio_hold.MYI
-importscripts/openbiblio/input/biblio_status_dm.frm
-importscripts/openbiblio/input/biblio_status_dm.MYD
-importscripts/openbiblio/input/biblio_status_dm.MYI
-importscripts/openbiblio/input/biblio_status_hist.frm
-importscripts/openbiblio/input/biblio_status_hist.MYD
-importscripts/openbiblio/input/biblio_status_hist.MYI
-importscripts/openbiblio/input/biblio.frm
-importscripts/openbiblio/input/biblio.MYD
-importscripts/openbiblio/input/biblio.MYI
-importscripts/openbiblio/input/collection_dm.frm
-importscripts/openbiblio/input/collection_dm.MYD
-importscripts/openbiblio/input/collection_dm.MYI
-importscripts/openbiblio/input/db.opt
-importscripts/openbiblio/input/material_type_dm.frm
-importscripts/openbiblio/input/material_type_dm.MYD
-importscripts/openbiblio/input/material_type_dm.MYI
-importscripts/openbiblio/input/mbr_classify_dm.frm
-importscripts/openbiblio/input/mbr_classify_dm.MYD
-importscripts/openbiblio/input/mbr_classify_dm.MYI
-importscripts/openbiblio/input/member_account.frm
-importscripts/openbiblio/input/member_account.MYD
-importscripts/openbiblio/input/member_account.MYI
-importscripts/openbiblio/input/member.frm
-importscripts/openbiblio/input/member.MYD
-importscripts/openbiblio/input/member.MYI
-importscripts/openbiblio/input/session.frm
-importscripts/openbiblio/input/session.MYD
-importscripts/openbiblio/input/session.MYI
-importscripts/openbiblio/input/settings.frm
-importscripts/openbiblio/input/settings.MYD
-importscripts/openbiblio/input/settings.MYI
-importscripts/openbiblio/input/staff.frm
-importscripts/openbiblio/input/staff.MYD
-importscripts/openbiblio/input/staff.MYI
-importscripts/openbiblio/input/state_dm.frm
-importscripts/openbiblio/input/state_dm.MYD
-importscripts/openbiblio/input/state_dm.MYI
-importscripts/openbiblio/input/theme.frm
-importscripts/openbiblio/input/theme.MYD
-importscripts/openbiblio/input/theme.MYI
-importscripts/openbiblio/input/transaction_type_dm.frm
-importscripts/openbiblio/input/transaction_type_dm.MYD
-importscripts/openbiblio/input/transaction_type_dm.MYI
-importscripts/openbiblio/input/usmarc_block_dm.frm
-importscripts/openbiblio/input/usmarc_block_dm.MYD
-importscripts/openbiblio/input/usmarc_block_dm.MYI
-importscripts/openbiblio/input/usmarc_indicator_dm.frm
-importscripts/openbiblio/input/usmarc_indicator_dm.MYD
-importscripts/openbiblio/input/usmarc_indicator_dm.MYI
-importscripts/openbiblio/input/usmarc_subfield_dm.frm
-importscripts/openbiblio/input/usmarc_subfield_dm.MYD
-importscripts/openbiblio/input/usmarc_subfield_dm.MYI
-importscripts/openbiblio/input/usmarc_tag_dm.frm
-importscripts/openbiblio/input/usmarc_tag_dm.MYD
-importscripts/openbiblio/input/usmarc_tag_dm.MYI
-importscripts/openbiblio/coverDownloader/coverapp
+
+# ─── Book labels (legacy label output) ─────────────────────────────
+public/labels/
+
+# ─── Label system configs (database/custom/labels/) ────────────────
+# Ship default configs only; user-created files are ignored.
+# Must stay in sync with .dockerignore so the builder stage is clean.
+
+database/custom/labels/sheets/*
+!database/custom/labels/sheets/avery-l7160.json
+!database/custom/labels/sheets/avery-l7163.json
+!database/custom/labels/sheets/herma-4360.json
+!database/custom/labels/sheets/text-only.json
+!database/custom/labels/sheets/zweckform-3420.json
+!database/custom/labels/sheets/zweckform-3422.json
+!database/custom/labels/sheets/zweckform-3474.json
+!database/custom/labels/sheets/zweckform-3475.json
+!database/custom/labels/sheets/zweckform-3490.json
+!database/custom/labels/sheets/zweckform-3659.json
+
+database/custom/labels/templates/*
+!database/custom/labels/templates/default.json
+!database/custom/labels/templates/text-only.json
+
+# ─── Antolin data ──────────────────────────────────────────────────
 public/antolin/antolingesamt.csv
-cypress/cypress.env.json
-cypress.env.json
 
-
-
+# ─── Backups ────────────────────────────────────────────────────────
 /backups
-database/dev.db
+
+# ─── OpenBiblio migration (legacy import tooling) ──────────────────
+openbiblio_migration/*
+pages/api/openbiblioimport/member.json
 importscripts/openbiblio/migrationFile/member.json
 importscripts/openbiblio/migrationFile/biblio.json
 importscripts/openbiblio/migrationFile/biblio_status_hist.json
@@ -134,19 +103,14 @@ importscripts/openbiblio/migrationFile/content/biblio_copy
 importscripts/openbiblio/migrationFile/content/biblio_field
 importscripts/openbiblio/migrationFile/content/biblio_status_hist
 importscripts/openbiblio/migrationFile/content/member
+importscripts/openbiblio/coverDownloader/coverapp
+importscripts/openbiblio/input/*.frm
+importscripts/openbiblio/input/*.MYD
+importscripts/openbiblio/input/*.MYI
+importscripts/openbiblio/input/db.opt
 
+# ─── Misc temp files ───────────────────────────────────────────────
 public/~$hnung-template.docx
-prisma/database/*
-!prisma/database/automated-test-db-init.db
 
-cypress/screenshots
-
-.env.test
-cypress/videos/
-cypress/screenshots/
-
-
+# ─── MkDocs build output ───────────────────────────────────────────
 doc/mkdocs/site/
-public/labels/
-/prisma/database
-/database/custom
