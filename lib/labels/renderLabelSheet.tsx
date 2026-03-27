@@ -189,9 +189,11 @@ async function generateBarcodeDataUri(text: string): Promise<string | null> {
       bcid: "code128",
       text: padded,
       scale: 3,
-      height: 15,
+      height: 10, // shorter bars → wider aspect ratio when rendered
       includetext: true,
       textxalign: "center",
+      paddingleft: 1, // remove quiet zone — label margin is sufficient
+      paddingright: 1,
     });
 
     return `data:image/png;base64,${pngBuffer.toString("base64")}`;
@@ -410,7 +412,7 @@ function HorizontalField({
           style={{
             width: mm(widthMm),
             height: mm(heightMm),
-            objectFit: "contain",
+            objectFit: "fill", // ← was "contain"; fill stretches to full width
           }}
         />
       </View>
