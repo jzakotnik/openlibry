@@ -48,13 +48,16 @@ interface GoogleBooksResponse {
  */
 async function fetchFromGoogleBooks(isbn: string): Promise<BookFormData | null> {
   const cleanIsbn = normalizeIsbn(isbn);
-  const url = `${API_BASE_URL}?q=isbn:${cleanIsbn}`;
+  const url = `${API_BASE_URL}?q=isbn:${cleanIsbn}&key=${process.env.GOOGLE_BOOKS_API_KEY || ""}`;
+    console.log("Fetching from Google Books API:", url);
 
   try {
     const response = await fetch(url);
     if (!response.ok) {
       console.error(`[${SERVICE_NAME}] HTTP ${response.status}`);
       return null;
+    } else {
+      console.log(`[${SERVICE_NAME}] Received response from Google Books API` + `(status: ${response.statusText})`);
     }
 
     const data = (await response.json()) as GoogleBooksResponse;
