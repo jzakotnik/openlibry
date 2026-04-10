@@ -95,6 +95,7 @@ export default function Reports({
           totalNumber={auditCount}
           link="reports/audit"
         />
+<<<<<<< Updated upstream
         <BookLabelsCard
           title="Buch Etiketten"
           subtitle=""
@@ -113,6 +114,13 @@ export default function Reports({
           setTopicsFilter={bookLabelFilters.setTopicsFilter}
           allTopics={tagSet}
         />
+=======
+        {/* Etiketten cards stacked in one column */}
+        <div className="flex flex-col gap-3">
+          <BookLabelPrintCard />
+          <BookLabelEditorCard />
+        </div>
+>>>>>>> Stashed changes
         <UserLabelsCard
           title="Ausweise"
           subtitle="Liste aller Ausweise"
@@ -130,6 +138,7 @@ export default function Reports({
           setTopicsFilter={userLabelFilters.setSchoolgradeFilter}
           allTopics={schoolGradeSet}
         />
+<<<<<<< Updated upstream
         <div className="flex flex-col gap-3">
         <ReminderCard
           title="Mahnungen"
@@ -147,6 +156,27 @@ export default function Reports({
         />
         </div>
       </div>{" "}
+=======
+        {/* kombinierete Mahnungen und Verleih-Historie in einer Spalte */}
+        <div className="flex flex-col gap-3">
+          <ReminderCard
+            title="Mahnungen"
+            subtitle="Ausdruck der Mahnungen als Word-Dokument"
+            link="/api/report/reminder"
+            overdueCount={overdueCount}
+            nonExtendableCount={nonExtendableCount}
+          />
+          <LinkCard
+            title="Verleih-Historie"
+            subtitle="Chronologische Übersicht aller Leihen je Nutzer"
+            buttonTitle="Ansehen"
+            link="reports/userhistory"
+            dataCy="user-history-card"
+          />
+        </div>
+      </div>
+
+>>>>>>> Stashed changes
       <TagCloudDashboard tagsSet={tagSet} />
     </Layout>
   );
