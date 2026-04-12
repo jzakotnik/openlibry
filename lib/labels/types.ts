@@ -132,7 +132,7 @@ export interface BookFilter {
   /** For "latest": number of most recent books */
   count?: number;
   /** For "topic": topic/category string to match */
-  value?: string;
+  values?: string[];
   /** For "ids": explicit list of book IDs */
   ids?: number[];
 }
