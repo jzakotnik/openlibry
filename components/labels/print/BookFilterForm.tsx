@@ -84,7 +84,7 @@ export default function BookFilterForm({
         <div className="flex items-center gap-3">
           <RadioGroupItem value="topic" id="filter-topic" />
           <Label htmlFor="filter-topic" className="font-normal shrink-0">
-            Thema
+            Schlagwort
           </Label>
           <Popover open={topicOpen} onOpenChange={setTopicOpen}>
             <PopoverTrigger asChild>
@@ -99,7 +99,7 @@ export default function BookFilterForm({
                 <span className="truncate">
                   {currentTopic || (
                     <span className="text-muted-foreground">
-                      Thema auswählen…
+                      Schlagwort auswählen…
                     </span>
                   )}
                 </span>

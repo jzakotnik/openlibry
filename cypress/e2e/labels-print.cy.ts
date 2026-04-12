@@ -108,7 +108,7 @@ describe("Label Print Page", () => {
     cy.get("[data-cy=filter-latest-count]").should("have.value", "10");
   });
 
-  it("should allow selecting 'Thema' filter with text input", () => {
+  it("should allow selecting 'Schlagwort' filter with text input", () => {
     cy.get("#filter-topic").click();
     cy.get("#filter-topic").should("have.attr", "aria-checked", "true");
 

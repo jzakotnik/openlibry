@@ -182,7 +182,7 @@ curl -X POST http://localhost:3000/api/labels/generate \
 | Filter | Beispiel |
 |--------|---------|
 | Neueste N | `{ "type": "latest", "count": 50 }` |
-| Nach Thema | `{ "type": "topic", "value": "Abenteuer" }` |
+| Nach Schlagwort | `{ "type": "topic", "value": "Abenteuer" }` |
 | Alle Bücher | `{ "type": "all" }` |
 | Bestimmte IDs | `{ "type": "ids", "ids": [1, 5, 42] }` |
 
