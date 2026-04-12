@@ -239,7 +239,7 @@ const BooksPdfDocument = ({
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitleRented}>
-            📚 Ausgeliehene Bücher ({rentedBooks.length})
+            Ausgeliehene Bücher ({rentedBooks.length})
           </Text>
           {rentedBooks.length > 0 ? (
             <View style={pdfStyles.table}>
