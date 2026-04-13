@@ -1,6 +1,13 @@
 /// <reference types="cypress" />
 
 describe("Public book catalog", () => {
+  // The public catalog page includes a Footer that fetches /api/version, which
+  // is auth-protected. In dev mode this causes Next.js to show its error
+  // overlay (<nextjs-portal>), which can steal keyboard focus and break
+  // cy.type(). Suppress uncaught exceptions for this whole suite — the
+  // relevant assertions are structural, not error-boundary tests.
+  Cypress.on("uncaught:exception", () => false);
+
   before(() => {
     cy.resetDatabase();
   });
@@ -49,8 +56,9 @@ describe("Public book catalog", () => {
     cy.get("[data-cy^=book_summary_card_]")
       .its("length")
       .then((totalCount) => {
-        // Type a title that matches only a subset of seeded books
-        cy.get("[data-cy=rental_input_searchbook]").type("a");
+        // Click first to guarantee focus lands on the input and not on any
+        // dev overlay that may have appeared due to the /api/version redirect.
+        cy.get("[data-cy=rental_input_searchbook]").click().type("a");
         cy.get("[data-cy^=book_summary_card_]").should(
           "have.length.lessThan",
           totalCount,
@@ -62,7 +70,7 @@ describe("Public book catalog", () => {
     cy.get("[data-cy^=book_summary_card_]")
       .its("length")
       .then((totalCount) => {
-        cy.get("[data-cy=rental_input_searchbook]").type("a").clear();
+        cy.get("[data-cy=rental_input_searchbook]").click().type("a").clear();
         cy.get("[data-cy^=book_summary_card_]").should(
           "have.length",
           totalCount,

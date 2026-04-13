@@ -18,7 +18,7 @@ import ReactPDF, {
   Text,
   View,
 } from "@react-pdf/renderer";
-import bwipjs from "bwip-js";
+import * as bwipjs from "bwip-js/node";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";

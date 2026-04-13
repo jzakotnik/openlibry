@@ -77,6 +77,16 @@ export function useBookSearch(
     [searchEngine, sort, perPage],
   );
 
+  // Stable ref to the latest searchBooks — lets the books-refresh effect call
+  // it without listing searchBooks in its own dependency array. If searchBooks
+  // were a direct dependency, every books change would cascade:
+  //   books → searchEngine → searchBooks → effect → setState → re-render → …
+  // producing the "Maximum update depth exceeded" loop seen on /catalog.
+  const searchBooksRef = useRef(searchBooks);
+  useEffect(() => {
+    searchBooksRef.current = searchBooks;
+  });
+
   const debouncedSearch = useMemo(
     () => debounce((q: string) => searchBooks(q), DEBOUNCE_MS),
     [searchBooks],
@@ -86,10 +96,16 @@ export function useBookSearch(
   useEffect(() => () => debouncedSearch.clear(), [debouncedSearch]);
 
   // Re-run search when the underlying books array refreshes (e.g. SWR mutate)
-  // without reacting to every keystroke.
+  // without reacting to every keystroke. Depends only on `books` — searchBooks
+  // is accessed via ref to avoid the cascade described above.
   useEffect(() => {
-    searchBooks(queryRef.current);
-  }, [books, searchBooks]);
+    if (queryRef.current) {
+      searchBooksRef.current(queryRef.current);
+    } else {
+      setRenderedBooks(books);
+      setResultCount(books.length);
+    }
+  }, [books]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = useCallback(
     (value: string) => {

@@ -53,14 +53,20 @@ async function resolveBookFilter(filter: BookFilter): Promise<BookLabelData[]> {
       break;
 
     case "topic": {
-      const topicSearch = (filter.value ?? "").toLowerCase();
-      filtered = allBooks.filter((b) => {
-        if (!b.topics) return false;
-        const bookTopics = b.topics
-          .split(";")
-          .map((t) => t.trim().toLowerCase());
-        return bookTopics.some((t) => t.includes(topicSearch));
-      });
+      const selectedTopics = (filter.values ?? []).map((v) => v.toLowerCase());
+      if (selectedTopics.length === 0) {
+        filtered = [];
+      } else {
+        filtered = allBooks.filter((b) => {
+          if (!b.topics) return false;
+          const bookTopics = b.topics
+            .split(";")
+            .map((t) => t.trim().toLowerCase());
+          return selectedTopics.some((sel) =>
+            bookTopics.some((t) => t.includes(sel)),
+          );
+        });
+      }
       break;
     }
 
