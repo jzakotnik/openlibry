@@ -3,12 +3,12 @@ import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
 import dayjs from "dayjs";
 
-import BookLabelsCard from "@/components/reports/cards/BookLabelsCard";
+import BookLabelEditorCard from "@/components/labels/BookLabelEditorCard";
+import BookLabelPrintCard from "@/components/labels/BookLabelPrintCard";
 import LinkCard from "@/components/reports/cards/LinkCard";
 import ReminderCard from "@/components/reports/cards/ReminderCard";
 import ReportCard from "@/components/reports/cards/ReportCard";
 import UserLabelsCard from "@/components/reports/cards/UserLabelsCard";
-import { useBookLabelFilters } from "@/components/reports/hooks/useBookLabelFilters";
 import { useUserLabelFilters } from "@/components/reports/hooks/useUserLabelFilters";
 import TagCloudDashboard from "@/components/reports/TagCloud";
 import { countAudit } from "@/entities/audit";
@@ -44,7 +44,6 @@ export default function Reports({
   schoolGradeSet,
   auditCount = 0,
 }: ReportPropsType) {
-  const bookLabelFilters = useBookLabelFilters();
   const userLabelFilters = useUserLabelFilters();
 
   return (
@@ -95,24 +94,11 @@ export default function Reports({
           totalNumber={auditCount}
           link="reports/audit"
         />
-        <BookLabelsCard
-          title="Buch Etiketten"
-          subtitle=""
-          unit="Etiketten"
-          link="api/report/booklabels"
-          totalNumber={books.length}
-          startLabel={bookLabelFilters.startLabel}
-          setStartLabel={bookLabelFilters.setStartLabel}
-          startId={bookLabelFilters.startId}
-          setStartId={bookLabelFilters.setStartId}
-          endId={bookLabelFilters.endId}
-          setEndId={bookLabelFilters.setEndId}
-          idFilter={bookLabelFilters.idFilter}
-          setIdFilter={bookLabelFilters.setIdFilter}
-          topicsFilter={bookLabelFilters.topicsFilter}
-          setTopicsFilter={bookLabelFilters.setTopicsFilter}
-          allTopics={tagSet}
-        />
+        {/* Etiketten cards stacked in one column */}
+        <div className="flex flex-col gap-3">
+          <BookLabelPrintCard />
+          <BookLabelEditorCard />
+        </div>
         <UserLabelsCard
           title="Ausweise"
           subtitle="Liste aller Ausweise"
@@ -136,8 +122,8 @@ export default function Reports({
           link="/api/report/reminder"
           overdueCount={overdueCount}
           nonExtendableCount={nonExtendableCount}
-        />{" "}
-      </div>{" "}
+        />
+      </div>
       <TagCloudDashboard tagsSet={tagSet} />
     </Layout>
   );
@@ -186,11 +172,9 @@ export async function getServerSideProps() {
     };
   });
 
-  // Pre-compute topic and school grade counts on the server
   const tagSet = getBookTopicCounts(allBooks);
   const schoolGradeSet = getSchoolGradeCounts(allUsers);
 
-  // Pre-compute reminder counts for the ReminderCard
   const overdueRentals = rentals.filter((r) => r.remainingDays > 0);
   const overdueCount = new Set(
     overdueRentals.map((r) => r.userid).filter(Boolean),

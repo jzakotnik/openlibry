@@ -85,9 +85,8 @@ Die Benutzer werden in der SQLite-Datenbank gespeichert. Mit einem SQLite-Browse
 
 ## Session-Dauer
 
-Sessions sind standardmäßig langlebig. Du wirst nicht automatisch ausgeloggt.
+Sessions sind standardmäßig langlebig. Du wirst nicht automatisch ausgeloggt. Man kann sich mit dem Klick auf den Ausloggen Button auch manuell ausloggen.
 
-Zum manuellen Ausloggen: Klicke auf deinen Benutzernamen → Logout.
 
 ## Sicherheitstipps
 

@@ -4,6 +4,7 @@ export const LogEvents = {
   BOOK_UPDATED: "book.updated",
   BOOK_DELETED: "book.deleted",
   BOOK_LIST_FETCHED: "book.list.fetched",
+  SEARCH_ERROR: "book.lust.search",
 
   // Rental operations
   BOOK_RENTED: "book.rented",
@@ -51,6 +52,7 @@ export const LogEvents = {
   REPORT_EXCEL_EXPORTED: "report.excel.exported",
   REMINDER_TEMPLATE_LOADED: "report.template.loaded",
   REMINDER_TEMPLATE_NOT_FOUND: "report.template.notfound",
+  REMINDER_GENERATE: "report.reminder.generate",
 
   // Import operations
   IMPORT_EXCEL_STARTED: "import.excel.started",

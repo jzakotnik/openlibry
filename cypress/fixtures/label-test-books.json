@@ -1,0 +1,7 @@
+[
+  { "id": "1", "title": "Der kleine Prinz", "author": "Antoine de Saint-Exupéry", "subtitle": "Eine Erzählung", "topics": "Abenteuer; Freundschaft; Philosophie" },
+  { "id": "2", "title": "Momo", "author": "Michael Ende", "subtitle": "Die seltsame Geschichte von den Zeit-Dieben", "topics": "Fantasy; Kinderbuch" },
+  { "id": "3", "title": "Jim Knopf und Lukas der Lokomotivführer", "author": "Michael Ende", "topics": "Abenteuer; Kinderbuch" },
+  { "id": "4", "title": "Die unendliche Geschichte", "author": "Michael Ende", "topics": "Fantasy" },
+  { "id": "5", "title": "Pippi Langstrumpf", "author": "Astrid Lindgren", "topics": "Kinderbuch; Humor" }
+]

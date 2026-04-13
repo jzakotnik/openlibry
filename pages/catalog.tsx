@@ -5,7 +5,7 @@ import { BookType } from "@/entities/BookType";
 import { PublicBookType } from "@/entities/PublicBookType";
 import { useBookSearch } from "@/hooks/useBookSearch";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
 // =============================================================================
@@ -26,7 +26,16 @@ interface CatalogPropsType {
 // Helpers
 // =============================================================================
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+/**
+ * SWR fetcher that throws on non-2xx responses so SWR captures the error
+ * instead of trying to JSON-parse an HTML error page and crashing with
+ * "Unexpected token '<'".
+ */
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    return res.json();
+  });
 
 /**
  * Map PublicBookType → BookType-compatible shape for existing components.
@@ -103,8 +112,11 @@ export default function Catalog({
   const { data: freshData } = useSWR("/api/public/books", fetcher, {
     fallbackData: initialBooks,
     refreshInterval: 0,
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
+    // Disabled: a revalidation triggered by Cypress focus/reconnect events
+    // after cleanupDatabase() returns a 500 HTML page, causing a JSON parse
+    // crash. The 60 s dedupingInterval is sufficient for a public catalog.
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
     dedupingInterval: 60000,
   });
 
@@ -112,7 +124,12 @@ export default function Catalog({
     ? freshData
     : initialBooks;
 
-  const books = rawBooks.map(toCardBook);
+  // useMemo ensures `books` keeps the same array reference between renders
+  // as long as `rawBooks` (the SWR data) hasn't changed. Without this,
+  // rawBooks.map() produces a new array on every render, which destabilises
+  // the searchEngine useMemo → searchBooks useCallback → useEffect chain
+  // inside useBookSearch, causing a "Maximum update depth exceeded" loop.
+  const books = useMemo(() => rawBooks.map(toCardBook), [rawBooks]);
 
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
 
