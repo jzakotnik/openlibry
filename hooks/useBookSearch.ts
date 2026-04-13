@@ -3,6 +3,8 @@ import itemsjs from "itemsjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import { stripZerosFromSearch } from "@/lib/utils/lookups";
 
 const SEARCHABLE_FIELDS = [
@@ -66,15 +68,21 @@ export function useBookSearch(
 
   const searchBooks = useCallback(
     (query: string) => {
-      const result = searchEngine.search({
-        per_page: perPage,
-        ...(sort ? { sort } : {}),
-        query: stripZerosFromSearch(query),
-      });
-      setRenderedBooks(result.data.items as BookType[]);
-      setResultCount(result.pagination.total);
+      try {
+        const result = searchEngine.search({
+          per_page: perPage,
+          ...(sort ? { sort } : {}),
+          query: stripZerosFromSearch(query),
+        });
+        setRenderedBooks(result.data.items as BookType[]);
+        setResultCount(result.pagination.total);
+      } catch (err) {
+        errorLogger.error({ err, query }, LogEvents.SEARCH_ERROR);
+        setRenderedBooks(books);
+        setResultCount(books.length);
+      }
     },
-    [searchEngine, sort, perPage],
+    [searchEngine, sort, perPage, books],
   );
 
   // Stable ref to the latest searchBooks — lets the books-refresh effect call
@@ -116,9 +124,10 @@ export function useBookSearch(
   );
 
   const handleClear = useCallback(() => {
+    debouncedSearch.clear();
     setBookSearchInput("");
     searchBooks("");
-  }, [searchBooks]);
+  }, [debouncedSearch, searchBooks]);
 
   return {
     renderedBooks,
