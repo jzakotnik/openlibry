@@ -85,6 +85,8 @@ Mehr Details: [Mahnschreiben konfigurieren](reminders.md)
 | `PORT` | Server-Port | `3000` |
 | `MAX_MIGRATION_SIZE` | Max. Import-Größe (MB) | `250` |
 | `RENTAL_SORT_BOOKS` | Sortierung in Leihe | `title_asc` |
+| `GOOGLE_BOOKS_API_KEY` | Google Books API key für die Google Schnittstelle für Buchinfos | ` ` |
+
 
 
 ## Nach Änderungen
