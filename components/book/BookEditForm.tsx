@@ -2,14 +2,7 @@
 import { useRouter } from "next/router";
 import { Dispatch, useCallback, useState } from "react";
 
-import {
-  ArrowLeft,
-  ImagePlus,
-  Loader2,
-  Printer,
-  Save,
-  Search,
-} from "lucide-react";
+import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
 // ✅ palette import removed entirely
 
@@ -364,17 +357,6 @@ export default function BookEditForm({
           </ActionButton>
         )}
 
-        {editable && !isNewBook && (
-          <ActionButton
-            onClick={() => router.push(`/reports/print?id=${book.id}`)}
-            icon={Printer}
-            variant="outline"
-            title="Buchlabel drucken"
-            dataCy="print-book-button"
-          >
-            Drucken
-          </ActionButton>
-        )}
         {!isNewBook && editable && (
           <HoldButton
             duration={deleteSafetySeconds * 1000}

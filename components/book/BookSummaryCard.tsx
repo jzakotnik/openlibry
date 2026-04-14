@@ -1,4 +1,4 @@
-import { ArrowLeftFromLine, Pencil, Printer } from "lucide-react";
+import { ArrowLeftFromLine, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -259,26 +259,6 @@ function BookSummaryCard({
                 <TooltipContent>
                   Details anzeigen &amp; bearbeiten
                 </TooltipContent>
-              </Tooltip>
-
-              {/* Print label — icon-only, secondary */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={`/reports/print?id=${book.id}`}
-                    data-cy="book_card_printbutton"
-                    aria-label="Buchlabel drucken"
-                    className="flex items-center justify-center
-                               h-8 w-8 rounded-md
-                               bg-white/15 text-white backdrop-blur-sm
-                               hover:bg-secondary hover:scale-110
-                               focus-visible:outline-2 focus-visible:outline-primary-light focus-visible:outline-offset-2
-                               transition-all duration-200"
-                  >
-                    <Printer className="h-4 w-4" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>Label drucken</TooltipContent>
               </Tooltip>
             </div>
           )}
