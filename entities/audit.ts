@@ -28,6 +28,33 @@ export async function getLastAudit(
   }
 }
 
+export async function getRentEventsByUser(
+  client: PrismaClient,
+): Promise<Pick<Audit, "userid" | "bookid" | "createdAt">[]> {
+  try {
+    return await client.audit.findMany({
+      where: { eventType: { contains: "rent book" } },
+      orderBy: { createdAt: "asc" },
+      select: { userid: true, bookid: true, createdAt: true },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getRentEventsByUser",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error in getRentEventsByUser",
+      );
+    }
+    throw e;
+  }
+}
+
 export async function countAudit(client: PrismaClient): Promise<number> {
   try {
     return await client.audit.count();

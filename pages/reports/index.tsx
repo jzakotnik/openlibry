@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 
 import BookLabelEditorCard from "@/components/labels/BookLabelEditorCard";
 import BookLabelPrintCard from "@/components/labels/BookLabelPrintCard";
-import LinkCard from "@/components/reports/cards/LinkCard";
+import ExcelCard from "@/components/reports/cards/ExcelCard";
 import ReminderCard from "@/components/reports/cards/ReminderCard";
 import ReportCard from "@/components/reports/cards/ReportCard";
 import UserLabelsCard from "@/components/reports/cards/UserLabelsCard";
@@ -54,38 +54,32 @@ export default function Reports({
       >
         <ReportCard
           title="Nutzerinnen"
-          subtitle="Liste aller Nutzerinnen"
-          unit="users"
+          subtitle="Übersicht aller NutzerInnen"
+          unit="NutzerInnen"
           totalNumber={users.length}
           link="reports/users"
         />
         <ReportCard
           title="Bücher"
-          subtitle="Liste aller Bücher"
-          unit="books"
+          subtitle="Übersicht aller Bücher"
+          unit="Bücher"
           totalNumber={books.length}
           link="reports/books"
         />
         <ReportCard
           title="Leihen"
-          subtitle="Liste aller Leihen"
-          unit="rentals"
+          subtitle="Übersicht aller Leihen"
+          unit="Leihen"
           totalNumber={rentals.length}
           link="reports/rentals"
         />
-        <LinkCard
-          title="Excel Export"
-          subtitle="Excel Export der Daten"
-          buttonTitle="Download Excel"
-          link="api/excel"
-          dataCy="excel-export-card"
-        />
-        <LinkCard
-          title="Excel Import"
-          subtitle="Excel Import der Daten"
-          buttonTitle="Upload Excel"
-          link="reports/xlsimport"
-          dataCy="excel-import-card"
+        <ExcelCard dataCy="excel-card" />
+        <ReportCard
+          title="Ausleih-Historie"
+          subtitle="Verlauf aller Leihen nach Nutzer"
+          unit="Leihen"
+          totalNumber={rentals.length}
+          link="reports/userhistory"
         />
         <ReportCard
           title="Historie"
