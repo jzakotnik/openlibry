@@ -122,7 +122,7 @@ Beim ersten Start erstellt OpenLibry automatisch einen Ordner `database/custom/`
 #############################################
 
 # 📄 Path to the reminder (mahnung) Word template
-REMINDER_TEMPLATE_DOC=/app/database/custom/meine_mahnung.docx
+REMINDER_TEMPLATE_DOC=meine_mahnung.docx
 ...
 ```
 
