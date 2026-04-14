@@ -6,6 +6,7 @@ type ReportCardProps = {
   unit: string;
   link: string;
   totalNumber: number;
+  dataCyId?: string;
 };
 
 export default function ReportCard({
@@ -14,9 +15,10 @@ export default function ReportCard({
   unit,
   link,
   totalNumber,
+  dataCyId,
 }: ReportCardProps) {
   const router = useRouter();
-  const dataCy = `report-card-${unit}`;
+  const dataCy = `report-card-${dataCyId ?? unit}`;
 
   return (
     <div

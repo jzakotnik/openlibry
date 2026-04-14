@@ -58,6 +58,7 @@ export default function Reports({
           unit="NutzerInnen"
           totalNumber={users.length}
           link="reports/users"
+          dataCyId="users"
         />
         <ReportCard
           title="Bücher"
@@ -65,6 +66,7 @@ export default function Reports({
           unit="Bücher"
           totalNumber={books.length}
           link="reports/books"
+          dataCyId="books"
         />
         <ReportCard
           title="Leihen"
@@ -72,6 +74,7 @@ export default function Reports({
           unit="Leihen"
           totalNumber={rentals.length}
           link="reports/rentals"
+          dataCyId="rentals"
         />
         <ExcelCard dataCy="excel-card" />
         <ReportCard
@@ -80,6 +83,7 @@ export default function Reports({
           unit="Leihen"
           totalNumber={rentals.length}
           link="reports/userhistory"
+          dataCyId="userhistory"
         />
         <ReportCard
           title="Historie"
@@ -87,6 +91,7 @@ export default function Reports({
           unit="Einträge"
           totalNumber={auditCount}
           link="reports/audit"
+          dataCyId="audit"
         />
         {/* Etiketten cards stacked in one column */}
         <div className="flex flex-col gap-3">
