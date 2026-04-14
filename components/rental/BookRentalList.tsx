@@ -80,12 +80,17 @@ const BookList = React.memo(function BookList({
               className="flex items-center gap-2 px-2 pt-1.5 w-full flex-nowrap min-w-0"
               data-cy={`book_header_${b.id}`}
             >
-              <span
-                className="flex-1 min-w-0 truncate text-sm font-medium text-foreground"
-                data-cy={`book_title_${b.id}`}
-              >
-                {b.title}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="flex-1 min-w-0 truncate text-sm font-medium text-foreground"
+                    data-cy={`book_title_${b.id}`}
+                  >
+                    {b.title}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{b.title}</TooltipContent>
+              </Tooltip>
 
               <div
                 className="flex items-center gap-0.5 shrink-0 overflow-visible relative z-[1]"
