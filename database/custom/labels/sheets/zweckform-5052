@@ -1,0 +1,12 @@
+{
+  "id": "zweckform-5052",
+  "name": "Printation 45×30 (kompatibel Zweckform 5052)",
+  "description": "Universal-Etiketten 45 × 30 mm, 36 Stück/Blatt (4 Spalten × 9 Reihen)",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 45, "height": 30 },
+  "grid": { "columns": 4, "rows": 9 },
+  "margins": { "top": 13.5, "left": 15, "right": 15, "bottom": 13.5 },
+  "gap": { "horizontal": 0, "vertical": 0 },
+  "labelsPerSheet": 36
+} 
