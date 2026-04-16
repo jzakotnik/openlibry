@@ -26,9 +26,18 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import Excel from "exceljs";
-import { ChevronLeft, Download, FileText, History, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronsUpDown,
+  ChevronUp,
+  Download,
+  FileText,
+  History,
+  Search,
+} from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 // =============================================================================
 // Types
@@ -55,15 +64,18 @@ interface HistoryPropsType {
 }
 
 // =============================================================================
-// Column width config
+// Constants
 // =============================================================================
 
-const COLUMN_WIDTHS: Record<string, number> = {
+const COLUMN_WIDTHS = {
   schoolGrade: 100,
   fullName: 225,
   borrowCount: 80,
   borrowedBooks: 450,
-};
+} as const;
+
+/** Max books shown per PDF row to prevent single-row page overflow */
+const PDF_MAX_BOOKS_PER_ROW = 20;
 
 // =============================================================================
 // PDF Styles
@@ -101,6 +113,7 @@ const pdfStyles = StyleSheet.create({
   headerText: { color: "#fff", fontWeight: "bold" },
   bookEntry: { marginBottom: 3, fontSize: 8 },
   dateLabel: { color: "#1976d2", fontWeight: "bold" },
+  overflow: { color: "#888", fontSize: 8, fontStyle: "italic", marginTop: 2 },
   footer: {
     position: "absolute",
     bottom: 30,
@@ -153,29 +166,43 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
           </Text>
         </View>
 
-        {/* Table Rows */}
+        {/* Table Rows — wrap allowed so tall rows can break across pages */}
         {data.length > 0 ? (
-          data.map((row, index) => (
-            <View key={index} style={pdfStyles.tableRow} wrap={false}>
-              <Text style={pdfStyles.colGrade}>{row.schoolGrade}</Text>
-              <Text style={pdfStyles.colName}>
-                {`${row.lastName}, ${row.firstName}`}
-              </Text>
-              <Text style={pdfStyles.colCount}>{row.borrowCount}</Text>
-              <View style={pdfStyles.colBooks}>
-                {row.borrowedBooks.map((b, bi) => (
-                  <Text key={bi} style={pdfStyles.bookEntry}>
-                    <Text style={pdfStyles.dateLabel}>
-                      {b.loanDate} | ID: {b.bookId}:{" "}
+          data.map((row, index) => {
+            const visibleBooks = row.borrowedBooks.slice(
+              0,
+              PDF_MAX_BOOKS_PER_ROW,
+            );
+            const overflowCount =
+              row.borrowedBooks.length - visibleBooks.length;
+
+            return (
+              <View key={index} style={pdfStyles.tableRow}>
+                <Text style={pdfStyles.colGrade}>{row.schoolGrade}</Text>
+                <Text style={pdfStyles.colName}>
+                  {`${row.lastName}, ${row.firstName}`}
+                </Text>
+                <Text style={pdfStyles.colCount}>{row.borrowCount}</Text>
+                <View style={pdfStyles.colBooks}>
+                  {visibleBooks.map((b, bi) => (
+                    <Text key={bi} style={pdfStyles.bookEntry}>
+                      <Text style={pdfStyles.dateLabel}>
+                        {b.loanDate} | ID: {b.bookId}:{" "}
+                      </Text>
+                      {/* NFC normalization required: DNB titles arrive NFD-decomposed,
+                          which @react-pdf/renderer cannot render correctly */}
+                      <Text>{b.title.normalize("NFC")}</Text>
                     </Text>
-                    {/* NFC normalization required: DNB titles arrive NFD-decomposed,
-                        which @react-pdf/renderer cannot render correctly */}
-                    <Text>{b.title.normalize("NFC")}</Text>
-                  </Text>
-                ))}
+                  ))}
+                  {overflowCount > 0 && (
+                    <Text style={pdfStyles.overflow}>
+                      … und {overflowCount} weitere
+                    </Text>
+                  )}
+                </View>
               </View>
-            </View>
-          ))
+            );
+          })
         ) : (
           <Text style={pdfStyles.emptyMessage}>Keine Daten vorhanden</Text>
         )}
@@ -218,7 +245,7 @@ async function exportToExcel(data: HistoryRow[]): Promise<void> {
   ];
 
   const headerRow = sheet.getRow(1);
-  headerRow.eachCell((cell) => {
+  headerRow.eachCell((cell: Excel.Cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = {
       type: "pattern",
@@ -257,21 +284,155 @@ async function exportToExcel(data: HistoryRow[]): Promise<void> {
 }
 
 // =============================================================================
+// Shared sub-components
+// =============================================================================
+
+interface ExportButtonProps {
+  onClick: () => void;
+  dataCy: string;
+  icon: ReactNode;
+  label: string;
+  variant?: "primary" | "secondary";
+}
+
+function ExportButton({
+  onClick,
+  dataCy,
+  icon,
+  label,
+  variant = "primary",
+}: ExportButtonProps) {
+  const colorClass =
+    variant === "primary"
+      ? "bg-primary hover:bg-primary-dark"
+      : "bg-secondary hover:bg-secondary-dark";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-cy={dataCy}
+      className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white ${colorClass} rounded-lg transition-colors cursor-pointer`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function SortIcon({ direction }: { direction: "asc" | "desc" | false }) {
+  if (direction === "asc") return <ChevronUp size={14} />;
+  if (direction === "desc") return <ChevronDown size={14} />;
+  return <ChevronsUpDown size={14} className="text-muted-foreground/50" />;
+}
+
+// =============================================================================
+// Mobile card component
+// =============================================================================
+
+function MobileHistoryCard({
+  row,
+  isExpanded,
+  onToggle,
+}: {
+  row: HistoryRow;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden"
+      data-cy="history-mobile-card"
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-medium bg-blue-100 text-blue-700 rounded px-1.5 py-0.5 shrink-0">
+            {row.schoolGrade}
+          </span>
+          <span className="font-medium text-gray-800 truncate">
+            {row.lastName}, {row.firstName}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-3">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {row.borrowCount} Bücher
+          </span>
+          {isExpanded ? (
+            <ChevronUp size={16} className="text-gray-400" />
+          ) : (
+            <ChevronDown size={16} className="text-gray-400" />
+          )}
+        </div>
+      </button>
+      {isExpanded && (
+        <div className="border-t border-gray-100 px-4 py-3 flex flex-col gap-2">
+          {row.borrowedBooks.length === 0 ? (
+            <span className="text-sm text-gray-400">Keine Ausleihen</span>
+          ) : (
+            row.borrowedBooks.map((b, i) => (
+              <div
+                key={i}
+                className="flex flex-col gap-1 pb-2 border-b border-gray-50 last:border-0 last:pb-0"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-[11px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                    {b.loanDate}
+                  </span>
+                  <span className="font-mono text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                    #{b.bookId}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-700 leading-snug">
+                  {b.title}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
 // Page component
 // =============================================================================
 
 export default function UserHistory({ history, error }: HistoryPropsType) {
-  const [reportRows, setReportRows] = useState<HistoryRow[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [activeOnly, setActiveOnly] = useState(true);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (history) setReportRows(history);
-  }, [history]);
+  const toggleCard = (id: string) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Derive table data directly from the SSR prop — no useState/useEffect mirror needed
+  const tableData = useMemo(
+    () =>
+      activeOnly
+        ? (history ?? []).filter((r) => r.borrowCount > 0)
+        : (history ?? []),
+    [history, activeOnly],
+  );
 
   const allGrades = useMemo(() => {
-    const grades = new Set(history?.map((h) => h.schoolGrade).filter(Boolean));
+    const grades = new Set(
+      (history ?? [])
+        .map((h) => h.schoolGrade)
+        .filter((g): g is string => Boolean(g)),
+    );
     return Array.from(grades).sort();
   }, [history]);
 
@@ -335,9 +496,16 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
       {
         accessorKey: "borrowCount",
         size: COLUMN_WIDTHS.borrowCount,
-        header: () => (
+        header: ({ column }) => (
           <div className="flex flex-col gap-1.5 py-1 items-center">
-            <span className={headerClass}>Gesamt</span>
+            <button
+              type="button"
+              onClick={column.getToggleSortingHandler()}
+              className="flex items-center gap-1 cursor-pointer select-none group"
+            >
+              <span className={headerClass}>Gesamt</span>
+              <SortIcon direction={column.getIsSorted()} />
+            </button>
             <div className="h-6" />
           </div>
         ),
@@ -348,6 +516,8 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
       {
         accessorKey: "borrowedBooks",
         size: COLUMN_WIDTHS.borrowedBooks,
+        enableSorting: false,
+        enableColumnFilter: false,
         header: () => (
           <div className="flex flex-col gap-1.5 py-1">
             <span className={headerClass}>Ausleih-Historie</span>
@@ -371,7 +541,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                   <span className="font-mono text-amber-700 bg-amber-50 px-1 rounded whitespace-nowrap">
                     #{b.bookId}
                   </span>
-                  <span className="text-gray-700 leading-tight truncate">
+                  <span className="text-gray-700 leading-tight break-words min-w-0">
                     {b.title}
                   </span>
                 </div>
@@ -385,7 +555,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
   );
 
   const table = useReactTable({
-    data: reportRows,
+    data: tableData,
     columns,
     state: { sorting, columnFilters },
     onSortingChange: setSorting,
@@ -403,7 +573,10 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
       const data = table.getFilteredRowModel().rows.map((r) => r.original);
       await exportToPdf(data);
     } catch (err) {
-      console.error("PDF export failed:", err);
+      errorLogger.error(
+        { event: LogEvents.EXPORT_ERROR, error: String(err) },
+        "PDF export failed",
+      );
       setExportError("PDF-Export fehlgeschlagen. Bitte erneut versuchen.");
     }
   };
@@ -414,7 +587,10 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
       const data = table.getFilteredRowModel().rows.map((r) => r.original);
       await exportToExcel(data);
     } catch (err) {
-      console.error("Excel export failed:", err);
+      errorLogger.error(
+        { event: LogEvents.EXPORT_ERROR, error: String(err) },
+        "Excel export failed",
+      );
       setExportError("Excel-Export fehlgeschlagen. Bitte erneut versuchen.");
     }
   };
@@ -433,7 +609,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
           <p className="text-red-600 py-4" data-cy="history-error">
             Fehler beim Laden der Daten: {error}
           </p>
-        ) : reportRows.length > 0 ? (
+        ) : tableData.length > 0 || history?.length > 0 ? (
           <>
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
@@ -461,30 +637,42 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                 </h2>
               </div>
 
-              <div className="flex gap-2">
-                {" "}
-                <button
-                  type="button"
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Active-only toggle */}
+                <label
+                  className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none"
+                  data-cy="history-active-only-label"
+                >
+                  <input
+                    type="checkbox"
+                    checked={activeOnly}
+                    onChange={(e) => setActiveOnly(e.target.checked)}
+                    data-cy="history-active-only"
+                    className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  />
+                  Nur aktive Nutzer
+                </label>
+
+                <div className="h-5 w-px bg-gray-300" />
+
+                <ExportButton
                   onClick={handleExcelExport}
-                  data-cy="history-excel-export"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors cursor-pointer"
-                >
-                  <Download size={16} />
-                  Excel Export
-                </button>
-                <button
-                  type="button"
+                  dataCy="history-excel-export"
+                  icon={<Download size={16} />}
+                  label="Excel Export"
+                  variant="primary"
+                />
+                <ExportButton
                   onClick={handlePdfExport}
-                  data-cy="history-pdf-export"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-secondary rounded-lg hover:bg-secondary-dark transition-colors cursor-pointer"
-                >
-                  <FileText size={16} />
-                  PDF Export
-                </button>
+                  dataCy="history-pdf-export"
+                  icon={<FileText size={16} />}
+                  label="PDF Export"
+                  variant="secondary"
+                />
               </div>
             </div>
 
-            {/* Export error feedback */}
+            {/* Export feedback */}
             {exportError && (
               <p
                 className="text-red-600 text-sm mb-2"
@@ -494,10 +682,67 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               </p>
             )}
 
-            {/* Table */}
-            <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+            {/* Export scope hint */}
+            <p
+              className="text-xs text-muted-foreground mb-2"
+              data-cy="history-export-hint"
+            >
+              Export umfasst die aktuelle gefilterte Ansicht ({filteredCount}{" "}
+              Nutzer).
+            </p>
+
+            {/* Mobile filter bar — hidden on md+ */}
+            <div className="md:hidden flex flex-col gap-2 mb-3">
+              <div className="relative">
+                <Search
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={14}
+                />
+                <input
+                  type="text"
+                  value={
+                    (table.getColumn("fullName")?.getFilterValue() as string) ??
+                    ""
+                  }
+                  onChange={(e) =>
+                    table.getColumn("fullName")?.setFilterValue(e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape")
+                      table.getColumn("fullName")?.setFilterValue("");
+                  }}
+                  placeholder="Name suchen…"
+                  data-cy="history-mobile-name-filter"
+                  className="w-full text-sm border border-gray-200 rounded-lg pl-8 pr-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <select
+                value={
+                  (table
+                    .getColumn("schoolGrade")
+                    ?.getFilterValue() as string) ?? ""
+                }
+                onChange={(e) =>
+                  table
+                    .getColumn("schoolGrade")
+                    ?.setFilterValue(e.target.value || undefined)
+                }
+                data-cy="history-mobile-grade-filter"
+                className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">Alle Klassen</option>
+                {allGrades.map((grade) => (
+                  <option key={grade} value={grade}>
+                    {grade}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Desktop table — hidden on small screens */}
+            <div className="hidden md:block overflow-x-auto bg-white rounded-lg border border-gray-200">
               <table
-                className="w-full text-sm border-collapse table-fixed"
+                className="w-full text-sm border-collapse table-fixed min-w-[855px]"
                 data-cy="history-table"
               >
                 <thead>
@@ -553,6 +798,32 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               </table>
             </div>
 
+            {/* Mobile card list — hidden on md+ */}
+            <div
+              className="md:hidden flex flex-col gap-2"
+              data-cy="history-mobile-list"
+            >
+              {table.getRowModel().rows.length > 0 ? (
+                table
+                  .getRowModel()
+                  .rows.map((row) => (
+                    <MobileHistoryCard
+                      key={row.id}
+                      row={row.original}
+                      isExpanded={expandedCards.has(row.id)}
+                      onToggle={() => toggleCard(row.id)}
+                    />
+                  ))
+              ) : (
+                <p
+                  className="text-center py-8 text-muted-foreground"
+                  data-cy="history-no-results"
+                >
+                  Keine Ergebnisse für diesen Filter
+                </p>
+              )}
+            </div>
+
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -560,6 +831,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
+                  data-cy="history-page-size"
                   className="border border-gray-200 rounded-md px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   {[25, 50, 100].map((size) => (
@@ -579,6 +851,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     type="button"
                     onClick={() => table.firstPage()}
                     disabled={!table.getCanPreviousPage()}
+                    data-cy="history-page-first"
                     className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     «
@@ -587,6 +860,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     type="button"
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
+                    data-cy="history-page-prev"
                     className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     ‹
@@ -595,6 +869,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     type="button"
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
+                    data-cy="history-page-next"
                     className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     ›
@@ -603,6 +878,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     type="button"
                     onClick={() => table.lastPage()}
                     disabled={!table.getCanNextPage()}
+                    data-cy="history-page-last"
                     className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     »
