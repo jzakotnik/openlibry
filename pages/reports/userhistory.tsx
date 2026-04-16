@@ -452,6 +452,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               onChange={(e) =>
                 column.setFilterValue(e.target.value || undefined)
               }
+              data-cy="history-grade-filter"
               className="font-normal text-xs border border-gray-300 rounded px-1 py-1 bg-white outline-none focus:ring-1 focus:ring-primary text-black w-20"
             >
               <option value="">Alle</option>
@@ -487,6 +488,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                   }
                 }}
                 placeholder="Name tippen..."
+                data-cy="history-name-filter"
                 className="w-full font-normal text-xs border border-gray-200 rounded pl-7 pr-2 py-1 bg-white outline-none focus:ring-1 focus:ring-primary text-black"
               />
             </div>
