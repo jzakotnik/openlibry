@@ -4,6 +4,8 @@ import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
+import fs from 'fs/promises';
+import path from "path";
 import { addAudit } from "./audit";
 import { getUser } from "./user";
 
@@ -258,11 +260,34 @@ export async function updateBook(
 export async function deleteBook(client: PrismaClient, id: number) {
   try {
     await addAudit(client, "Delete book", id.toString(), id);
-    return await client.book.delete({
+    const deletedBook = await client.book.delete({
       where: {
         id,
       },
     });
+
+    const storagePath = process.env.COVERIMAGE_FILESTORAGE_PATH;
+
+    if (storagePath) {
+      const fileName = `${id}.jpg`;
+      const filePath = path.join(storagePath, fileName);
+
+      try {
+        // Löschversuch der .jpg Datei
+        await fs.unlink(filePath);
+      } catch (fileError: any) {
+        // Falls die Datei gar nicht existiert, ignorieren.
+        if (fileError.code !== 'ENOENT') {
+          errorLogger.warn(
+            { 
+              bookId: id, error: fileError.message, path: filePath 
+            }, 
+            "Bilddatei konnte nicht gelöscht werden"
+          );
+        }
+      }
+    }
+    return deletedBook;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
