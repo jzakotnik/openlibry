@@ -53,6 +53,7 @@ export const LogEvents = {
   REMINDER_TEMPLATE_LOADED: "report.template.loaded",
   REMINDER_TEMPLATE_NOT_FOUND: "report.template.notfound",
   REMINDER_GENERATE: "report.reminder.generate",
+  EXPORT_ERROR: "report.history.error",
 
   // Import operations
   IMPORT_EXCEL_STARTED: "import.excel.started",
