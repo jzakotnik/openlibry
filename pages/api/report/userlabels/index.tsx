@@ -233,13 +233,15 @@ const generateBarcode = async (id: string) => {
 
   try {
     const png = await bwipjs.toBuffer({
-      bcid: BARCODE_SETTINGS[4], // Barcode type (e.g., 'code128')
-      text: barId,
+      bcid: BARCODE_SETTINGS[4],
+      text: barcodePrefix + barId + barcodeSuffix,
+      alttext: barId, // Zeigt unten nur die Nummer an
       scale: 3,
+      parse: true,
       height: 10,
       includetext: true,
       textxalign: "center",
-    });
+  });
 
     return (
       <PdfImage
