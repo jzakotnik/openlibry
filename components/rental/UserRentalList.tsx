@@ -74,8 +74,11 @@ export default function UserRentalList({
   const reorderedUsers = useMemo(() => {
     if (userExpanded === false) return filteredUsers;
 
+    const expandedUser = filteredUsers.find((u) => u.id === userExpanded);
+    if (!expandedUser) return filteredUsers; // user filtered out — don't prepend undefined
+
     return [
-      filteredUsers.find((u) => u.id === userExpanded)!,
+      expandedUser,
       ...filteredUsers.filter((u) => u.id !== userExpanded),
     ];
   }, [filteredUsers, userExpanded]);
@@ -89,6 +92,7 @@ export default function UserRentalList({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserSearchInput(e.target.value);
+    setUserExpanded(false);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent) => {

@@ -4,7 +4,7 @@ import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
-import fs from 'fs/promises';
+import fs from "fs/promises";
 import path from "path";
 import { addAudit } from "./audit";
 import { getUser } from "./user";
@@ -277,12 +277,14 @@ export async function deleteBook(client: PrismaClient, id: number) {
         await fs.unlink(filePath);
       } catch (fileError: any) {
         // Falls die Datei gar nicht existiert, ignorieren.
-        if (fileError.code !== 'ENOENT') {
+        if (fileError.code !== "ENOENT") {
           errorLogger.warn(
-            { 
-              bookId: id, error: fileError.message, path: filePath 
-            }, 
-            "Bilddatei konnte nicht gelöscht werden"
+            {
+              bookId: id,
+              error: fileError.message,
+              path: filePath,
+            },
+            "Bilddatei konnte nicht gelöscht werden",
           );
         }
       }
@@ -337,8 +339,10 @@ export async function extendBook(
     const book = await getBook(client, bookid);
     if (!book?.dueDate) return null; // you can't extend a book without a due date
 
-    const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
-
+    //
+    // this was using the last due date instead of today
+    // const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
+    const updatedDueDate = dayjs().add(days, "day").toISOString();
     const updatedBook = await client.book.update({
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
