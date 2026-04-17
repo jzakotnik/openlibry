@@ -4,7 +4,7 @@
 // Rental extension tests
 //
 // Extend path: POST /api/book/{id}/extend
-//   → newDueDate = currentDueDate + EXTENSION_DURATION_DAYS
+//   → newDueDate = today + EXTENSION_DURATION_DAYS
 // Rent   path: POST /api/book/{id}/user/{userid}
 //   → newDueDate = today + RENTAL_DURATION_DAYS
 //
@@ -129,7 +129,6 @@ describe("Rental extension logic", () => {
     });
 
     // ── DOM check after reload ────────────────────────────────────────────
-    // reload() stays on /rental — navigate home first to find index_rental_button
     cy.visit("/");
     cy.get("[data-cy=index_rental_button]").click();
     cy.get("[data-cy=book_search_input]").type(String(bookAId));
@@ -141,17 +140,18 @@ describe("Rental extension logic", () => {
   // ═══════════════════════════════════════════════════════════════════════════
   // 2. EXTENSION – user column (UserRentalList)
   //    POST /api/book/{id}/extend
-  //    Expected due date: currentDueDate + EXTENSION_DURATION_DAYS
+  //    Expected due date: today + EXTENSION_DURATION_DAYS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  it("extends Book B (user column) and verifies due date = currentDueDate + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB BEFORE extending
+  it("extends Book B (user column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
+    // Read current dueDate from DB before extending — used as wrongDue to
+    // confirm the old "anchor off dueDate" behaviour is no longer happening.
     cy.task("verifyBook", bookBUserColId).then((bookBefore: any) => {
-      const currentDueDate = new Date(bookBefore.dueDate);
-      const expectedDue = formatDE(
-        addDays(EXTENSION_DURATION_DAYS, currentDueDate),
+      const previousDueDate = new Date(bookBefore.dueDate);
+      const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const wrongDue = formatDE(
+        addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
-      const wrongDue = formatDE(addDays(RENTAL_DURATION_DAYS));
 
       openRentalUserAccordion();
 
@@ -172,17 +172,16 @@ describe("Rental extension logic", () => {
         const dbDue = formatDE(new Date(bookAfter.dueDate));
         expect(
           dbDue,
-          "dueDate should equal currentDueDate + EXTENSION_DURATION_DAYS",
+          "dueDate should equal today + EXTENSION_DURATION_DAYS",
         ).to.equal(expectedDue);
         expect(
           dbDue,
-          "dueDate must NOT equal today + RENTAL_DURATION_DAYS",
+          "dueDate must NOT equal previousDueDate + EXTENSION_DURATION_DAYS",
         ).to.not.equal(wrongDue);
         expect(bookAfter.renewalCount).to.equal(1);
       });
 
       // ── DOM check after reload ──────────────────────────────────────────
-      // reload() stays on /rental — navigate home first so openRentalUserAccordion works
       cy.visit("/");
       openRentalUserAccordion();
       cy.get(`[data-cy=rental_book_details_${bookBUserColId}]`, {
@@ -195,17 +194,16 @@ describe("Rental extension logic", () => {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 3. EXTENSION – book column (BookRentalList)
-  //    Expected due date: currentDueDate + EXTENSION_DURATION_DAYS
+  //    Expected due date: today + EXTENSION_DURATION_DAYS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  it("extends Book B (book column) and verifies due date = currentDueDate + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB BEFORE extending
+  it("extends Book B (book column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
     cy.task("verifyBook", bookBBookColId).then((bookBefore: any) => {
-      const currentDueDate = new Date(bookBefore.dueDate);
-      const expectedDue = formatDE(
-        addDays(EXTENSION_DURATION_DAYS, currentDueDate),
+      const previousDueDate = new Date(bookBefore.dueDate);
+      const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const wrongDue = formatDE(
+        addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
-      const wrongDue = formatDE(addDays(RENTAL_DURATION_DAYS));
 
       cy.get("[data-cy=index_rental_button]").click();
       cy.url().should("include", "/rental");
@@ -231,17 +229,16 @@ describe("Rental extension logic", () => {
         const dbDue = formatDE(new Date(bookAfter.dueDate));
         expect(
           dbDue,
-          "dueDate should equal currentDueDate + EXTENSION_DURATION_DAYS",
+          "dueDate should equal today + EXTENSION_DURATION_DAYS",
         ).to.equal(expectedDue);
         expect(
           dbDue,
-          "dueDate must NOT equal today + RENTAL_DURATION_DAYS",
+          "dueDate must NOT equal previousDueDate + EXTENSION_DURATION_DAYS",
         ).to.not.equal(wrongDue);
         expect(bookAfter.renewalCount).to.equal(1);
       });
 
       // ── DOM check after reload ──────────────────────────────────────────
-      // reload() stays on /rental — navigate home first to find index_rental_button
       cy.visit("/");
       cy.get("[data-cy=index_rental_button]").click();
       cy.get("[data-cy=book_search_input]").type(String(bookBBookColId));
@@ -254,17 +251,16 @@ describe("Rental extension logic", () => {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 4. EXTENSION – /user/[id] detail page (UserEditForm)
-  //    Expected due date: currentDueDate + EXTENSION_DURATION_DAYS
+  //    Expected due date: today + EXTENSION_DURATION_DAYS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  it("extends Book B from the user detail page and verifies due date = currentDueDate + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB BEFORE extending
+  it("extends Book B from the user detail page and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
     cy.task("verifyBook", bookBUserPageId).then((bookBefore: any) => {
-      const currentDueDate = new Date(bookBefore.dueDate);
-      const expectedDue = formatDE(
-        addDays(EXTENSION_DURATION_DAYS, currentDueDate),
+      const previousDueDate = new Date(bookBefore.dueDate);
+      const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const wrongDue = formatDE(
+        addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
-      const wrongDue = formatDE(addDays(RENTAL_DURATION_DAYS));
 
       cy.visit(`/user/${userId}`);
       cy.url().should("include", `/user/${userId}`);
@@ -287,11 +283,11 @@ describe("Rental extension logic", () => {
         const dbDue = formatDE(new Date(bookAfter.dueDate));
         expect(
           dbDue,
-          "dueDate should equal currentDueDate + EXTENSION_DURATION_DAYS",
+          "dueDate should equal today + EXTENSION_DURATION_DAYS",
         ).to.equal(expectedDue);
         expect(
           dbDue,
-          "dueDate must NOT equal today + RENTAL_DURATION_DAYS",
+          "dueDate must NOT equal previousDueDate + EXTENSION_DURATION_DAYS",
         ).to.not.equal(wrongDue);
         expect(bookAfter.renewalCount).to.equal(1);
       });
