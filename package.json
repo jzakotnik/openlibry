@@ -1,6 +1,6 @@
 {
   "name": "openlibry",
-  "version": "1.9",
+  "version": "1.9.1",
   "private": false,
   "scripts": {
     "dev": "next dev --turbopack",
