@@ -1,7 +1,7 @@
+import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
-
 import {
   Document,
   Image,
@@ -318,16 +318,7 @@ export default async function handler(
 
   try {
     // ── 1. Fetch all books ─────────────────────────────────────────────────
-    const rawBooks = await prisma.book.findMany({
-      select: {
-        id: true,
-        isbn: true,
-        title: true,
-        subtitle: true,
-        author: true,
-      },
-      orderBy: [{ author: "asc" }, { title: "asc" }],
-    });
+    const rawBooks = await getAllBooks(prisma);
 
     // ── 2. Normalise strings + resolve/compress covers in parallel ────────
     const books: BookEntry[] = await Promise.all(
