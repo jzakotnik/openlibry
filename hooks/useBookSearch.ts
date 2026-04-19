@@ -6,6 +6,7 @@ import { BookType } from "@/entities/BookType";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import { stripZerosFromSearch } from "@/lib/utils/lookups";
+import { promoteExactIdMatch } from "@/lib/utils/searchUtils";
 
 const SEARCHABLE_FIELDS = [
   "title",
@@ -74,7 +75,10 @@ export function useBookSearch(
           ...(sort ? { sort } : {}),
           query: stripZerosFromSearch(query),
         });
-        setRenderedBooks(result.data.items as BookType[]);
+        const items = result.data.items as BookType[];
+        // ↓ exact-ID promotion: keeps itemsjs ranking for everything else
+        const ranked = promoteExactIdMatch(items, query);
+        setRenderedBooks(ranked);
         setResultCount(result.pagination.total);
       } catch (err) {
         errorLogger.error({ err, query }, LogEvents.SEARCH_ERROR);
