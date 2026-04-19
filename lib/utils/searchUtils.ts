@@ -1,3 +1,4 @@
+import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 
@@ -93,4 +94,26 @@ export function booksForUser(
   const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
   //console.log("Filtered rentals", userRentals);
   return userRentals;
+}
+
+/**
+ * If the query is a pure integer that exactly matches a book's numeric id,
+ * move that book to the front of the result list.
+ * All other books keep their original itemsjs relevance order.
+ */
+export function promoteExactIdMatch(
+  books: BookType[],
+  query: string,
+): BookType[] {
+  const trimmed = query.trim();
+  if (!/^\d+$/.test(trimmed)) return books; // not a bare integer — nothing to promote
+
+  const targetId = parseInt(trimmed, 10);
+  const exactIdx = books.findIndex((b) => b.id === targetId);
+
+  if (exactIdx <= 0) return books; // already first or not found
+  const promoted = books[exactIdx];
+  const rest = [...books];
+  rest.splice(exactIdx, 1);
+  return [promoted, ...rest];
 }
