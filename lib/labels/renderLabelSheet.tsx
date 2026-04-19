@@ -190,8 +190,8 @@ async function generateBarcodeDataUri(text: string): Promise<string | null> {
       text: padded,
       scale: 3,
       height: 10, // shorter bars → wider aspect ratio when rendered
-      includetext: true,
-      textxalign: "center",
+      //includetext: false,
+      //textxalign: "center",
       paddingleft: 1, // remove quiet zone — label margin is sufficient
       paddingright: 1,
     });
@@ -393,28 +393,28 @@ function HorizontalField({
     if (!barcodeUri) {
       return <View style={{ width: mm(widthMm), height: mm(heightMm) }} />;
     }
+    const barcodeText = book.id?.padStart(BARCODE_MIN_LENGTH, "0") ?? "";
+    const textHeight = 5; // mm — reserve space for the number
+    const imageHeight = heightMm - textHeight;
     return (
-      <View
-        style={{
-          width: mm(widthMm),
-          height: mm(heightMm),
-          justifyContent: "center",
-          alignItems:
-            fieldConfig.align === "left"
-              ? "flex-start"
-              : fieldConfig.align === "right"
-                ? "flex-end"
-                : "center",
-        }}
-      >
+      <View style={{ width: mm(widthMm), height: mm(heightMm) }}>
         <PdfImage
           src={barcodeUri}
           style={{
             width: mm(widthMm),
-            height: mm(heightMm),
-            objectFit: "fill", // ← was "contain"; fill stretches to full width
+            height: mm(imageHeight),
+            objectFit: "fill", // bars-only image can safely stretch
           }}
         />
+        <Text
+          style={{
+            fontSize: 7,
+            textAlign: "center",
+            width: mm(widthMm),
+          }}
+        >
+          {barcodeText}
+        </Text>
       </View>
     );
   }
