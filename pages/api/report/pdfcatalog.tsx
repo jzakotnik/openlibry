@@ -39,6 +39,7 @@ interface BookEntry {
  */
 const THUMB_WIDTH = 80;
 const THUMB_HEIGHT = 112; // ~portrait A5 aspect ratio
+const SCHOOL_NAME = process.env.SCHOOL_NAME || "";
 
 /**
  * Compress an image buffer with sharp:
@@ -231,12 +232,14 @@ const CatalogDocument = ({ books }: { books: BookEntry[] }) => {
     <Document
       title="Bibliothekskatalog"
       author="OpenLibry"
-      subject={`Katalogübersicht vom ${today}`}
+      subject={`Katalogübersicht ${SCHOOL_NAME} ${today}`}
     >
       <Page size="A4" style={styles.page} wrap>
         {/* ── Header ── */}
         <View style={styles.header} fixed>
-          <Text style={styles.headerTitle}>Bibliothekskatalog</Text>
+          <Text style={styles.headerTitle}>
+            Bibliothekskatalog {SCHOOL_NAME}
+          </Text>
           <Text style={styles.headerMeta}>
             {books.length} Bücher{"\n"}Stand: {today}
           </Text>
