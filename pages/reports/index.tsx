@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import BookLabelEditorCard from "@/components/labels/BookLabelEditorCard";
 import BookLabelPrintCard from "@/components/labels/BookLabelPrintCard";
 import ExcelCard from "@/components/reports/cards/ExcelCard";
+import PdfCatalogCard from "@/components/reports/cards/PdfCatalogCard";
 import ReminderCard from "@/components/reports/cards/ReminderCard";
 import ReportCard from "@/components/reports/cards/ReportCard";
 import UserLabelsCard from "@/components/reports/cards/UserLabelsCard";
@@ -122,6 +123,8 @@ export default function Reports({
           overdueCount={overdueCount}
           nonExtendableCount={nonExtendableCount}
         />
+
+        <PdfCatalogCard />
       </div>
       <TagCloudDashboard tagsSet={tagSet} />
     </Layout>
