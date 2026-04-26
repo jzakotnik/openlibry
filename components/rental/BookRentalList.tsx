@@ -21,6 +21,7 @@ import React, { useCallback } from "react";
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { t } from "@/lib/i18n";
 import userNameforBook from "@/lib/utils/lookups";
 import { canExtendBook } from "@/lib/utils/rentalUtils";
 import { toast } from "sonner";
@@ -65,8 +66,8 @@ const BookList = React.memo(function BookList({
       {renderedBooks.slice(0, 100).map((b: BookType) => {
         const allowExtendBookRent = canExtendBook(b, maxExtensions);
         const extendTooltip = allowExtendBookRent
-          ? "Verlängern"
-          : "Maximale Ausleihzeit erreicht";
+          ? t("rental.extend")
+          : t("rental.maxExtensionReached");
         const isRented = b.rentalStatus !== "available";
 
         return (
@@ -104,7 +105,7 @@ const BookList = React.memo(function BookList({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          aria-label="extend"
+                          aria-label={t("rental.extendAria")}
                           disabled={!allowExtendBookRent}
                           onClick={() => handleExtendBookButton(b.id!, b)}
                           data-cy={`book_extend_button_${b.id}`}
@@ -126,14 +127,14 @@ const BookList = React.memo(function BookList({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleReturnBookButton(b.id!, b.userId!)}
-                        aria-label="zurückgeben"
+                        aria-label={t("rental.returnAria")}
                         data-cy={`book_return_button_${b.id}`}
                         className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <CircleArrowLeft className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Zurückgeben</TooltipContent>
+                    <TooltipContent>{t("rental.return")}</TooltipContent>
                   </Tooltip>
                 )}
 
@@ -147,14 +148,14 @@ const BookList = React.memo(function BookList({
                         onClick={() =>
                           handleRentBookButton(b.id!, userExpanded)
                         }
-                        aria-label="ausleihen"
+                        aria-label={t("rental.rentAria")}
                         data-cy={`book_rent_button_${b.id}`}
                         className="h-8 w-8 text-primary hover:bg-primary/10"
                       >
                         <ListPlus className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Ausleihen</TooltipContent>
+                    <TooltipContent>{t("rental.rent")}</TooltipContent>
                   </Tooltip>
                 )}
               </div>
@@ -181,13 +182,14 @@ const BookList = React.memo(function BookList({
                 className="text-xs text-muted-foreground"
                 data-cy={`book_info_${b.id}`}
               >
-                Nr. {b.id}
+                {t("rental.bookNumberPrefix")} {b.id}
                 {isRented && b.rentalStatus !== "lost" && (
                   <span>
                     {" "}
-                    — ausgeliehen bis {dayjs(b.dueDate).format(
-                      "DD.MM.YYYY",
-                    )} an {userNameforBook(users, b.userId!)}
+                    — {t("rental.bookRentedUntil")}{" "}
+                    {dayjs(b.dueDate).format("DD.MM.YYYY")}{" "}
+                    {t("rental.bookRentedTo")}{" "}
+                    {userNameforBook(users, b.userId!)}
                   </span>
                 )}
                 {!isRented && <span> — {b.author}</span>}
@@ -252,9 +254,9 @@ export default function BookRentalList({
           handleRentBookButton(book.id!, userExpanded);
           handleClear();
         } else if (book) {
-          toast.warning(`Buch ${bookId} ist bereits ausgeliehen`);
+          toast.warning(t("rental.toastAlreadyRented", { bookId }));
         } else {
-          toast.warning(`Buch ${bookId} nicht gefunden`);
+          toast.warning(t("rental.toastBookNotFound", { bookId }));
         }
       }
     },
@@ -281,9 +283,9 @@ export default function BookRentalList({
             value={bookSearchInput}
             onChange={handleInputChangeEvent}
             onKeyUp={handleKeyUp}
-            placeholder="Suche Buch"
+            placeholder={t("rental.searchBookPlaceholder")}
             data-cy="book_search_input"
-            aria-label="search books"
+            aria-label={t("rental.searchBooksAria")}
             className="pl-9 pr-9"
           />
           {bookSearchInput && (
@@ -294,13 +296,13 @@ export default function BookRentalList({
                   size="icon"
                   onMouseDown={handleClearMouseDown}
                   data-cy="book_search_clear_button"
-                  aria-label="Suche löschen"
+                  aria-label={t("rental.clearSearch")}
                   className="absolute right-1 h-6 w-6"
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Suche löschen</TooltipContent>
+              <TooltipContent>{t("rental.clearSearch")}</TooltipContent>
             </Tooltip>
           )}
         </div>
