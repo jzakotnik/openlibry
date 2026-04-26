@@ -9,6 +9,9 @@ import type { Dictionary } from "./de";
  * "OpenLibry" is a brand name and stays unchanged across locales.
  */
 export const en: Dictionary = {
+  app: {
+    title: "OpenLibry Library",
+  },
   topbar: {
     brand: "OpenLibry",
     tagline: "Library Management",
@@ -34,5 +37,61 @@ export const en: Dictionary = {
       title: "Reports",
       subtitle: "Inventory overview",
     },
+  },
+  home: {
+    chooseSection: "Choose a section to get started",
+  },
+  rental: {
+    searchBookPlaceholder: "Search book",
+    searchUserPlaceholder: "Search user",
+    clearSearch: "Clear search",
+    searchBooksAria: "search books",
+    searchUsersAria: "search users",
+
+    extend: "Extend",
+    extendAria: "extend",
+    maxExtensionReached: "Maximum lending time reached",
+    return: "Return",
+    returnAria: "return",
+    rent: "Lend out",
+    rentAria: "lend",
+
+    noUsersFound: "No users found",
+    cancelSelection: "Clear selection",
+    searchSettings: "Search settings",
+    searchSettingsAria: "search-settings",
+
+    bookSingular: "book",
+    bookPlural: "books",
+
+    userMetaPrefix: "No.",
+    userMetaGrade: "Grade",
+
+    noBorrowedBooks: "No borrowed books",
+
+    bookNumberPrefix: "No.",
+    bookRentedUntil: "lent until",
+    bookRentedTo: "to",
+    rentalUntilPrefix: "until",
+    renewalCountSuffix: "× renewed",
+
+    toastAlreadyRented: "Book {bookId} is already lent out",
+    toastBookNotFound: "Book {bookId} not found",
+  },
+  rentSearchParams: {
+    overdue: "Overdue",
+    grade: "Grade",
+  },
+  rentalPage: {
+    serverReachableButFailed:
+      "Something went wrong, but the server is reachable",
+    serverUnreachable:
+      "Server unreachable. Is the internet connection OK?",
+
+    bookReturned: "Book - {title} - returned",
+    bookAlreadyMaxExtended:
+      "Book - {title} - has already been extended to the maximum",
+    bookExtended: "Book - {title} - extended",
+    bookRented: "Book {title} lent out",
   },
 };
