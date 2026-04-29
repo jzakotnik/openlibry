@@ -73,7 +73,10 @@ export const LogEvents = {
   COVER_FETCH_ATTEMPT: "cover.fetch.attempt",
   COVER_FETCHED_DNB: "cover.fetched.dnb",
   COVER_FETCHED_OPENLIBRARY: "cover.fetched.openlibrary",
+  COVER_FETCHED_GOOGLE: "cover.fetched.google",
   COVER_FETCH_FAILED: "cover.fetch.failed",
+  //Cover-Resize-Errors
+  IMAGE_PROCESSING_ERROR: "image.processing.error",
   //manual upload events
   COVER_UPLOAD_ERROR: "cover.upload.error",
   COVER_UPLOAD_FIELD: "cover.upload.field",
