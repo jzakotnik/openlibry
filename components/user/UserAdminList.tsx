@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import dayjs from "dayjs";
@@ -128,13 +129,13 @@ export default function UserAdminList({
       <div className="rounded-lg bg-primary/5 px-3 py-6 text-center">
         <p className="mb-1 text-base text-muted-foreground">
           {searchString
-            ? "Keine Benutzer gefunden"
-            : "Noch keine Benutzer vorhanden"}
+            ? t("userAdminList.noUsersSearch")
+            : t("userAdminList.noUsersEmpty")}
         </p>
         <p className="text-sm text-muted-foreground/60">
           {searchString
-            ? "Versuche einen anderen Suchbegriff"
-            : "Erstelle einen neuen Benutzer um zu beginnen"}
+            ? t("userAdminList.tryDifferentSearch")
+            : t("userAdminList.createNewToBegin")}
         </p>
       </div>
     );
@@ -187,8 +188,10 @@ export default function UserAdminList({
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          {rentalCount} {rentalCount === 1 ? "Buch" : "Bücher"}{" "}
-                          ausgeliehen
+                          {rentalCount}{" "}
+                          {rentalCount === 1
+                            ? t("userAdminList.booksRentedSingular")
+                            : t("userAdminList.booksRentedPlural")}
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -208,7 +211,7 @@ export default function UserAdminList({
                               />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Hat überfällige Bücher</p>
+                              <p>{t("userAdminList.hasOverdue")}</p>
                             </TooltipContent>
                           </Tooltip>
                         )}
@@ -219,7 +222,7 @@ export default function UserAdminList({
                           className="text-muted-foreground/50"
                         />
                         <span className="text-xs text-muted-foreground">
-                          Klasse {user.schoolGrade}
+                          {t("userAdminList.gradePrefix")} {user.schoolGrade}
                           {user.schoolTeacherName &&
                             ` · ${user.schoolTeacherName}`}
                         </span>
@@ -231,7 +234,7 @@ export default function UserAdminList({
                       variant="secondary"
                       className="hidden shrink-0 bg-primary/10 text-[0.7rem] text-muted-foreground sm:inline-flex"
                     >
-                      Nr. {user.id}
+                      {t("userAdminList.metaPrefix")} {user.id}
                     </Badge>
 
                     {/* Custom chevron */}
@@ -248,7 +251,7 @@ export default function UserAdminList({
                     <div className="mb-2.5 flex items-center gap-2">
                       <BookOpen size={16} className="text-primary" />
                       <span className="text-sm font-semibold text-primary">
-                        Ausgeliehene Bücher
+                        {t("userAdminList.rentalSection")}
                       </span>
                     </div>
 
@@ -256,7 +259,7 @@ export default function UserAdminList({
                     {userRentals.length === 0 ? (
                       <div className="rounded-md bg-success/15 px-3 py-2.5 text-center">
                         <span className="text-sm font-medium text-success">
-                          Keine ausgeliehenen Bücher
+                          {t("userAdminList.noBorrowedBooks")}
                         </span>
                       </div>
                     ) : (
@@ -310,7 +313,7 @@ export default function UserAdminList({
                           data-cy="user_card_editbutton"
                         >
                           <Pencil size={14} />
-                          Editieren
+                          {t("userAdminList.edit")}
                         </Button>
                       </Link>
 
@@ -332,7 +335,7 @@ export default function UserAdminList({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Benutzerlabel drucken</p>
+                          <p>{t("userAdminList.printUserLabel")}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>

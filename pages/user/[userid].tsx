@@ -6,6 +6,7 @@ import { prisma } from "@/entities/db";
 import { getUser } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { t } from "@/lib/i18n";
 import {
   convertDateToDayString,
   replaceUserDateString,
@@ -44,7 +45,7 @@ export default function UserDetail({
     return (
       <Layout>
         <div className="flex items-center justify-center py-20 text-gray-400">
-          ID nicht gefunden
+          {t("userDetailPage.idNotFound")}
         </div>
       </Layout>
     );
@@ -69,7 +70,10 @@ export default function UserDetail({
       .then((res) => res.json())
       .then(() => {
         toast.success(
-          `Nutzer ${userData.firstName} ${userData.lastName} gespeichert`,
+          t("userDetailPage.toastUserSaved", {
+            firstName: userData.firstName ?? "",
+            lastName: userData.lastName ?? "",
+          }),
         );
         router.push("/user");
       });
@@ -85,7 +89,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        toast.success("Buch zurückgegeben, super!");
+        toast.success(t("userDetailPage.toastBookReturned"));
       });
   };
 
@@ -94,18 +98,18 @@ export default function UserDetail({
 
     if (result.status === "already_extended") {
       toast.info(
-        `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
+        t("userDetailPage.toastBookAlreadyMaxExtended", {
+          title: book.title ?? "",
+        }),
       );
       return;
     }
     if (result.status === "error") {
-      toast.error(
-        "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-      );
+      toast.error(t("userDetailPage.toastServerReachableButFailed"));
       return;
     }
 
-    toast.success("Buch verlängert, super!");
+    toast.success(t("userDetailPage.toastBookExtended"));
     // Use the server's computed date instead of guessing client-side
     setUserBooks((prev) =>
       prev.map((b) =>
@@ -130,7 +134,7 @@ export default function UserDetail({
       .then((res) => res.json())
       .then((data) => {
         console.log("Delete operation performed on ", userid, data);
-        toast.success("Nutzer gelöscht!");
+        toast.success(t("userDetailPage.toastUserDeleted"));
         router.push("/user");
       });
   };

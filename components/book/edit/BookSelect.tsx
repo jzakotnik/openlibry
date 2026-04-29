@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
+import { t } from "@/lib/i18n";
 import { Dispatch } from "react";
 
 type SelectOption = {
@@ -88,10 +89,10 @@ export const rentalStatusOptions: SelectOption[] = [
 }));
 
 export const renewalCountOptions: SelectOption[] = [
-  { value: 0, label: "Nicht verlängert" },
-  { value: 1, label: "1x verlängert" },
-  { value: 2, label: "2x verlängert" },
-  { value: 3, label: "3x verlängert" },
-  { value: 4, label: "4x verlängert" },
-  { value: 5, label: "5x verlängert" },
+  { value: 0, label: t("bookSelect.renewalNone") },
+  { value: 1, label: t("bookSelect.renewalCountFormat", { n: 1 }) },
+  { value: 2, label: t("bookSelect.renewalCountFormat", { n: 2 }) },
+  { value: 3, label: t("bookSelect.renewalCountFormat", { n: 3 }) },
+  { value: 4, label: t("bookSelect.renewalCountFormat", { n: 4 }) },
+  { value: 5, label: t("bookSelect.renewalCountFormat", { n: 5 }) },
 ];

@@ -15,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
@@ -38,6 +39,8 @@ export default function UserSearchFilters({
   const [selectedGrade, setSelectedGrade] = useState<string>("");
 
   useEffect(() => {
+    // NOTE: "fällig?" and "klasse?" are NOT display strings — they are
+    // filter-query tokens parsed by filterUsers(). Do not translate them.
     const parts: string[] = [];
     if (isOverdue) parts.push("fällig?");
     if (selectedGrade) parts.push(`klasse?${selectedGrade}`);
@@ -65,13 +68,15 @@ export default function UserSearchFilters({
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-primary" />
-            <span className="text-sm font-semibold text-primary">Filter</span>
+            <span className="text-sm font-semibold text-primary">
+              {t("userSearchFilters.filter")}
+            </span>
             {hasActiveFilters && (
               <Badge
                 variant="secondary"
                 className="h-[18px] bg-primary/15 px-1.5 text-[0.65rem] text-primary"
               >
-                Aktiv
+                {t("userSearchFilters.active")}
               </Badge>
             )}
           </div>
@@ -86,11 +91,11 @@ export default function UserSearchFilters({
                   className="h-6 gap-1.5 px-2 text-xs text-muted-foreground"
                 >
                   <RotateCcw size={12} />
-                  Zurücksetzen
+                  {t("userSearchFilters.reset")}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Filter zurücksetzen</p>
+                <p>{t("userSearchFilters.resetTooltip")}</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -101,7 +106,7 @@ export default function UserSearchFilters({
           {/* Overdue Toggle */}
           <div className="flex-1">
             <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              Status
+              {t("userSearchFilters.status")}
             </Label>
             <Toggle
               pressed={isOverdue}
@@ -113,14 +118,14 @@ export default function UserSearchFilters({
               )}
             >
               <AlertTriangle size={16} />
-              Nur überfällige
+              {t("userSearchFilters.onlyOverdue")}
             </Toggle>
           </div>
 
           {/* Grade Dropdown */}
           <div className="flex-1">
             <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              Klasse
+              {t("userSearchFilters.grade")}
             </Label>
             <Select
               value={selectedGrade || "__all__"}
@@ -143,16 +148,20 @@ export default function UserSearchFilters({
                         : "text-muted-foreground/50"
                     }
                   />
-                  <SelectValue placeholder="Alle Klassen" />
+                  <SelectValue
+                    placeholder={t("userSearchFilters.allGrades")}
+                  />
                 </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">
-                  <span className="text-muted-foreground">Alle Klassen</span>
+                  <span className="text-muted-foreground">
+                    {t("userSearchFilters.allGrades")}
+                  </span>
                 </SelectItem>
                 {sortedGrades.map((grade) => (
                   <SelectItem key={grade} value={grade}>
-                    Klasse {grade}
+                    {t("userSearchFilters.gradeChipPrefix")} {grade}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -168,7 +177,7 @@ export default function UserSearchFilters({
                 variant="secondary"
                 className="gap-1 bg-warning/10 pr-1 text-warning"
               >
-                Überfällig
+                {t("userSearchFilters.overdueChip")}
                 <button
                   type="button"
                   onClick={() => setIsOverdue(false)}
@@ -183,7 +192,7 @@ export default function UserSearchFilters({
                 variant="secondary"
                 className="gap-1 bg-primary/10 pr-1 text-primary"
               >
-                Klasse {selectedGrade}
+                {t("userSearchFilters.gradeChipPrefix")} {selectedGrade}
                 <button
                   type="button"
                   onClick={() => setSelectedGrade("")}
