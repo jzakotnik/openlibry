@@ -31,7 +31,7 @@ export default async function handler(
 
   const { isbn, bookId, mode } = req.query;
   // Falls 'mode' in der URL fehlt, wird die Reihenfolge zufällig (0, 1 oder 2) festgelegt 
-  const rotationMode = mode ? parseInt(mode as string) : 2; //Math.floor(Math.random() * 3);
+  const rotationMode = mode ? parseInt(mode as string) : Math.floor(Math.random() * 3);
 
   if (!isbn || typeof isbn !== "string") {
     errorLogger.warn(
