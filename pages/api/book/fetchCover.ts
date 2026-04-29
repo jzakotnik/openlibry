@@ -14,7 +14,7 @@ const currentVersion = packageData.version;
 /**
  * Fetch cover image for a book by ISBN.
  *
- * Checks DNB first, then falls back to OpenLibrary.
+ * Checks DNB, OpenLibrary and Google. Rotates the order for usage and fallback by random.
  *
  * Query parameters:
  * - isbn (required): The ISBN to look up
@@ -98,14 +98,6 @@ export default async function handler(
       urlFetcher: async () => {
         const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanedIsbn}${API_KEY ? `&key=${API_KEY}` : ''}`;
 
-        // TEMPORÄRES DEBUGGING: Zeigt die vollständige Google-API-URL im Log        
-        businessLogger.info({
-          event: LogEvents.COVER_FETCH_ATTEMPT,
-          debugUrl: url,
-          source: "Google-Search"
-        }, `DEBUG: Google API Search URL: ${url}`);
-
-
         const search = await axios.get(url, {
           timeout: 2000,
           headers: {
@@ -114,15 +106,6 @@ export default async function handler(
             "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
           }
         });
-
-        // DEBUG-LOG für das gesamte Items-Array von google
-        businessLogger.info({
-          event: LogEvents.COVER_FETCH_ATTEMPT,
-          source: "Google-Search-Result",
-          isbn: cleanedIsbn,
-          itemCount: search.data.items?.length || 0,
-          // fullItems: search.data.items // Dies loggt das komplette Array mit allen Details
-        }, `DEBUG: Google API Antwort für ISBN ${cleanedIsbn}`);
 
         const firstItem = search.data.items?.[0];
         const id = firstItem?.id;
@@ -138,7 +121,7 @@ export default async function handler(
         }, "Google hat kein Cover für diese ISBN.");
         return null;
       },
-      logEvent: (LogEvents as any).COVER_FETCHED_GOOGLE || LogEvents.COVER_FETCH_STARTED,
+      logEvent: LogEvents.COVER_FETCHED_GOOGLE,
     },
   ];
 
@@ -146,16 +129,6 @@ export default async function handler(
     ...coverSources.slice(rotationMode % 3),
     ...coverSources.slice(0, rotationMode % 3)
   ];
-
-  // TEMPORÄRES DEBUGGING: Protokolliert die gewählte Strategie für diesen Request
-  /*
-  businessLogger.info({
-    event: LogEvents.COVER_FETCH_STARTED,
-    isbn: cleanedIsbn,
-    rotationMode,
-    strategy: rotatedSources.map(s => s.name).join(" -> ")
-  }, `DEBUG: Strategie für dieses Buch: ${rotatedSources.map(s => s.name).join(" -> ")}`);
-  */
 
   for (const source of rotatedSources) {
     try {
