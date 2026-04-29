@@ -31,7 +31,7 @@ export default async function handler(
 
   const { isbn, bookId, mode } = req.query;
   // Falls 'mode' in der URL fehlt, wird die Reihenfolge zufällig (0, 1 oder 2) festgelegt 
-  const rotationMode = mode ? parseInt(mode as string) : Math.floor(Math.random() * 3);
+  const rotationMode = mode ? parseInt(mode as string) : 2; //Math.floor(Math.random() * 3);
 
   if (!isbn || typeof isbn !== "string") {
     errorLogger.warn(
@@ -114,8 +114,29 @@ export default async function handler(
             "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
           }
         });
-        const id = search.data.items?.[0]?.id;
-        return id ? `https://books.google.com/books/content?id=${id}&printsec=frontcover&img=1&zoom=3` : null;
+
+        // DEBUG-LOG für das gesamte Items-Array von google
+        businessLogger.info({
+          event: LogEvents.COVER_FETCH_ATTEMPT,
+          source: "Google-Search-Result",
+          isbn: cleanedIsbn,
+          itemCount: search.data.items?.length || 0,
+          // fullItems: search.data.items // Dies loggt das komplette Array mit allen Details
+        }, `DEBUG: Google API Antwort für ISBN ${cleanedIsbn}`);
+
+        const firstItem = search.data.items?.[0];
+        const id = firstItem?.id;
+        const hasImage = firstItem?.volumeInfo?.readingModes?.image === true; // Dieses Flag liefert Info ob google ein Cover hat.
+
+        if (id && hasImage) {
+          return `https://books.google.com/books/content?id=${id}&printsec=frontcover&img=1&zoom=3&edge=curl`;
+        }
+        businessLogger.info({
+          event: LogEvents.COVER_FETCH_ATTEMPT,
+          source: "Google-Search",
+          reason: "Google API reports no image available (readingModes.image is false)"
+        }, "Google hat kein Cover für diese ISBN.");
+        return null;
       },
       logEvent: (LogEvents as any).COVER_FETCHED_GOOGLE || LogEvents.COVER_FETCH_STARTED,
     },
@@ -127,19 +148,21 @@ export default async function handler(
   ];
 
   // TEMPORÄRES DEBUGGING: Protokolliert die gewählte Strategie für diesen Request
+  /*
   businessLogger.info({
     event: LogEvents.COVER_FETCH_STARTED,
     isbn: cleanedIsbn,
     rotationMode,
     strategy: rotatedSources.map(s => s.name).join(" -> ")
   }, `DEBUG: Strategie für dieses Buch: ${rotatedSources.map(s => s.name).join(" -> ")}`);
+  */
 
   for (const source of rotatedSources) {
     try {
       const targetUrl = await source.urlFetcher();
       if (!targetUrl) continue;
 
-      businessLogger.debug(
+      businessLogger.info(
         {
           event: LogEvents.COVER_FETCH_ATTEMPT,
           source: source.name,
@@ -192,12 +215,12 @@ export default async function handler(
       const arrayBuffer = await response.arrayBuffer();
       let buffer = Buffer.from(arrayBuffer);
 
-      // --- Bild-Prüfung: zu große Bilder mit Sharp verkleinern ---
+      // --- Bild-Abmessung prüfen und gegebenenfalls verkleinern ---
       try {
         const image = sharp(buffer);
         const metadata = await image.metadata();
 
-        // Analyse-Log für Google (oder alle Quellen)
+        // Analyse-Log für Bilder
         businessLogger.debug({
           event: LogEvents.COVER_FETCH_ATTEMPT,
           source: source.name,
@@ -210,6 +233,7 @@ export default async function handler(
         });
 
         if (metadata.width && metadata.height && (metadata.width > 1200 || metadata.height > 1200)) {
+
           businessLogger.debug(
             {
               event: LogEvents.COVER_FETCH_ATTEMPT,
@@ -233,7 +257,7 @@ export default async function handler(
 
           buffer = resizedBuffer as any;
         }
-      } catch (error: any) { // Hier explizit 'any' verwenden
+      } catch (error: any) {
         errorLogger.error(
           {
             event: (LogEvents as any).IMAGE_PROCESSING_ERROR || "image.processing.error",
@@ -241,9 +265,9 @@ export default async function handler(
           },
           "Error resizing image with sharp"
         );
-        // Falls Sharp fehlschlägt, arbeiten wir einfach mit dem Original-Buffer weiter
+        // Falls Sharp fehlschlägt, wird Original-Bild weiterverwendet
       }
-      // --- ENDE Sharp-Logik ---
+
 
       // Validate actual file type using magic bytes
       const fileType = await fileTypeFromBuffer(buffer);
