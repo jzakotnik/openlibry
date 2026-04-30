@@ -9,6 +9,7 @@ import type {
 import { getCsrfToken } from "next-auth/react";
 import Head from "next/head";
 
+import { t } from "@/lib/i18n";
 import registersplash from "./registersplashscreen.jpg";
 
 export default function Register({
@@ -57,16 +58,15 @@ export default function Register({
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(
-          data?.message || `Fehler beim Erstellen (${res.status})`,
+          data?.message ||
+            t("register.errorCreate", { status: res.status }),
         );
       }
 
       router.push("/");
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unbekannter Fehler. Bitte erneut versuchen.",
+        err instanceof Error ? err.message : t("register.errorUnknown"),
       );
     } finally {
       setIsLoading(false);
@@ -76,7 +76,7 @@ export default function Register({
   return (
     <>
       <Head>
-        <title>Registrieren | OpenLibry</title>
+        <title>{t("register.pageTitle")}</title>
       </Head>
 
       <div className="min-h-screen flex">
@@ -105,10 +105,10 @@ export default function Register({
                 <UserPlus className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">
-                Neuen Benutzer erzeugen
+                {t("register.heading")}
               </h1>
               <p className="text-sm text-gray-400 mt-1">
-                Admin-Zugang für OpenLibry erstellen
+                {t("register.subtitle")}
               </p>
             </div>
 
@@ -127,7 +127,7 @@ export default function Register({
                   htmlFor="user"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Benutzername
+                  {t("register.labelUsername")}
                 </label>
                 <input
                   id="user"
@@ -139,7 +139,7 @@ export default function Register({
                   value={user}
                   onChange={(e) => setUser(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg outline-none transition-colors focus:border-[#12556F] focus:ring-2 focus:ring-[#12556F]/20 placeholder-gray-400"
-                  placeholder="Benutzername eingeben"
+                  placeholder={t("register.placeholderUsername")}
                 />
               </div>
 
@@ -149,7 +149,7 @@ export default function Register({
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  E-Mail
+                  {t("register.labelEmail")}
                 </label>
                 <input
                   id="email"
@@ -160,7 +160,7 @@ export default function Register({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg outline-none transition-colors focus:border-[#12556F] focus:ring-2 focus:ring-[#12556F]/20 placeholder-gray-400"
-                  placeholder="E-Mail eingeben"
+                  placeholder={t("register.placeholderEmail")}
                 />
               </div>
 
@@ -170,7 +170,7 @@ export default function Register({
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Passwort
+                  {t("register.labelPassword")}
                 </label>
                 <input
                   id="password"
@@ -185,11 +185,11 @@ export default function Register({
                       ? "border-amber-400 focus:border-amber-500 focus:ring-amber-500/20"
                       : "border-gray-300 focus:border-[#12556F] focus:ring-[#12556F]/20"
                   }`}
-                  placeholder="Mindestens 3 Zeichen"
+                  placeholder={t("register.placeholderPassword")}
                 />
                 {passwordTooShort && (
                   <p className="mt-1 text-xs text-amber-600">
-                    Passwort muss mindestens 3 Zeichen lang sein
+                    {t("register.passwordTooShort")}
                   </p>
                 )}
               </div>
@@ -200,7 +200,7 @@ export default function Register({
                   htmlFor="passwordConfirm"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Passwort wiederholen
+                  {t("register.labelPasswordConfirm")}
                 </label>
                 <input
                   id="passwordConfirm"
@@ -215,11 +215,11 @@ export default function Register({
                       ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
                       : "border-gray-300 focus:border-[#12556F] focus:ring-[#12556F]/20"
                   }`}
-                  placeholder="Passwort bestätigen"
+                  placeholder={t("register.placeholderPasswordConfirm")}
                 />
                 {passwordMismatch && (
                   <p className="mt-1 text-xs text-red-600">
-                    Passwörter stimmen nicht überein
+                    {t("register.passwordMismatch")}
                   </p>
                 )}
               </div>
@@ -233,10 +233,10 @@ export default function Register({
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Wird erstellt…
+                    {t("register.submitting")}
                   </>
                 ) : (
-                  "Benutzer erzeugen"
+                  t("register.submit")
                 )}
               </button>
             </form>

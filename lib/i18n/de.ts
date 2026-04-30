@@ -259,6 +259,338 @@ export const de = {
     toastReturnError: "Fehler beim Zurückgeben des Buches",
     loadMore: "Weitere Bücher...",
   },
+
+  // ── Phase 5 additions: authentication pages ──────────────────────────
+  authError: {
+    pageTitle: "Anmeldefehler | OpenLibry",
+    heading: "Anmeldung fehlgeschlagen",
+    errorCodePrefix: "Fehlercode:",
+    backToLogin: "Zurück zur Anmeldung",
+    codes: {
+      Signin: "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      OAuthSignin: "Fehler beim Aufbau der OAuth-Verbindung.",
+      OAuthCallback: "Fehler bei der OAuth-Rückgabe.",
+      OAuthCreateAccount: "OAuth-Konto konnte nicht erstellt werden.",
+      EmailCreateAccount: "E-Mail-Konto konnte nicht erstellt werden.",
+      Callback: "Fehler bei der Rückrufverarbeitung.",
+      OAuthAccountNotLinked:
+        "Diese E-Mail ist bereits mit einem anderen Konto verknüpft.",
+      CredentialsSignin: "Benutzername oder Passwort ist falsch.",
+      SessionRequired: "Bitte melden Sie sich an, um fortzufahren.",
+      Default: "Ein unbekannter Fehler ist aufgetreten.",
+    },
+  },
+  login: {
+    pageTitle: "Login | OpenLibry",
+    heading: "Login zu OpenLibry",
+    subtitle: "Bitte melden Sie sich an",
+    labelUsername: "Benutzername",
+    labelPassword: "Passwort",
+    placeholderUsername: "Benutzername eingeben",
+    placeholderPassword: "Passwort eingeben",
+    submitting: "Wird angemeldet…",
+    submit: "Einloggen",
+    errorFailed: "Login fehlgeschlagen. Bitte Eingaben prüfen.",
+    errorConnection: "Verbindungsfehler. Bitte erneut versuchen.",
+  },
+  register: {
+    pageTitle: "Registrieren | OpenLibry",
+    heading: "Neuen Benutzer erzeugen",
+    subtitle: "Admin-Zugang für OpenLibry erstellen",
+    labelUsername: "Benutzername",
+    labelEmail: "E-Mail",
+    labelPassword: "Passwort",
+    labelPasswordConfirm: "Passwort wiederholen",
+    placeholderUsername: "Benutzername eingeben",
+    placeholderEmail: "E-Mail eingeben",
+    placeholderPassword: "Mindestens 3 Zeichen",
+    placeholderPasswordConfirm: "Passwort bestätigen",
+    passwordTooShort: "Passwort muss mindestens 3 Zeichen lang sein",
+    passwordMismatch: "Passwörter stimmen nicht überein",
+    submitting: "Wird erstellt…",
+    submit: "Benutzer erzeugen",
+    errorCreate: "Fehler beim Erstellen ({status})",
+    errorUnknown: "Unbekannter Fehler. Bitte erneut versuchen.",
+  },
+
+  // ─── Phase 6: admin settings page ─────────────────────────────────────
+  admin: {
+    pageTitle: "Konfiguration | OpenLibry",
+    backToAdmin: "Zurück zur Administration",
+    heading: "Konfiguration",
+    subheading:
+      "Einstellungen für die .env-Datei zusammenstellen und herunterladen",
+
+    infoBanner: {
+      title: "Wie diese Seite funktioniert",
+      bodyP1: "Hier kannst du eine ",
+      bodyCode: ".env",
+      bodyP2:
+        "-Datei zusammenstellen. Alle Eingaben bleiben lokal im Browser — es wird ",
+      bodyStrong: "nichts gespeichert oder gesendet",
+      bodyP3:
+        ". Lade die fertige Datei herunter und lege sie im OpenLibry-Verzeichnis ab. Danach OpenLibry neu starten.",
+      bareMetalCmd: "Bare Metal: pm2 restart openlibry",
+      dockerCmd: "Docker: docker restart openlibry",
+    },
+
+    preview: {
+      title: "Vorschau: .env",
+      copyDone: "Kopiert!",
+      copyAction: "In Zwischenablage",
+    },
+
+    stickyBar: {
+      varCount: "{count} Variablen konfiguriert",
+      reset: "Zurücksetzen",
+      download: ".env herunterladen",
+    },
+
+    sectionCard: {
+      hintTooltip: "Hinweis anzeigen",
+      showAdvancedSingular: "{n} erweiterte Einstellung anzeigen",
+      showAdvancedPlural: "{n} erweiterte Einstellungen anzeigen",
+      hideAdvanced: "Erweiterte Einstellungen ausblenden",
+    },
+
+    passwordField: {
+      placeholder: "Zufälligen Wert eingeben oder generieren...",
+      hide: "Verbergen",
+      show: "Anzeigen",
+      copy: "Kopieren",
+      copied: "Kopiert!",
+      copyTitle: "In Zwischenablage kopieren",
+      generate: "Generieren",
+      generateTitle: "Sicheren Zufallswert erzeugen",
+      strength: "✓ {chars} Zeichen — stark genug",
+    },
+
+    envHeaders: {
+      technical: "🔧 TECHNISCHE KONFIGURATION",
+      school: "🏫 SCHULKONFIGURATION",
+      reminder: "📧 MAHNWESEN",
+      userlabels: "🆔 BENUTZERAUSWEISE",
+    },
+
+    units: {
+      days: "Tage",
+      seconds: "Sekunden",
+    },
+
+    placeholders: {
+      schoolName: "Mustermann Schule",
+      reminderName: "Schulbücherei",
+    },
+
+    sections: {
+      technical: {
+        title: "Technische Konfiguration",
+        description: "Datenbankverbindung, Authentifizierung und Serverpfade",
+        fields: {
+          DATABASE_URL: {
+            label: "Datenbankpfad",
+            description:
+              "Pfad zur SQLite-Datenbankdatei. Relativ zum Anwendungsverzeichnis.",
+            hint: "Beispiel: file:./database/dev.db — der Ordner muss existieren und beschreibbar sein.",
+          },
+          NEXTAUTH_URL: {
+            label: "Anwendungs-URL",
+            description:
+              "Vollständige URL der Anwendung, wie sie im Browser aufgerufen wird. Wird für Login-Weiterleitungen benötigt.",
+            hint: "Für lokale Installation: http://localhost:3000. Mit nginx: https://bibliothek.schule.de",
+          },
+          NEXTAUTH_SECRET: {
+            label: "Sicherheitsschlüssel (Secret)",
+            description:
+              "Zufälliger geheimer Schlüssel für die Verschlüsselung von Sessions und Tokens.",
+            hint: "Mindestens 32 Zeichen. Einmal gesetzt nicht mehr ändern — alle Nutzer werden sonst ausgeloggt. Tipp: pwgen 32 1",
+          },
+          AUTH_ENABLED: {
+            label: "Authentifizierung aktiviert",
+            description:
+              "Legt fest, ob ein Login erforderlich ist. Nur während der Einrichtung deaktivieren.",
+            hint: "⚠️ Im Schulbetrieb immer auf true setzen!",
+          },
+          COVERIMAGE_FILESTORAGE_PATH: {
+            label: "Pfad für Cover-Bilder",
+            description:
+              "Verzeichnis, in dem hochgeladene Buchcover gespeichert werden.",
+            hint: "In Docker: /app/images (im Container). Ohne Docker: z.B. ./images",
+          },
+          LOGIN_SESSION_TIMEOUT: {
+            label: "Session-Timeout",
+            description:
+              "Zeit in Sekunden bis zur automatischen Abmeldung bei Inaktivität.",
+          },
+          MAX_MIGRATION_SIZE: {
+            label: "Max. Import-Dateigröße",
+            description:
+              "Maximale Dateigröße für JSON-Importe (z.B. OpenBiblio-Migration).",
+          },
+          SECURITY_HEADERS: {
+            label: "Sicherheits-Header",
+            description:
+              "Steuert Content-Security-Policy-Header. Im Produktionsbetrieb leer lassen.",
+            hint: 'Nur "insecure" setzen wenn CSP-Header deaktiviert werden sollen (nicht empfohlen).',
+            options: {
+              active: "Aktiv (Standard, empfohlen)",
+              insecure: "Deaktiviert (nur Entwicklung)",
+            },
+          },
+          DELETE_SAFETY_SECONDS: {
+            label: "Lösch-Verzögerung",
+            description:
+              "Wartezeit in Sekunden bevor ein Buch/Nutzer endgültig gelöscht wird. Gibt Zeit zum Abbrechen.",
+          },
+          RENTAL_SORT_BOOKS: {
+            label: "Sortierung Ausleihansicht",
+            description:
+              "Standardmäßige Sortierreihenfolge der Bücher in der Ausleih-Ansicht.",
+            options: {
+              title_asc: "Titel A–Z",
+              title_desc: "Titel Z–A",
+              id_asc: "ID aufsteigend",
+              id_desc: "ID absteigend",
+            },
+          },
+          BARCODE_MINCODELENGTH: {
+            label: "Minimale Barcode-Länge",
+            description:
+              "Kürzere Barcodes werden mit Leerzeichen aufgefüllt bis diese Länge erreicht ist.",
+          },
+          ADMIN_BUTTON_SWITCH: {
+            label: "Admin-Schaltfläche anzeigen",
+            description: "Zeigt den Backup-Button in der Navigationsleiste an.",
+            options: {
+              show: "Anzeigen",
+              hide: "Ausblenden",
+            },
+          },
+          NUMBER_BOOKS_OVERVIEW: {
+            label: "Bücher pro Seite",
+            description: "Anzahl der Bücher pro Seite in der Übersichtsliste.",
+          },
+          NUMBER_BOOKS_MAX: {
+            label: "Maximale Buchanzahl",
+            description:
+              "Erwartete maximale Anzahl Bücher in der Bibliothek. Beeinflusst Suche und Paginierung.",
+          },
+        },
+      },
+      school: {
+        title: "Schulkonfiguration",
+        description: "Name, Logo, Ausleihfristen und Etiketten",
+        fields: {
+          SCHOOL_NAME: {
+            label: "Schulname",
+            description:
+              "Vollständiger Name der Schule — wird in der Oberfläche, auf Ausweisen, Etiketten und in Berichten angezeigt.",
+            hint: 'Beispiel: "Grundschule Mammolshain"',
+          },
+          LOGO_LABEL: {
+            label: "Schul-Logo (Dateiname)",
+            description:
+              "Dateiname des Schullogos im public/-Verzeichnis. Wird auf Benutzerausweisen und in der UI verwendet.",
+            hint: "Datei muss in /public liegen (Bare Metal) oder in database/custom/ (Docker).",
+          },
+          RENTAL_DURATION_DAYS: {
+            label: "Leihfrist",
+            description:
+              "Standardmäßige Ausleihdauer in Tagen ab dem Ausleihzeitpunkt.",
+          },
+          EXTENSION_DURATION_DAYS: {
+            label: "Verlängerungsdauer",
+            description:
+              "Anzahl der Tage, um die eine Ausleihe verlängert werden kann.",
+          },
+          MAX_EXTENSIONS: {
+            label: "Maximale Verlängerungen",
+            description: "Wie oft ein Buch maximal verlängert werden darf.",
+          },
+          LABEL_CONFIG_DIR: {
+            label: "Etiketten-Konfigurationsverzeichnis",
+            description:
+              "Verzeichnis für Etikettenbögen (sheets/) und Vorlagen (templates/). Etikettenbögen und Vorlagen werden als JSON-Dateien in Unterordnern gespeichert.",
+            hint: "Standard: ./database/custom/labels — in Docker wird database/custom/ als Volume gemountet, sodass eigene Konfigurationen bei Updates erhalten bleiben.",
+          },
+        },
+      },
+      reminder: {
+        title: "Mahnwesen",
+        description: "Einstellungen für automatische Mahnschreiben",
+        fields: {
+          REMINDER_TEMPLATE_DOC: {
+            label: "Mahnungs-Vorlage",
+            description: "Dateiname der Word-Vorlage (.docx) für Mahnschreiben.",
+            hint: "Datei muss in database/custom/ (Docker) oder im Anwendungsverzeichnis liegen.",
+          },
+          REMINDER_RESPONSIBLE_NAME: {
+            label: "Verantwortliche Stelle",
+            description:
+              "Name der verantwortlichen Person oder Abteilung, der in Mahnschreiben erscheint.",
+          },
+          REMINDER_RESPONSIBLE_EMAIL: {
+            label: "Kontakt-E-Mail",
+            description:
+              "E-Mail-Adresse die in Mahnschreiben als Rückfrage-Kontakt angegeben wird.",
+          },
+          REMINDER_RENEWAL_COUNT: {
+            label: "Maximale Mahnungswiederholungen",
+            description:
+              "Wie oft eine Mahnung verlängert werden kann, bevor eine Eskalation erfolgt.",
+          },
+        },
+      },
+      userlabels: {
+        title: "Benutzerausweise",
+        description: "Layout und Inhalt der gedruckten Schülerausweise",
+        fields: {
+          USERID_LABEL_IMAGE: {
+            label: "Hintergrundbild",
+            description:
+              "Dateiname des Hintergrundbilds für Benutzerausweise. In database/custom/ (Docker) oder public/ (Bare Metal).",
+          },
+          USERLABEL_WIDTH: {
+            label: "Ausweis-Breite",
+            description:
+              "Breite eines Benutzerausweises in CSS-Einheiten. Beeinflusst die Darstellung im Browser.",
+            hint: "Typische Werte: 42vw, 9cm, 400px",
+          },
+          USERLABEL_PER_PAGE: {
+            label: "Ausweise pro Seite",
+            description: "Anzahl der Benutzerausweise pro Druckseite.",
+          },
+          USERLABEL_SEPARATE_COLORBAR: {
+            label: "Farbbalken",
+            description:
+              'Optionaler Farbbalken unter dem Bild. Format: [Breite, Höhe, "Farbe"]',
+            hint: "CSS-Farbnamen oder Hex-Werte, z.B. lightgreen, #4caf50",
+          },
+          USERLABEL_LINE_1: {
+            label: "Textzeile 1",
+            description:
+              'Erste Textzeile auf dem Ausweis. Format: ["Inhalt","top","left","Breite","margin","Farbe",Schriftgröße]',
+            hint: "Platzhalter: User.firstName, User.lastName, User.schoolGrade",
+          },
+          USERLABEL_LINE_2: {
+            label: "Textzeile 2",
+            description:
+              "Zweite Textzeile auf dem Ausweis (gleiche Syntax wie Zeile 1).",
+          },
+          USERLABEL_LINE_3: {
+            label: "Textzeile 3",
+            description:
+              "Dritte Textzeile auf dem Ausweis (gleiche Syntax wie Zeile 1).",
+          },
+          USERLABEL_BARCODE: {
+            label: "Barcode-Position",
+            description:
+              'Position und Größe des Barcodes auf dem Ausweis. Format: ["top","left","Breite","Höhe","Typ"]',
+          },
+        },
+      },
+    },
+  },
 };
 
 /**
