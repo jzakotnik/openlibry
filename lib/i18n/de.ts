@@ -591,6 +591,94 @@ export const de = {
       },
     },
   },
+
+  // ─── Phase 7a: reports dashboard + cards ─────────────────────────────
+  formats: {
+    // BCP-47 locale tag used for numeric formatting (toLocaleString).
+    // German uses dot-thousands (1.000), English uses comma-thousands (1,000).
+    numberLocale: "de-DE",
+  },
+  reportsPage: {
+    cardUsers: {
+      title: "Nutzerinnen",
+      subtitle: "Übersicht aller NutzerInnen",
+      unit: "NutzerInnen",
+    },
+    cardBooks: {
+      title: "Bücher",
+      subtitle: "Übersicht aller Bücher",
+      unit: "Bücher",
+    },
+    cardRentals: {
+      title: "Leihen",
+      subtitle: "Übersicht aller Leihen",
+      unit: "Leihen",
+    },
+    cardUserHistory: {
+      title: "Ausleih-Historie",
+      subtitle: "Verlauf aller Leihen nach Nutzer",
+      unit: "Leihen",
+    },
+    cardAudit: {
+      title: "Historie",
+      subtitle: "Aktivitäten Bücher/User",
+      unit: "Einträge",
+    },
+    cardUserLabels: {
+      title: "Ausweise",
+      subtitle: "Liste aller Ausweise",
+    },
+    cardReminder: {
+      title: "Mahnungen",
+      subtitle: "Ausdruck der Mahnungen als Word-Dokument",
+    },
+  },
+  reportCard: {
+    generateTable: "Erzeuge Tabelle",
+  },
+  excelCard: {
+    title: "Excel",
+    subtitle: "Import und Export der Daten",
+    exportButton: "Export herunterladen",
+    importButton: "Import hochladen",
+  },
+  reminderCard: {
+    reminderSingular: "Mahnung",
+    reminderPlural: "Mahnungen",
+    modeAll: "Alle Mahnungen",
+    modeNonExtendable: "Nur nicht verlängerbare",
+    generate: "Erzeuge Word",
+    toastNoneAll: "Keine überfälligen Ausleihen vorhanden.",
+    toastNoneNonExtendable:
+      "Keine nicht verlängerbaren überfälligen Ausleihen vorhanden.",
+  },
+  userLabelsCard: {
+    countLabel: "Anzahl Etiketten",
+    countTooMany: "So viele gibt es nicht?",
+    idRangeHeading: "ID-Bereich",
+    fromId: "Von ID",
+    toId: "Bis ID",
+    filtersHeading: "Filter",
+    singleIdLabel: "Etikett für UserID",
+    classFilterLabel: "Klassen Filter",
+    classSelectPlaceholder: "Klasse auswählen…",
+    classSearchPlaceholder: "Suche Klasse…",
+    classNotFound: "Keine Klasse gefunden.",
+    filterClear: "Filter zurücksetzen",
+    generatePdf: "Erzeuge PDF",
+  },
+  bookLabelPrintCard: {
+    title: "Buchetiketten drucken",
+    description:
+      "Etiketten als PDF erzeugen. Vorlage und Bogen wählen, Bücher filtern, Startposition festlegen.",
+    button: "Etiketten drucken",
+  },
+  bookLabelEditorCard: {
+    title: "Etiketten-Vorlage bearbeiten",
+    description:
+      "Felder zuordnen, Schriftgrößen anpassen, Buchrücken-Breite einstellen. Vorschau direkt im Browser.",
+    button: "Vorlage bearbeiten",
+  },
 };
 
 /**

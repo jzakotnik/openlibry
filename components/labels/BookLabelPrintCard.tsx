@@ -2,6 +2,7 @@
  * Card on the Reports page that navigates to /reports/labels/print.
  */
 
+import { t } from "@/lib/i18n";
 import { useRouter } from "next/router";
 import { Printer } from "lucide-react";
 import {
@@ -25,11 +26,10 @@ export default function BookLabelPrintCard() {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-muted-foreground flex items-center gap-2">
           <Printer className="h-5 w-5" />
-          Buchetiketten drucken
+          {t("bookLabelPrintCard.title")}
         </CardTitle>
         <CardDescription>
-          Etiketten als PDF erzeugen. Vorlage und Bogen wählen, Bücher filtern,
-          Startposition festlegen.
+          {t("bookLabelPrintCard.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -38,7 +38,7 @@ export default function BookLabelPrintCard() {
           onClick={() => router.push("/reports/labels/print")}
           data-cy="open-label-print"
         >
-          Etiketten drucken
+          {t("bookLabelPrintCard.button")}
         </Button>
       </CardContent>
     </Card>

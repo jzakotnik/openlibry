@@ -2,6 +2,7 @@
  * Card on the Reports page that navigates to /reports/labels/editor.
  */
 
+import { t } from "@/lib/i18n";
 import { useRouter } from "next/router";
 import { PenLine } from "lucide-react";
 import {
@@ -25,11 +26,10 @@ export default function BookLabelEditorCard() {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-muted-foreground flex items-center gap-2">
           <PenLine className="h-5 w-5" />
-          Etiketten-Vorlage bearbeiten
+          {t("bookLabelEditorCard.title")}
         </CardTitle>
         <CardDescription>
-          Felder zuordnen, Schriftgrößen anpassen, Buchrücken-Breite einstellen.
-          Vorschau direkt im Browser.
+          {t("bookLabelEditorCard.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -39,7 +39,7 @@ export default function BookLabelEditorCard() {
           onClick={() => router.push("/reports/labels/editor")}
           data-cy="open-label-editor"
         >
-          Vorlage bearbeiten
+          {t("bookLabelEditorCard.button")}
         </Button>
       </CardContent>
     </Card>

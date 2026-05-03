@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,8 +41,8 @@ export default function ReminderCard({
     if (currentCount === 0) {
       const message =
         mode === "all"
-          ? "Keine überfälligen Ausleihen vorhanden."
-          : "Keine nicht verlängerbaren überfälligen Ausleihen vorhanden.";
+          ? t("reminderCard.toastNoneAll")
+          : t("reminderCard.toastNoneNonExtendable");
       toast.info(message);
       return;
     }
@@ -77,7 +78,9 @@ export default function ReminderCard({
             {currentCount}
           </span>
           <span className="text-sm font-medium text-disabled">
-            {currentCount === 1 ? "Mahnung" : "Mahnungen"}
+            {currentCount === 1
+              ? t("reminderCard.reminderSingular")
+              : t("reminderCard.reminderPlural")}
           </span>
         </div>
 
@@ -97,7 +100,7 @@ export default function ReminderCard({
             className="text-xs px-3 rounded-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=on]:font-semibold"
             data-cy="reminder-mode-all"
           >
-            Alle Mahnungen
+            {t("reminderCard.modeAll")}
           </ToggleGroupItem>
           <ToggleGroupItem
             value="non-extendable"
@@ -105,7 +108,7 @@ export default function ReminderCard({
             className="text-xs px-3 rounded-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=on]:font-semibold"
             data-cy="reminder-mode-non-extendable"
           >
-            Nur nicht verlängerbare
+            {t("reminderCard.modeNonExtendable")}
           </ToggleGroupItem>
         </ToggleGroup>
 
@@ -125,7 +128,7 @@ export default function ReminderCard({
           className="text-primary hover:bg-primary/5 font-semibold"
           data-cy="reminder-card-button"
         >
-          Erzeuge Word
+          {t("reminderCard.generate")}
         </Button>
       </CardFooter>
     </Card>

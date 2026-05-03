@@ -589,4 +589,91 @@ export const en: Dictionary = {
       },
     },
   },
+
+  // ─── Phase 7a: reports dashboard + cards ─────────────────────────────
+  formats: {
+    // BCP-47 locale tag used for numeric formatting (toLocaleString).
+    // German uses dot-thousands (1.000), English uses comma-thousands (1,000).
+    numberLocale: "en-US",
+  },
+  reportsPage: {
+    cardUsers: {
+      title: "Users",
+      subtitle: "Overview of all users",
+      unit: "users",
+    },
+    cardBooks: {
+      title: "Books",
+      subtitle: "Overview of all books",
+      unit: "books",
+    },
+    cardRentals: {
+      title: "Loans",
+      subtitle: "Overview of all loans",
+      unit: "loans",
+    },
+    cardUserHistory: {
+      title: "Loan History",
+      subtitle: "Loan history per user",
+      unit: "loans",
+    },
+    cardAudit: {
+      title: "History",
+      subtitle: "Activity log for books and users",
+      unit: "entries",
+    },
+    cardUserLabels: {
+      title: "User cards",
+      subtitle: "List of all user cards",
+    },
+    cardReminder: {
+      title: "Reminders",
+      subtitle: "Generate reminder letters as a Word document",
+    },
+  },
+  reportCard: {
+    generateTable: "Generate table",
+  },
+  excelCard: {
+    title: "Excel",
+    subtitle: "Import and export of data",
+    exportButton: "Download export",
+    importButton: "Upload import",
+  },
+  reminderCard: {
+    reminderSingular: "reminder",
+    reminderPlural: "reminders",
+    modeAll: "All reminders",
+    modeNonExtendable: "Only non-extendable",
+    generate: "Generate Word",
+    toastNoneAll: "No overdue loans found.",
+    toastNoneNonExtendable: "No non-extendable overdue loans found.",
+  },
+  userLabelsCard: {
+    countLabel: "Number of cards",
+    countTooMany: "More than there are?",
+    idRangeHeading: "ID range",
+    fromId: "From ID",
+    toId: "To ID",
+    filtersHeading: "Filters",
+    singleIdLabel: "Card for user ID",
+    classFilterLabel: "Grade filter",
+    classSelectPlaceholder: "Select grade…",
+    classSearchPlaceholder: "Search grade…",
+    classNotFound: "No grade found.",
+    filterClear: "Clear filter",
+    generatePdf: "Generate PDF",
+  },
+  bookLabelPrintCard: {
+    title: "Print book labels",
+    description:
+      "Generate labels as PDF. Pick a template and sheet, filter books, set the starting position.",
+    button: "Print labels",
+  },
+  bookLabelEditorCard: {
+    title: "Edit label template",
+    description:
+      "Assign fields, adjust font sizes, set spine width. Preview directly in the browser.",
+    button: "Edit template",
+  },
 };
