@@ -11,6 +11,7 @@ import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { toast } from "sonner";
 
@@ -61,7 +62,8 @@ const DetailCardContainer = memo(function DetailCardContainer({
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
-            Weitere Bücher... {Math.max(0, renderedBooks.length - pageIndex)}
+            {t("bookPage.loadMore")}{" "}
+            {Math.max(0, renderedBooks.length - pageIndex)}
           </button>
         </div>
       )}
@@ -97,7 +99,8 @@ const SummaryRowContainer = memo(function SummaryRowContainer({
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
-            Weitere Bücher... {Math.max(0, renderedBooks.length - pageIndex)}
+            {t("bookPage.loadMore")}{" "}
+            {Math.max(0, renderedBooks.length - pageIndex)}
           </button>
         </div>
       )}
@@ -176,9 +179,7 @@ export default function Books({
   const handleCopyBook = useCallback(
     (_book: BookType) => {
       router.push("/book/new");
-      toast.info(
-        "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
-      );
+      toast.info(t("bookPage.toastCreateNewBook"));
     },
     [router],
   );
@@ -194,10 +195,10 @@ export default function Books({
         .then((res) => res.json())
         .then(() => {
           mutate();
-          toast.success("Buch zurückgegeben");
+          toast.success(t("bookPage.toastBookReturned"));
         })
         .catch(() => {
-          toast.error("Fehler beim Zurückgeben des Buches");
+          toast.error(t("bookPage.toastReturnError"));
         });
     },
     [mutate],

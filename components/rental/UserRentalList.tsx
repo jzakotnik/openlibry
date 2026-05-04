@@ -20,6 +20,7 @@ import { Dispatch, useMemo, useState } from "react";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
+import { t } from "@/lib/i18n";
 import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
 import { booksForUser, filterUsers } from "@/lib/utils/searchUtils";
 import dayjs from "dayjs";
@@ -144,9 +145,9 @@ export default function UserRentalList({
               value={userSearchInput}
               onChange={handleInputChange}
               onKeyUp={handleKeyUp}
-              placeholder="Nutzer suchen"
+              placeholder={t("rental.searchUserPlaceholder")}
               data-cy="user_search_input"
-              aria-label="search users"
+              aria-label={t("rental.searchUsersAria")}
               className="pl-9 pr-9"
             />
             {userSearchInput && (
@@ -157,13 +158,13 @@ export default function UserRentalList({
                     size="icon"
                     onMouseDown={handleClear}
                     data-cy="user_search_clear_button"
-                    aria-label="Suche löschen"
+                    aria-label={t("rental.clearSearch")}
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
                   >
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Suche löschen</TooltipContent>
+                <TooltipContent>{t("rental.clearSearch")}</TooltipContent>
               </Tooltip>
             )}
           </div>
@@ -183,7 +184,7 @@ export default function UserRentalList({
                   <X className="ml-1 h-3 w-3" />
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>Auswahl aufheben</TooltipContent>
+              <TooltipContent>{t("rental.cancelSelection")}</TooltipContent>
             </Tooltip>
           )}
 
@@ -193,14 +194,14 @@ export default function UserRentalList({
               <Button
                 variant="outline"
                 size="icon"
-                aria-label="search-settings"
+                aria-label={t("rental.searchSettingsAria")}
                 onClick={() => setShowDetailSearch(!showDetailSearch)}
                 data-cy="user_search_settings_button"
               >
                 <Settings2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Sucheinstellungen</TooltipContent>
+            <TooltipContent>{t("rental.searchSettings")}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -221,7 +222,7 @@ export default function UserRentalList({
             className="mt-4 text-center text-sm text-muted-foreground"
             data-cy="user_no_results"
           >
-            Keine NutzerInnen gefunden
+            {t("rental.noUsersFound")}
           </p>
         ) : (
           <Accordion
@@ -253,7 +254,7 @@ export default function UserRentalList({
                     >
                       {u.firstName} {u.lastName}
                       {rentalsUser.length > 0
-                        ? `, ${rentalsUser.length} ${rentalsUser.length > 1 ? "Bücher" : "Buch"}`
+                        ? `, ${rentalsUser.length} ${rentalsUser.length > 1 ? t("rental.bookPlural") : t("rental.bookSingular")}`
                         : ""}
                     </span>
 
@@ -262,7 +263,8 @@ export default function UserRentalList({
                       className="text-xs text-foreground whitespace-nowrap"
                       data-cy={`user_meta_${u.id}`}
                     >
-                      Nr. {u.id}, Klasse {u.schoolGrade}
+                      {t("rental.userMetaPrefix")} {u.id},{" "}
+                      {t("rental.userMetaGrade")} {u.schoolGrade}
                     </span>
 
                     <OverdueIcon rentalsUser={rentalsUser} />
@@ -275,7 +277,7 @@ export default function UserRentalList({
                     >
                       {rentalsUser.length === 0 ? (
                         <p className="text-xs text-muted-foreground py-2 text-center">
-                          Keine ausgeliehenen Bücher
+                          {t("rental.noBorrowedBooks")}
                         </p>
                       ) : (
                         rentalsUser.map((r: RentalsUserType) => {
@@ -284,8 +286,8 @@ export default function UserRentalList({
                             maxExtensions,
                           );
                           const extendTooltip = allowExtendBookRent
-                            ? "Verlängern"
-                            : "Maximale Ausleihzeit erreicht";
+                            ? t("rental.extend")
+                            : t("rental.maxExtensionReached");
 
                           return (
                             <div
@@ -311,14 +313,16 @@ export default function UserRentalList({
                                         [r.id]: Date.now(),
                                       }));
                                     }}
-                                    aria-label="zurückgeben"
+                                    aria-label={t("rental.returnAria")}
                                     data-cy={`book_return_button_${r.id}`}
                                     className="h-8 w-8 shrink-0 hover:bg-destructive/10 hover:text-destructive"
                                   >
                                     <CircleArrowLeft className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Zurückgeben</TooltipContent>
+                                <TooltipContent>
+                                  {t("rental.return")}
+                                </TooltipContent>
                               </Tooltip>
 
                               {/* Book info */}
@@ -333,8 +337,10 @@ export default function UserRentalList({
                                   className="text-xs text-muted-foreground"
                                   data-cy={`rental_book_details_${r.id}`}
                                 >
-                                  bis {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
-                                  {r.renewalCount}x verlängert
+                                  {t("rental.rentalUntilPrefix")}{" "}
+                                  {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
+                                  {r.renewalCount}
+                                  {t("rental.renewalCountSuffix")}
                                 </p>
                               </div>
 
@@ -346,7 +352,7 @@ export default function UserRentalList({
                                       type="button"
                                       variant="ghost"
                                       size="icon"
-                                      aria-label="extend"
+                                      aria-label={t("rental.extendAria")}
                                       disabled={!allowExtendBookRent}
                                       onClick={() => {
                                         handleExtendBookButton(

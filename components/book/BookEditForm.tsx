@@ -4,10 +4,9 @@ import { Dispatch, useCallback, useState } from "react";
 
 import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
-// ✅ palette import removed entirely
-
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import { t } from "@/lib/i18n";
 import React from "react";
 import { toast } from "sonner";
 import HoldButton from "../layout/HoldButton";
@@ -51,7 +50,6 @@ function SectionDivider({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex items-center gap-4 py-4">
       <div className="flex-1 h-px bg-border" />
-      {/* ✅ was: style={{ color: palette.info.main }} */}
       <span className="text-sm font-medium text-info whitespace-nowrap">
         {children}
       </span>
@@ -82,9 +80,6 @@ function ActionButton({
   const baseClasses =
     "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed";
 
-  // ✅ was: primary used style={{ backgroundColor: palette.primary.main }}
-  // ✅ was: secondary used text-gray-600 bg-gray-100 hover:bg-gray-200
-  // ✅ was: outline used border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400
   const variantClasses = {
     primary:
       "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]",
@@ -100,7 +95,6 @@ function ActionButton({
       disabled={disabled || loading}
       title={title}
       data-cy={dataCy}
-      // ✅ style prop removed entirely — no more inline palette references
       className={`${baseClasses} ${variantClasses[variant]}`}
     >
       {loading ? (
@@ -146,7 +140,7 @@ export default function BookEditForm({
 
   const handleAutoFillFromISBN = useCallback(async () => {
     if (!book.isbn) {
-      toast.info("Bitte geben Sie eine ISBN ein.");
+      toast.info(t("bookEditForm.toastEnterIsbn"));
       return;
     }
 
@@ -157,7 +151,7 @@ export default function BookEditForm({
 
     const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
-      toast.info("Die ISBN ist ungültig (keine Zahlen gefunden).");
+      toast.info(t("bookEditForm.toastIsbnInvalid"));
       return;
     }
 
@@ -168,7 +162,7 @@ export default function BookEditForm({
       const response = await fetch(apiUrl);
 
       if (!response.ok) {
-        toast.info("Stammdaten wurden leider nicht gefunden mit dieser ISBN.");
+        toast.info(t("bookEditForm.toastIsbnNotFound"));
         return;
       }
 
@@ -182,12 +176,12 @@ export default function BookEditForm({
 
       if (data.coverFetched) {
         setLoadingImage(Math.floor(Math.random() * 10000));
-        toast.success("Stammdaten und Cover wurden erfolgreich geladen.");
+        toast.success(t("bookEditForm.toastDataAndCoverLoaded"));
       } else {
-        toast.success("Stammdaten wurden erfolgreich ausgefüllt.");
+        toast.success(t("bookEditForm.toastDataLoaded"));
       }
     } catch (e: any) {
-      toast.error(e?.message || "Fehler beim Laden der Buchdaten.");
+      toast.error(e?.message || t("bookEditForm.toastDataLoadError"));
     } finally {
       setInternalIsAutoFilling(false);
     }
@@ -195,17 +189,17 @@ export default function BookEditForm({
 
   const handleFetchCover = useCallback(async () => {
     if (!book.isbn) {
-      toast.info("Keine ISBN im Buch hinterlegt.");
+      toast.info(t("bookEditForm.toastNoIsbn"));
       return;
     }
     if (!book.id) {
-      toast.info("Buch muss zuerst gespeichert werden.");
+      toast.info(t("bookEditForm.toastSaveFirst"));
       return;
     }
 
     const cleanedIsbn = book.isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
-      toast.info("Die ISBN ist ungültig.");
+      toast.info(t("bookEditForm.toastIsbnInvalidShort"));
       return;
     }
 
@@ -219,13 +213,15 @@ export default function BookEditForm({
       if (response.ok && data.success) {
         setLoadingImage(Math.floor(Math.random() * 10000));
         toast.success(
-          `Cover wurde erfolgreich von ${data.source || "unbekannt"} geladen.`,
+          t("bookEditForm.toastCoverLoaded", {
+            source: data.source || t("bookEditForm.toastCoverSourceUnknown"),
+          }),
         );
       } else {
-        toast.info(data.error || "Cover konnte nicht gefunden werden.");
+        toast.info(data.error || t("bookEditForm.toastCoverNotFound"));
       }
     } catch (e: any) {
-      toast.error(e?.message || "Fehler beim Laden des Covers.");
+      toast.error(e?.message || t("bookEditForm.toastCoverLoadError"));
     } finally {
       setFetchingCover(false);
     }
@@ -242,7 +238,7 @@ export default function BookEditForm({
           src={coverPreviewUrl}
           width="200"
           height="auto"
-          alt="Cover Vorschau"
+          alt={t("bookEditForm.coverPreviewAlt")}
           data-cy="book-cover-preview"
           className="border border-border rounded-lg object-contain"
           style={{ maxHeight: 280 }}
@@ -251,19 +247,17 @@ export default function BookEditForm({
     }
 
     if (isNewBook) {
-      let message = "ISBN eingeben und 'Ausfüllen' klicken";
-      // ✅ was: textColor = "text-amber-600" for not-found state
+      let message = t("bookEditForm.coverPlaceholderInitial");
       let textColor = "text-muted-foreground";
 
       if (isAutoFilling) {
-        message = "Cover wird gesucht...";
+        message = t("bookEditForm.coverSearching");
       } else if (autofillAttempted && !coverPreviewUrl) {
-        message = "Kein Cover gefunden";
+        message = t("bookEditForm.coverNotFound");
         textColor = "text-warning";
       }
 
       return (
-        // ✅ was: border-gray-300 bg-gray-50
         <div className="w-[200px] h-[200px] border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted text-center p-4">
           <span className={`text-sm ${textColor}`}>{message}</span>
         </div>
@@ -275,7 +269,7 @@ export default function BookEditForm({
         src={`/api/images/${book.id}?${loadingImage}`}
         width="200"
         height="200"
-        alt="cover image"
+        alt={t("bookEditForm.coverImageAlt")}
         key={loadingImage}
         data-cy="book-cover-image"
         className="border border-border rounded-lg"
@@ -288,24 +282,27 @@ export default function BookEditForm({
     if (isNewBook && !book.id) return null;
 
     if (!antolinResults) {
-      // ✅ was: text-gray-400
-      return <span className="text-xs text-muted-foreground">...</span>;
+      return (
+        <span className="text-xs text-muted-foreground">
+          {t("bookEditForm.antolinPlaceholder")}
+        </span>
+      );
     }
 
-    let resultString = "...";
+    let resultString = t("bookEditForm.antolinPlaceholder");
     if (antolinResults.foundNumber > 1) {
-      resultString = ` ${antolinResults.foundNumber} ähnliche Bücher`;
+      resultString = t("bookEditForm.antolinManyFound", {
+        count: antolinResults.foundNumber,
+      });
     } else if (antolinResults.foundNumber === 0) {
-      resultString = " Kein Buch gefunden";
+      resultString = t("bookEditForm.antolinNoneFound");
     } else if (antolinResults.foundNumber === 1) {
-      resultString = " Ein Buch gefunden";
+      resultString = t("bookEditForm.antolinOneFound");
     }
 
     return (
-      // ✅ was: text-gray-500
       <span className="text-xs text-muted-foreground">
-        Antolin:
-        {/* ✅ was: text-blue-600 hover:text-blue-800 */}
+        {t("bookEditForm.antolinLabel")}
         <button
           onClick={handleAntolinClick}
           className="ml-1 text-info hover:text-info/80 underline underline-offset-2 cursor-pointer"
@@ -320,7 +317,6 @@ export default function BookEditForm({
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    // ✅ was: border-gray-100
     <div
       className="mt-8 bg-card rounded-2xl shadow-sm border border-border px-4 sm:px-6 lg:px-8 py-6"
       data-cy="book-edit-form"
@@ -338,10 +334,16 @@ export default function BookEditForm({
             onClick={saveBook}
             loading={isSaving}
             icon={Save}
-            title={isNewBook ? "Buch erstellen und speichern" : "Speichern"}
+            title={
+              isNewBook
+                ? t("bookEditForm.saveTitleNew")
+                : t("bookEditForm.saveTitleExisting")
+            }
             dataCy="save-book-button"
           >
-            {isSaving ? "Speichert..." : "Speichern"}
+            {isSaving
+              ? t("bookEditForm.saving")
+              : t("bookEditForm.save")}
           </ActionButton>
         )}
 
@@ -350,17 +352,17 @@ export default function BookEditForm({
             onClick={cancelAction}
             icon={ArrowLeft}
             variant="secondary"
-            title="Abbrechen und zurück zur Übersicht"
+            title={t("bookEditForm.cancelTitle")}
             dataCy="cancel-book-button"
           >
-            Abbrechen
+            {t("bookEditForm.cancel")}
           </ActionButton>
         )}
 
         {!isNewBook && editable && (
           <HoldButton
             duration={deleteSafetySeconds * 1000}
-            buttonLabel="Löschen"
+            buttonLabel={t("bookEditForm.delete")}
             onClick={deleteBook}
             data-cy="delete-book-button"
           />
@@ -368,7 +370,7 @@ export default function BookEditForm({
       </div>
 
       {/* ── ISBN & Lookup ──────────────────────────────────────────────── */}
-      <SectionDivider>ISBN &amp; Stammdaten</SectionDivider>
+      <SectionDivider>{t("bookEditForm.sectionIsbn")}</SectionDivider>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end mb-6">
         <div className="min-w-0">
@@ -387,10 +389,12 @@ export default function BookEditForm({
           loading={isAutoFilling}
           icon={Search}
           variant="outline"
-          title="Stammdaten und Cover mit ISBN suchen (DNB, Google Books, OpenLibrary)"
+          title={t("bookEditForm.autofillTitle")}
           dataCy="autofill-button"
         >
-          {isAutoFilling ? "Sucht..." : "Ausfüllen"}
+          {isAutoFilling
+            ? t("bookEditForm.autofillSearching")
+            : t("bookEditForm.autofill")}
         </ActionButton>
 
         {!isNewBook && (
@@ -400,16 +404,18 @@ export default function BookEditForm({
             loading={fetchingCover}
             icon={ImagePlus}
             variant="outline"
-            title="Cover von ISBN laden (OpenLibrary)"
+            title={t("bookEditForm.fetchCoverTitle")}
             dataCy="fetch-cover-button"
           >
-            {fetchingCover ? "Lädt..." : "Cover"}
+            {fetchingCover
+              ? t("bookEditForm.fetchCoverLoading")
+              : t("bookEditForm.fetchCover")}
           </ActionButton>
         )}
       </div>
 
       {/* ── Book Details ───────────────────────────────────────────────── */}
-      <SectionDivider>Stammdaten des Buchs</SectionDivider>
+      <SectionDivider>{t("bookEditForm.sectionBookData")}</SectionDivider>
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* ── Left: Form fields ──────────────────────────────────────── */}
@@ -460,7 +466,7 @@ export default function BookEditForm({
             </div>
           </div>
 
-          <SectionDivider>Verlag &amp; Ausgabe</SectionDivider>
+          <SectionDivider>{t("bookEditForm.sectionPublisher")}</SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
             <div>
@@ -514,7 +520,9 @@ export default function BookEditForm({
             </div>
           </div>
 
-          <SectionDivider>Ausleih-Status</SectionDivider>
+          <SectionDivider>
+            {t("bookEditForm.sectionRentalStatus")}
+          </SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
             <div>
@@ -523,7 +531,7 @@ export default function BookEditForm({
                 editable={editable}
                 setBookData={setBookData}
                 book={book}
-                label="Status"
+                label={t("bookEditForm.statusLabel")}
                 options={rentalStatusOptions}
               />
             </div>
@@ -533,7 +541,7 @@ export default function BookEditForm({
                 editable={editable}
                 setBookData={setBookData}
                 book={book}
-                label="Verlängerungen"
+                label={t("bookEditForm.renewalsLabel")}
                 options={renewalCountOptions}
               />
             </div>
@@ -555,7 +563,7 @@ export default function BookEditForm({
             </div>
           </div>
 
-          <SectionDivider>Weitere Angaben</SectionDivider>
+          <SectionDivider>{t("bookEditForm.sectionMore")}</SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
             <div>
@@ -637,16 +645,14 @@ export default function BookEditForm({
           )}
 
           {isNewBook && coverPreviewUrl && (
-            // ✅ was: text-green-600
             <span className="text-xs text-success text-center">
-              ✓ Cover wird beim Speichern hochgeladen
+              {t("bookEditForm.coverWillUpload")}
             </span>
           )}
 
           {isNewBook && autofillAttempted && !coverPreviewUrl && (
-            // ✅ was: text-gray-400
             <span className="text-xs text-muted-foreground text-center">
-              Cover kann nach Speichern manuell hochgeladen werden
+              {t("bookEditForm.coverUploadAfterSave")}
             </span>
           )}
 
@@ -654,7 +660,6 @@ export default function BookEditForm({
         </div>
       </div>
 
-      {/* ✅ was: bg-gray-200 */}
       <div className="h-px bg-border mt-8" />
     </div>
   );

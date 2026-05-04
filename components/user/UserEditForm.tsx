@@ -1,5 +1,6 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { t } from "@/lib/i18n";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 import {
@@ -172,7 +173,11 @@ function BookRow({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{returned ? "Bereits zurückgegeben" : "Zurückgeben"}</p>
+          <p>
+            {returned
+              ? t("userEditForm.alreadyReturned")
+              : t("userEditForm.return")}
+          </p>
         </TooltipContent>
       </Tooltip>
 
@@ -190,7 +195,7 @@ function BookRow({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Verlängern</p>
+          <p>{t("userEditForm.extend")}</p>
         </TooltipContent>
       </Tooltip>
 
@@ -291,7 +296,8 @@ export default function UserEditForm({
                   {user.firstName} {user.lastName}
                 </h2>
                 <p className="text-sm text-white/60">
-                  Nr. {user.id} · Klasse {user.schoolGrade}
+                  {t("userEditForm.metaPrefix")} {user.id} ·{" "}
+                  {t("userEditForm.gradePrefix")} {user.schoolGrade}
                   {user.schoolTeacherName && ` · ${user.schoolTeacherName}`}
                 </p>
               </div>
@@ -302,13 +308,16 @@ export default function UserEditForm({
               {books.length > 0 && (
                 <Badge className="rounded-full border-0 bg-white/20 text-xs text-white">
                   <BookOpen size={12} className="mr-1" />
-                  {books.length} {books.length === 1 ? "Buch" : "Bücher"}
+                  {books.length}{" "}
+                  {books.length === 1
+                    ? t("userEditForm.bookSingular")
+                    : t("userEditForm.bookPlural")}
                 </Badge>
               )}
               {overdueCount > 0 && (
                 <Badge className="rounded-full border-0 bg-destructive/25 text-xs text-red-200">
                   <AlertTriangle size={12} className="mr-1" />
-                  {overdueCount} überfällig
+                  {overdueCount} {t("userEditForm.overdue")}
                 </Badge>
               )}
             </div>
@@ -319,12 +328,12 @@ export default function UserEditForm({
         {/*  Section: Personal data                        */}
         {/* ═══════════════════════════════════════════════ */}
         <div className="px-6 pt-6">
-          <SectionHeading label="Daten" />
+          <SectionHeading label={t("userEditForm.sectionPersonalData")} />
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               id="firstName"
-              label="Vorname"
+              label={t("userEditForm.fieldFirstName")}
               value={user.firstName ?? ""}
               disabled={!editable}
               required
@@ -333,7 +342,7 @@ export default function UserEditForm({
             />
             <FormField
               id="lastName"
-              label="Nachname"
+              label={t("userEditForm.fieldLastName")}
               value={user.lastName ?? ""}
               disabled={!editable}
               required
@@ -342,7 +351,7 @@ export default function UserEditForm({
             />
             <FormField
               id="schoolGrade"
-              label="Klasse"
+              label={t("userEditForm.fieldGrade")}
               value={user.schoolGrade ?? ""}
               disabled={!editable}
               required
@@ -351,7 +360,7 @@ export default function UserEditForm({
             />
             <FormField
               id="schoolTeacherName"
-              label="Lehrkraft"
+              label={t("userEditForm.fieldTeacher")}
               value={user.schoolTeacherName ?? ""}
               disabled={!editable}
               tabIndex={4}
@@ -359,14 +368,17 @@ export default function UserEditForm({
             />
             <FormField
               id="createdAt"
-              label="Erzeugt am"
-              value={`User erstellt am ${user.createdAt} mit Ausweisnummer ${user.id}`}
+              label={t("userEditForm.fieldCreatedAt")}
+              value={t("userEditForm.createdAtValue", {
+                date: user.createdAt ?? "",
+                id: user.id ?? "",
+              })}
               disabled
               tabIndex={-1}
             />
             <FormField
               id="lastUpdated"
-              label="Letztes Update"
+              label={t("userEditForm.fieldLastUpdated")}
               value={user.updatedAt ?? ""}
               disabled
               tabIndex={-1}
@@ -398,12 +410,12 @@ export default function UserEditForm({
                   user.active ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                Aktiv
+                {t("userEditForm.activeLabel")}
               </span>
               <p className="text-xs text-muted-foreground/60">
                 {user.active
-                  ? "Benutzer kann Bücher ausleihen"
-                  : "Benutzer ist deaktiviert"}
+                  ? t("userEditForm.activeHintActive")
+                  : t("userEditForm.activeHintInactive")}
               </p>
             </div>
           </label>
@@ -413,12 +425,15 @@ export default function UserEditForm({
         {/*  Section: Borrowed books                       */}
         {/* ═══════════════════════════════════════════════ */}
         <div className="px-6 pt-6">
-          <SectionHeading label="Geliehene Bücher" count={books.length} />
+          <SectionHeading
+            label={t("userEditForm.sectionBorrowedBooks")}
+            count={books.length}
+          />
 
           <div className="mt-3 space-y-1.5">
             {books.length === 0 ? (
               <div className="rounded-lg bg-success/10 px-4 py-3 text-center text-sm font-medium text-success">
-                Keine ausgeliehenen Bücher
+                {t("userEditForm.noBorrowedBooks")}
               </div>
             ) : (
               books.map((b: BookType) =>
@@ -435,7 +450,7 @@ export default function UserEditForm({
                     key={Math.random()}
                     className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
                   >
-                    ID nicht gefunden
+                    {t("userEditForm.idNotFound")}
                   </div>
                 ),
               )
@@ -458,7 +473,9 @@ export default function UserEditForm({
               className="gap-2 rounded-lg font-medium"
             >
               {editable ? <X size={15} /> : <Edit3 size={15} />}
-              {editable ? "Abbrechen" : "Editieren"}
+              {editable
+                ? t("userEditForm.cancel")
+                : t("userEditForm.edit")}
             </Button>
 
             {editable && (
@@ -473,7 +490,7 @@ export default function UserEditForm({
                   className="gap-2 rounded-lg font-medium shadow-sm"
                 >
                   <Save size={15} />
-                  Speichern
+                  {t("userEditForm.save")}
                 </Button>
 
                 <Button
@@ -489,7 +506,7 @@ export default function UserEditForm({
                   className="gap-2 rounded-lg font-medium text-primary border-primary/30"
                 >
                   <Printer size={15} />
-                  Drucken
+                  {t("userEditForm.print")}
                 </Button>
 
                 <div className="flex-1" />
@@ -497,7 +514,7 @@ export default function UserEditForm({
                 <HoldButton
                   duration={deleteSafetySeconds * 1000}
                   onClick={deleteUser}
-                  buttonLabel="Löschen"
+                  buttonLabel={t("userEditForm.delete")}
                 />
               </>
             )}

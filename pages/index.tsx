@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { publicNavItems } from "@/components/layout/NavigationItems";
 import NavTile from "@/components/title/NavTile";
+import { t } from "@/lib/i18n";
 import { useRouter } from "next/router";
 
 interface HomeProps {
@@ -50,7 +51,7 @@ export default function Home({ showAdminButton }: HomeProps) {
 
               {/* Footer hint */}
               <p className="text-xs text-muted-foreground/60 mt-4 text-center">
-                Wähle einen Bereich um zu starten
+                {t("home.chooseSection")}
               </p>
             </div>
           </div>

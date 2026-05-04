@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Hash, Sparkles, UserPlus, Wand2 } from "lucide-react";
 import * as React from "react";
@@ -52,10 +53,10 @@ export default function NewUserDialog({
               </div>
               <div>
                 <DialogTitle className="text-lg font-bold text-white">
-                  Neue Nutzerin erstellen
+                  {t("newUserDialog.title")}
                 </DialogTitle>
                 <p className="mt-0.5 text-sm text-white/70">
-                  Benutzer zur Bibliothek hinzufügen
+                  {t("newUserDialog.subtitle")}
                 </p>
               </div>
             </div>
@@ -71,7 +72,7 @@ export default function NewUserDialog({
               {idAuto && (
                 <span className="flex items-center gap-1 rounded-md bg-warning-light px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-warning">
                   <Sparkles size={10} />
-                  Auto
+                  {t("newUserDialog.autoBadge")}
                 </span>
               )}
             </div>
@@ -107,11 +108,11 @@ export default function NewUserDialog({
                     idAuto ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
-                  Automatische ID
+                  {t("newUserDialog.autoIdLabel")}
                 </span>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground/60">
-                Nächste verfügbare Nummer wird automatisch vergeben
+                {t("newUserDialog.autoIdHint")}
               </p>
             </div>
           </label>
@@ -127,7 +128,7 @@ export default function NewUserDialog({
               htmlFor="user-id-input"
               className="text-sm font-medium text-muted-foreground"
             >
-              Nutzer-ID
+              {t("newUserDialog.userIdLabel")}
             </Label>
             <div className="relative">
               <Hash
@@ -162,14 +163,14 @@ export default function NewUserDialog({
             onClick={() => setOpen(false)}
             className="text-sm text-muted-foreground"
           >
-            Abbrechen
+            {t("newUserDialog.cancel")}
           </Button>
           <Button
             onClick={() => onCreate(idValue, idAuto)}
             className="gap-2 rounded-lg px-5 text-sm font-semibold shadow-sm"
           >
             <UserPlus size={16} />
-            Erstellen
+            {t("newUserDialog.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

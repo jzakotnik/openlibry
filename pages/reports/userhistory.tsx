@@ -3,6 +3,7 @@ import { getRentEventsByUser } from "@/entities/audit";
 import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
@@ -25,6 +26,7 @@ import {
   type ColumnFiltersState,
   type SortingState,
 } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import {
   ChevronDown,
@@ -143,26 +145,34 @@ interface HistoryPdfProps {
 }
 
 const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const idLabel = t("pdfHistory.bookEntryIdLabel");
 
   return (
     <Document>
       <Page size="A4" style={pdfStyles.page}>
         {/* Header */}
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Ausleih-Historie Bericht</Text>
+          <Text style={pdfStyles.title}>{t("pdfHistory.titleHistory")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} • {data.length} Nutzer
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfHistory.subtitleTotal", { count: data.length })}
           </Text>
         </View>
 
         {/* Table Header */}
         <View style={pdfStyles.tableHeader}>
-          <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>Klasse</Text>
-          <Text style={[pdfStyles.colName, pdfStyles.headerText]}>Name</Text>
-          <Text style={[pdfStyles.colCount, pdfStyles.headerText]}>Gesamt</Text>
+          <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
+            {t("pdfHistory.colKlasse")}
+          </Text>
+          <Text style={[pdfStyles.colName, pdfStyles.headerText]}>
+            {t("pdfHistory.colName")}
+          </Text>
+          <Text style={[pdfStyles.colCount, pdfStyles.headerText]}>
+            {t("pdfHistory.colTotal")}
+          </Text>
           <Text style={[pdfStyles.colBooks, pdfStyles.headerText]}>
-            Bücher (Datum | ID | Titel)
+            {t("pdfHistory.colBooks")}
           </Text>
         </View>
 
@@ -187,7 +197,7 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
                   {visibleBooks.map((b, bi) => (
                     <Text key={bi} style={pdfStyles.bookEntry}>
                       <Text style={pdfStyles.dateLabel}>
-                        {b.loanDate} | ID: {b.bookId}:{" "}
+                        {b.loanDate} | {idLabel}: {b.bookId}:{" "}
                       </Text>
                       {/* NFC normalization required: DNB titles arrive NFD-decomposed,
                           which @react-pdf/renderer cannot render correctly */}
@@ -196,7 +206,9 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
                   ))}
                   {overflowCount > 0 && (
                     <Text style={pdfStyles.overflow}>
-                      … und {overflowCount} weitere
+                      {t("pdfHistory.overflowSuffix", {
+                        count: overflowCount,
+                      })}
                     </Text>
                   )}
                 </View>
@@ -204,12 +216,14 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
             );
           })
         ) : (
-          <Text style={pdfStyles.emptyMessage}>Keine Daten vorhanden</Text>
+          <Text style={pdfStyles.emptyMessage}>
+            {t("pdfHistory.emptyData")}
+          </Text>
         )}
 
         {/* Footer */}
         <Text style={pdfStyles.footer}>
-          OpenLibry • Verlauf der Leihen vom {today}
+          {t("pdfHistory.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -217,7 +231,7 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
 };
 
 // =============================================================================
-// Export functions
+// Export functions (Excel pinned German per decision)
 // =============================================================================
 
 async function exportToPdf(data: HistoryRow[]): Promise<void> {
@@ -359,7 +373,7 @@ function MobileHistoryCard({
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
           <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {row.borrowCount} Bücher
+            {row.borrowCount} {t("reportHistoryPage.cardBooksSuffix")}
           </span>
           {isExpanded ? (
             <ChevronUp size={16} className="text-gray-400" />
@@ -371,7 +385,9 @@ function MobileHistoryCard({
       {isExpanded && (
         <div className="border-t border-gray-100 px-4 py-3 flex flex-col gap-2">
           {row.borrowedBooks.length === 0 ? (
-            <span className="text-sm text-gray-400">Keine Ausleihen</span>
+            <span className="text-sm text-gray-400">
+              {t("reportHistoryPage.cardEmpty")}
+            </span>
           ) : (
             row.borrowedBooks.map((b, i) => (
               <div
@@ -446,7 +462,9 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
         size: COLUMN_WIDTHS.schoolGrade,
         header: ({ column }) => (
           <div className="flex flex-col gap-1.5 py-1">
-            <span className={headerClass}>Klasse</span>
+            <span className={headerClass}>
+              {t("reportHistoryPage.colKlasse")}
+            </span>
             <select
               value={(column.getFilterValue() as string) ?? ""}
               onChange={(e) =>
@@ -455,7 +473,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               data-cy="history-grade-filter"
               className="font-normal text-xs border border-gray-300 rounded px-1 py-1 bg-white outline-none focus:ring-1 focus:ring-primary text-black w-20"
             >
-              <option value="">Alle</option>
+              <option value="">{t("reportHistoryPage.filterAllGrades")}</option>
               {allGrades.map((grade) => (
                 <option key={grade} value={grade}>
                   {grade}
@@ -471,7 +489,9 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
         size: COLUMN_WIDTHS.fullName,
         header: ({ column }) => (
           <div className="flex flex-col gap-1.5 py-1">
-            <span className={headerClass}>Name (Suche)</span>
+            <span className={headerClass}>
+              {t("reportHistoryPage.colName")}
+            </span>
             <div className="relative">
               <Search
                 className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
@@ -487,7 +507,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     column.setFilterValue("");
                   }
                 }}
-                placeholder="Name tippen..."
+                placeholder={t("reportHistoryPage.filterNamePlaceholder")}
                 data-cy="history-name-filter"
                 className="w-full font-normal text-xs border border-gray-200 rounded pl-7 pr-2 py-1 bg-white outline-none focus:ring-1 focus:ring-primary text-black"
               />
@@ -505,7 +525,9 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               onClick={column.getToggleSortingHandler()}
               className="flex items-center gap-1 cursor-pointer select-none group"
             >
-              <span className={headerClass}>Gesamt</span>
+              <span className={headerClass}>
+                {t("reportHistoryPage.colTotal")}
+              </span>
               <SortIcon direction={column.getIsSorted()} />
             </button>
             <div className="h-6" />
@@ -522,7 +544,9 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
         enableColumnFilter: false,
         header: () => (
           <div className="flex flex-col gap-1.5 py-1">
-            <span className={headerClass}>Ausleih-Historie</span>
+            <span className={headerClass}>
+              {t("reportHistoryPage.colHistory")}
+            </span>
             <div className="h-6" />
           </div>
         ),
@@ -579,7 +603,11 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
         { event: LogEvents.EXPORT_ERROR, error: String(err) },
         "PDF export failed",
       );
-      setExportError("PDF-Export fehlgeschlagen. Bitte erneut versuchen.");
+      setExportError(
+        t("reportHistoryPage.exportError", {
+          action: t("reportHistoryPage.pdfActionPdf"),
+        }),
+      );
     }
   };
 
@@ -593,7 +621,11 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
         { event: LogEvents.EXPORT_ERROR, error: String(err) },
         "Excel export failed",
       );
-      setExportError("Excel-Export fehlgeschlagen. Bitte erneut versuchen.");
+      setExportError(
+        t("reportHistoryPage.exportError", {
+          action: t("reportHistoryPage.pdfActionExcel"),
+        }),
+      );
     }
   };
 
@@ -609,7 +641,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
       >
         {error ? (
           <p className="text-red-600 py-4" data-cy="history-error">
-            Fehler beim Laden der Daten: {error}
+            {t("reportTable.loadError", { error })}
           </p>
         ) : tableData.length > 0 || history?.length > 0 ? (
           <>
@@ -624,7 +656,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     size={20}
                     className="group-hover:-translate-x-0.5 transition-transform"
                   />
-                  Zurück
+                  {t("reportTable.back")}
                 </Link>
                 <div className="h-6 w-px bg-gray-300" />
                 <h2
@@ -632,9 +664,11 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                   data-cy="history-title"
                 >
                   <History size={18} className="text-blue-600" />
-                  Verlauf der Leihen{" "}
+                  {t("reportHistoryPage.title")}{" "}
                   <span className="font-normal text-muted-foreground text-sm">
-                    ({filteredCount} Nutzer)
+                    {t("reportHistoryPage.titleCountSuffix", {
+                      count: filteredCount,
+                    })}
                   </span>
                 </h2>
               </div>
@@ -652,7 +686,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     data-cy="history-active-only"
                     className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                   />
-                  Nur aktive Nutzer
+                  {t("reportHistoryPage.activeOnly")}
                 </label>
 
                 <div className="h-5 w-px bg-gray-300" />
@@ -661,14 +695,14 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                   onClick={handleExcelExport}
                   dataCy="history-excel-export"
                   icon={<Download size={16} />}
-                  label="Excel Export"
+                  label={t("reportTable.excelExport")}
                   variant="primary"
                 />
                 <ExportButton
                   onClick={handlePdfExport}
                   dataCy="history-pdf-export"
                   icon={<FileText size={16} />}
-                  label="PDF Export"
+                  label={t("reportTable.pdfExport")}
                   variant="secondary"
                 />
               </div>
@@ -689,8 +723,9 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               className="text-xs text-muted-foreground mb-2"
               data-cy="history-export-hint"
             >
-              Export umfasst die aktuelle gefilterte Ansicht ({filteredCount}{" "}
-              Nutzer).
+              {t("reportHistoryPage.exportScopeHint", {
+                count: filteredCount,
+              })}
             </p>
 
             {/* Mobile filter bar — hidden on md+ */}
@@ -713,7 +748,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                     if (e.key === "Escape")
                       table.getColumn("fullName")?.setFilterValue("");
                   }}
-                  placeholder="Name suchen…"
+                  placeholder={t("reportHistoryPage.mobileNamePlaceholder")}
                   data-cy="history-mobile-name-filter"
                   className="w-full text-sm border border-gray-200 rounded-lg pl-8 pr-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
                 />
@@ -732,7 +767,9 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                 data-cy="history-mobile-grade-filter"
                 className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">Alle Klassen</option>
+                <option value="">
+                  {t("reportHistoryPage.mobileGradeAll")}
+                </option>
                 {allGrades.map((grade) => (
                   <option key={grade} value={grade}>
                     {grade}
@@ -792,7 +829,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                         className="text-center py-8 text-muted-foreground"
                         data-cy="history-no-results"
                       >
-                        Keine Ergebnisse für diesen Filter
+                        {t("reportHistoryPage.noResults")}
                       </td>
                     </tr>
                   )}
@@ -821,7 +858,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                   className="text-center py-8 text-muted-foreground"
                   data-cy="history-no-results"
                 >
-                  Keine Ergebnisse für diesen Filter
+                  {t("reportHistoryPage.noResults")}
                 </p>
               )}
             </div>
@@ -829,7 +866,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>Zeilen pro Seite:</span>
+                <span>{t("reportTable.rowsPerPage")}</span>
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
@@ -846,7 +883,10 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
 
               <div className="flex items-center gap-2">
                 <span>
-                  Seite {pageIndex + 1} von {pageCount}
+                  {t("reportTable.pageOfTotal", {
+                    page: pageIndex + 1,
+                    total: pageCount,
+                  })}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -894,7 +934,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
             className="text-muted-foreground py-8 text-center"
             data-cy="history-no-data"
           >
-            Keine Daten verfügbar
+            {t("reportTable.noData")}
           </p>
         )}
       </div>
@@ -941,7 +981,7 @@ export async function getServerSideProps() {
     return {
       props: {
         history: [],
-        error: "Fehler beim Laden der Ausleih-Historie",
+        error: t("reportHistoryPage.serverErrorLoad"),
       },
     };
   }

@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
   Document,
@@ -191,7 +192,8 @@ const RentalsPdfDocument = ({
   regularRentals,
   columns,
 }: RentalsPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const total = overdueRentals.length + regularRentals.length;
 
   const getColumnHeader = (field: string) => {
     const col = columns.find((c) => c.field === field);
@@ -206,14 +208,18 @@ const RentalsPdfDocument = ({
       <Text style={[pdfStyles.colTitle, pdfStyles.headerText]}>
         {getColumnHeader("title")}
       </Text>
-      <Text style={[pdfStyles.colName, pdfStyles.headerText]}>Name</Text>
+      <Text style={[pdfStyles.colName, pdfStyles.headerText]}>
+        {t("pdfRentals.colName")}
+      </Text>
       <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
         {getColumnHeader("schoolGrade")}
       </Text>
       <Text style={[pdfStyles.colDue, pdfStyles.headerText]}>
         {getColumnHeader("dueDate")}
       </Text>
-      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>Verzug</Text>
+      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>
+        {t("pdfRentals.colDelay")}
+      </Text>
       <Text style={[pdfStyles.colRenewal, pdfStyles.headerText]}>
         {getColumnHeader("renewalCount")}
       </Text>
@@ -222,11 +228,16 @@ const RentalsPdfDocument = ({
 
   const formatRemainingDays = (days: number): string => {
     if (days < 0) {
-      return `${Math.abs(days)} Tag${Math.abs(days) !== 1 ? "e" : ""} überfällig`;
+      const abs = Math.abs(days);
+      return abs === 1
+        ? t("pdfRentals.daysOverdueOne", { count: abs })
+        : t("pdfRentals.daysOverdueMany", { count: abs });
     } else if (days === 0) {
-      return "Heute fällig";
+      return t("pdfRentals.daysDueToday");
     } else {
-      return `noch ${days} Tag${days !== 1 ? "e" : ""}`;
+      return days === 1
+        ? t("pdfRentals.daysRemainingOne", { count: days })
+        : t("pdfRentals.daysRemainingMany", { count: days });
     }
   };
 
@@ -267,12 +278,14 @@ const RentalsPdfDocument = ({
       <Page size="A4" style={pdfStyles.page}>
         {/* Header */}
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Ausleihübersicht</Text>
+          <Text style={pdfStyles.title}>{t("pdfRentals.titleRentals")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} •{" "}
-            {overdueRentals.length + regularRentals.length} Ausleihen gesamt
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfRentals.subtitleTotal", { total })}
             {overdueRentals.length > 0
-              ? ` • davon ${overdueRentals.length} überfällig`
+              ? t("pdfRentals.subtitleOverdue", {
+                  overdue: overdueRentals.length,
+                })
               : ""}
           </Text>
         </View>
@@ -280,7 +293,7 @@ const RentalsPdfDocument = ({
         {/* Overdue Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitleOverdue}>
-            ⚠ Überfällige Ausleihen ({overdueRentals.length})
+            {t("pdfRentals.sectionOverdue", { count: overdueRentals.length })}
           </Text>
           {overdueRentals.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -291,7 +304,7 @@ const RentalsPdfDocument = ({
             </View>
           ) : (
             <Text style={pdfStyles.emptyMessage}>
-              Keine überfälligen Ausleihen
+              {t("pdfRentals.emptyOverdue")}
             </Text>
           )}
         </View>
@@ -299,7 +312,7 @@ const RentalsPdfDocument = ({
         {/* Regular Rentals Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
-            Aktuelle Ausleihen ({regularRentals.length})
+            {t("pdfRentals.sectionCurrent", { count: regularRentals.length })}
           </Text>
           {regularRentals.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -310,14 +323,14 @@ const RentalsPdfDocument = ({
             </View>
           ) : (
             <Text style={pdfStyles.emptyMessage}>
-              Keine aktuellen Ausleihen
+              {t("pdfRentals.emptyCurrent")}
             </Text>
           )}
         </View>
 
         {/* Footer */}
         <Text style={pdfStyles.footer}>
-          OpenLibry • Ausleihbericht vom {today}
+          {t("pdfRentals.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -536,7 +549,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
       >
         {error ? (
           <p className="text-red-600 py-4" data-cy="rentals-error">
-            Fehler beim Laden der Daten: {error}
+            {t("reportTable.loadError", { error })}
           </p>
         ) : reportDataAvailable ? (
           <>
@@ -546,9 +559,14 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                 className={`text-base font-bold ${overdueCount > 0 ? "text-red-700" : "text-green-700"}`}
                 data-cy="rentals-overdue-count"
               >
-                {overdueCount > 0
-                  ? `⚠ ${overdueCount} Buch${overdueCount !== 1 ? "er" : ""} überfällig`
-                  : "✓ Keine überfälligen Bücher"}
+                {overdueCount === 0
+                  ? t("reportRentalsPage.overdueNone")
+                  : t(
+                      overdueCount === 1
+                        ? "reportRentalsPage.overdueOne"
+                        : "reportRentalsPage.overdueMany",
+                      { count: overdueCount },
+                    )}
               </h2>
               <div className="flex gap-2">
                 <button
@@ -564,7 +582,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                   "
                 >
                   <Download size={16} />
-                  Excel Export
+                  {t("reportTable.excelExport")}
                 </button>
                 <button
                   type="button"
@@ -579,7 +597,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                   "
                 >
                   <FileText size={16} />
-                  PDF Export
+                  {t("reportTable.pdfExport")}
                 </button>
               </div>
             </div>
@@ -631,14 +649,14 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                         key={row.id}
                         className={
                           isOverdue
-                            ? "bg-red-50/60 hover:bg-red-50"
+                            ? "bg-red-50/40 hover:bg-red-100/40"
                             : "hover:bg-gray-50/60"
                         }
                       >
                         {row.getVisibleCells().map((cell) => (
                           <td
                             key={cell.id}
-                            className="px-3 py-2 text-sm text-gray-700 truncate"
+                            className="px-3 py-2 text-sm truncate"
                             style={{
                               maxWidth: cell.column.getSize(),
                             }}
@@ -659,7 +677,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>Zeilen pro Seite:</span>
+                <span>{t("reportTable.rowsPerPage")}</span>
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
@@ -678,7 +696,10 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
 
               <div className="flex items-center gap-2">
                 <span>
-                  Seite {pageIndex + 1} von {pageCount}
+                  {t("reportTable.pageOfTotal", {
+                    page: pageIndex + 1,
+                    total: pageCount,
+                  })}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -722,7 +743,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
             className="text-muted-foreground py-8 text-center"
             data-cy="rentals-no-data"
           >
-            Keine Daten verfügbar
+            {t("reportTable.noData")}
           </p>
         )}
       </div>

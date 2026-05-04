@@ -8,6 +8,7 @@ import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { getBookFromID } from "@/lib/utils/lookups";
 import { extendBookApi } from "@/lib/utils/rentalUtils";
@@ -66,21 +67,19 @@ export default function Rental({
       });
 
       if (!res.ok) {
-        toast.error(
-          "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-        );
+        toast.error(t("rentalPage.serverReachableButFailed"));
         return;
       }
 
       await res.json();
       toast.success(
-        `Buch - ${getBookFromID(bookid, books).title} - zurückgegeben`,
+        t("rentalPage.bookReturned", {
+          title: getBookFromID(bookid, books).title ?? "",
+        }),
       );
       handleBookSearchSetFocus();
     } catch {
-      toast.error(
-        "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-      );
+      toast.error(t("rentalPage.serverUnreachable"));
     }
     mutate();
   };
@@ -90,18 +89,16 @@ export default function Rental({
 
     if (result.status === "already_extended") {
       toast.warning(
-        `Buch - ${book.title} - ist bereits bis zum maximalen Ende ausgeliehen`,
+        t("rentalPage.bookAlreadyMaxExtended", { title: book.title ?? "" }),
       );
       return;
     }
     if (result.status === "error") {
-      toast.error(
-        "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-      );
+      toast.error(t("rentalPage.serverReachableButFailed"));
       return;
     }
 
-    toast.success(`Buch - ${book.title} - verlängert`);
+    toast.success(t("rentalPage.bookExtended", { title: book.title ?? "" }));
     handleBookSearchSetFocus();
     // No need to use result.newDueDate here — SWR will refresh the data automatically
   };
@@ -114,19 +111,19 @@ export default function Rental({
       });
 
       if (!res.ok) {
-        toast.error(
-          "Leider hat es nicht geklappt, der Server ist aber erreichbar",
-        );
+        toast.error(t("rentalPage.serverReachableButFailed"));
         return;
       }
 
       await res.json();
-      toast.success(`Buch ${getBookFromID(bookid, books).title} ausgeliehen`);
+      toast.success(
+        t("rentalPage.bookRented", {
+          title: getBookFromID(bookid, books).title ?? "",
+        }),
+      );
       handleBookSearchSetFocus();
     } catch {
-      toast.error(
-        "Server ist leider nicht erreichbar. Alles OK mit dem Internet?",
-      );
+      toast.error(t("rentalPage.serverUnreachable"));
     }
   };
 

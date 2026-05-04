@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
   CheckCheck,
@@ -127,15 +128,15 @@ export default function UserSearchBar({
             onChange={
               onSearchChange as unknown as React.ChangeEventHandler<HTMLInputElement>
             }
-            placeholder="Suche nach Name oder ID..."
-            aria-label="search users"
+            placeholder={t("userSearchBar.placeholder")}
+            aria-label={t("userSearchBar.ariaLabel")}
             data-cy="rental_input_searchuser"
             className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
           />
 
           <ActionButton
             icon={<SlidersHorizontal size={18} />}
-            tooltip="Sucheinstellungen"
+            tooltip={t("userSearchBar.searchSettings")}
             onClick={onToggleSettings}
             active={showSettings}
           />
@@ -144,14 +145,18 @@ export default function UserSearchBar({
 
           <ActionButton
             icon={<CheckCheck size={18} />}
-            tooltip={hasSelection ? "Auswahl aufheben" : "Alle auswählen"}
+            tooltip={
+              hasSelection
+                ? t("userSearchBar.cancelSelection")
+                : t("userSearchBar.selectAll")
+            }
             onClick={onSelectAll}
             badgeCount={hasSelection ? selectedCount : undefined}
           />
 
           <ActionButton
             icon={<UserPlus size={18} />}
-            tooltip="Neue Nutzerin erzeugen"
+            tooltip={t("userSearchBar.newUser")}
             onClick={onCreateUser}
           />
         </div>
@@ -163,7 +168,7 @@ export default function UserSearchBar({
               <div className="flex items-center gap-2">
                 <Badge className="rounded-full">{selectedCount}</Badge>
                 <span className="text-sm font-medium text-muted-foreground">
-                  ausgewählt
+                  {t("userSearchBar.selected")}
                 </span>
                 <Button
                   variant="ghost"
@@ -172,7 +177,7 @@ export default function UserSearchBar({
                   className="ml-1 h-7 gap-1 px-2 text-xs text-muted-foreground"
                 >
                   <X size={12} />
-                  Aufheben
+                  {t("userSearchBar.deselect")}
                 </Button>
               </div>
 
@@ -184,7 +189,9 @@ export default function UserSearchBar({
                     className="h-8 w-8 text-muted-foreground"
                   >
                     <MoreVertical size={18} />
-                    <span className="sr-only">Aktionen</span>
+                    <span className="sr-only">
+                      {t("userSearchBar.actions")}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
 
@@ -194,7 +201,7 @@ export default function UserSearchBar({
                     className="gap-3 text-primary"
                   >
                     <GraduationCap size={16} />
-                    Klasse erhöhen
+                    {t("userSearchBar.increaseGrade")}
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
@@ -209,7 +216,9 @@ export default function UserSearchBar({
                     )}
                   >
                     <Trash2 size={16} />
-                    {confirmDelete ? "Wirklich löschen?" : "Nutzer löschen"}
+                    {confirmDelete
+                      ? t("userSearchBar.confirmDelete")
+                      : t("userSearchBar.deleteUsers")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

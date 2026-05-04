@@ -9,6 +9,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import getMaxId, { increaseNumberInString } from "@/lib/utils/id";
 import dayjs from "dayjs";
@@ -85,9 +86,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
         .catch((error) => {
           console.error("Error creating user:", error);
           setIsCreatingUser(false);
-          toast.error(
-            "Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?",
-          );
+          toast.error(t("userPage.toastUserCreateFailed"));
         });
     },
     [router],
@@ -119,7 +118,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
     })
       .then((res) => res.json())
       .then(() => {
-        toast.success("Klassenstufe für Schüler erhöht");
+        toast.success(t("userPage.toastGradeIncreased"));
         router.push("user");
       });
   }, [users, checked, router]);
@@ -141,7 +140,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
     })
       .then((res) => res.json())
       .then(() => {
-        toast.success("Schüler erfolgreich gelöscht");
+        toast.success(t("userPage.toastUsersDeleted"));
         setConfirmDelete(false);
         router.push("user");
       })
