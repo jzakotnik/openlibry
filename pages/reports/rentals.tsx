@@ -72,7 +72,7 @@ interface RentalsPropsType {
 }
 
 // =============================================================================
-// PDF Styles (unchanged - German strings stay until phase 7b2)
+// PDF Styles
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -178,7 +178,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged - phase 7b2 will translate)
+// PDF Document Component
 // =============================================================================
 
 interface RentalsPdfProps {
@@ -192,7 +192,8 @@ const RentalsPdfDocument = ({
   regularRentals,
   columns,
 }: RentalsPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const total = overdueRentals.length + regularRentals.length;
 
   const getColumnHeader = (field: string) => {
     const col = columns.find((c) => c.field === field);
@@ -207,14 +208,18 @@ const RentalsPdfDocument = ({
       <Text style={[pdfStyles.colTitle, pdfStyles.headerText]}>
         {getColumnHeader("title")}
       </Text>
-      <Text style={[pdfStyles.colName, pdfStyles.headerText]}>Name</Text>
+      <Text style={[pdfStyles.colName, pdfStyles.headerText]}>
+        {t("pdfRentals.colName")}
+      </Text>
       <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
         {getColumnHeader("schoolGrade")}
       </Text>
       <Text style={[pdfStyles.colDue, pdfStyles.headerText]}>
         {getColumnHeader("dueDate")}
       </Text>
-      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>Verzug</Text>
+      <Text style={[pdfStyles.colDays, pdfStyles.headerText]}>
+        {t("pdfRentals.colDelay")}
+      </Text>
       <Text style={[pdfStyles.colRenewal, pdfStyles.headerText]}>
         {getColumnHeader("renewalCount")}
       </Text>
@@ -223,11 +228,16 @@ const RentalsPdfDocument = ({
 
   const formatRemainingDays = (days: number): string => {
     if (days < 0) {
-      return `${Math.abs(days)} Tag${Math.abs(days) !== 1 ? "e" : ""} überfällig`;
+      const abs = Math.abs(days);
+      return abs === 1
+        ? t("pdfRentals.daysOverdueOne", { count: abs })
+        : t("pdfRentals.daysOverdueMany", { count: abs });
     } else if (days === 0) {
-      return "Heute fällig";
+      return t("pdfRentals.daysDueToday");
     } else {
-      return `noch ${days} Tag${days !== 1 ? "e" : ""}`;
+      return days === 1
+        ? t("pdfRentals.daysRemainingOne", { count: days })
+        : t("pdfRentals.daysRemainingMany", { count: days });
     }
   };
 
@@ -268,12 +278,14 @@ const RentalsPdfDocument = ({
       <Page size="A4" style={pdfStyles.page}>
         {/* Header */}
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Ausleihübersicht</Text>
+          <Text style={pdfStyles.title}>{t("pdfRentals.titleRentals")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} •{" "}
-            {overdueRentals.length + regularRentals.length} Ausleihen gesamt
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfRentals.subtitleTotal", { total })}
             {overdueRentals.length > 0
-              ? ` • davon ${overdueRentals.length} überfällig`
+              ? t("pdfRentals.subtitleOverdue", {
+                  overdue: overdueRentals.length,
+                })
               : ""}
           </Text>
         </View>
@@ -281,7 +293,7 @@ const RentalsPdfDocument = ({
         {/* Overdue Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitleOverdue}>
-            ⚠ Überfällige Ausleihen ({overdueRentals.length})
+            {t("pdfRentals.sectionOverdue", { count: overdueRentals.length })}
           </Text>
           {overdueRentals.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -292,7 +304,7 @@ const RentalsPdfDocument = ({
             </View>
           ) : (
             <Text style={pdfStyles.emptyMessage}>
-              Keine überfälligen Ausleihen
+              {t("pdfRentals.emptyOverdue")}
             </Text>
           )}
         </View>
@@ -300,7 +312,7 @@ const RentalsPdfDocument = ({
         {/* Regular Rentals Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
-            Aktuelle Ausleihen ({regularRentals.length})
+            {t("pdfRentals.sectionCurrent", { count: regularRentals.length })}
           </Text>
           {regularRentals.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -311,14 +323,14 @@ const RentalsPdfDocument = ({
             </View>
           ) : (
             <Text style={pdfStyles.emptyMessage}>
-              Keine aktuellen Ausleihen
+              {t("pdfRentals.emptyCurrent")}
             </Text>
           )}
         </View>
 
         {/* Footer */}
         <Text style={pdfStyles.footer}>
-          OpenLibry • Ausleihbericht vom {today}
+          {t("pdfRentals.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -326,7 +338,7 @@ const RentalsPdfDocument = ({
 };
 
 // =============================================================================
-// Excel & PDF export functions (unchanged)
+// Excel & PDF export functions
 // =============================================================================
 
 async function exportToPdf(

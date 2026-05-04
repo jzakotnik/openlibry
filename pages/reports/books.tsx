@@ -22,6 +22,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import { Download, FileText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -44,7 +45,7 @@ function getWidth(columnName: string = ""): number {
 }
 
 // =============================================================================
-// PDF Styles (unchanged - German strings stay until phase 7b2)
+// PDF Styles
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -145,7 +146,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged - phase 7b2 will translate)
+// PDF Document Component
 // =============================================================================
 
 interface BooksPdfProps {
@@ -159,22 +160,25 @@ const BooksPdfDocument = ({
   availableBooks,
   columns,
 }: BooksPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const total = rentedBooks.length + availableBooks.length;
 
   const getColumnHeader = (field: string) => {
     const col = columns.find((c) => c.field === field);
     return col?.headerName || field;
   };
 
+  // Status label lookup — sourced from the pdfBooks namespace so PDFs match
+  // the deployment locale, instead of relying on a hardcoded German map.
   const translateStatus = (status: string) => {
     const map: Record<string, string> = {
-      rented: "Ausgeliehen",
-      available: "Verfügbar",
-      broken: "Beschädigt",
-      presentation: "Vorführung",
-      ordered: "Bestellt",
-      lost: "Verloren",
-      remote: "Andere Bibliothek",
+      rented: t("pdfBooks.statusRented"),
+      available: t("pdfBooks.statusAvailable"),
+      broken: t("pdfBooks.statusBroken"),
+      presentation: t("pdfBooks.statusPresentation"),
+      ordered: t("pdfBooks.statusOrdered"),
+      lost: t("pdfBooks.statusLost"),
+      remote: t("pdfBooks.statusRemote"),
     };
     return map[status] || status;
   };
@@ -227,19 +231,19 @@ const BooksPdfDocument = ({
     <Document>
       <Page size="A4" style={pdfStyles.page} orientation="landscape">
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Bestandsübersicht</Text>
+          <Text style={pdfStyles.title}>{t("pdfBooks.titleStock")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} • {rentedBooks.length + availableBooks.length}{" "}
-            Bücher gesamt
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfBooks.subtitleTotal", { total })}
             {rentedBooks.length > 0
-              ? ` • davon ${rentedBooks.length} ausgeliehen`
+              ? t("pdfBooks.subtitleRented", { rented: rentedBooks.length })
               : ""}
           </Text>
         </View>
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitleRented}>
-            Ausgeliehene Bücher ({rentedBooks.length})
+            {t("pdfBooks.sectionRented", { count: rentedBooks.length })}
           </Text>
           {rentedBooks.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -249,13 +253,15 @@ const BooksPdfDocument = ({
               ))}
             </View>
           ) : (
-            <Text style={pdfStyles.emptyMessage}>Keine Bücher ausgeliehen</Text>
+            <Text style={pdfStyles.emptyMessage}>
+              {t("pdfBooks.emptyRented")}
+            </Text>
           )}
         </View>
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
-            Verfügbare Bücher ({availableBooks.length})
+            {t("pdfBooks.sectionAvailable", { count: availableBooks.length })}
           </Text>
           {availableBooks.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -265,12 +271,14 @@ const BooksPdfDocument = ({
               ))}
             </View>
           ) : (
-            <Text style={pdfStyles.emptyMessage}>Keine verfügbaren Bücher</Text>
+            <Text style={pdfStyles.emptyMessage}>
+              {t("pdfBooks.emptyAvailable")}
+            </Text>
           )}
         </View>
 
         <Text style={pdfStyles.footer}>
-          OpenLibry • Bestandsbericht vom {today}
+          {t("pdfBooks.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -278,7 +286,7 @@ const BooksPdfDocument = ({
 };
 
 // =============================================================================
-// Excel & PDF export functions (unchanged)
+// Excel & PDF export functions (unchanged - Excel pinned German per decision)
 // =============================================================================
 
 async function exportToPdf(

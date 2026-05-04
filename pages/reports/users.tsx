@@ -22,6 +22,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import { Download, FileText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -46,7 +47,7 @@ function getWidth(columnName: string = ""): number {
 }
 
 // =============================================================================
-// PDF Styles (unchanged - German strings stay until phase 7b2)
+// PDF Styles
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -147,7 +148,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged - phase 7b2 will translate)
+// PDF Document Component
 // =============================================================================
 
 interface UsersPdfProps {
@@ -161,7 +162,8 @@ const UsersPdfDocument = ({
   inactiveUsers,
   columns,
 }: UsersPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const total = activeUsers.length + inactiveUsers.length;
 
   const getColumnHeader = (field: string) => {
     const col = columns.find((c) => c.field === field);
@@ -260,19 +262,21 @@ const UsersPdfDocument = ({
     <Document>
       <Page size="A4" style={pdfStyles.page}>
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Nutzerübersicht</Text>
+          <Text style={pdfStyles.title}>{t("pdfUsers.titleUsers")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} • {activeUsers.length + inactiveUsers.length}{" "}
-            Nutzer gesamt
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfUsers.subtitleTotal", { total })}
             {inactiveUsers.length > 0
-              ? ` • davon ${inactiveUsers.length} inaktiv`
+              ? t("pdfUsers.subtitleInactive", {
+                  inactive: inactiveUsers.length,
+                })
               : ""}
           </Text>
         </View>
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
-            👥 Aktive Nutzer ({activeUsers.length})
+            {t("pdfUsers.sectionActive", { count: activeUsers.length })}
           </Text>
           {activeUsers.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -282,14 +286,16 @@ const UsersPdfDocument = ({
               ))}
             </View>
           ) : (
-            <Text style={pdfStyles.emptyMessage}>Keine aktiven Nutzer</Text>
+            <Text style={pdfStyles.emptyMessage}>
+              {t("pdfUsers.emptyActive")}
+            </Text>
           )}
         </View>
 
         {inactiveUsers.length > 0 && (
           <View style={pdfStyles.section}>
             <Text style={pdfStyles.sectionTitleInactive}>
-              Inaktive Nutzer ({inactiveUsers.length})
+              {t("pdfUsers.sectionInactive", { count: inactiveUsers.length })}
             </Text>
             <View style={pdfStyles.table}>
               <TableHeader />
@@ -301,7 +307,7 @@ const UsersPdfDocument = ({
         )}
 
         <Text style={pdfStyles.footer}>
-          OpenLibry • Nutzerbericht vom {today}
+          {t("pdfUsers.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -309,7 +315,7 @@ const UsersPdfDocument = ({
 };
 
 // =============================================================================
-// Excel & PDF export functions (unchanged)
+// Excel & PDF export functions
 // =============================================================================
 
 async function exportToPdf(

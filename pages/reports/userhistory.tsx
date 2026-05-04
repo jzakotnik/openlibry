@@ -26,6 +26,7 @@ import {
   type ColumnFiltersState,
   type SortingState,
 } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import {
   ChevronDown,
@@ -79,7 +80,7 @@ const COLUMN_WIDTHS = {
 const PDF_MAX_BOOKS_PER_ROW = 20;
 
 // =============================================================================
-// PDF Styles (unchanged - phase 7b2 will translate)
+// PDF Styles
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -136,7 +137,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged - phase 7b2 will translate)
+// PDF Document Component
 // =============================================================================
 
 interface HistoryPdfProps {
@@ -144,26 +145,34 @@ interface HistoryPdfProps {
 }
 
 const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const idLabel = t("pdfHistory.bookEntryIdLabel");
 
   return (
     <Document>
       <Page size="A4" style={pdfStyles.page}>
         {/* Header */}
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Ausleih-Historie Bericht</Text>
+          <Text style={pdfStyles.title}>{t("pdfHistory.titleHistory")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} • {data.length} Nutzer
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfHistory.subtitleTotal", { count: data.length })}
           </Text>
         </View>
 
         {/* Table Header */}
         <View style={pdfStyles.tableHeader}>
-          <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>Klasse</Text>
-          <Text style={[pdfStyles.colName, pdfStyles.headerText]}>Name</Text>
-          <Text style={[pdfStyles.colCount, pdfStyles.headerText]}>Gesamt</Text>
+          <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
+            {t("pdfHistory.colKlasse")}
+          </Text>
+          <Text style={[pdfStyles.colName, pdfStyles.headerText]}>
+            {t("pdfHistory.colName")}
+          </Text>
+          <Text style={[pdfStyles.colCount, pdfStyles.headerText]}>
+            {t("pdfHistory.colTotal")}
+          </Text>
           <Text style={[pdfStyles.colBooks, pdfStyles.headerText]}>
-            Bücher (Datum | ID | Titel)
+            {t("pdfHistory.colBooks")}
           </Text>
         </View>
 
@@ -188,7 +197,7 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
                   {visibleBooks.map((b, bi) => (
                     <Text key={bi} style={pdfStyles.bookEntry}>
                       <Text style={pdfStyles.dateLabel}>
-                        {b.loanDate} | ID: {b.bookId}:{" "}
+                        {b.loanDate} | {idLabel}: {b.bookId}:{" "}
                       </Text>
                       {/* NFC normalization required: DNB titles arrive NFD-decomposed,
                           which @react-pdf/renderer cannot render correctly */}
@@ -197,7 +206,9 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
                   ))}
                   {overflowCount > 0 && (
                     <Text style={pdfStyles.overflow}>
-                      … und {overflowCount} weitere
+                      {t("pdfHistory.overflowSuffix", {
+                        count: overflowCount,
+                      })}
                     </Text>
                   )}
                 </View>
@@ -205,12 +216,14 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
             );
           })
         ) : (
-          <Text style={pdfStyles.emptyMessage}>Keine Daten vorhanden</Text>
+          <Text style={pdfStyles.emptyMessage}>
+            {t("pdfHistory.emptyData")}
+          </Text>
         )}
 
         {/* Footer */}
         <Text style={pdfStyles.footer}>
-          OpenLibry • Verlauf der Leihen vom {today}
+          {t("pdfHistory.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -218,7 +231,7 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
 };
 
 // =============================================================================
-// Export functions (unchanged - phase 7b2 will translate Excel headers)
+// Export functions (Excel pinned German per decision)
 // =============================================================================
 
 async function exportToPdf(data: HistoryRow[]): Promise<void> {

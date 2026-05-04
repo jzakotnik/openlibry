@@ -758,6 +758,79 @@ export const de = {
     sentenceEnableUser: "Benutzer #{userId} wurde aktiviert",
     sentenceUnknownIdMissing: "?",
   },
+
+  // ─── Phase 7b2: PDF Document content (rendered downloads) ────────────
+  // Date format used for "Erstellt am" line in PDF subtitles.
+  // dayjs format string — DD.MM.YYYY for German, MM/DD/YYYY for English etc.
+  pdfDocs: {
+    dateFormat: "DD.MM.YYYY",
+    createdOn: "Erstellt am {date}",
+  },
+  pdfBooks: {
+    titleStock: "Bestandsübersicht",
+    subtitleTotal: "{total} Bücher gesamt",
+    subtitleRented: " • davon {rented} ausgeliehen",
+    sectionRented: "Ausgeliehene Bücher ({count})",
+    sectionAvailable: "Verfügbare Bücher ({count})",
+    emptyRented: "Keine Bücher ausgeliehen",
+    emptyAvailable: "Keine verfügbaren Bücher",
+    footer: "OpenLibry • Bestandsbericht vom {date}",
+    // Status labels rendered inside PDF rows.
+    // Mirrors fieldTranslations.rentalStatus but lives here so the PDF stays
+    // consistent with the deployment locale.
+    statusRented: "Ausgeliehen",
+    statusAvailable: "Verfügbar",
+    statusBroken: "Beschädigt",
+    statusPresentation: "Vorführung",
+    statusOrdered: "Bestellt",
+    statusLost: "Verloren",
+    statusRemote: "Andere Bibliothek",
+  },
+  pdfUsers: {
+    titleUsers: "Nutzerübersicht",
+    subtitleTotal: "{total} Nutzer gesamt",
+    subtitleInactive: " • davon {inactive} inaktiv",
+    sectionActive: "👥 Aktive Nutzer ({count})",
+    sectionInactive: "Inaktive Nutzer ({count})",
+    emptyActive: "Keine aktiven Nutzer",
+    footer: "OpenLibry • Nutzerbericht vom {date}",
+  },
+  pdfRentals: {
+    titleRentals: "Ausleihübersicht",
+    subtitleTotal: "{total} Ausleihen gesamt",
+    subtitleOverdue: " • davon {overdue} überfällig",
+    sectionOverdue: "⚠ Überfällige Ausleihen ({count})",
+    sectionCurrent: "Aktuelle Ausleihen ({count})",
+    emptyOverdue: "Keine überfälligen Ausleihen",
+    emptyCurrent: "Keine aktuellen Ausleihen",
+    footer: "OpenLibry • Ausleihbericht vom {date}",
+    colName: "Name",
+    colDelay: "Verzug",
+    // Day-count rendering inside rentals PDF.
+    daysOverdueOne: "{count} Tag überfällig",
+    daysOverdueMany: "{count} Tage überfällig",
+    daysDueToday: "Heute fällig",
+    daysRemainingOne: "noch {count} Tag",
+    daysRemainingMany: "noch {count} Tage",
+  },
+  pdfHistory: {
+    titleHistory: "Ausleih-Historie Bericht",
+    subtitleTotal: "{count} Nutzer",
+    colKlasse: "Klasse",
+    colName: "Name",
+    colTotal: "Gesamt",
+    colBooks: "Bücher (Datum | ID | Titel)",
+    overflowSuffix: "… und {count} weitere",
+    emptyData: "Keine Daten vorhanden",
+    footer: "OpenLibry • Verlauf der Leihen vom {date}",
+    bookEntryIdLabel: "ID",
+  },
+  // Server-side error returned by /api/report/userlabels when a user-label
+  // line config has invalid placeholders (e.g. missing User.firstName).
+  // Visible to librarians who customize USERLABEL_LINE_* in their .env.
+  userLabelsApi: {
+    placeholderError: "Konfigurationsfehler in der Umgebung",
+  },
 };
 
 /**
