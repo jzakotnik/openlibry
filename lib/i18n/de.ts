@@ -679,6 +679,85 @@ export const de = {
       "Felder zuordnen, Schriftgrößen anpassen, Buchrücken-Breite einstellen. Vorschau direkt im Browser.",
     button: "Vorlage bearbeiten",
   },
+
+  // ─── Phase 7b1: report table pages ───────────────────────────────────
+  reportTable: {
+    loadError: "Fehler beim Laden der Daten: {error}",
+    noData: "Keine Daten verfügbar",
+    excelExport: "Excel Export",
+    pdfExport: "PDF Export",
+    rowsPerPage: "Zeilen pro Seite:",
+    pageOfTotal: "Seite {page} von {total}",
+    back: "Zurück",
+  },
+  reportBooksPage: {
+    statusOne: "📚 {total} Buch • {rented} ausgeliehen • {available} verfügbar",
+    statusMany:
+      "📚 {total} Bücher • {rented} ausgeliehen • {available} verfügbar",
+  },
+  reportUsersPage: {
+    // Two-part composition:
+    //   statusBase always shown
+    //   statusInactiveSuffix appended (parenthesized) when inactiveCount > 0
+    statusBaseOne: "👥 {totalCount} Nutzer • {grades} Klassen",
+    statusBaseMany: "👥 {totalCount} Nutzer • {grades} Klassen",
+    statusInactiveSuffix: "({inactiveCount} inaktiv)",
+  },
+  reportRentalsPage: {
+    overdueOne: "⚠ {count} Buch überfällig",
+    overdueMany: "⚠ {count} Bücher überfällig",
+    overdueNone: "✓ Keine überfälligen Bücher",
+  },
+  reportHistoryPage: {
+    title: "Verlauf der Leihen",
+    titleCountSuffix: "({count} Nutzer)",
+    activeOnly: "Nur aktive Nutzer",
+    exportError: "{action}-Export fehlgeschlagen. Bitte erneut versuchen.",
+    exportScopeHint: "Export umfasst die aktuelle gefilterte Ansicht ({count} Nutzer).",
+    colKlasse: "Klasse",
+    colName: "Name (Suche)",
+    colTotal: "Gesamt",
+    colHistory: "Ausleih-Historie",
+    filterAllGrades: "Alle",
+    filterNamePlaceholder: "Name tippen...",
+    mobileNamePlaceholder: "Name suchen…",
+    mobileGradeAll: "Alle Klassen",
+    noResults: "Keine Ergebnisse für diesen Filter",
+    cardBooksSuffix: "Bücher",
+    cardEmpty: "Keine Ausleihen",
+    pdfActionExcel: "Excel",
+    pdfActionPdf: "PDF",
+    serverErrorLoad: "Fehler beim Laden der Ausleih-Historie",
+  },
+  reportAuditPage: {
+    searchPlaceholder: "Suche nach Büchern, Aktionen oder Datum...",
+    countSuffix: "{filtered} von {total} Einträgen",
+    emptySearch: "Keine Ergebnisse gefunden",
+    emptyAll: "Keine Aktivitäten verfügbar",
+    // Event sentence templates — all support {bookTitle}, {bookId}, {userName}, {userId}
+    sentenceRentBookFull:
+      'Buch "{bookTitle}" wurde an {userName} ({userId}) ausgeliehen',
+    sentenceRentBookUserId:
+      'Buch "{bookTitle}" wurde an Benutzer #{userId} ausgeliehen',
+    sentenceRentBookTitle: 'Buch "{bookTitle}" wurde ausgeliehen',
+    sentenceRentBookId: "Buch #{bookId} wurde ausgeliehen",
+    sentenceReturnBookTitle: 'Buch "{bookTitle}" wurde zurückgegeben',
+    sentenceReturnBookId: "Buch #{bookId} wurde zurückgegeben",
+    sentenceExtendBookTitle: 'Ausleihe von "{bookTitle}" wurde verlängert',
+    sentenceExtendBookId: "Ausleihe von Buch #{bookId} wurde verlängert",
+    sentenceAddBook: 'Neues Buch "{bookTitle}" wurde hinzugefügt',
+    sentenceUpdateBookTitle: 'Buch "{bookTitle}" wurde aktualisiert',
+    sentenceUpdateBookId: "Buch #{bookId} wurde aktualisiert",
+    sentenceDeleteBook: "Buch #{bookId} wurde gelöscht",
+    sentenceAddUserNamed: 'Neuer Benutzer "{userName}" wurde angelegt',
+    sentenceAddUserAnon: "Neuer Benutzer wurde angelegt",
+    sentenceUpdateUserNamed: 'Benutzer "{userName}" wurde aktualisiert',
+    sentenceUpdateUserId: "Benutzer #{userId} wurde aktualisiert",
+    sentenceDeleteUser: "Benutzer #{userId} wurde gelöscht",
+    sentenceDisableUser: "Benutzer #{userId} wurde deaktiviert",
+    sentenceEnableUser: "Benutzer #{userId} wurde aktiviert",
+    sentenceUnknownIdMissing: "?",
+  },
 };
 
 /**

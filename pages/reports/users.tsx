@@ -3,6 +3,7 @@ import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { getAllUsers } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
   Document,
@@ -45,7 +46,7 @@ function getWidth(columnName: string = ""): number {
 }
 
 // =============================================================================
-// PDF Styles (unchanged)
+// PDF Styles (unchanged - German strings stay until phase 7b2)
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -146,7 +147,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged)
+// PDF Document Component (unchanged - phase 7b2 will translate)
 // =============================================================================
 
 interface UsersPdfProps {
@@ -505,10 +506,17 @@ export default function Users({ users }: UsersPropsType) {
                 className="text-base font-bold text-primary"
                 data-cy="users-status"
               >
-                👥 {totalCount} Nutzer • {uniqueGrades} Klassen
+                {t(
+                  totalCount === 1
+                    ? "reportUsersPage.statusBaseOne"
+                    : "reportUsersPage.statusBaseMany",
+                  { totalCount, grades: uniqueGrades },
+                )}
                 {inactiveCount > 0 && (
                   <span className="font-normal text-gray-500 ml-1">
-                    ({inactiveCount} inaktiv)
+                    {t("reportUsersPage.statusInactiveSuffix", {
+                      inactiveCount,
+                    })}
                   </span>
                 )}
               </h2>
@@ -526,7 +534,7 @@ export default function Users({ users }: UsersPropsType) {
                   "
                 >
                   <Download size={16} />
-                  Excel Export
+                  {t("reportTable.excelExport")}
                 </button>
                 <button
                   type="button"
@@ -541,7 +549,7 @@ export default function Users({ users }: UsersPropsType) {
                   "
                 >
                   <FileText size={16} />
-                  PDF Export
+                  {t("reportTable.pdfExport")}
                 </button>
               </div>
             </div>
@@ -621,7 +629,7 @@ export default function Users({ users }: UsersPropsType) {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>Zeilen pro Seite:</span>
+                <span>{t("reportTable.rowsPerPage")}</span>
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
@@ -640,7 +648,10 @@ export default function Users({ users }: UsersPropsType) {
 
               <div className="flex items-center gap-2">
                 <span>
-                  Seite {pageIndex + 1} von {pageCount}
+                  {t("reportTable.pageOfTotal", {
+                    page: pageIndex + 1,
+                    total: pageCount,
+                  })}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -684,7 +695,7 @@ export default function Users({ users }: UsersPropsType) {
             className="text-muted-foreground py-8 text-center"
             data-cy="users-no-data"
           >
-            Keine Daten verfügbar
+            {t("reportTable.noData")}
           </p>
         )}
       </div>

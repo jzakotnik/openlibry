@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
   Document,
@@ -71,7 +72,7 @@ interface RentalsPropsType {
 }
 
 // =============================================================================
-// PDF Styles
+// PDF Styles (unchanged - German strings stay until phase 7b2)
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -177,7 +178,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component
+// PDF Document Component (unchanged - phase 7b2 will translate)
 // =============================================================================
 
 interface RentalsPdfProps {
@@ -325,7 +326,7 @@ const RentalsPdfDocument = ({
 };
 
 // =============================================================================
-// Excel & PDF export functions
+// Excel & PDF export functions (unchanged)
 // =============================================================================
 
 async function exportToPdf(
@@ -536,7 +537,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
       >
         {error ? (
           <p className="text-red-600 py-4" data-cy="rentals-error">
-            Fehler beim Laden der Daten: {error}
+            {t("reportTable.loadError", { error })}
           </p>
         ) : reportDataAvailable ? (
           <>
@@ -546,9 +547,14 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                 className={`text-base font-bold ${overdueCount > 0 ? "text-red-700" : "text-green-700"}`}
                 data-cy="rentals-overdue-count"
               >
-                {overdueCount > 0
-                  ? `⚠ ${overdueCount} Buch${overdueCount !== 1 ? "er" : ""} überfällig`
-                  : "✓ Keine überfälligen Bücher"}
+                {overdueCount === 0
+                  ? t("reportRentalsPage.overdueNone")
+                  : t(
+                      overdueCount === 1
+                        ? "reportRentalsPage.overdueOne"
+                        : "reportRentalsPage.overdueMany",
+                      { count: overdueCount },
+                    )}
               </h2>
               <div className="flex gap-2">
                 <button
@@ -564,7 +570,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                   "
                 >
                   <Download size={16} />
-                  Excel Export
+                  {t("reportTable.excelExport")}
                 </button>
                 <button
                   type="button"
@@ -579,7 +585,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                   "
                 >
                   <FileText size={16} />
-                  PDF Export
+                  {t("reportTable.pdfExport")}
                 </button>
               </div>
             </div>
@@ -631,14 +637,14 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
                         key={row.id}
                         className={
                           isOverdue
-                            ? "bg-red-50/60 hover:bg-red-50"
+                            ? "bg-red-50/40 hover:bg-red-100/40"
                             : "hover:bg-gray-50/60"
                         }
                       >
                         {row.getVisibleCells().map((cell) => (
                           <td
                             key={cell.id}
-                            className="px-3 py-2 text-sm text-gray-700 truncate"
+                            className="px-3 py-2 text-sm truncate"
                             style={{
                               maxWidth: cell.column.getSize(),
                             }}
@@ -659,7 +665,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>Zeilen pro Seite:</span>
+                <span>{t("reportTable.rowsPerPage")}</span>
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
@@ -678,7 +684,10 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
 
               <div className="flex items-center gap-2">
                 <span>
-                  Seite {pageIndex + 1} von {pageCount}
+                  {t("reportTable.pageOfTotal", {
+                    page: pageIndex + 1,
+                    total: pageCount,
+                  })}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -722,7 +731,7 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
             className="text-muted-foreground py-8 text-center"
             data-cy="rentals-no-data"
           >
-            Keine Daten verfügbar
+            {t("reportTable.noData")}
           </p>
         )}
       </div>
