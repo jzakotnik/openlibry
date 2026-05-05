@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 
 export default function Footer() {
@@ -16,16 +17,16 @@ export default function Footer() {
     <footer className="text-center pt-12 pb-6">
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 text-sm">
         <a href="./catalog" className="text-inherit hover:underline">
-          Öffentlicher Katalog
+          {t("footer.publicCatalog")}
         </a>
         <a href="https://openlibry.de" className="text-inherit hover:underline">
-          Copyright
+          {t("footer.copyright")}
         </a>
         <a href="https://openlibry.de" className="text-inherit hover:underline">
-          Impressum
+          {t("footer.imprint")}
         </a>
         <a href="https://openlibry.de" className="text-inherit hover:underline">
-          Datenschutz
+          {t("footer.privacy")}
         </a>
         <span className="text-inherit">v{currentVersion || "..."}</span>
       </div>

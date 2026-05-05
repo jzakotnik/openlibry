@@ -1059,6 +1059,18 @@ export const de = {
     invalidServerData: "Ungültige Daten vom Server erhalten",
     fetchFailed: "Fehler beim Laden der Ausleihdaten",
   },
+
+  // ─── Phase 11f: site footer (rendered on every Layout-wrapped page) ───
+  footer: {
+    publicCatalog: "Öffentlicher Katalog",
+    copyright: "Copyright",
+    // "Impressum" and "Datenschutz" are German legal disclosure terms
+    // (publisher info / privacy policy). Reasonable English equivalents:
+    //   Impressum   → "Legal notice"  (EU GDPR-style site identity disclosure)
+    //   Datenschutz → "Privacy"
+    imprint: "Impressum",
+    privacy: "Datenschutz",
+  },
 };
 
 /**

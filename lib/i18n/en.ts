@@ -986,4 +986,12 @@ export const en: Dictionary = {
     invalidServerData: "Received invalid data from the server",
     fetchFailed: "Error loading rental data",
   },
+
+  // ─── Phase 11f: site footer (rendered on every Layout-wrapped page) ───
+  footer: {
+    publicCatalog: "Public catalog",
+    copyright: "Copyright",
+    imprint: "Legal notice",
+    privacy: "Privacy",
+  },
 };
