@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import dayjs from "dayjs";
-import "dayjs/locale/de";
+
 import React, { useCallback } from "react";
 
 import { BookType } from "@/entities/BookType";

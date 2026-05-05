@@ -3,6 +3,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import {
   convertDateToDayString,
   convertDayToISOString,
@@ -44,6 +45,9 @@ export default async function handle(
         });
 
         const workbook = new Excel.Workbook();
+        // Worksheet names are wire-protocol identifiers — pinned to German
+        // across all locales. Cypress fixtures + the import path read them
+        // by name. See xlsColumnsMapping.ts for column header pinning.
         const booksheet = workbook.addWorksheet("Bücherliste");
         const usersheet = workbook.addWorksheet("Userliste");
 
@@ -90,7 +94,7 @@ export default async function handle(
       break;
 
     case "POST":
-      const importLog = ["Starte den Transfer in die Datenbank"];
+      const importLog = [t("excelApi.logTransferStarted")];
 
       try {
         const importBooks = req.body.importBooks !== false;
@@ -122,7 +126,7 @@ export default async function handle(
             "Excel import rejected - no import options"
           );
           return res.status(400).json({
-            data: "ERROR: Mindestens eine Import-Option (Bücher oder User) muss aktiviert sein",
+            data: t("excelApi.errNoOptionSelected"),
             logs: importLog,
           });
         }
@@ -136,7 +140,7 @@ export default async function handle(
             "Excel import rejected - missing book data"
           );
           return res.status(400).json({
-            data: "ERROR: Bücher-Import aktiviert, aber keine Bücher-Daten vorhanden",
+            data: t("excelApi.errNoBookData"),
             logs: importLog,
           });
         }
@@ -150,16 +154,23 @@ export default async function handle(
             "Excel import rejected - missing user data"
           );
           return res.status(400).json({
-            data: "ERROR: User-Import aktiviert, aber keine User-Daten vorhanden",
+            data: t("excelApi.errNoUserData"),
             logs: importLog,
           });
         }
 
         importLog.push(
-          `Import-Einstellungen: Bücher=${importBooks}, User=${importUsers}, Vorher löschen=${dropBeforeImport}`
+          t("excelApi.logImportSettings", {
+            importBooks: String(importBooks),
+            importUsers: String(importUsers),
+            dropBeforeImport: String(dropBeforeImport),
+          })
         );
         importLog.push(
-          `Header Zeilen aus Excel entfernt, damit bleiben ${bookData.length} Bücher und ${userData.length} User`
+          t("excelApi.logHeaderRowsRemoved", {
+            bookCount: bookData.length,
+            userCount: userData.length,
+          })
         );
 
         businessLogger.debug(
@@ -179,11 +190,11 @@ export default async function handle(
         if (dropBeforeImport) {
           if (importBooks) {
             transaction.push(prisma.book.deleteMany({}));
-            importLog.push("Alle Bücher werden vor dem Import gelöscht");
+            importLog.push(t("excelApi.logDropAllBooks"));
           }
           if (importUsers) {
             transaction.push(prisma.user.deleteMany({}));
-            importLog.push("Alle User werden vor dem Import gelöscht");
+            importLog.push(t("excelApi.logDropAllUsers"));
           }
 
           businessLogger.warn(
@@ -213,9 +224,11 @@ export default async function handle(
             );
             userImportedCount++;
           });
-          importLog.push(`${userImportedCount} User werden importiert`);
+          importLog.push(
+            t("excelApi.logUsersImporting", { count: userImportedCount })
+          );
         } else if (!importUsers) {
-          importLog.push("User-Import übersprungen (Flag nicht gesetzt)");
+          importLog.push(t("excelApi.logUsersSkipped"));
         }
 
         // Import books after users
@@ -256,20 +269,20 @@ export default async function handle(
             );
             bookImportedCount++;
           });
-          importLog.push(`${bookImportedCount} Bücher werden importiert`);
+          importLog.push(
+            t("excelApi.logBooksImporting", { count: bookImportedCount })
+          );
         } else if (!importBooks) {
-          importLog.push("Bücher-Import übersprungen (Flag nicht gesetzt)");
+          importLog.push(t("excelApi.logBooksSkipped"));
         }
 
         // Execute transaction
         if (transaction.length > 0) {
-          importLog.push(
-            "Transaction für alle Daten erzeugt, importiere jetzt"
-          );
+          importLog.push(t("excelApi.logTransactionCreated"));
           await prisma.$transaction(transaction);
-          importLog.push("Daten erfolgreich importiert");
+          importLog.push(t("excelApi.logTransactionDone"));
         } else {
-          importLog.push("Keine Daten zum Importieren");
+          importLog.push(t("excelApi.logNoData"));
         }
 
         businessLogger.info(
@@ -302,7 +315,9 @@ export default async function handle(
           "Excel import failed"
         );
 
-        importLog.push("Fehler beim Import: " + (error as Error).toString());
+        importLog.push(
+          t("excelApi.logImportFailed", { error: (error as Error).toString() })
+        );
         res.status(400).json({ data: "ERROR: " + error, logs: importLog });
       }
       break;

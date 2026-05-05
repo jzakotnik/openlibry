@@ -2,7 +2,7 @@ import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { t } from "@/lib/i18n";
 import dayjs from "dayjs";
-import "dayjs/locale/de";
+
 import {
   AlertTriangle,
   BookOpen,
@@ -473,9 +473,7 @@ export default function UserEditForm({
               className="gap-2 rounded-lg font-medium"
             >
               {editable ? <X size={15} /> : <Edit3 size={15} />}
-              {editable
-                ? t("userEditForm.cancel")
-                : t("userEditForm.edit")}
+              {editable ? t("userEditForm.cancel") : t("userEditForm.edit")}
             </Button>
 
             {editable && (

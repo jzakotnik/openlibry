@@ -595,6 +595,7 @@ export const en: Dictionary = {
     // BCP-47 locale tag used for numeric formatting (toLocaleString).
     // German uses dot-thousands (1.000), English uses comma-thousands (1,000).
     numberLocale: "en-US",
+    timeLocale: "en-US",
   },
   reportsPage: {
     cardUsers: {
@@ -814,5 +815,175 @@ export const en: Dictionary = {
   },
   userLabelsApi: {
     placeholderError: "Configuration error in environment",
+  },
+
+  // ─── Phase 8: Excel import wizard + POST API ──────────────────────────
+  xlsImport: {
+    pageTitle: "Excel Import | OpenLibry",
+    headerTitle: "Excel Import",
+    headerSubtitle:
+      "Import books and users from an Excel file into the database",
+    step1Label: "Load file",
+    step2Label: "Review & configure",
+    step3Label: "Import",
+    uploadButton: "Choose Excel file",
+    uploadButtonLoading: "Loading…",
+    uploadFormatHint:
+      "Expected format: Excel file (.xlsx) with sheet 1 = books, sheet 2 = users",
+    uploadFormatTip:
+      "Tip: use the Excel export as a template for the correct column format",
+    summaryCardBooks: "Books",
+    summaryCardUsers: "Users",
+    summaryCardColumnsSuffix: "{count} columns",
+    importOptionsHeader: "Import options",
+    importBooksLabelWithCount: "Import books ({count} entries)",
+    importBooksLabelEmpty: "Import books (no data available)",
+    importUsersLabelWithCount: "Import users ({count} entries)",
+    importUsersLabelEmpty: "Import users (no data available)",
+    dropBeforeImportLabel: "Delete all existing data before import",
+    dropWarningPrefix: "Warning:",
+    dropWarningEntitiesBoth: "books and users",
+    dropWarningEntitiesBooks: "books",
+    dropWarningEntitiesUsers: "users",
+    dropWarningSuffix:
+      "in the database will be permanently deleted before the new data is loaded. Make a backup first!",
+    selectAtLeastOneOption:
+      "Please select at least one import option with available data.",
+    importButton: "Import into database",
+    importButtonLoading: "Importing…",
+    statusEntityBooks: "{count} books",
+    statusEntityUsers: "{count} users",
+    statusEntityJoiner: " and ",
+    statusSuffixWillImport: " will be imported",
+    statusSuffixWithDrop: " (with deletion)",
+    successBanner:
+      "Import completed successfully! The data is now available in the library.",
+    errorBanner: "Import failed. Check the details in the log below.",
+    logPanelHeader: "Import log",
+    logEntryCount: "{count} entries",
+    previewBooksHeader: "Preview: books",
+    previewUsersHeader: "Preview: users",
+    previewCountHint: "({total} entries, first {shown} shown)",
+    previewEmptyBooks:
+      "No book data found in the Excel file. Make sure the first worksheet contains the book list.",
+    previewEmptyUsers:
+      "No user data found in the Excel file. Make sure the second worksheet contains the user list.",
+    previewExpandLess: "Show less",
+    previewExpandMore: "{count} more rows",
+    resetButton: "Reset",
+    logInitial: "Ready for import.",
+    logFileInfo: "File: {name} ({sizeKB} KB)",
+    logExcelReading: "Reading Excel file…",
+    logSheetsFound: "{count} worksheets found: {names}",
+    logBooksRecognized:
+      '{rows} books with {cols} columns recognized (sheet: "{sheetName}")',
+    logUsersRecognized:
+      '{rows} users with {cols} columns recognized (sheet: "{sheetName}")',
+    logSheetNoData: 'Sheet "{sheetName}" contains no data rows',
+    logNoBooksSheet: "No first worksheet for books found",
+    logNoUsersSheet: "No second worksheet for users found",
+    logFileLoaded: "File loaded successfully — ready for import",
+    logLoadError: "Error loading: {message}",
+    logImportStarted: "Database import started…",
+    logDropAnnouncement: "Existing data will be deleted first",
+    logImportComplete: "Import complete: {books} books, {users} users imported",
+    logImportUnknownError: "Unknown import error",
+    logNetworkError: "Network error: {message}",
+  },
+  excelApi: {
+    logTransferStarted: "Starting transfer to database",
+    errNoOptionSelected:
+      "ERROR: At least one import option (books or users) must be enabled",
+    errNoBookData:
+      "ERROR: Book import enabled, but no book data available",
+    errNoUserData:
+      "ERROR: User import enabled, but no user data available",
+    logImportSettings:
+      "Import settings: books={importBooks}, users={importUsers}, drop first={dropBeforeImport}",
+    logHeaderRowsRemoved:
+      "Header rows removed from Excel, leaving {bookCount} books and {userCount} users",
+    logDropAllBooks: "All books will be deleted before import",
+    logDropAllUsers: "All users will be deleted before import",
+    logUsersImporting: "{count} users will be imported",
+    logUsersSkipped: "User import skipped (flag not set)",
+    logBooksImporting: "{count} books will be imported",
+    logBooksSkipped: "Book import skipped (flag not set)",
+    logTransactionCreated: "Transaction created for all data, importing now",
+    logTransactionDone: "Data imported successfully",
+    logNoData: "No data to import",
+    logImportFailed: "Import error: {error}",
+  },
+
+  // ─── Phase 9: Reminder API ─────────────────────────────────────────────
+  reminderApi: {
+    errUnknownTagWithSuggestion:
+      "Unknown placeholder: {tag} — did you mean {suggestion}?",
+    errUnknownTagNoSuggestion:
+      "Unknown placeholder: {tag} — will not be substituted and will appear as text in the document.",
+    errLoopOpenedNotClosed:
+      "Loop {loopStart} was opened but not closed with {loopEnd}.",
+    errLoopEndWithoutStart:
+      "Loop end {loopEnd} found, but no matching {loopStart} before it.",
+    warnNoBookListLoop:
+      "No book list ({loopStart}...{loopEnd}) found in the template. The reminder will not contain a book list.",
+    warnPlaceholderUnused:
+      "Placeholder {placeholder} is available but not used in the template.",
+    errDryRunFailed: "Dry-run failed: {error}",
+    errTemplateNotFound: 'Reminder template "{file}" not found.',
+    errTemplateNotFoundWithHint:
+      'Reminder template "{file}" not found. Please place the file in database/custom/ or public/.',
+    errTemplateValidationFailed: "Template validation failed.",
+    errBooksNotFound: "No books found with the given IDs.",
+    errGenerationFailed: "Error generating reminder letters.",
+    errBodyMustContainBookIds:
+      "Request body must contain bookIds: number[] (non-empty).",
+    errNoValidNumericBookIds: "No valid numeric book IDs provided.",
+    statusNoRentedBooks: "No lent-out books found.",
+    statusNoOverdueBooksAll: "No overdue books found that require a reminder.",
+    statusNoOverdueBooksNonExtendable:
+      "No non-extendable overdue books found that require a reminder.",
+    statusNoUsersAssigned:
+      "No reminders to create — none of the books is assigned to a user.",
+  },
+
+  // ─── Phase 11: admin index page + rentals server-side error literals ──
+  adminPage: {
+    pageTitle: "Administration | OpenLibry",
+    quickActionsHeading: "Quick actions",
+    statisticsHeading: "Statistics",
+    systemInfoHeading: "System info",
+    excelBackupTitle: "Excel backup",
+    excelBackupDescription: "Download all data as Excel",
+    systemHealthTitle: "System health",
+    systemHealthDescription: "Detailed system diagnostics",
+    settingsTitle: "Settings",
+    settingsDescription: "View configuration",
+    statusOk: "Everything is fine",
+    statusWarning: "Warnings present",
+    statusError: "Errors detected",
+    loadingSystemStatus: "Loading system status...",
+    errorLoading: "Error loading",
+    versionLine: "Version {version} · Updated: {time}",
+    versionUnknown: "unknown",
+    detailsButton: "Show details",
+    statBooks: "Books",
+    statUsers: "Users",
+    statActiveRentals: "Active loans",
+    statOverdue: "Overdue",
+    memoryUsage: "Memory usage",
+    uptime: "Uptime",
+    infoEnvironment: "Environment",
+    infoNodeJs: "Node.js",
+    infoPlatform: "Platform",
+    infoAuthentication: "Authentication",
+    badgeEnabled: "Enabled",
+    badgeDisabled: "Disabled",
+    lastActivity: "Last activity: {time}",
+    backupErrorCreating: "Error creating backup!",
+    backupErrorDownload: "Error downloading backup!",
+  },
+  rentalsServerError: {
+    invalidServerData: "Received invalid data from the server",
+    fetchFailed: "Error loading rental data",
   },
 };

@@ -597,6 +597,9 @@ export const de = {
     // BCP-47 locale tag used for numeric formatting (toLocaleString).
     // German uses dot-thousands (1.000), English uses comma-thousands (1,000).
     numberLocale: "de-DE",
+    // BCP-47 locale tag used for time formatting (toLocaleTimeString).
+    // Drives 24h vs 12h clock and separator characters.
+    timeLocale: "de-DE",
   },
   reportsPage: {
     cardUsers: {
@@ -830,6 +833,231 @@ export const de = {
   // Visible to librarians who customize USERLABEL_LINE_* in their .env.
   userLabelsApi: {
     placeholderError: "Konfigurationsfehler in der Umgebung",
+  },
+
+  // ─── Phase 8: Excel import wizard + POST API ──────────────────────────
+  // Note on wire protocol:
+  //   The Excel export sheet names ("Bücherliste", "Userliste") and
+  //   column header names defined in lib/utils/xlsColumnsMapping.ts are
+  //   pinned to German across all locales because the import path and
+  //   downstream tooling read these identifiers verbatim. Only the
+  //   wizard chrome and POST-handler log messages move into i18n.
+  xlsImport: {
+    pageTitle: "Excel-Import | OpenLibry",
+    headerTitle: "Excel-Import",
+    headerSubtitle:
+      "Bücher und Nutzer aus einer Excel-Datei in die Datenbank importieren",
+    // Step indicators
+    step1Label: "Datei laden",
+    step2Label: "Prüfen & Konfigurieren",
+    step3Label: "Importieren",
+    // File upload card
+    uploadButton: "Excel-Datei auswählen",
+    uploadButtonLoading: "Laden…",
+    uploadFormatHint:
+      "Erwartetes Format: Excel-Datei (.xlsx) mit Blatt 1 = Bücher, Blatt 2 = User",
+    uploadFormatTip:
+      "Tipp: Verwenden Sie den Excel-Export als Vorlage für das korrekte Spaltenformat",
+    // Data summary cards (under upload card after file is loaded)
+    summaryCardBooks: "Bücher",
+    summaryCardUsers: "Nutzer",
+    summaryCardColumnsSuffix: "{count} Spalten",
+    // Step 2 card heading
+    importOptionsHeader: "Import-Optionen",
+    // Import options card
+    importBooksLabelWithCount: "Bücher importieren ({count} Einträge)",
+    importBooksLabelEmpty: "Bücher importieren (keine Daten vorhanden)",
+    importUsersLabelWithCount: "User importieren ({count} Einträge)",
+    importUsersLabelEmpty: "User importieren (keine Daten vorhanden)",
+    dropBeforeImportLabel: "Alle vorhandenen Daten vor Import löschen",
+    // Drop warning combinations
+    dropWarningPrefix: "Achtung:",
+    dropWarningEntitiesBoth: "Bücher und User",
+    dropWarningEntitiesBooks: "Bücher",
+    dropWarningEntitiesUsers: "User",
+    dropWarningSuffix:
+      "in der Datenbank werden unwiderruflich gelöscht, bevor die neuen Daten eingespielt werden. Erstellen Sie vorher ein Backup!",
+    selectAtLeastOneOption:
+      "Bitte wählen Sie mindestens eine Import-Option mit verfügbaren Daten.",
+    // Import button
+    importButton: "In die Datenbank importieren",
+    importButtonLoading: "Importiert…",
+    // Status line under import button
+    statusEntityBooks: "{count} Bücher",
+    statusEntityUsers: "{count} User",
+    statusEntityJoiner: " und ",
+    statusSuffixWillImport: " werden importiert",
+    statusSuffixWithDrop: " (mit Löschung)",
+    // Result banners
+    successBanner:
+      "Import erfolgreich abgeschlossen! Die Daten stehen jetzt in der Bibliothek zur Verfügung.",
+    errorBanner: "Import fehlgeschlagen. Prüfen Sie die Details im Log unten.",
+    // Log panel
+    logPanelHeader: "Import-Log",
+    logEntryCount: "{count} Einträge",
+    // Data preview
+    previewBooksHeader: "Vorschau: Bücher",
+    previewUsersHeader: "Vorschau: User",
+    previewCountHint: "({total} Einträge, erste {shown} angezeigt)",
+    previewEmptyBooks:
+      "Keine Bücher-Daten im Excel gefunden. Stellen Sie sicher, dass das erste Arbeitsblatt die Bücherliste enthält.",
+    previewEmptyUsers:
+      "Keine User-Daten im Excel gefunden. Stellen Sie sicher, dass das zweite Arbeitsblatt die Userliste enthält.",
+    // Preview table expand/collapse
+    previewExpandLess: "Weniger anzeigen",
+    previewExpandMore: "{count} weitere Zeilen",
+    // Reset button
+    resetButton: "Zurücksetzen",
+    // Initial log message
+    logInitial: "Bereit für den Import.",
+    // Log messages — file load phase
+    logFileInfo: "Datei: {name} ({sizeKB} KB)",
+    logExcelReading: "Excel wird eingelesen…",
+    logSheetsFound: "{count} Arbeitsblätter gefunden: {names}",
+    logBooksRecognized:
+      '{rows} Bücher mit {cols} Spalten erkannt (Blatt: "{sheetName}")',
+    logUsersRecognized:
+      '{rows} User mit {cols} Spalten erkannt (Blatt: "{sheetName}")',
+    logSheetNoData: 'Blatt "{sheetName}" enthält keine Datenzeilen',
+    logNoBooksSheet: "Kein erstes Arbeitsblatt für Bücher gefunden",
+    logNoUsersSheet: "Kein zweites Arbeitsblatt für User gefunden",
+    logFileLoaded: "Datei erfolgreich geladen — bereit zum Import",
+    logLoadError: "Fehler beim Laden: {message}",
+    // Log messages — import phase
+    logImportStarted: "Datenbank-Import gestartet…",
+    logDropAnnouncement: "Bestehende Daten werden vorher gelöscht",
+    logImportComplete:
+      "Import abgeschlossen: {books} Bücher, {users} User importiert",
+    logImportUnknownError: "Unbekannter Fehler beim Import",
+    logNetworkError: "Netzwerk-Fehler: {message}",
+  },
+  excelApi: {
+    // Initial log seed (sent back to the wizard)
+    logTransferStarted: "Starte den Transfer in die Datenbank",
+    // Validation errors (returned in 400 responses, shown in wizard banner)
+    errNoOptionSelected:
+      "ERROR: Mindestens eine Import-Option (Bücher oder User) muss aktiviert sein",
+    errNoBookData:
+      "ERROR: Bücher-Import aktiviert, aber keine Bücher-Daten vorhanden",
+    errNoUserData:
+      "ERROR: User-Import aktiviert, aber keine User-Daten vorhanden",
+    // Log entries from successful POST flow (shown in wizard log panel)
+    logImportSettings:
+      "Import-Einstellungen: Bücher={importBooks}, User={importUsers}, Vorher löschen={dropBeforeImport}",
+    logHeaderRowsRemoved:
+      "Header Zeilen aus Excel entfernt, damit bleiben {bookCount} Bücher und {userCount} User",
+    logDropAllBooks: "Alle Bücher werden vor dem Import gelöscht",
+    logDropAllUsers: "Alle User werden vor dem Import gelöscht",
+    logUsersImporting: "{count} User werden importiert",
+    logUsersSkipped: "User-Import übersprungen (Flag nicht gesetzt)",
+    logBooksImporting: "{count} Bücher werden importiert",
+    logBooksSkipped: "Bücher-Import übersprungen (Flag nicht gesetzt)",
+    logTransactionCreated:
+      "Transaction für alle Daten erzeugt, importiere jetzt",
+    logTransactionDone: "Daten erfolgreich importiert",
+    logNoData: "Keine Daten zum Importieren",
+    logImportFailed: "Fehler beim Import: {error}",
+  },
+
+  // ─── Phase 9: Reminder API (docxtemplater letter generation) ──────────
+  // Note on docx templates:
+  //   The `mahnung-template.docx` itself remains a per-deployment file
+  //   (mounted from database/custom/). The placeholders {school_name},
+  //   {firstName}, {book_list}, etc. are wire-protocol identifiers and
+  //   must NEVER be translated. Only the validation/error messages and
+  //   status responses returned by the API endpoint move into i18n.
+  //
+  //   Where messages reference docxtemplater tag names like {book_list}
+  //   or {firstName}, the source code passes those names brace-wrapped
+  //   into the interpolation (e.g. tag: "{book_list}") so the literal
+  //   braces appear in the user-visible output.
+  reminderApi: {
+    // Validation messages (validateTemplate())
+    errUnknownTagWithSuggestion:
+      "Unbekannter Platzhalter: {tag} — meinten Sie {suggestion}?",
+    errUnknownTagNoSuggestion:
+      "Unbekannter Platzhalter: {tag} — wird nicht ersetzt und erscheint als Text im Dokument.",
+    errLoopOpenedNotClosed:
+      "Schleife {loopStart} wurde geöffnet aber nicht mit {loopEnd} geschlossen.",
+    errLoopEndWithoutStart:
+      "Schleifenende {loopEnd} gefunden, aber kein {loopStart} davor.",
+    warnNoBookListLoop:
+      "Keine Bücherliste ({loopStart}...{loopEnd}) im Template gefunden. Die Mahnung wird keine Buchliste enthalten.",
+    warnPlaceholderUnused:
+      "Platzhalter {placeholder} ist verfügbar, wird aber nicht im Template verwendet.",
+    errDryRunFailed: "Dry-Run fehlgeschlagen: {error}",
+    // HTTP error responses
+    errTemplateNotFound: 'Mahnungs-Vorlage "{file}" nicht gefunden.',
+    errTemplateNotFoundWithHint:
+      'Mahnungs-Vorlage "{file}" nicht gefunden. Bitte legen Sie die Datei unter database/custom/ oder public/ ab.',
+    errTemplateValidationFailed: "Template-Validierung fehlgeschlagen.",
+    errBooksNotFound: "Keine Bücher mit den angegebenen IDs gefunden.",
+    errGenerationFailed: "Fehler beim Erstellen der Mahnungen.",
+    errBodyMustContainBookIds:
+      "Request-Body muss bookIds: number[] (nicht leer) enthalten.",
+    errNoValidNumericBookIds:
+      "Keine gültigen numerischen Buch-IDs übergeben.",
+    // Status data responses (200 OK with informational message)
+    statusNoRentedBooks: "Keine ausgeliehenen Bücher gefunden.",
+    statusNoOverdueBooksAll:
+      "Keine überfällige Bücher gefunden, die eine Mahnung erfordern.",
+    statusNoOverdueBooksNonExtendable:
+      "Keine nicht-verlängerbare überfällige Bücher gefunden, die eine Mahnung erfordern.",
+    statusNoUsersAssigned:
+      "Keine Mahnungen zu erstellen — keines der Bücher ist einem Benutzer zugeordnet.",
+  },
+
+  // ─── Phase 11: admin index page + rentals server-side error literals ──
+  adminPage: {
+    pageTitle: "Administration | OpenLibry",
+    // Section headers
+    quickActionsHeading: "Schnellaktionen",
+    statisticsHeading: "Statistiken",
+    systemInfoHeading: "Systeminfo",
+    // Action cards
+    excelBackupTitle: "Excel-Backup",
+    excelBackupDescription: "Alle Daten als Excel herunterladen",
+    systemHealthTitle: "System-Health",
+    systemHealthDescription: "Detaillierte Systemdiagnose",
+    settingsTitle: "Einstellungen",
+    settingsDescription: "Konfiguration anzeigen",
+    // Status banner — main "Alles in Ordnung" / "Warnungen" / "Fehler" labels
+    statusOk: "Alles in Ordnung",
+    statusWarning: "Warnungen vorhanden",
+    statusError: "Fehler erkannt",
+    // Loading / error states
+    loadingSystemStatus: "Lade Systemstatus...",
+    errorLoading: "Fehler beim Laden",
+    // Status banner contents
+    versionLine: "Version {version} · Aktualisiert: {time}",
+    versionUnknown: "unbekannt",
+    detailsButton: "Details anzeigen",
+    // Statistics cards (4)
+    statBooks: "Bücher",
+    statUsers: "Nutzer",
+    statActiveRentals: "Aktive Ausleihen",
+    statOverdue: "Überfällig",
+    // System info card — left side (memory + uptime)
+    memoryUsage: "Speichernutzung",
+    uptime: "Uptime",
+    // System info card — right side (info rows)
+    infoEnvironment: "Umgebung",
+    infoNodeJs: "Node.js",
+    infoPlatform: "Plattform",
+    infoAuthentication: "Authentifizierung",
+    badgeEnabled: "Aktiviert",
+    badgeDisabled: "Deaktiviert",
+    // Last activity line
+    lastActivity: "Letzte Aktivität: {time}",
+    // Backup error fallback
+    backupErrorCreating: "Fehler beim Erstellen des Backups!",
+    backupErrorDownload: "Fehler beim Backup-Download!",
+  },
+  // Two literals that previously stayed in rentals.tsx getServerSideProps
+  // catch blocks. Now translated for full English-locale support.
+  rentalsServerError: {
+    invalidServerData: "Ungültige Daten vom Server erhalten",
+    fetchFailed: "Fehler beim Laden der Ausleihdaten",
   },
 };
 

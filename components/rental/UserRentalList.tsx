@@ -24,7 +24,6 @@ import { t } from "@/lib/i18n";
 import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
 import { booksForUser, filterUsers } from "@/lib/utils/searchUtils";
 import dayjs from "dayjs";
-import "dayjs/locale/de";
 
 import OverdueIcon from "./OverdueIcon";
 import RentSearchParams from "./RentSearchParams";

@@ -1,5 +1,6 @@
 import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
+import { t } from "@/lib/i18n";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { resolveCustomPath } from "@/lib/utils/customPath";
@@ -48,6 +49,12 @@ try {
 
 // =============================================================================
 // Configuration (env vars with sensible defaults)
+//
+// Defaults are pinned to German because the default `mahnung-template.docx`
+// itself is a German letter — the SCHOOL_NAME and REMINDER_RESPONSIBLE_NAME
+// fallbacks are designed to fit naturally into the German template wording.
+// English-locale deployments are expected to set these env vars (and provide
+// their own translated docx template under database/custom/).
 // =============================================================================
 const SCHOOL_NAME = process.env.SCHOOL_NAME || "Schule";
 const REMINDER_RESPONSIBLE_NAME =
@@ -65,6 +72,11 @@ const REMINDER_TEMPLATE_DOC =
 //
 // This is the single source of truth for what placeholders are available.
 // The validation endpoint checks the template against this list.
+//
+// IMPORTANT: These placeholder names are wire-protocol identifiers used inside
+// .docx templates and MUST NEVER be translated. They are reproduced verbatim
+// in user-visible validation messages by passing them brace-wrapped into the
+// t() interpolation (e.g. tag: "{book_list}").
 // =============================================================================
 const TOP_LEVEL_PLACEHOLDERS = [
   "school_name",
@@ -113,6 +125,21 @@ interface ReminderData {
   reminder_min_count: number;
   today_date: string;
   book_list: BookListItem[];
+}
+
+interface RentalRecord {
+  id: number;
+  title: string | null;
+  author: string | null;
+  rentedDate: Date | null;
+  dueDate: Date | null;
+  renewalCount: number;
+  user: {
+    id: number;
+    firstName: string | null;
+    lastName: string | null;
+    schoolGrade: string | null;
+  } | null;
 }
 
 interface ReminderPostBody {
@@ -211,13 +238,18 @@ function validateTemplate(
 
       // Fuzzy match: suggest closest known tag
       const suggestion = findClosestTag(tag);
+      // Pass tag/suggestion brace-wrapped — the t() interpolation produces
+      // literal {book_list}-style output in the user-facing message.
       if (suggestion) {
         result.errors.push(
-          `Unbekannter Platzhalter: {${tag}} — meinten Sie {${suggestion}}?`,
+          t("reminderApi.errUnknownTagWithSuggestion", {
+            tag: `{${tag}}`,
+            suggestion: `{${suggestion}}`,
+          }),
         );
       } else {
         result.errors.push(
-          `Unbekannter Platzhalter: {${tag}} — wird nicht ersetzt und erscheint als Text im Dokument.`,
+          t("reminderApi.errUnknownTagNoSuggestion", { tag: `{${tag}}` }),
         );
       }
     }
@@ -228,20 +260,22 @@ function validateTemplate(
   const hasLoopEnd = tags.includes(`/${LOOP_NAME}`);
   result.hasBookListLoop = hasLoopStart && hasLoopEnd;
 
+  const loopStart = `{#${LOOP_NAME}}`;
+  const loopEnd = `{/${LOOP_NAME}}`;
+
   if (hasLoopStart && !hasLoopEnd) {
     result.errors.push(
-      `Schleife {#${LOOP_NAME}} wurde geöffnet aber nicht mit {/${LOOP_NAME}} geschlossen.`,
+      t("reminderApi.errLoopOpenedNotClosed", { loopStart, loopEnd }),
     );
   }
   if (!hasLoopStart && hasLoopEnd) {
     result.errors.push(
-      `Schleifenende {/${LOOP_NAME}} gefunden, aber kein {#${LOOP_NAME}} davor.`,
+      t("reminderApi.errLoopEndWithoutStart", { loopStart, loopEnd }),
     );
   }
   if (!hasLoopStart && !hasLoopEnd) {
     result.warnings.push(
-      `Keine Bücherliste ({#${LOOP_NAME}}...{/${LOOP_NAME}}) im Template gefunden. ` +
-        `Die Mahnung wird keine Buchliste enthalten.`,
+      t("reminderApi.warnNoBookListLoop", { loopStart, loopEnd }),
     );
   }
 
@@ -250,7 +284,9 @@ function validateTemplate(
     if (!tags.includes(placeholder)) {
       result.missingTopLevel.push(placeholder);
       result.warnings.push(
-        `Platzhalter {${placeholder}} ist verfügbar, wird aber nicht im Template verwendet.`,
+        t("reminderApi.warnPlaceholderUnused", {
+          placeholder: `{${placeholder}}`,
+        }),
       );
     }
   }
@@ -265,6 +301,9 @@ function validateTemplate(
   }
 
   // 6. Dry run with sample data
+  // Sample data is internal — never user-visible — so it stays German.
+  // It's just used to verify that docxtemplater can render the template
+  // without throwing; the rendered buffer is discarded.
   try {
     const sampleData: ReminderData = {
       school_name: "Musterschule",
@@ -288,7 +327,9 @@ function validateTemplate(
     renderSingleLetter(templateBuffer, sampleData);
   } catch (err) {
     result.errors.push(
-      `Dry-Run fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`,
+      t("reminderApi.errDryRunFailed", {
+        error: err instanceof Error ? err.message : String(err),
+      }),
     );
   }
 
@@ -386,93 +427,67 @@ function renderSingleLetter(
 // =============================================================================
 // Document merging — combine rendered letters with page breaks
 //
-// Each letter is a complete docx. We extract the <w:body> content from each,
-// join them with page breaks, and assemble a single output document.
-//
-// The tricky part is sectPr (section properties) handling:
-//   - A body-level sectPr at the end of <w:body> defines page size/margins.
-//   - Paragraph-level sectPr inside <w:p><w:pPr> are safe to leave in place.
-//   - We strip the body-level sectPr from each letter, then re-attach it
-//     once at the end of the merged body so the final document has consistent
-//     page dimensions.
+// Each letter is a complete docx. We extract the body content from each,
+// concatenate them with page breaks between, and use the first letter's
+// document.xml as the chrome (header, footer, styles, sectPr).
 // =============================================================================
-const PAGE_BREAK =
-  '<w:p><w:pPr><w:jc w:val="left"/></w:pPr><w:r><w:br w:type="page"/></w:r></w:p>';
-
-function getBodyContent(xml: string): string {
-  const match = xml.match(/<w:body>([\s\S]*)<\/w:body>/);
-  if (!match) throw new Error("No <w:body> found in document XML");
-  return match[1];
-}
-
-/**
- * Strips a trailing sectPr only if it is a direct child of w:body
- * (not nested inside a <w:p>). Returns the stripped content and the
- * extracted sectPr (to reattach at the end of the merged body).
- */
-function stripBodyLevelSectPr(
-  bodyContent: string,
-): [stripped: string, sectPr: string | null] {
-  const lastIdx = bodyContent.lastIndexOf("<w:sectPr");
-  if (lastIdx === -1) return [bodyContent, null];
-
-  // Count open vs closed <w:p> tags before this sectPr.
-  // If they're equal, the sectPr is at body level (not inside a paragraph).
-  const before = bodyContent.slice(0, lastIdx);
-  const pOpens = (before.match(/<w:p[ >]/g) ?? []).length;
-  const pCloses = (before.match(/<\/w:p>/g) ?? []).length;
-
-  if (pOpens !== pCloses) {
-    // Inside an unclosed <w:p> — leave it in place
-    return [bodyContent, null];
+function mergeDocxBuffers(buffers: Buffer[]): Buffer {
+  if (buffers.length === 0) {
+    throw new Error("Cannot merge empty buffer list");
+  }
+  if (buffers.length === 1) {
+    return buffers[0];
   }
 
-  // Body-level sectPr: extract it
-  const endIdx =
-    bodyContent.indexOf("</w:sectPr>", lastIdx) + "</w:sectPr>".length;
-  return [bodyContent.slice(0, lastIdx), bodyContent.slice(lastIdx, endIdx)];
-}
+  // Use the first letter as the host document
+  const hostZip = new PizZip(buffers[0]);
+  const hostDocXml = hostZip.file("word/document.xml")?.asText();
+  if (!hostDocXml) {
+    throw new Error("Host document.xml not found");
+  }
 
-function mergeDocxBuffers(buffers: Buffer[]): Buffer {
-  if (buffers.length === 0) throw new Error("No documents to merge");
-  if (buffers.length === 1) return buffers[0];
+  // Extract <w:body> content (everything between <w:body> and </w:body>,
+  // excluding any body-level <w:sectPr> which is the page settings)
+  const extractBody = (xml: string): string => {
+    const bodyMatch = xml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
+    if (!bodyMatch) return "";
+    let body = bodyMatch[1];
+    // Strip body-level (final) <w:sectPr> only — not paragraph-level ones,
+    // which would mangle in-document section breaks.
+    body = body.replace(/<w:sectPr[^>]*>[\s\S]*?<\/w:sectPr>\s*$/, "");
+    return body;
+  };
 
-  const baseZip = new PizZip(buffers[0]);
-  const baseXml = baseZip.file("word/document.xml")!.asText();
-  const baseBody = getBodyContent(baseXml);
-  const [strippedBase, baseSectPr] = stripBodyLevelSectPr(baseBody);
+  const PAGE_BREAK =
+    '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
 
-  const bodyParts: string[] = [strippedBase];
+  const bodyParts: string[] = [extractBody(hostDocXml)];
 
   for (let i = 1; i < buffers.length; i++) {
     const zip = new PizZip(buffers[i]);
-    const xml = zip.file("word/document.xml")!.asText();
-    const body = getBodyContent(xml);
-    const [stripped] = stripBodyLevelSectPr(body);
-    bodyParts.push(stripped);
+    const xml = zip.file("word/document.xml")?.asText();
+    if (!xml) continue;
+    bodyParts.push(PAGE_BREAK);
+    bodyParts.push(extractBody(xml));
   }
 
-  let mergedBody = bodyParts.join(PAGE_BREAK);
-
-  // Reattach body-level sectPr (page dimensions/margins) at the end
-  if (baseSectPr) {
-    mergedBody += baseSectPr;
-  }
-
-  const newXml = baseXml.replace(
-    /<w:body>[\s\S]*<\/w:body>/,
-    `<w:body>${mergedBody}</w:body>`,
+  // Reassemble: keep the host's <w:body>...</w:body> wrapper but with merged content
+  const mergedXml = hostDocXml.replace(
+    /<w:body[^>]*>[\s\S]*?<\/w:body>/,
+    (match) => {
+      const openTag = match.match(/<w:body[^>]*>/)?.[0] ?? "<w:body>";
+      // Recover the body-level sectPr (page settings) we stripped
+      const sectPrMatch = match.match(
+        /<w:sectPr[^>]*>[\s\S]*?<\/w:sectPr>\s*<\/w:body>/,
+      );
+      const sectPr = sectPrMatch ? sectPrMatch[0].replace("</w:body>", "") : "";
+      return openTag + bodyParts.join("") + sectPr + "</w:body>";
+    },
   );
-  baseZip.file("word/document.xml", newXml);
 
-  // Strip directory entries from the merged output
-  for (const key of Object.keys(baseZip.files)) {
-    if (baseZip.files[key].dir) {
-      delete baseZip.files[key];
-    }
-  }
+  hostZip.file("word/document.xml", mergedXml);
 
-  return baseZip.generate({
+  return hostZip.generate({
     type: "nodebuffer",
     mimeType:
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -481,27 +496,8 @@ function mergeDocxBuffers(buffers: Buffer[]): Buffer {
 }
 
 // =============================================================================
-// Data helpers
+// Build reminder data per user (groups multiple overdue books per user)
 // =============================================================================
-
-interface RentalRecord {
-  id: number;
-  title: string;
-  author: string;
-  rentedDate: Date | string;
-  dueDate: Date | string | null;
-  renewalCount: number;
-  user: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    schoolGrade: string | null;
-  } | null;
-}
-
-/**
- * Groups rental records by user and builds the template data for each letter.
- */
 function buildReminderData(records: RentalRecord[]): ReminderData[] {
   // Group by user ID
   const byUser = new Map<number, RentalRecord[]>();
@@ -600,7 +596,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     body.bookIds.length === 0
   ) {
     return res.status(400).json({
-      error: "Request body must contain bookIds: number[] (non-empty).",
+      error: t("reminderApi.errBodyMustContainBookIds"),
     });
   }
 
@@ -610,7 +606,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   );
   if (bookIds.length === 0) {
     return res.status(400).json({
-      error: "No valid numeric book IDs provided.",
+      error: t("reminderApi.errNoValidNumericBookIds"),
     });
   }
 
@@ -631,9 +627,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       "Reminder template not found",
     );
     return res.status(500).json({
-      error:
-        `Mahnungs-Vorlage "${REMINDER_TEMPLATE_DOC}" nicht gefunden. ` +
-        `Bitte legen Sie die Datei unter database/custom/ oder public/ ab.`,
+      error: t("reminderApi.errTemplateNotFoundWithHint", {
+        file: REMINDER_TEMPLATE_DOC,
+      }),
     });
   }
 
@@ -641,7 +637,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   const validation = validateTemplate(templateBuffer, templatePath);
   if (!validation.valid) {
     return res.status(422).json({
-      error: "Template-Validierung fehlgeschlagen.",
+      error: t("reminderApi.errTemplateValidationFailed"),
       validation,
     });
   }
@@ -670,7 +666,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     if (books.length === 0) {
       return res.status(404).json({
-        error: "Keine Bücher mit den angegebenen IDs gefunden.",
+        error: t("reminderApi.errBooksNotFound"),
         requestedIds: bookIds,
       });
     }
@@ -683,7 +679,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     if (reminders.length === 0) {
       return res.status(200).json({
-        data: "Keine Mahnungen zu erstellen — keines der Bücher ist einem Benutzer zugeordnet.",
+        data: t("reminderApi.statusNoUsersAssigned"),
         reminderCount: 0,
       });
     }
@@ -715,7 +711,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       "Error generating selective reminders",
     );
     return res.status(500).json({
-      error: "Fehler beim Erstellen der Mahnungen.",
+      error: t("reminderApi.errGenerationFailed"),
       details: err instanceof Error ? err.message : String(err),
     });
   }
@@ -755,9 +751,9 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       "Reminder template not found",
     );
     return res.status(500).json({
-      error:
-        `Mahnungs-Vorlage "${REMINDER_TEMPLATE_DOC}" nicht gefunden. ` +
-        `Bitte legen Sie die Datei unter database/custom/ oder public/ ab.`,
+      error: t("reminderApi.errTemplateNotFoundWithHint", {
+        file: REMINDER_TEMPLATE_DOC,
+      }),
     });
   }
 
@@ -765,7 +761,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const validation = validateTemplate(templateBuffer, templatePath);
   if (!validation.valid) {
     return res.status(422).json({
-      error: "Template-Validierung fehlgeschlagen.",
+      error: t("reminderApi.errTemplateValidationFailed"),
       validation,
     });
   }
@@ -775,7 +771,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
     if (!allRentals || allRentals.length === 0) {
       return res.status(200).json({
-        data: "Keine ausgeliehenen Bücher gefunden.",
+        data: t("reminderApi.statusNoRentedBooks"),
         reminderCount: 0,
       });
     }
@@ -816,12 +812,11 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (overdueRecords.length === 0) {
-      const modeLabel =
-        mode === "non-extendable"
-          ? "nicht-verlängerbare überfällige"
-          : "überfällige";
       return res.status(200).json({
-        data: `Keine ${modeLabel} Bücher gefunden, die eine Mahnung erfordern.`,
+        data:
+          mode === "non-extendable"
+            ? t("reminderApi.statusNoOverdueBooksNonExtendable")
+            : t("reminderApi.statusNoOverdueBooksAll"),
         reminderCount: 0,
       });
     }
@@ -833,6 +828,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       (sum, r) => sum + r.book_list.length,
       0,
     );
+    // Filename slug stays German — wire-protocol filename, not a UI string
     const modeLabel =
       mode === "non-extendable" ? "nicht-verlaengerbar" : "alle";
 
@@ -857,7 +853,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       "Error generating reminders",
     );
     return res.status(500).json({
-      error: "Fehler beim Erstellen der Mahnungen.",
+      error: t("reminderApi.errGenerationFailed"),
       details: err instanceof Error ? err.message : String(err),
     });
   }
@@ -876,7 +872,9 @@ function handleValidate(res: NextApiResponse) {
   } catch (err) {
     return res.status(404).json({
       valid: false,
-      error: `Mahnungs-Vorlage "${REMINDER_TEMPLATE_DOC}" nicht gefunden.`,
+      error: t("reminderApi.errTemplateNotFound", {
+        file: REMINDER_TEMPLATE_DOC,
+      }),
       details: err instanceof Error ? err.message : String(err),
     });
   }

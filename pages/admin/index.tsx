@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import { t } from "@/lib/i18n";
 import {
   AlertTriangle,
   ArrowRight,
@@ -62,13 +63,15 @@ interface HealthCheckResponse {
   };
 }
 
+// Status config — labels resolved at module init, mirroring the pattern used
+// in the auth/error.tsx errorMessages map and admin/settings.tsx CONFIG_SECTIONS.
 const statusConfig = {
   ok: {
     cssVar: "var(--success)",
     bg: "bg-success-light",
     text: "text-success",
     icon: CheckCircle,
-    label: "Alles in Ordnung",
+    label: t("adminPage.statusOk"),
     gradientFrom: "from-success/10",
     gradientTo: "to-success/5",
     borderClass: "border-success/20",
@@ -78,7 +81,7 @@ const statusConfig = {
     bg: "bg-warning-light",
     text: "text-warning",
     icon: AlertTriangle,
-    label: "Warnungen vorhanden",
+    label: t("adminPage.statusWarning"),
     gradientFrom: "from-warning/10",
     gradientTo: "to-warning/5",
     borderClass: "border-warning/20",
@@ -88,7 +91,7 @@ const statusConfig = {
     bg: "bg-destructive-light",
     text: "text-destructive",
     icon: XCircle,
-    label: "Fehler erkannt",
+    label: t("adminPage.statusError"),
     gradientFrom: "from-destructive/10",
     gradientTo: "to-destructive/5",
     borderClass: "border-destructive/20",
@@ -106,6 +109,8 @@ function formatBytes(bytes: number): string {
 }
 
 function formatUptime(seconds: number): string {
+  // Day/hour/minute/second suffixes left untranslated as single-letter
+  // technical abbreviations universally understood across locales.
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -196,7 +201,9 @@ function StatCard({
         </div>
         <div>
           <p className="text-xl font-bold text-foreground">
-            {typeof value === "number" ? value.toLocaleString("de-DE") : value}
+            {typeof value === "number"
+              ? value.toLocaleString(t("formats.numberLocale"))
+              : value}
           </p>
           <p className="text-sm text-muted-foreground">{title}</p>
           {subtitle && (
@@ -229,7 +236,9 @@ function MemoryBar({
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
           <Cpu className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Speichernutzung</span>
+          <span className="text-sm text-muted-foreground">
+            {t("adminPage.memoryUsage")}
+          </span>
         </div>
         <span className="text-sm font-semibold text-foreground">
           {formatBytes(used)} / {formatBytes(total)}
@@ -300,7 +309,7 @@ export default function AdminPage() {
         setData(json);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Laden");
+      setError(err instanceof Error ? err.message : t("adminPage.errorLoading"));
     } finally {
       setLoading(false);
     }
@@ -314,7 +323,9 @@ export default function AdminPage() {
     setBackupLoading(true);
     try {
       const response = await fetch("/api/excel", { method: "GET" });
-      if (!response.ok) throw new Error("Fehler beim Erstellen des Backups!");
+      if (!response.ok) {
+        throw new Error(t("adminPage.backupErrorCreating"));
+      }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const today = new Date();
@@ -329,7 +340,9 @@ export default function AdminPage() {
       window.URL.revokeObjectURL(url);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Fehler beim Backup-Download!";
+        err instanceof Error
+          ? err.message
+          : t("adminPage.backupErrorDownload");
       alert(message);
     } finally {
       setBackupLoading(false);
@@ -343,33 +356,33 @@ export default function AdminPage() {
   return (
     <Layout>
       <Head>
-        <title>Administration | OpenLibry</title>
+        <title>{t("adminPage.pageTitle")}</title>
       </Head>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         <h2 className="text-base font-semibold text-foreground mb-3">
-          Schnellaktionen
+          {t("adminPage.quickActionsHeading")}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
           <ActionCard
-            title="Excel-Backup"
+            title={t("adminPage.excelBackupTitle")}
             dataCy="admin-excel-backup-button"
-            description="Alle Daten als Excel herunterladen"
+            description={t("adminPage.excelBackupDescription")}
             icon={Download}
             onClick={handleBackup}
             colorVar="var(--success)"
             loading={backupLoading}
           />
           <ActionCard
-            title="System-Health"
-            description="Detaillierte Systemdiagnose"
+            title={t("adminPage.systemHealthTitle")}
+            description={t("adminPage.systemHealthDescription")}
             icon={HeartPulse}
             onClick={() => router.push("/admin/health")}
             colorVar="var(--info)"
           />
           <ActionCard
-            title="Einstellungen"
-            description="Konfiguration anzeigen"
+            title={t("adminPage.settingsTitle")}
+            description={t("adminPage.settingsDescription")}
             icon={Settings}
             onClick={() => router.push("/admin/settings")}
             colorVar="var(--secondary)"
@@ -383,7 +396,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-3">
               <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                Lade Systemstatus...
+                {t("adminPage.loadingSystemStatus")}
               </span>
             </div>
           ) : error ? (
@@ -391,7 +404,7 @@ export default function AdminPage() {
               <XCircle className="w-5 h-5 text-destructive" />
               <div>
                 <p className="text-sm font-semibold text-destructive">
-                  Fehler beim Laden
+                  {t("adminPage.errorLoading")}
                 </p>
                 <p className="text-sm text-muted-foreground">{error}</p>
               </div>
@@ -415,8 +428,12 @@ export default function AdminPage() {
                     {mainConfig.label}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Version {data.version || "unbekannt"} · Aktualisiert:{" "}
-                    {new Date(data.timestamp).toLocaleTimeString("de-DE")}
+                    {t("adminPage.versionLine", {
+                      version: data.version || t("adminPage.versionUnknown"),
+                      time: new Date(data.timestamp).toLocaleTimeString(
+                        t("formats.timeLocale"),
+                      ),
+                    })}
                   </p>
                 </div>
               </div>
@@ -425,7 +442,7 @@ export default function AdminPage() {
                 className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors hover:bg-muted/50 ${mainConfig.text} ${mainConfig.borderClass}`}
               >
                 <HeartPulse className="w-4 h-4" />
-                Details anzeigen
+                {t("adminPage.detailsButton")}
               </button>
             </div>
           ) : null}
@@ -434,29 +451,29 @@ export default function AdminPage() {
         {data && (
           <>
             <h2 className="text-base font-semibold text-foreground mb-3">
-              Statistiken
+              {t("adminPage.statisticsHeading")}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
               <StatCard
-                title="Bücher"
+                title={t("adminPage.statBooks")}
                 value={(data.checks.data.details?.books as number) ?? "-"}
                 icon={Book}
                 colorVar="var(--primary)"
               />
               <StatCard
-                title="Nutzer"
+                title={t("adminPage.statUsers")}
                 value={(data.checks.data.details?.users as number) ?? "-"}
                 icon={Users}
                 colorVar="var(--secondary)"
               />
               <StatCard
-                title="Aktive Ausleihen"
+                title={t("adminPage.statActiveRentals")}
                 value={data.stats?.activeRentals ?? "-"}
                 icon={Book}
                 colorVar="var(--success)"
               />
               <StatCard
-                title="Überfällig"
+                title={t("adminPage.statOverdue")}
                 value={data.stats?.overdueBooks ?? "-"}
                 icon={CalendarClock}
                 colorVar={
@@ -468,7 +485,7 @@ export default function AdminPage() {
             </div>
 
             <h2 className="text-base font-semibold text-foreground mb-3">
-              Systeminfo
+              {t("adminPage.systemInfoHeading")}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-card rounded-xl border border-border shadow-sm p-5 space-y-4">
@@ -482,7 +499,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Uptime
+                      {t("adminPage.uptime")}
                     </span>
                   </div>
                   <span className="text-sm font-semibold text-foreground">
@@ -493,7 +510,7 @@ export default function AdminPage() {
 
               <div className="bg-card rounded-xl border border-border shadow-sm p-5">
                 <div className="divide-y divide-border">
-                  <InfoRow label="Umgebung">
+                  <InfoRow label={t("adminPage.infoEnvironment")}>
                     <Badge
                       label={data.environment.nodeEnv}
                       variant={
@@ -503,22 +520,22 @@ export default function AdminPage() {
                       }
                     />
                   </InfoRow>
-                  <InfoRow label="Node.js">
+                  <InfoRow label={t("adminPage.infoNodeJs")}>
                     <span className="text-sm font-semibold text-foreground">
                       {data.environment.nodeVersion}
                     </span>
                   </InfoRow>
-                  <InfoRow label="Plattform">
+                  <InfoRow label={t("adminPage.infoPlatform")}>
                     <span className="text-sm font-semibold text-foreground">
                       {data.system.platform} ({data.system.arch})
                     </span>
                   </InfoRow>
-                  <InfoRow label="Authentifizierung">
+                  <InfoRow label={t("adminPage.infoAuthentication")}>
                     <Badge
                       label={
                         data.environment.authEnabled
-                          ? "Aktiviert"
-                          : "Deaktiviert"
+                          ? t("adminPage.badgeEnabled")
+                          : t("adminPage.badgeDisabled")
                       }
                       variant={
                         data.environment.authEnabled ? "success" : "default"
@@ -533,8 +550,11 @@ export default function AdminPage() {
               <div className="mt-6 flex items-center gap-2 text-muted-foreground">
                 <Info className="w-4 h-4" />
                 <span className="text-sm">
-                  Letzte Aktivität:{" "}
-                  {new Date(data.stats.lastActivity).toLocaleString("de-DE")}
+                  {t("adminPage.lastActivity", {
+                    time: new Date(data.stats.lastActivity).toLocaleString(
+                      t("formats.numberLocale"),
+                    ),
+                  })}
                 </span>
               </div>
             )}

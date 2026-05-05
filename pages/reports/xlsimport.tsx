@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import { t } from "@/lib/i18n";
 import * as ExcelJS from "exceljs";
 import {
   AlertTriangle,
@@ -152,10 +153,10 @@ function DataSummaryCard({
       </div>
       <div>
         <p className="text-lg font-bold text-gray-900">
-          {count.toLocaleString("de-DE")}
+          {count.toLocaleString(t("formats.numberLocale"))}
         </p>
         <p className="text-xs text-gray-500">
-          {label} · {columns} Spalten
+          {label} · {t("xlsImport.summaryCardColumnsSuffix", { count: columns })}
         </p>
       </div>
     </div>
@@ -182,7 +183,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
       <span className="font-mono text-xs leading-relaxed">
         {entry.timestamp && (
           <span className="text-gray-400 mr-2">
-            {entry.timestamp.toLocaleTimeString("de-DE")}
+            {entry.timestamp.toLocaleTimeString(t("formats.timeLocale"))}
           </span>
         )}
         {entry.message}
@@ -247,12 +248,14 @@ const DataPreviewTable = React.memo(
             {expanded ? (
               <>
                 <ChevronUp className="w-3.5 h-3.5" />
-                Weniger anzeigen
+                {t("xlsImport.previewExpandLess")}
               </>
             ) : (
               <>
                 <ChevronDown className="w-3.5 h-3.5" />
-                {rows.length - maxRows} weitere Zeilen
+                {t("xlsImport.previewExpandMore", {
+                  count: rows.length - maxRows,
+                })}
               </>
             )}
           </button>
@@ -303,7 +306,7 @@ export default function XLSImport() {
   const [userData, setUserData] = useState<any[]>([]);
   const [excelLoaded, setExcelLoaded] = useState(false);
   const [importLog, setImportLog] = useState<LogEntry[]>([
-    createLog("info", "Bereit für den Import."),
+    createLog("info", t("xlsImport.logInitial")),
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -396,21 +399,27 @@ export default function XLSImport() {
       logs.push(
         createLog(
           "info",
-          `Datei: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
+          t("xlsImport.logFileInfo", {
+            name: file.name,
+            sizeKB: (file.size / 1024).toFixed(1),
+          }),
           true,
         ),
       );
 
       const workbook = new ExcelJS.Workbook();
       const arrayBuffer = await file.arrayBuffer();
-      logs.push(createLog("info", "Excel wird eingelesen…"));
+      logs.push(createLog("info", t("xlsImport.logExcelReading")));
       await workbook.xlsx.load(arrayBuffer);
 
       const sheetNames = workbook.worksheets.map((ws) => ws.name);
       logs.push(
         createLog(
           "info",
-          `${workbook.worksheets.length} Arbeitsblätter gefunden: ${sheetNames.join(", ")}`,
+          t("xlsImport.logSheetsFound", {
+            count: workbook.worksheets.length,
+            names: sheetNames.join(", "),
+          }),
         ),
       );
 
@@ -427,20 +436,26 @@ export default function XLSImport() {
           logs.push(
             createLog(
               "success",
-              `${foundBooks} Bücher mit ${colCount} Spalten erkannt (Blatt: "${worksheetBooks.name}")`,
+              t("xlsImport.logBooksRecognized", {
+                rows: foundBooks,
+                cols: colCount,
+                sheetName: worksheetBooks.name,
+              }),
             ),
           );
         } else {
           logs.push(
             createLog(
               "warning",
-              `Blatt "${worksheetBooks.name}" enthält keine Datenzeilen`,
+              t("xlsImport.logSheetNoData", {
+                sheetName: worksheetBooks.name,
+              }),
             ),
           );
         }
       } else {
         logs.push(
-          createLog("warning", "Kein erstes Arbeitsblatt für Bücher gefunden"),
+          createLog("warning", t("xlsImport.logNoBooksSheet")),
         );
       }
       setBookData(booksJson);
@@ -458,20 +473,26 @@ export default function XLSImport() {
           logs.push(
             createLog(
               "success",
-              `${foundUsers} User mit ${colCount} Spalten erkannt (Blatt: "${worksheetUsers.name}")`,
+              t("xlsImport.logUsersRecognized", {
+                rows: foundUsers,
+                cols: colCount,
+                sheetName: worksheetUsers.name,
+              }),
             ),
           );
         } else {
           logs.push(
             createLog(
               "warning",
-              `Blatt "${worksheetUsers.name}" enthält keine Datenzeilen`,
+              t("xlsImport.logSheetNoData", {
+                sheetName: worksheetUsers.name,
+              }),
             ),
           );
         }
       } else {
         logs.push(
-          createLog("warning", "Kein zweites Arbeitsblatt für User gefunden"),
+          createLog("warning", t("xlsImport.logNoUsersSheet")),
         );
       }
       setUserData(usersJson);
@@ -480,12 +501,17 @@ export default function XLSImport() {
       setImportUsers(usersJson.length > 1);
       setExcelLoaded(true);
       logs.push(
-        createLog("success", "Datei erfolgreich geladen — bereit zum Import"),
+        createLog("success", t("xlsImport.logFileLoaded")),
       );
       setImportLog(logs);
     } catch (e: any) {
       logs.push(
-        createLog("error", `Fehler beim Laden: ${e.message || e.toString()}`),
+        createLog(
+          "error",
+          t("xlsImport.logLoadError", {
+            message: e.message || e.toString(),
+          }),
+        ),
       );
       setImportLog(logs);
       setExcelLoaded(false);
@@ -513,9 +539,9 @@ export default function XLSImport() {
     setImportLog((prev) => [
       ...prev,
       createLog("separator", ""),
-      createLog("info", "Datenbank-Import gestartet…", true),
+      createLog("info", t("xlsImport.logImportStarted"), true),
       ...(dropBeforeImport
-        ? [createLog("warning", "Bestehende Daten werden vorher gelöscht")]
+        ? [createLog("warning", t("xlsImport.logDropAnnouncement"))]
         : []),
     ]);
 
@@ -534,7 +560,10 @@ export default function XLSImport() {
           ...logs.map((l) => createLog("info", l)),
           createLog(
             "success",
-            `Import abgeschlossen: ${result.imported?.books || 0} Bücher, ${result.imported?.users || 0} User importiert`,
+            t("xlsImport.logImportComplete", {
+              books: result.imported?.books || 0,
+              users: result.imported?.users || 0,
+            }),
           ),
         ]);
         setImportSuccess(true);
@@ -543,14 +572,22 @@ export default function XLSImport() {
         setImportLog((prev) => [
           ...prev,
           ...logs.map((l) => createLog("info", l)),
-          createLog("error", result.data || "Unbekannter Fehler beim Import"),
+          createLog(
+            "error",
+            result.data || t("xlsImport.logImportUnknownError"),
+          ),
         ]);
         setImportSuccess(false);
       }
     } catch (e: any) {
       setImportLog((prev) => [
         ...prev,
-        createLog("error", `Netzwerk-Fehler: ${e.message || e.toString()}`),
+        createLog(
+          "error",
+          t("xlsImport.logNetworkError", {
+            message: e.message || e.toString(),
+          }),
+        ),
       ]);
       setImportSuccess(false);
     } finally {
@@ -562,7 +599,7 @@ export default function XLSImport() {
     setBookData([]);
     setUserData([]);
     setExcelLoaded(false);
-    setImportLog([createLog("info", "Bereit für den Import.")]);
+    setImportLog([createLog("info", t("xlsImport.logInitial"))]);
     setImportBooks(true);
     setImportUsers(true);
     setDropBeforeImport(false);
@@ -570,20 +607,47 @@ export default function XLSImport() {
     setFileName("");
   };
 
+  // Build the drop-warning entity name based on which checkboxes are active
+  const dropWarningEntities =
+    importBooks && importUsers
+      ? t("xlsImport.dropWarningEntitiesBoth")
+      : importBooks
+        ? t("xlsImport.dropWarningEntitiesBooks")
+        : t("xlsImport.dropWarningEntitiesUsers");
+
+  // Build the status line under the import button: "5 Bücher und 12 User werden importiert (mit Löschung)"
+  const buildStatusLine = () => {
+    const parts: string[] = [];
+    if (importBooks && canImportBooks) {
+      parts.push(t("xlsImport.statusEntityBooks", { count: bookCount }));
+    }
+    if (importUsers && canImportUsers) {
+      parts.push(t("xlsImport.statusEntityUsers", { count: userCount }));
+    }
+    const joined = parts.join(t("xlsImport.statusEntityJoiner"));
+    return (
+      joined +
+      t("xlsImport.statusSuffixWillImport") +
+      (dropBeforeImport ? t("xlsImport.statusSuffixWithDrop") : "")
+    );
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <Layout>
       <Head>
-        <title>Excel-Import | OpenLibry</title>
+        <title>{t("xlsImport.pageTitle")}</title>
       </Head>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-gray-900">Excel-Import</h1>
+          <h1 className="text-xl font-bold text-gray-900">
+            {t("xlsImport.headerTitle")}
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Bücher und Nutzer aus einer Excel-Datei in die Datenbank importieren
+            {t("xlsImport.headerSubtitle")}
           </p>
         </div>
 
@@ -592,19 +656,19 @@ export default function XLSImport() {
           <StepIndicator
             step={1}
             currentStep={currentStep}
-            label="Datei laden"
+            label={t("xlsImport.step1Label")}
           />
           <StepConnector active={currentStep >= 2} />
           <StepIndicator
             step={2}
             currentStep={currentStep}
-            label="Prüfen & Konfigurieren"
+            label={t("xlsImport.step2Label")}
           />
           <StepConnector active={currentStep >= 3} />
           <StepIndicator
             step={3}
             currentStep={currentStep}
-            label="Importieren"
+            label={t("xlsImport.step3Label")}
           />
         </div>
 
@@ -620,12 +684,12 @@ export default function XLSImport() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Laden…
+                  {t("xlsImport.uploadButtonLoading")}
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4" />
-                  Excel-Datei auswählen
+                  {t("xlsImport.uploadButton")}
                 </>
               )}
               <input
@@ -651,7 +715,7 @@ export default function XLSImport() {
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                Zurücksetzen
+                {t("xlsImport.resetButton")}
               </button>
             )}
           </div>
@@ -661,12 +725,10 @@ export default function XLSImport() {
             <div className="mt-4 p-4 border-2 border-dashed border-gray-200 rounded-xl text-center">
               <FileSpreadsheet className="w-8 h-8 text-gray-300 mx-auto mb-2" />
               <p className="text-sm text-gray-400">
-                Erwartetes Format: Excel-Datei (.xlsx) mit Blatt 1 = Bücher,
-                Blatt 2 = User
+                {t("xlsImport.uploadFormatHint")}
               </p>
               <p className="text-xs text-gray-300 mt-1">
-                Tipp: Verwenden Sie den Excel-Export als Vorlage für das
-                korrekte Spaltenformat
+                {t("xlsImport.uploadFormatTip")}
               </p>
             </div>
           )}
@@ -676,14 +738,14 @@ export default function XLSImport() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               <DataSummaryCard
                 icon={Book}
-                label="Bücher"
+                label={t("xlsImport.summaryCardBooks")}
                 count={bookCount}
                 columns={bookColumns}
                 color={bookCount > 0 ? "#3b82f6" : "#9ca3af"}
               />
               <DataSummaryCard
                 icon={Users}
-                label="Nutzer"
+                label={t("xlsImport.summaryCardUsers")}
                 count={userCount}
                 columns={userColumns}
                 color={userCount > 0 ? "#8b5cf6" : "#9ca3af"}
@@ -696,7 +758,7 @@ export default function XLSImport() {
         {excelLoaded && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
             <h2 className="text-base font-semibold text-gray-900 mb-4">
-              Import-Optionen
+              {t("xlsImport.importOptionsHeader")}
             </h2>
 
             <div className="space-y-3">
@@ -718,8 +780,12 @@ export default function XLSImport() {
                 <Book className="w-4 h-4 text-blue-500 shrink-0" />
                 <span className="text-sm text-gray-700">
                   {canImportBooks
-                    ? `Bücher importieren (${bookCount.toLocaleString("de-DE")} Einträge)`
-                    : "Bücher importieren (keine Daten vorhanden)"}
+                    ? t("xlsImport.importBooksLabelWithCount", {
+                        count: bookCount.toLocaleString(
+                          t("formats.numberLocale"),
+                        ),
+                      })
+                    : t("xlsImport.importBooksLabelEmpty")}
                 </span>
               </label>
 
@@ -741,8 +807,12 @@ export default function XLSImport() {
                 <Users className="w-4 h-4 text-violet-500 shrink-0" />
                 <span className="text-sm text-gray-700">
                   {canImportUsers
-                    ? `User importieren (${userCount.toLocaleString("de-DE")} Einträge)`
-                    : "User importieren (keine Daten vorhanden)"}
+                    ? t("xlsImport.importUsersLabelWithCount", {
+                        count: userCount.toLocaleString(
+                          t("formats.numberLocale"),
+                        ),
+                      })
+                    : t("xlsImport.importUsersLabelEmpty")}
                 </span>
               </label>
 
@@ -769,28 +839,21 @@ export default function XLSImport() {
                 <span
                   className={`text-sm ${dropBeforeImport ? "text-red-700 font-medium" : "text-gray-500"}`}
                 >
-                  Alle vorhandenen Daten vor Import löschen
+                  {t("xlsImport.dropBeforeImportLabel")}
                 </span>
               </label>
 
               {dropBeforeImport && (
                 <AlertBanner variant="warning">
-                  <strong>Achtung:</strong> Alle{" "}
-                  {importBooks && importUsers
-                    ? "Bücher und User"
-                    : importBooks
-                      ? "Bücher"
-                      : "User"}{" "}
-                  in der Datenbank werden unwiderruflich gelöscht, bevor die
-                  neuen Daten eingespielt werden. Erstellen Sie vorher ein
-                  Backup!
+                  <strong>{t("xlsImport.dropWarningPrefix")}</strong>{" "}
+                  {dropWarningEntities}{" "}
+                  {t("xlsImport.dropWarningSuffix")}
                 </AlertBanner>
               )}
 
               {!canStartImport && (
                 <AlertBanner variant="info">
-                  Bitte wählen Sie mindestens eine Import-Option mit verfügbaren
-                  Daten.
+                  {t("xlsImport.selectAtLeastOneOption")}
                 </AlertBanner>
               )}
             </div>
@@ -806,26 +869,19 @@ export default function XLSImport() {
                 {isImporting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Importiert…
+                    {t("xlsImport.importButtonLoading")}
                   </>
                 ) : (
                   <>
                     <Database className="w-4 h-4" />
-                    In die Datenbank importieren
+                    {t("xlsImport.importButton")}
                   </>
                 )}
               </button>
 
               {canStartImport && !isImporting && (
                 <span className="text-xs text-gray-400">
-                  {[
-                    importBooks && canImportBooks && `${bookCount} Bücher`,
-                    importUsers && canImportUsers && `${userCount} User`,
-                  ]
-                    .filter(Boolean)
-                    .join(" und ")}{" "}
-                  werden importiert
-                  {dropBeforeImport ? " (mit Löschung)" : ""}
+                  {buildStatusLine()}
                 </span>
               )}
             </div>
@@ -836,15 +892,14 @@ export default function XLSImport() {
         {importSuccess === true && (
           <div className="mb-6">
             <AlertBanner variant="success">
-              Import erfolgreich abgeschlossen! Die Daten stehen jetzt in der
-              Bibliothek zur Verfügung.
+              {t("xlsImport.successBanner")}
             </AlertBanner>
           </div>
         )}
         {importSuccess === false && (
           <div className="mb-6">
             <AlertBanner variant="error">
-              Import fehlgeschlagen. Prüfen Sie die Details im Log unten.
+              {t("xlsImport.errorBanner")}
             </AlertBanner>
           </div>
         )}
@@ -853,10 +908,12 @@ export default function XLSImport() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
           <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Import-Log
+              {t("xlsImport.logPanelHeader")}
             </span>
             <span className="text-xs text-gray-300">
-              {importLog.filter((l) => l.level !== "separator").length} Einträge
+              {t("xlsImport.logEntryCount", {
+                count: importLog.filter((l) => l.level !== "separator").length,
+              })}
             </span>
           </div>
           <div className="px-5 py-3 max-h-64 overflow-y-auto bg-gray-50/50">
@@ -873,11 +930,13 @@ export default function XLSImport() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <Book className="w-4 h-4 text-blue-500" />
-                Vorschau: Bücher
+                {t("xlsImport.previewBooksHeader")}
                 {bookCount > 0 && (
                   <span className="text-xs font-normal text-gray-400">
-                    ({bookCount} Einträge, erste {Math.min(8, bookCount)}{" "}
-                    angezeigt)
+                    {t("xlsImport.previewCountHint", {
+                      total: bookCount,
+                      shown: Math.min(8, bookCount),
+                    })}
                   </span>
                 )}
               </h3>
@@ -885,8 +944,7 @@ export default function XLSImport() {
                 <DataPreviewTable data={bookData} />
               ) : (
                 <AlertBanner variant="info">
-                  Keine Bücher-Daten im Excel gefunden. Stellen Sie sicher, dass
-                  das erste Arbeitsblatt die Bücherliste enthält.
+                  {t("xlsImport.previewEmptyBooks")}
                 </AlertBanner>
               )}
             </div>
@@ -895,11 +953,13 @@ export default function XLSImport() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <Users className="w-4 h-4 text-violet-500" />
-                Vorschau: User
+                {t("xlsImport.previewUsersHeader")}
                 {userCount > 0 && (
                   <span className="text-xs font-normal text-gray-400">
-                    ({userCount} Einträge, erste {Math.min(8, userCount)}{" "}
-                    angezeigt)
+                    {t("xlsImport.previewCountHint", {
+                      total: userCount,
+                      shown: Math.min(8, userCount),
+                    })}
                   </span>
                 )}
               </h3>
@@ -907,8 +967,7 @@ export default function XLSImport() {
                 <DataPreviewTable data={userData} />
               ) : (
                 <AlertBanner variant="info">
-                  Keine User-Daten im Excel gefunden. Stellen Sie sicher, dass
-                  das zweite Arbeitsblatt die Userliste enthält.
+                  {t("xlsImport.previewEmptyUsers")}
                 </AlertBanner>
               )}
             </div>

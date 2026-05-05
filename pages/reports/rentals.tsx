@@ -759,7 +759,7 @@ export async function getServerSideProps() {
       return {
         props: {
           rentals: [],
-          error: "Ungültige Daten vom Server erhalten",
+          error: t("rentalsServerError.invalidServerData"),
         },
       };
     }
@@ -793,7 +793,7 @@ export async function getServerSideProps() {
     return {
       props: {
         rentals: [],
-        error: "Fehler beim Laden der Ausleihdaten",
+        error: t("rentalsServerError.fetchFailed"),
       },
     };
   }
