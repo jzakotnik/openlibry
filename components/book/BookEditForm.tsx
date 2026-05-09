@@ -259,7 +259,16 @@ export default function BookEditForm({
 
       return (
         <div className="w-[200px] h-[200px] border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted text-center p-4">
-          <span className={`text-sm ${textColor}`}>{message}</span>
+          <span
+            className={`text-sm ${textColor}`}
+            data-cy={
+              autofillAttempted && !coverPreviewUrl
+                ? "cover-not-found-message"
+                : "cover-status-message"
+            }
+          >
+            {message}
+          </span>
         </div>
       );
     }
@@ -341,9 +350,7 @@ export default function BookEditForm({
             }
             dataCy="save-book-button"
           >
-            {isSaving
-              ? t("bookEditForm.saving")
-              : t("bookEditForm.save")}
+            {isSaving ? t("bookEditForm.saving") : t("bookEditForm.save")}
           </ActionButton>
         )}
 
@@ -645,7 +652,10 @@ export default function BookEditForm({
           )}
 
           {isNewBook && coverPreviewUrl && (
-            <span className="text-xs text-success text-center">
+            <span
+              className="text-xs text-success text-center"
+              data-cy="cover-will-upload-message"
+            >
               {t("bookEditForm.coverWillUpload")}
             </span>
           )}
