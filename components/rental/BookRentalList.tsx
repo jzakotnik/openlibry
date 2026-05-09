@@ -184,7 +184,7 @@ const BookList = React.memo(function BookList({
               >
                 {t("rental.bookNumberPrefix")} {b.id}
                 {isRented && b.rentalStatus !== "lost" && (
-                  <span>
+                  <span data-cy={`book_rented_status_${b.id}`}>
                     {" "}
                     — {t("rental.bookRentedUntil")}{" "}
                     {dayjs(b.dueDate).format("DD.MM.YYYY")}{" "}
@@ -192,7 +192,12 @@ const BookList = React.memo(function BookList({
                     {userNameforBook(users, b.userId!)}
                   </span>
                 )}
-                {!isRented && <span> — {b.author}</span>}
+                {!isRented && (
+                  <span data-cy={`book_available_status_${b.id}`}>
+                    {" "}
+                    — {b.author}
+                  </span>
+                )}
               </span>
             </div>
           </div>
