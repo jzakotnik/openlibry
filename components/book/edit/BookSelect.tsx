@@ -36,8 +36,7 @@ const BookSelect = ({
   const value = String((book as any)[fieldType] ?? "");
 
   const handleChange = (raw: string) => {
-    const parsed =
-      typeof options[0]?.value === "number" ? Number(raw) : raw;
+    const parsed = typeof options[0]?.value === "number" ? Number(raw) : raw;
     setBookData({ ...book, [fieldType]: parsed });
   };
 
@@ -49,17 +48,20 @@ const BookSelect = ({
       >
         {label}
       </Label>
-      <Select
-        value={value}
-        onValueChange={handleChange}
-        disabled={!editable}
-      >
-        <SelectTrigger id={`book-${fieldType}-select`}>
+      <Select value={value} onValueChange={handleChange} disabled={!editable}>
+        <SelectTrigger
+          id={`book-${fieldType}-select`}
+          data-value={book[fieldType as keyof BookType]}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {options.map((opt) => (
-            <SelectItem key={opt.value} value={String(opt.value)}>
+            <SelectItem
+              key={opt.value}
+              value={String(opt.value)}
+              data-cy={`option-${opt.value}`}
+            >
               {opt.label}
             </SelectItem>
           ))}
