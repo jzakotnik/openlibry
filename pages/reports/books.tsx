@@ -3,6 +3,7 @@ import { BookType } from "@/entities/BookType";
 import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
   Document,
@@ -21,6 +22,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import { Download, FileText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -43,7 +45,7 @@ function getWidth(columnName: string = ""): number {
 }
 
 // =============================================================================
-// PDF Styles (unchanged)
+// PDF Styles
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -116,10 +118,10 @@ const pdfStyles = StyleSheet.create({
     backgroundColor: "#fff8f0",
   },
   colId: { width: "8%" },
-  colTitle: { width: "32%", paddingRight: 4 },
+  colTitle: { width: "30%", paddingRight: 4 },
   colAuthor: { width: "20%", paddingRight: 4 },
   colStatus: { width: "12%" },
-  colTopics: { width: "28%", paddingRight: 4 },
+  colTopics: { width: "30%" },
   headerText: { color: "#fff", fontWeight: "bold" },
   rentedText: { color: "#e65100", fontWeight: "bold" },
   availableText: { color: "#2e7d32" },
@@ -144,12 +146,12 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged)
+// PDF Document Component
 // =============================================================================
 
 interface BooksPdfProps {
-  rentedBooks: BookType[];
-  availableBooks: BookType[];
+  rentedBooks: any[];
+  availableBooks: any[];
   columns: { field: string; headerName: string }[];
 }
 
@@ -158,19 +160,27 @@ const BooksPdfDocument = ({
   availableBooks,
   columns,
 }: BooksPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const total = rentedBooks.length + availableBooks.length;
 
   const getColumnHeader = (field: string) => {
     const col = columns.find((c) => c.field === field);
     return col?.headerName || field;
   };
 
-  const translateStatus = (status: string): string => {
-    const statusTranslations = translations?.rentalStatus as Record<
-      string,
-      string
-    >;
-    return statusTranslations?.[status] || status;
+  // Status label lookup — sourced from the pdfBooks namespace so PDFs match
+  // the deployment locale, instead of relying on a hardcoded German map.
+  const translateStatus = (status: string) => {
+    const map: Record<string, string> = {
+      rented: t("pdfBooks.statusRented"),
+      available: t("pdfBooks.statusAvailable"),
+      broken: t("pdfBooks.statusBroken"),
+      presentation: t("pdfBooks.statusPresentation"),
+      ordered: t("pdfBooks.statusOrdered"),
+      lost: t("pdfBooks.statusLost"),
+      remote: t("pdfBooks.statusRemote"),
+    };
+    return map[status] || status;
   };
 
   const TableHeader = () => (
@@ -193,13 +203,7 @@ const BooksPdfDocument = ({
     </View>
   );
 
-  const TableRow = ({
-    row,
-    isRented,
-  }: {
-    row: BookType;
-    isRented: boolean;
-  }) => (
+  const TableRow = ({ row, isRented }: { row: any; isRented: boolean }) => (
     <View style={isRented ? pdfStyles.tableRowRented : pdfStyles.tableRow}>
       <Text style={pdfStyles.colId}>{row.id}</Text>
       <Text style={pdfStyles.colTitle}>
@@ -227,19 +231,19 @@ const BooksPdfDocument = ({
     <Document>
       <Page size="A4" style={pdfStyles.page} orientation="landscape">
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Bestandsübersicht</Text>
+          <Text style={pdfStyles.title}>{t("pdfBooks.titleStock")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} • {rentedBooks.length + availableBooks.length}{" "}
-            Bücher gesamt
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfBooks.subtitleTotal", { total })}
             {rentedBooks.length > 0
-              ? ` • davon ${rentedBooks.length} ausgeliehen`
+              ? t("pdfBooks.subtitleRented", { rented: rentedBooks.length })
               : ""}
           </Text>
         </View>
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitleRented}>
-            Ausgeliehene Bücher ({rentedBooks.length})
+            {t("pdfBooks.sectionRented", { count: rentedBooks.length })}
           </Text>
           {rentedBooks.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -249,13 +253,15 @@ const BooksPdfDocument = ({
               ))}
             </View>
           ) : (
-            <Text style={pdfStyles.emptyMessage}>Keine Bücher ausgeliehen</Text>
+            <Text style={pdfStyles.emptyMessage}>
+              {t("pdfBooks.emptyRented")}
+            </Text>
           )}
         </View>
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
-            Verfügbare Bücher ({availableBooks.length})
+            {t("pdfBooks.sectionAvailable", { count: availableBooks.length })}
           </Text>
           {availableBooks.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -265,12 +271,14 @@ const BooksPdfDocument = ({
               ))}
             </View>
           ) : (
-            <Text style={pdfStyles.emptyMessage}>Keine verfügbaren Bücher</Text>
+            <Text style={pdfStyles.emptyMessage}>
+              {t("pdfBooks.emptyAvailable")}
+            </Text>
           )}
         </View>
 
         <Text style={pdfStyles.footer}>
-          OpenLibry • Bestandsbericht vom {today}
+          {t("pdfBooks.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -278,7 +286,7 @@ const BooksPdfDocument = ({
 };
 
 // =============================================================================
-// Excel & PDF export functions (unchanged)
+// Excel & PDF export functions (unchanged - Excel pinned German per decision)
 // =============================================================================
 
 async function exportToPdf(
@@ -471,8 +479,16 @@ export default function Books({ books }: BookPropsType) {
                 className="text-base font-bold text-primary"
                 data-cy="books-status"
               >
-                📚 {totalCount} Bücher • {rentedCount} ausgeliehen •{" "}
-                {totalCount - rentedCount} verfügbar
+                {t(
+                  totalCount === 1
+                    ? "reportBooksPage.statusOne"
+                    : "reportBooksPage.statusMany",
+                  {
+                    total: totalCount,
+                    rented: rentedCount,
+                    available: totalCount - rentedCount,
+                  },
+                )}
               </h2>
               <div className="flex gap-2">
                 <button
@@ -488,7 +504,7 @@ export default function Books({ books }: BookPropsType) {
                   "
                 >
                   <Download size={16} />
-                  Excel Export
+                  {t("reportTable.excelExport")}
                 </button>
                 <button
                   type="button"
@@ -503,7 +519,7 @@ export default function Books({ books }: BookPropsType) {
                   "
                 >
                   <FileText size={16} />
-                  PDF Export
+                  {t("reportTable.pdfExport")}
                 </button>
               </div>
             </div>
@@ -548,34 +564,24 @@ export default function Books({ books }: BookPropsType) {
                   ))}
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {table.getRowModel().rows.map((row) => {
-                    const isRented = row.original.rentalStatus === "rented";
-                    return (
-                      <tr
-                        key={row.id}
-                        className={
-                          isRented
-                            ? "bg-orange-50/60 hover:bg-orange-50"
-                            : "hover:bg-gray-50/60"
-                        }
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="px-3 py-2 text-sm text-gray-700 truncate"
-                            style={{
-                              maxWidth: cell.column.getSize(),
-                            }}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                  {table.getRowModel().rows.map((row) => (
+                    <tr key={row.id} className="hover:bg-gray-50/60">
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-3 py-2 text-sm truncate"
+                          style={{
+                            maxWidth: cell.column.getSize(),
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -583,7 +589,7 @@ export default function Books({ books }: BookPropsType) {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>Zeilen pro Seite:</span>
+                <span>{t("reportTable.rowsPerPage")}</span>
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
@@ -602,7 +608,10 @@ export default function Books({ books }: BookPropsType) {
 
               <div className="flex items-center gap-2">
                 <span>
-                  Seite {pageIndex + 1} von {pageCount}
+                  {t("reportTable.pageOfTotal", {
+                    page: pageIndex + 1,
+                    total: pageCount,
+                  })}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -646,7 +655,7 @@ export default function Books({ books }: BookPropsType) {
             className="text-muted-foreground py-8 text-center"
             data-cy="books-no-data"
           >
-            Keine Daten verfügbar
+            {t("reportTable.noData")}
           </p>
         )}
       </div>

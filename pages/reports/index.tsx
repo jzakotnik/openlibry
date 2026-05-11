@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import dayjs from "dayjs";
 
 import BookLabelEditorCard from "@/components/labels/BookLabelEditorCard";
@@ -54,42 +55,42 @@ export default function Reports({
         data-cy="reports-grid"
       >
         <ReportCard
-          title="Nutzerinnen"
-          subtitle="Übersicht aller NutzerInnen"
-          unit="NutzerInnen"
+          title={t("reportsPage.cardUsers.title")}
+          subtitle={t("reportsPage.cardUsers.subtitle")}
+          unit={t("reportsPage.cardUsers.unit")}
           totalNumber={users.length}
           link="reports/users"
           dataCyId="users"
         />
         <ReportCard
-          title="Bücher"
-          subtitle="Übersicht aller Bücher"
-          unit="Bücher"
+          title={t("reportsPage.cardBooks.title")}
+          subtitle={t("reportsPage.cardBooks.subtitle")}
+          unit={t("reportsPage.cardBooks.unit")}
           totalNumber={books.length}
           link="reports/books"
           dataCyId="books"
         />
         <ReportCard
-          title="Leihen"
-          subtitle="Übersicht aller Leihen"
-          unit="Leihen"
+          title={t("reportsPage.cardRentals.title")}
+          subtitle={t("reportsPage.cardRentals.subtitle")}
+          unit={t("reportsPage.cardRentals.unit")}
           totalNumber={rentals.length}
           link="reports/rentals"
           dataCyId="rentals"
         />
         <ExcelCard dataCy="excel-card" />
         <ReportCard
-          title="Ausleih-Historie"
-          subtitle="Verlauf aller Leihen nach Nutzer"
-          unit="Leihen"
+          title={t("reportsPage.cardUserHistory.title")}
+          subtitle={t("reportsPage.cardUserHistory.subtitle")}
+          unit={t("reportsPage.cardUserHistory.unit")}
           totalNumber={rentals.length}
           link="reports/userhistory"
           dataCyId="userhistory"
         />
         <ReportCard
-          title="Historie"
-          subtitle="Aktivitäten Bücher/User"
-          unit="Einträge"
+          title={t("reportsPage.cardAudit.title")}
+          subtitle={t("reportsPage.cardAudit.subtitle")}
+          unit={t("reportsPage.cardAudit.unit")}
           totalNumber={auditCount}
           link="reports/audit"
           dataCyId="audit"
@@ -100,8 +101,8 @@ export default function Reports({
           <BookLabelEditorCard />
         </div>
         <UserLabelsCard
-          title="Ausweise"
-          subtitle="Liste aller Ausweise"
+          title={t("reportsPage.cardUserLabels.title")}
+          subtitle={t("reportsPage.cardUserLabels.subtitle")}
           link="api/report/userlabels"
           totalNumber={users.length}
           startLabel={userLabelFilters.startLabel}
@@ -117,8 +118,8 @@ export default function Reports({
           allTopics={schoolGradeSet}
         />
         <ReminderCard
-          title="Mahnungen"
-          subtitle="Ausdruck der Mahnungen als Word-Dokument"
+          title={t("reportsPage.cardReminder.title")}
+          subtitle={t("reportsPage.cardReminder.subtitle")}
           link="/api/report/reminder"
           overdueCount={overdueCount}
           nonExtendableCount={nonExtendableCount}

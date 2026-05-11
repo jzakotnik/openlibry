@@ -133,7 +133,8 @@ describe("Rental History Report", () => {
     });
 
     it("navigates back to the reports overview", () => {
-      cy.contains("a", "Zurück").click();
+      //cy.contains("a", "Zurück").click();
+      cy.get("[data-cy=history-back-link]").click();
       cy.url().should("include", "/reports");
     });
   });

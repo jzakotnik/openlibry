@@ -5,28 +5,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const testBook = {
-  // ISBN & Stammdaten
   isbn: "9783791504285",
-  // Stammdaten des Buchs
   title: "Cypress Feldtest Buch",
   author: "Test Autorin",
   subtitle: "Ein vollständiger Untertitel",
   summary: "Eine ausführliche Zusammenfassung für den automatisierten Test.",
-  // Verlag & Ausgabe
   publisherName: "Testverlag GmbH",
   publisherLocation: "Teststadt",
   publisherDate: "2024",
   editionDescription: "2. Auflage",
   pages: "256",
   price: "14.99",
-  // Ausleih-Status
   rentalStatus: "lost",
-  rentalStatusLabel: "Verloren",
   renewalCount: "1",
-  renewalCountLabel: "1x verlängert",
   rentedDate: "2025-01-15",
   dueDate: "2025-02-05",
-  // Weitere Angaben
   minAge: "8",
   maxAge: "14",
   minPlayers: "2",
@@ -37,28 +30,24 @@ const testBook = {
   supplierComment: "Direkt vom Verlag bezogen",
 };
 
-// All rental statuses defined in translations.rentalStatus
-const allStatuses: Array<{ value: string; label: string }> = [
-  { value: "available", label: "Verfügbar" },
-  { value: "rented", label: "Ausgeliehen" },
-  { value: "broken", label: "Beschädigt" },
-  { value: "presentation", label: "Vorführung" },
-  { value: "ordered", label: "Bestellt" },
-  { value: "lost", label: "Verloren" },
-  { value: "remote", label: "Andere Bibliothek" },
+// All rental statuses — raw values only, no display labels
+const allStatuses: string[] = [
+  "available",
+  "rented",
+  "broken",
+  "presentation",
+  "ordered",
+  "lost",
+  "remote",
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helper: interact with shadcn/ui <Select>
+// Helper: interact with shadcn/ui <Select> by value, not display label
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Opens a shadcn Select by its HTML id and clicks the option matching the
- * given visible label text.
- */
-function selectOption(triggerId: string, optionLabel: string) {
+function selectOption(triggerId: string, optionValue: string) {
   cy.get(`#${triggerId}`).click();
-  cy.get("[role=option]").contains(optionLabel).click();
+  cy.get(`[data-cy=option-${optionValue}]`).click();
   cy.get("[role=option]").should("not.exist");
 }
 
@@ -96,7 +85,7 @@ describe("Book fields — fill all and verify persistence", () => {
 
     cy.intercept("PUT", "/api/book/*").as("saveBook");
 
-    // ── ISBN & Stammdaten ────────────────────────────────────────────────
+    // ── ISBN ─────────────────────────────────────────────────────────────
     cy.get("[data-cy=book-isbn-field]").clear().type(testBook.isbn);
 
     // ── Stammdaten des Buchs ─────────────────────────────────────────────
@@ -122,8 +111,8 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.get("[data-cy=book-price-field]").clear().type(testBook.price);
 
     // ── Ausleih-Status ───────────────────────────────────────────────────
-    selectOption("book-rentalStatus-select", testBook.rentalStatusLabel);
-    selectOption("book-renewalCount-select", testBook.renewalCountLabel);
+    selectOption("book-rentalStatus-select", testBook.rentalStatus);
+    selectOption("book-renewalCount-select", testBook.renewalCount);
 
     cy.get("[data-cy=book_rentedDate_datepicker]")
       .find("input[type=date]")
@@ -202,12 +191,14 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.get("[data-cy=book-price-field]").should("have.value", testBook.price);
 
     cy.get("#book-rentalStatus-select").should(
-      "contain.text",
-      testBook.rentalStatusLabel,
+      "have.attr",
+      "data-value",
+      testBook.rentalStatus,
     );
     cy.get("#book-renewalCount-select").should(
-      "contain.text",
-      testBook.renewalCountLabel,
+      "have.attr",
+      "data-value",
+      testBook.renewalCount,
     );
 
     cy.get("[data-cy=book_rentedDate_datepicker]")
@@ -257,7 +248,7 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.get(`[data-cy=book_summary_card_${Cypress.env("bookid")}]`)
       .should("be.visible")
       .find("[role=status]")
-      .should("contain.text", testBook.rentalStatusLabel);
+      .should("have.attr", "data-value", testBook.rentalStatus);
   });
 
   // ── 4. Verify the DB record directly ─────────────────────────────────
@@ -297,8 +288,8 @@ describe("Book fields — fill all and verify persistence", () => {
 // For each status: save → verify select → verify badge → verify DB
 // ─────────────────────────────────────────────────────────────────────────────
 
-allStatuses.forEach(({ value, label }) => {
-  describe(`Rental status: "${label}" (${value})`, () => {
+allStatuses.forEach((value) => {
+  describe(`Rental status: ${value}`, () => {
     before(() => {
       cy.task("resetDatabase");
     });
@@ -320,7 +311,7 @@ allStatuses.forEach(({ value, label }) => {
       cy.navigateToBookEdit(Cypress.env("bookid"));
       cy.intercept("PUT", "/api/book/*").as(`save_${value}`);
 
-      selectOption("book-rentalStatus-select", label);
+      selectOption("book-rentalStatus-select", value);
 
       cy.get("[data-cy=save-book-button]").click();
       cy.wait(`@save_${value}`, { timeout: 10000 }).then((interception) => {
@@ -329,12 +320,16 @@ allStatuses.forEach(({ value, label }) => {
       cy.url({ timeout: 10000 }).should("not.include", "/edit");
     });
 
-    it(`should show "${label}" in the select after reload`, () => {
+    it(`should show "${value}" in the select after reload`, () => {
       cy.navigateToBookEdit(Cypress.env("bookid"));
-      cy.get("#book-rentalStatus-select").should("contain.text", label);
+      cy.get("#book-rentalStatus-select").should(
+        "have.attr",
+        "data-value",
+        value,
+      );
     });
 
-    it(`should show badge "${label}" on the book card`, () => {
+    it(`should show correct badge on the book card`, () => {
       cy.get("[data-cy=index_book_button]").click();
       cy.get("[data-cy=rental_input_searchbook]")
         .should("be.visible")
@@ -342,7 +337,7 @@ allStatuses.forEach(({ value, label }) => {
       cy.get(`[data-cy=book_summary_card_${Cypress.env("bookid")}]`)
         .should("be.visible")
         .find("[role=status]")
-        .should("contain.text", label);
+        .should("have.attr", "data-value", value);
     });
 
     it(`should persist raw status "${value}" in the database`, () => {

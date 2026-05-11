@@ -271,7 +271,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.get("[data-cy=autofill-button]").click();
 
     // Wait for autofill to complete
-    cy.wait("@fillByIsbn", { timeout: 15000 });
+    cy.wait("@fillByIsbn", { timeout: 25000 });
 
     // Wait for cover fetch (happens in parallel)
     cy.wait(5000);
@@ -281,14 +281,10 @@ describe("Book creation with ISBN autofill and editing", () => {
       if ($body.find("[data-cy=book-cover-preview]").length > 0) {
         cy.log("Cover preview found - cover was fetched successfully");
         cy.get("[data-cy=book-cover-preview]").should("be.visible");
-        // Verify the success message
-        cy.contains("Cover wird beim Speichern hochgeladen").should(
-          "be.visible",
-        );
+        cy.get("[data-cy=cover-will-upload-message]").should("be.visible");
       } else {
         cy.log("No cover preview - cover not available or fetch failed");
-        // Should show "Kein Cover gefunden" message
-        cy.contains("Kein Cover gefunden").should("be.visible");
+        cy.get("[data-cy=cover-not-found-message]").should("be.visible");
       }
     });
 

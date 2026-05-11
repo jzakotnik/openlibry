@@ -50,7 +50,9 @@ describe("Rental of books", () => {
         cy.get("[data-cy^=book_rent_button_]").click();
       });
 
-    cy.contains("ausgeliehen", { timeout: 10000 }).should("be.visible");
+    cy.get("[data-cy^=book_rented_status_]")
+      .first()
+      .should("be.visible", { timeout: 10000 });
 
     // Re-expand the accordion in case it collapsed after the rent action
     cy.get("[data-cy^=user_accordion_]")
@@ -81,7 +83,9 @@ describe("Rental of books", () => {
           .click();
       });
 
-    cy.contains("zurückgegeben", { timeout: 10000 }).should("be.visible");
+    cy.get("[data-cy^=book_available_status_]")
+      .first()
+      .should("be.visible", { timeout: 10000 });
 
     // Re-expand the accordion in case it collapsed after the return action
     cy.get("[data-cy^=user_accordion_]")

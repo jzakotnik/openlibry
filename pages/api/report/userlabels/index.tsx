@@ -7,6 +7,7 @@ import {
   getUsersInIdRange,
   getUsersInIdRangeForSchoolgrade,
 } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import { chunkArray } from "@/lib/utils/chunkArray";
 import { resolveCustomPath } from "@/lib/utils/customPath";
 import ReactPDF, {
@@ -154,7 +155,7 @@ const replacePlaceholder = (text: string, user: UserType): string => {
     return result;
   } catch (error) {
     console.error("Error replacing placeholder in user label:", error);
-    return "Configuration error in environment";
+    return t("userLabelsApi.placeholderError");
   }
 };
 
@@ -356,31 +357,26 @@ export default async function handle(
                   prisma,
                   req.query.schoolGrade as string,
                 )) as any)
-              : ((await getAllUsersOrderById(prisma)) as any);
+              : await getAllUsersOrderById(prisma);
 
-          const startUserID = "start" in req.query ? req.query.start : "0";
-          const endUserID =
-            "end" in req.query ? req.query.end : String(users.length);
-
-          printableUsers = users
-            .reverse()
-            .slice(
-              parseInt(startUserID as string),
-              parseInt(endUserID as string),
-            );
-
+          // Slice by start/end if provided
+          if ("start" in req.query && "end" in req.query) {
+            const start = parseInt(req.query.start as string);
+            const end = parseInt(req.query.end as string);
+            printableUsers = users.slice(start, end);
+          } else {
+            printableUsers = users;
+          }
           console.log(
-            "Printing labels for users (by position):",
-            startUserID,
-            "to",
-            endUserID,
-            "count:",
-            printableUsers.length,
+            "Printing labels for users (by grade/slice), count:",
+            printableUsers?.length,
           );
-        } else if ("startId" in req.query) {
-          // Filter by ID range
+        } else if ("startId" in req.query || "endId" in req.query) {
+          // Filter by user ID range (with optional schoolGrade)
           let startId =
-            "startId" in req.query ? parseInt(req.query.startId as string) : 0;
+            "startId" in req.query
+              ? parseInt(req.query.startId as string)
+              : 0;
           let endId =
             "endId" in req.query
               ? parseInt(req.query.endId as string)

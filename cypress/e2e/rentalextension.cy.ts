@@ -12,6 +12,8 @@
 // real DB state — no SWR / React.memo timing to fight.
 //
 // DB assertions via cy.task("verifyBook") are the authoritative truth.
+// DOM assertions use data-due-date="YYYY-MM-DD" attributes — fully
+// language-neutral, no translated text in assertions.
 //
 // cypress.env.json must match the server's .env EXACTLY:
 //   {
@@ -23,8 +25,13 @@
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** Format date as DD.MM.YYYY for DB comparisons (dayjs renders the same way). */
 const formatDE = (d: Date) =>
   `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+
+/** Format date as YYYY-MM-DD for data-due-date attribute assertions. */
+const formatISO = (d: Date) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 /** Add `days` to a given base date (defaults to today). */
 const addDays = (days: number, base: Date = new Date()): Date => {
@@ -97,6 +104,7 @@ describe("Rental extension logic", () => {
     ).to.not.equal(EXTENSION_DURATION_DAYS);
 
     const expectedDue = formatDE(addDays(RENTAL_DURATION_DAYS));
+    const expectedDueISO = formatISO(addDays(RENTAL_DURATION_DAYS));
     const wrongDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
 
     cy.get("[data-cy=index_rental_button]").click();
@@ -132,9 +140,11 @@ describe("Rental extension logic", () => {
     cy.visit("/");
     cy.get("[data-cy=index_rental_button]").click();
     cy.get("[data-cy=book_search_input]").type(String(bookAId));
-    cy.get(`[data-cy=book_info_${bookAId}]`, { timeout: 6000 })
-      .should("contain", `ausgeliehen bis ${expectedDue}`)
-      .and("not.contain", `ausgeliehen bis ${wrongDue}`);
+    cy.get(`[data-cy=book_info_${bookAId}]`, { timeout: 6000 }).should(
+      "have.attr",
+      "data-due-date",
+      expectedDueISO,
+    );
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -144,11 +154,10 @@ describe("Rental extension logic", () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("extends Book B (user column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB before extending — used as wrongDue to
-    // confirm the old "anchor off dueDate" behaviour is no longer happening.
     cy.task("verifyBook", bookBUserColId).then((bookBefore: any) => {
       const previousDueDate = new Date(bookBefore.dueDate);
       const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const expectedDueISO = formatISO(addDays(EXTENSION_DURATION_DAYS));
       const wrongDue = formatDE(
         addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
@@ -186,9 +195,7 @@ describe("Rental extension logic", () => {
       openRentalUserAccordion();
       cy.get(`[data-cy=rental_book_details_${bookBUserColId}]`, {
         timeout: 6000,
-      })
-        .should("contain", `bis ${expectedDue}`)
-        .and("not.contain", `bis ${wrongDue}`);
+      }).should("have.attr", "data-due-date", expectedDueISO);
     });
   });
 
@@ -201,6 +208,7 @@ describe("Rental extension logic", () => {
     cy.task("verifyBook", bookBBookColId).then((bookBefore: any) => {
       const previousDueDate = new Date(bookBefore.dueDate);
       const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const expectedDueISO = formatISO(addDays(EXTENSION_DURATION_DAYS));
       const wrongDue = formatDE(
         addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
@@ -243,9 +251,11 @@ describe("Rental extension logic", () => {
       cy.get("[data-cy=index_rental_button]").click();
       cy.get("[data-cy=book_search_input]").type(String(bookBBookColId));
       cy.wait(1500);
-      cy.get(`[data-cy=book_info_${bookBBookColId}]`, { timeout: 6000 })
-        .should("contain", `ausgeliehen bis ${expectedDue}`)
-        .and("not.contain", `ausgeliehen bis ${wrongDue}`);
+      cy.get(`[data-cy=book_info_${bookBBookColId}]`, { timeout: 6000 }).should(
+        "have.attr",
+        "data-due-date",
+        expectedDueISO,
+      );
     });
   });
 
@@ -258,6 +268,7 @@ describe("Rental extension logic", () => {
     cy.task("verifyBook", bookBUserPageId).then((bookBefore: any) => {
       const previousDueDate = new Date(bookBefore.dueDate);
       const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const expectedDueISO = formatISO(addDays(EXTENSION_DURATION_DAYS));
       const wrongDue = formatDE(
         addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
@@ -295,10 +306,9 @@ describe("Rental extension logic", () => {
       // ── DOM check after reload ──────────────────────────────────────────
       cy.reload();
       cy.url().should("include", `/user/${userId}`);
-      cy.contains("Cypress Verlaengerbar UserPage")
-        .closest("div.rounded-lg")
-        .should("contain", expectedDue)
-        .and("not.contain", wrongDue);
+      cy.get(`[data-cy=book_due_date_${bookBUserPageId}]`, {
+        timeout: 6000,
+      }).should("have.attr", "data-due-date", expectedDueISO);
     });
   });
 

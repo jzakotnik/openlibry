@@ -42,6 +42,7 @@ const StatusBadge = memo(function StatusBadge({
                   ${style.bgClass}`}
       role="status"
       aria-label={label}
+      data-value={rentalStatus}
     >
       <span
         className={`h-1.5 w-1.5 rounded-full bg-white ${style.pulse ? "animate-pulse" : ""}`}

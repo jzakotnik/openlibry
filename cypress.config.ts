@@ -6,6 +6,10 @@ import ExcelJS from "exceljs";
 import * as fs from "fs";
 import * as path from "path";
 
+process.env.OPENLIBRY_LOCALE = process.env.OPENLIBRY_LOCALE || "de";
+process.env.NEXT_PUBLIC_OPENLIBRY_LOCALE =
+  process.env.NEXT_PUBLIC_OPENLIBRY_LOCALE || "de";
+
 declare global {
   var prisma: PrismaClient | undefined;
 }
@@ -27,6 +31,7 @@ function getPrismaClient() {
 function loadServerEnv(config: Cypress.PluginConfigOptions) {
   const envFile = fs.existsSync(".env.test.local") ? ".env.test.local" : ".env";
   const parsed = dotenv.config({ path: envFile }).parsed ?? {};
+  config.env.OPENLIBRY_LOCALE = process.env.OPENLIBRY_LOCALE;
 
   const keys = [
     "RENTAL_DURATION_DAYS",

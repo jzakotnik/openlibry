@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 
 interface BookSearchBarProps {
   handleInputChange: React.ChangeEventHandler<
@@ -46,8 +47,8 @@ export default function BookSearchBar({
               type="text"
               value={bookSearchInput}
               onChange={handleInputChange}
-              placeholder="Buch suchen…"
-              aria-label="search books"
+              placeholder={t("bookSearchBar.placeholder")}
+              aria-label={t("bookSearchBar.ariaLabel")}
               data-cy="rental_input_searchbook"
               className="h-10 w-full rounded-lg border border-border bg-card/90
                          pl-9 pr-3 text-sm text-foreground
@@ -78,7 +79,7 @@ export default function BookSearchBar({
                 <TooltipTrigger asChild>
                   <button
                     onClick={toggleView}
-                    aria-label="Ansicht wechseln"
+                    aria-label={t("bookSearchBar.toggleView")}
                     className="flex items-center justify-center
                                h-10 w-10 rounded-lg border border-border bg-card/90
                                text-muted-foreground
@@ -94,7 +95,7 @@ export default function BookSearchBar({
                     )}
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>Ansicht wechseln</TooltipContent>
+                <TooltipContent>{t("bookSearchBar.toggleView")}</TooltipContent>
               </Tooltip>
             )}
 
@@ -108,7 +109,7 @@ export default function BookSearchBar({
                   <TooltipTrigger asChild>
                     <button
                       onClick={handleNewBook}
-                      aria-label="Neues Buch erzeugen"
+                      aria-label={t("bookSearchBar.newBook")}
                       data-cy="create_book_button"
                       className="flex items-center justify-center
                                  h-10 w-10 rounded-lg
@@ -121,7 +122,7 @@ export default function BookSearchBar({
                       <Plus className="h-5 w-5" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent>Neues Buch erzeugen</TooltipContent>
+                  <TooltipContent>{t("bookSearchBar.newBook")}</TooltipContent>
                 </Tooltip>
 
                 {/* Batch scan */}
@@ -129,7 +130,7 @@ export default function BookSearchBar({
                   <TooltipTrigger asChild>
                     <Link
                       href="/book/batchscan"
-                      aria-label="Viele Bücher importieren"
+                      aria-label={t("bookSearchBar.importMany")}
                       data-cy="batchscan_button"
                       className="flex items-center justify-center
                                  h-10 w-10 rounded-lg border border-border bg-card/90
@@ -142,7 +143,9 @@ export default function BookSearchBar({
                       <ListPlus className="h-4 w-4" />
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent>Viele Bücher importieren</TooltipContent>
+                  <TooltipContent>
+                    {t("bookSearchBar.importMany")}
+                  </TooltipContent>
                 </Tooltip>
               </>
             )}

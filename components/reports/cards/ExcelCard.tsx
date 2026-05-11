@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { Download, Upload } from "lucide-react";
 
 interface ExcelCardProps {
@@ -12,10 +13,10 @@ export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
     >
       <div>
         <h3 className="text-base font-semibold leading-none tracking-tight">
-          Excel
+          {t("excelCard.title")}
         </h3>
         <p className="text-sm text-muted-foreground mt-1.5">
-          Import und Export der Daten
+          {t("excelCard.subtitle")}
         </p>
       </div>
 
@@ -26,7 +27,7 @@ export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Download size={15} />
-          Export herunterladen
+          {t("excelCard.exportButton")}
         </a>
         <a
           href="reports/xlsimport"
@@ -34,7 +35,7 @@ export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
         >
           <Upload size={15} />
-          Import hochladen
+          {t("excelCard.importButton")}
         </a>
       </div>
     </div>

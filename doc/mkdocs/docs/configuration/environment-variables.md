@@ -79,6 +79,7 @@ Mehr Details: [Mahnschreiben konfigurieren](reminders.md)
 
 | Variable               | Beschreibung                                                    | Standard    |
 | ---------------------- | --------------------------------------------------------------- | ----------- |
+| `OPENLIBRY_LOCALE`, `NEXT_PUBLIC_OPENLIBRY_LOCALE`     | Sprache der Applikation                                         | `de`      |
 | `PORT`                 | Server-Port                                                     | `3000`      |
 | `MAX_MIGRATION_SIZE`   | Max. Import-Größe (MB)                                          | `250`       |
 | `RENTAL_SORT_BOOKS`    | Sortierung in Leihe                                             | `title_asc` |
