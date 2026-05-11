@@ -116,9 +116,63 @@ const CONFIG_SECTIONS: ConfigSection[] = [
         required: true,
       },
       {
+        key: "OPENLIBRY_LOCALE",
+        label: tf("technical", "OPENLIBRY_LOCALE", "label"),
+        description: tf("technical", "OPENLIBRY_LOCALE", "description"),
+        hint: tf("technical", "OPENLIBRY_LOCALE", "hint"),
+        type: "select",
+        default: "de",
+        required: true,
+        options: [
+          {
+            value: "de",
+            label: t(
+              "admin.sections.technical.fields.OPENLIBRY_LOCALE.options.de",
+            ),
+          },
+          {
+            value: "en",
+            label: t(
+              "admin.sections.technical.fields.OPENLIBRY_LOCALE.options.en",
+            ),
+          },
+        ],
+      },
+      {
+        key: "NEXT_PUBLIC_OPENLIBRY_LOCALE",
+        label: tf("technical", "NEXT_PUBLIC_OPENLIBRY_LOCALE", "label"),
+        description: tf(
+          "technical",
+          "NEXT_PUBLIC_OPENLIBRY_LOCALE",
+          "description",
+        ),
+        hint: tf("technical", "NEXT_PUBLIC_OPENLIBRY_LOCALE", "hint"),
+        type: "select",
+        default: "de",
+        required: true,
+        options: [
+          {
+            value: "de",
+            label: t(
+              "admin.sections.technical.fields.NEXT_PUBLIC_OPENLIBRY_LOCALE.options.de",
+            ),
+          },
+          {
+            value: "en",
+            label: t(
+              "admin.sections.technical.fields.NEXT_PUBLIC_OPENLIBRY_LOCALE.options.en",
+            ),
+          },
+        ],
+      },
+      {
         key: "COVERIMAGE_FILESTORAGE_PATH",
         label: tf("technical", "COVERIMAGE_FILESTORAGE_PATH", "label"),
-        description: tf("technical", "COVERIMAGE_FILESTORAGE_PATH", "description"),
+        description: tf(
+          "technical",
+          "COVERIMAGE_FILESTORAGE_PATH",
+          "description",
+        ),
         hint: tf("technical", "COVERIMAGE_FILESTORAGE_PATH", "hint"),
         type: "text",
         default: "/app/images",
@@ -333,7 +387,11 @@ const CONFIG_SECTIONS: ConfigSection[] = [
       {
         key: "REMINDER_RESPONSIBLE_EMAIL",
         label: tf("reminder", "REMINDER_RESPONSIBLE_EMAIL", "label"),
-        description: tf("reminder", "REMINDER_RESPONSIBLE_EMAIL", "description"),
+        description: tf(
+          "reminder",
+          "REMINDER_RESPONSIBLE_EMAIL",
+          "description",
+        ),
         type: "text",
         default: "info@email.de",
       },
@@ -378,7 +436,11 @@ const CONFIG_SECTIONS: ConfigSection[] = [
       {
         key: "USERLABEL_SEPARATE_COLORBAR",
         label: tf("userlabels", "USERLABEL_SEPARATE_COLORBAR", "label"),
-        description: tf("userlabels", "USERLABEL_SEPARATE_COLORBAR", "description"),
+        description: tf(
+          "userlabels",
+          "USERLABEL_SEPARATE_COLORBAR",
+          "description",
+        ),
         hint: tf("userlabels", "USERLABEL_SEPARATE_COLORBAR", "hint"),
         type: "json",
         default: '[250,70,"lightgreen"]',

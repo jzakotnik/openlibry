@@ -212,7 +212,8 @@ export const de = {
     coverSearching: "Cover wird gesucht...",
     coverNotFound: "Kein Cover gefunden",
     coverWillUpload: "✓ Cover wird beim Speichern hochgeladen",
-    coverUploadAfterSave: "Cover kann nach Speichern manuell hochgeladen werden",
+    coverUploadAfterSave:
+      "Cover kann nach Speichern manuell hochgeladen werden",
     antolinLabel: "Antolin:",
     antolinPlaceholder: "...",
     antolinManyFound: " {count} ähnliche Bücher",
@@ -223,7 +224,8 @@ export const de = {
     toastIsbnInvalidShort: "Die ISBN ist ungültig.",
     toastNoIsbn: "Keine ISBN im Buch hinterlegt.",
     toastSaveFirst: "Buch muss zuerst gespeichert werden.",
-    toastIsbnNotFound: "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
+    toastIsbnNotFound:
+      "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
     toastDataAndCoverLoaded: "Stammdaten und Cover wurden erfolgreich geladen.",
     toastDataLoaded: "Stammdaten wurden erfolgreich ausgefüllt.",
     toastDataLoadError: "Fehler beim Laden der Buchdaten.",
@@ -254,7 +256,8 @@ export const de = {
     toastUserDeleted: "Nutzer gelöscht!",
   },
   bookPage: {
-    toastCreateNewBook: "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
+    toastCreateNewBook:
+      "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
     toastBookReturned: "Buch zurückgegeben",
     toastReturnError: "Fehler beim Zurückgeben des Buches",
     loadMore: "Weitere Bücher...",
@@ -387,6 +390,19 @@ export const de = {
         title: "Technische Konfiguration",
         description: "Datenbankverbindung, Authentifizierung und Serverpfade",
         fields: {
+          OPENLIBRY_LOCALE: {
+            label: "Sprache (Server)",
+            description:
+              "Sprache für serverseitige Texte, Berichte und Fehlermeldungen.",
+            hint: "Muss mit NEXT_PUBLIC_OPENLIBRY_LOCALE übereinstimmen.",
+            options: { de: "Deutsch", en: "English" },
+          },
+          NEXT_PUBLIC_OPENLIBRY_LOCALE: {
+            label: "Sprache (Browser)",
+            description: "Sprache für die Benutzeroberfläche im Browser.",
+            hint: "Muss mit OPENLIBRY_LOCALE übereinstimmen. Beide Variablen müssen immer denselben Wert haben.",
+            options: { de: "Deutsch", en: "English" },
+          },
           DATABASE_URL: {
             label: "Datenbankpfad",
             description:
@@ -521,7 +537,8 @@ export const de = {
         fields: {
           REMINDER_TEMPLATE_DOC: {
             label: "Mahnungs-Vorlage",
-            description: "Dateiname der Word-Vorlage (.docx) für Mahnschreiben.",
+            description:
+              "Dateiname der Word-Vorlage (.docx) für Mahnschreiben.",
             hint: "Datei muss in database/custom/ (Docker) oder im Anwendungsverzeichnis liegen.",
           },
           REMINDER_RESPONSIBLE_NAME: {
@@ -716,7 +733,8 @@ export const de = {
     titleCountSuffix: "({count} Nutzer)",
     activeOnly: "Nur aktive Nutzer",
     exportError: "{action}-Export fehlgeschlagen. Bitte erneut versuchen.",
-    exportScopeHint: "Export umfasst die aktuelle gefilterte Ansicht ({count} Nutzer).",
+    exportScopeHint:
+      "Export umfasst die aktuelle gefilterte Ansicht ({count} Nutzer).",
     colKlasse: "Klasse",
     colName: "Name (Suche)",
     colTotal: "Gesamt",
@@ -995,8 +1013,7 @@ export const de = {
     errGenerationFailed: "Fehler beim Erstellen der Mahnungen.",
     errBodyMustContainBookIds:
       "Request-Body muss bookIds: number[] (nicht leer) enthalten.",
-    errNoValidNumericBookIds:
-      "Keine gültigen numerischen Buch-IDs übergeben.",
+    errNoValidNumericBookIds: "Keine gültigen numerischen Buch-IDs übergeben.",
     // Status data responses (200 OK with informational message)
     statusNoRentedBooks: "Keine ausgeliehenen Bücher gefunden.",
     statusNoOverdueBooksAll:

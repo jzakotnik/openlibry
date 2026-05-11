@@ -85,8 +85,7 @@ export const en: Dictionary = {
   rentalPage: {
     serverReachableButFailed:
       "Something went wrong, but the server is reachable",
-    serverUnreachable:
-      "Server unreachable. Is the internet connection OK?",
+    serverUnreachable: "Server unreachable. Is the internet connection OK?",
 
     bookReturned: "Book - {title} - returned",
     bookAlreadyMaxExtended:
@@ -272,8 +271,7 @@ export const en: Dictionary = {
       OAuthCreateAccount: "OAuth account could not be created.",
       EmailCreateAccount: "Email account could not be created.",
       Callback: "Error during callback processing.",
-      OAuthAccountNotLinked:
-        "This email is already linked to another account.",
+      OAuthAccountNotLinked: "This email is already linked to another account.",
       CredentialsSignin: "Username or password is incorrect.",
       SessionRequired: "Please sign in to continue.",
       Default: "An unknown error occurred.",
@@ -323,8 +321,7 @@ export const en: Dictionary = {
       title: "How this page works",
       bodyP1: "Compose a ",
       bodyCode: ".env",
-      bodyP2:
-        " file here. All input stays locally in your browser — ",
+      bodyP2: " file here. All input stays locally in your browser — ",
       bodyStrong: "nothing is stored or sent",
       bodyP3:
         ". Download the finished file and place it in the OpenLibry directory. Then restart OpenLibry.",
@@ -385,6 +382,19 @@ export const en: Dictionary = {
         title: "Technical Configuration",
         description: "Database connection, authentication, and server paths",
         fields: {
+          OPENLIBRY_LOCALE: {
+            label: "Language (server)",
+            description:
+              "Language for server-side text, reports, and error messages.",
+            hint: "Must match NEXT_PUBLIC_OPENLIBRY_LOCALE.",
+            options: { de: "Deutsch", en: "English" },
+          },
+          NEXT_PUBLIC_OPENLIBRY_LOCALE: {
+            label: "Language (browser)",
+            description: "Language for the user interface in the browser.",
+            hint: "Must match OPENLIBRY_LOCALE. Both variables must always have the same value.",
+            options: { de: "Deutsch", en: "English" },
+          },
           DATABASE_URL: {
             label: "Database path",
             description:
@@ -441,8 +451,7 @@ export const en: Dictionary = {
           },
           RENTAL_SORT_BOOKS: {
             label: "Lending view sort order",
-            description:
-              "Default sort order for books in the lending view.",
+            description: "Default sort order for books in the lending view.",
             options: {
               title_asc: "Title A–Z",
               title_desc: "Title Z–A",
@@ -497,8 +506,7 @@ export const en: Dictionary = {
           },
           EXTENSION_DURATION_DAYS: {
             label: "Extension duration",
-            description:
-              "Number of days a loan can be extended.",
+            description: "Number of days a loan can be extended.",
           },
           MAX_EXTENSIONS: {
             label: "Maximum extensions",
@@ -577,8 +585,7 @@ export const en: Dictionary = {
           },
           USERLABEL_LINE_3: {
             label: "Text line 3",
-            description:
-              "Third text line on the card (same syntax as line 1).",
+            description: "Third text line on the card (same syntax as line 1).",
           },
           USERLABEL_BARCODE: {
             label: "Barcode position",
@@ -690,8 +697,7 @@ export const en: Dictionary = {
   },
   reportBooksPage: {
     statusOne: "📚 {total} book • {rented} lent out • {available} available",
-    statusMany:
-      "📚 {total} books • {rented} lent out • {available} available",
+    statusMany: "📚 {total} books • {rented} lent out • {available} available",
   },
   reportUsersPage: {
     statusBaseOne: "👥 {totalCount} user • {grades} grades",
@@ -731,8 +737,7 @@ export const en: Dictionary = {
     emptyAll: "No activity available",
     sentenceRentBookFull:
       'Book "{bookTitle}" was lent out to {userName} ({userId})',
-    sentenceRentBookUserId:
-      'Book "{bookTitle}" was lent out to user #{userId}',
+    sentenceRentBookUserId: 'Book "{bookTitle}" was lent out to user #{userId}',
     sentenceRentBookTitle: 'Book "{bookTitle}" was lent out',
     sentenceRentBookId: "Book #{bookId} was lent out",
     sentenceReturnBookTitle: 'Book "{bookTitle}" was returned',
@@ -894,10 +899,8 @@ export const en: Dictionary = {
     logTransferStarted: "Starting transfer to database",
     errNoOptionSelected:
       "ERROR: At least one import option (books or users) must be enabled",
-    errNoBookData:
-      "ERROR: Book import enabled, but no book data available",
-    errNoUserData:
-      "ERROR: User import enabled, but no user data available",
+    errNoBookData: "ERROR: Book import enabled, but no book data available",
+    errNoUserData: "ERROR: User import enabled, but no user data available",
     logImportSettings:
       "Import settings: books={importBooks}, users={importUsers}, drop first={dropBeforeImport}",
     logHeaderRowsRemoved:
