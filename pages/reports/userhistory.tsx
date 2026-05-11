@@ -650,6 +650,7 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
               <div className="flex items-center gap-3">
                 <Link
                   href="/reports"
+                  data-cy="history-back-link"
                   className="flex items-center gap-1 text-gray-500 hover:text-primary transition-colors text-sm font-medium group"
                 >
                   <ChevronLeft

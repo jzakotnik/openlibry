@@ -335,6 +335,11 @@ export default function UserRentalList({
                                 <p
                                   className="text-xs text-muted-foreground"
                                   data-cy={`rental_book_details_${r.id}`}
+                                  data-due-date={
+                                    r.dueDate
+                                      ? dayjs(r.dueDate).format("YYYY-MM-DD")
+                                      : ""
+                                  }
                                 >
                                   {t("rental.rentalUntilPrefix")}{" "}
                                   {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}

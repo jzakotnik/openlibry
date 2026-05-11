@@ -233,6 +233,10 @@ function BookRow({
             ? "text-muted-foreground/50"
             : cn(cls.text, level !== "ok" && "font-semibold"),
         )}
+        data-cy={`book_due_date_${book.id}`}
+        data-due-date={
+          book.dueDate ? dayjs(book.dueDate).format("YYYY-MM-DD") : ""
+        }
       >
         {dueDateStr}
         {level === "overdue" && !returned && (
@@ -513,6 +517,7 @@ export default function UserEditForm({
                   duration={deleteSafetySeconds * 1000}
                   onClick={deleteUser}
                   buttonLabel={t("userEditForm.delete")}
+                  data-cy="delete-user-button"
                 />
               </>
             )}

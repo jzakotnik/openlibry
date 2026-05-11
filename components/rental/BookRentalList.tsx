@@ -181,6 +181,9 @@ const BookList = React.memo(function BookList({
               <span
                 className="text-xs text-muted-foreground"
                 data-cy={`book_info_${b.id}`}
+                data-due-date={
+                  b.dueDate ? dayjs(b.dueDate).format("YYYY-MM-DD") : ""
+                }
               >
                 {t("rental.bookNumberPrefix")} {b.id}
                 {isRented && b.rentalStatus !== "lost" && (
