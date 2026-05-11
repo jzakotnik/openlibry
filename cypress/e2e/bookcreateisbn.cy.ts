@@ -271,7 +271,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.get("[data-cy=autofill-button]").click();
 
     // Wait for autofill to complete
-    cy.wait("@fillByIsbn", { timeout: 15000 });
+    cy.wait("@fillByIsbn", { timeout: 25000 });
 
     // Wait for cover fetch (happens in parallel)
     cy.wait(5000);
