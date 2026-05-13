@@ -77,6 +77,7 @@ export const en: Dictionary = {
 
     toastAlreadyRented: "Book {bookId} is already lent out",
     toastBookNotFound: "Book {bookId} not found",
+    showingFirst: "More results available",
   },
   rentSearchParams: {
     overdue: "Overdue",
@@ -142,6 +143,7 @@ export const en: Dictionary = {
     noBorrowedBooks: "No borrowed books",
     edit: "Edit",
     printUserLabel: "Print user label",
+    showingFirst: "More results available",
   },
   newUserDialog: {
     title: "Create new user",

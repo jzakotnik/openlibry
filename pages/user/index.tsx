@@ -3,10 +3,9 @@ import NewUserDialog from "@/components/user/NewUserDialog";
 import UserAdminList from "@/components/user/UserAdminList";
 import UserSearchBar from "@/components/user/UserSearchBar";
 import UserSearchFilters from "@/components/user/UserSearchFilters";
-import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
-import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
+import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import { t } from "@/lib/i18n";
@@ -17,13 +16,14 @@ import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+const USER_RENDER_LIMIT = 50;
+
 interface UsersPageProps {
   users: UserType[];
-  books: BookType[];
   rentals: RentalsUserType[];
 }
 
-export default function UsersPage({ users, books, rentals }: UsersPageProps) {
+export default function UsersPage({ users, rentals }: UsersPageProps) {
   const [searchText, setSearchText] = useState("");
   const [filterString, setFilterString] = useState("");
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -198,6 +198,7 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
               searchString={combinedSearchString}
               checked={checked}
               setChecked={setChecked}
+              renderLimit={USER_RENDER_LIMIT}
             />
           </div>
         </div>
@@ -207,7 +208,10 @@ export default function UsersPage({ users, books, rentals }: UsersPageProps) {
 }
 
 export async function getServerSideProps() {
-  const allUsers = await getAllUsers(prisma);
+  const [allUsers, allRentals] = await Promise.all([
+    getAllUsers(prisma),
+    getRentedBooksWithUsers(prisma),
+  ]);
 
   const users = allUsers.map((u) => {
     const newUser = { ...u } as any;
@@ -216,24 +220,9 @@ export async function getServerSideProps() {
     return newUser;
   });
 
-  const allBooks = await getAllBooks(prisma);
-  const books = allBooks.map((b) => {
-    const newBook = { ...b } as any;
-    newBook.createdAt = convertDateToDayString(b.createdAt);
-    newBook.updatedAt = convertDateToDayString(b.updatedAt);
-    newBook.rentedDate = b.rentedDate
-      ? convertDateToDayString(b.rentedDate)
-      : "";
-    newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-    return newBook;
-  });
-
-  const allRentals = await getRentedBooksWithUsers(prisma);
   const rentals = allRentals.map((r) => {
     const due = dayjs(r.dueDate);
-    const today = dayjs();
-    const diff = today.diff(due, "days");
-
+    const diff = dayjs().diff(due, "days");
     return {
       id: r.id,
       title: r.title,
@@ -246,5 +235,5 @@ export async function getServerSideProps() {
     };
   });
 
-  return { props: { users, books, rentals } };
+  return { props: { users, rentals } };
 }

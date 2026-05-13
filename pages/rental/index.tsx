@@ -18,6 +18,9 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
+const USER_RENDER_LIMIT = 50;
+const BOOK_RENDER_LIMIT = 100;
+
 interface RentalPropsType {
   books: Array<BookType>;
   users: Array<UserType>;
@@ -147,6 +150,7 @@ export default function Rental({
             handleBookSearchSetFocus={handleBookSearchSetFocus}
             extensionDurationDays={extensionDays}
             maxExtensions={maxExtensions}
+            renderLimit={USER_RENDER_LIMIT}
           />
         </div>
         <div style={{ overflow: "visible" }} data-cy="rental_book_column">
@@ -162,6 +166,7 @@ export default function Rental({
             extensionDurationDays={extensionDays}
             maxExtensions={maxExtensions}
             sortBy={bookSortBy}
+            renderLimit={BOOK_RENDER_LIMIT}
           />
         </div>
       </div>
