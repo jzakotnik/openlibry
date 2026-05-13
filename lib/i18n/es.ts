@@ -79,6 +79,7 @@ export const es: Dictionary = {
 
     toastAlreadyRented: "El libro {bookId} ya está prestado",
     toastBookNotFound: "Libro {bookId} no encontrado",
+    showingFirst: "Más resultados disponibles",
   },
   rentSearchParams: {
     overdue: "Vencido",
@@ -145,6 +146,7 @@ export const es: Dictionary = {
     noBorrowedBooks: "No hay libros prestados",
     edit: "Editar",
     printUserLabel: "Imprimir carnet de usuario",
+    showingFirst: "Más resultados disponibles",
   },
   newUserDialog: {
     title: "Crear nuevo usuario",
@@ -225,8 +227,7 @@ export const es: Dictionary = {
     toastIsbnInvalidShort: "El ISBN no es válido.",
     toastNoIsbn: "No hay ISBN registrado en el libro.",
     toastSaveFirst: "El libro debe guardarse primero.",
-    toastIsbnNotFound:
-      "No se encontraron datos principales con este ISBN.",
+    toastIsbnNotFound: "No se encontraron datos principales con este ISBN.",
     toastDataAndCoverLoaded:
       "Los datos principales y la portada se cargaron correctamente.",
     toastDataLoaded: "Los datos principales se completaron correctamente.",
@@ -278,8 +279,7 @@ export const es: Dictionary = {
       OAuthCreateAccount: "No se pudo crear la cuenta OAuth.",
       EmailCreateAccount: "No se pudo crear la cuenta de correo.",
       Callback: "Error al procesar la respuesta.",
-      OAuthAccountNotLinked:
-        "Este correo ya está vinculado a otra cuenta.",
+      OAuthAccountNotLinked: "Este correo ya está vinculado a otra cuenta.",
       CredentialsSignin: "Usuario o contraseña incorrectos.",
       SessionRequired: "Por favor, inicia sesión para continuar.",
       Default: "Se produjo un error desconocido.",
@@ -323,15 +323,13 @@ export const es: Dictionary = {
     pageTitle: "Configuración | OpenLibry",
     backToAdmin: "Volver a la administración",
     heading: "Configuración",
-    subheading:
-      "Compilar y descargar los ajustes para el archivo .env",
+    subheading: "Compilar y descargar los ajustes para el archivo .env",
 
     infoBanner: {
       title: "Cómo funciona esta página",
       bodyP1: "Aquí puedes crear un archivo ",
       bodyCode: ".env",
-      bodyP2:
-        ". Todos los datos permanecen en el navegador — ",
+      bodyP2: ". Todos los datos permanecen en el navegador — ",
       bodyStrong: "no se guarda ni se envía nada",
       bodyP3:
         ". Descarga el archivo y colócalo en el directorio de OpenLibry. Luego reinicia OpenLibry.",
@@ -390,7 +388,8 @@ export const es: Dictionary = {
     sections: {
       technical: {
         title: "Configuración técnica",
-        description: "Conexión de base de datos, autenticación y rutas del servidor",
+        description:
+          "Conexión de base de datos, autenticación y rutas del servidor",
         fields: {
           OPENLIBRY_LOCALE: {
             label: "Idioma (servidor)",
@@ -478,7 +477,8 @@ export const es: Dictionary = {
           },
           ADMIN_BUTTON_SWITCH: {
             label: "Mostrar botón de administración",
-            description: "Muestra el botón de copia de seguridad en la barra de navegación.",
+            description:
+              "Muestra el botón de copia de seguridad en la barra de navegación.",
             options: {
               show: "Mostrar",
               hide: "Ocultar",
@@ -523,7 +523,8 @@ export const es: Dictionary = {
           },
           MAX_EXTENSIONS: {
             label: "Renovaciones máximas",
-            description: "Número máximo de veces que se puede renovar un libro.",
+            description:
+              "Número máximo de veces que se puede renovar un libro.",
           },
           LABEL_CONFIG_DIR: {
             label: "Directorio de configuración de etiquetas",
@@ -667,8 +668,7 @@ export const es: Dictionary = {
     modeNonExtendable: "Solo no renovables",
     generate: "Generar Word",
     toastNoneAll: "No hay préstamos vencidos.",
-    toastNoneNonExtendable:
-      "No hay préstamos vencidos no renovables.",
+    toastNoneNonExtendable: "No hay préstamos vencidos no renovables.",
   },
   userLabelsCard: {
     countLabel: "Número de etiquetas",
@@ -709,8 +709,7 @@ export const es: Dictionary = {
     back: "Volver",
   },
   reportBooksPage: {
-    statusOne:
-      "📚 {total} libro • {rented} prestado • {available} disponible",
+    statusOne: "📚 {total} libro • {rented} prestado • {available} disponible",
     statusMany:
       "📚 {total} libros • {rented} prestados • {available} disponibles",
   },
@@ -728,7 +727,8 @@ export const es: Dictionary = {
     title: "Historial de préstamos",
     titleCountSuffix: "({count} usuarios)",
     activeOnly: "Solo usuarios activos",
-    exportError: "Error en la exportación {action}. Por favor, inténtalo de nuevo.",
+    exportError:
+      "Error en la exportación {action}. Por favor, inténtalo de nuevo.",
     exportScopeHint:
       "La exportación incluye la vista filtrada actual ({count} usuarios).",
     colKlasse: "Curso",
@@ -862,7 +862,8 @@ export const es: Dictionary = {
     importBooksLabelEmpty: "Importar libros (sin datos disponibles)",
     importUsersLabelWithCount: "Importar usuarios ({count} entradas)",
     importUsersLabelEmpty: "Importar usuarios (sin datos disponibles)",
-    dropBeforeImportLabel: "Eliminar todos los datos existentes antes de importar",
+    dropBeforeImportLabel:
+      "Eliminar todos los datos existentes antes de importar",
     dropWarningPrefix: "Atención:",
     dropWarningEntitiesBoth: "Libros y usuarios",
     dropWarningEntitiesBooks: "Libros",
@@ -961,7 +962,8 @@ export const es: Dictionary = {
     errGenerationFailed: "Error al generar los avisos.",
     errBodyMustContainBookIds:
       "El cuerpo de la solicitud debe contener bookIds: number[] (no vacío).",
-    errNoValidNumericBookIds: "No se proporcionaron IDs de libro numéricos válidos.",
+    errNoValidNumericBookIds:
+      "No se proporcionaron IDs de libro numéricos válidos.",
     statusNoRentedBooks: "No se encontraron libros prestados.",
     statusNoOverdueBooksAll:
       "No se encontraron libros vencidos que requieran aviso.",

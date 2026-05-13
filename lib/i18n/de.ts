@@ -78,6 +78,7 @@ export const de = {
 
     toastAlreadyRented: "Buch {bookId} ist bereits ausgeliehen",
     toastBookNotFound: "Buch {bookId} nicht gefunden",
+    showingFirst: "Mehr Ergebnisse vorhanden",
   },
   rentSearchParams: {
     overdue: "Überfällig",
@@ -144,6 +145,7 @@ export const de = {
     noBorrowedBooks: "Keine ausgeliehenen Bücher",
     edit: "Editieren",
     printUserLabel: "Benutzerlabel drucken",
+    showingFirst: "Mehr Ergebnisse vorhanden",
   },
   newUserDialog: {
     title: "Neue Nutzerin erstellen",

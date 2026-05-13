@@ -16,6 +16,8 @@ import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+const USER_RENDER_LIMIT = 50;
+
 interface UsersPageProps {
   users: UserType[];
   rentals: RentalsUserType[];
@@ -196,6 +198,7 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
               searchString={combinedSearchString}
               checked={checked}
               setChecked={setChecked}
+              renderLimit={USER_RENDER_LIMIT}
             />
           </div>
         </div>
@@ -203,6 +206,7 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
     </Layout>
   );
 }
+
 export async function getServerSideProps() {
   const [allUsers, allRentals] = await Promise.all([
     getAllUsers(prisma),

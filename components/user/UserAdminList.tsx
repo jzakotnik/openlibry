@@ -43,6 +43,7 @@ interface UserAdminListProps {
   searchString: string;
   checked: Record<string, boolean>;
   setChecked: (checked: Record<string, boolean>) => void;
+  renderLimit?: number;
 }
 
 interface UserRental {
@@ -91,6 +92,7 @@ export default function UserAdminList({
   searchString,
   checked,
   setChecked,
+  renderLimit,
 }: UserAdminListProps) {
   const rentalCountByUser = rentals.reduce<Record<number, number>>(
     (acc, rental) => {
@@ -114,6 +116,11 @@ export default function UserAdminList({
   }, [users]);
 
   const filteredUsers = filterUsers(users, searchString, rentals, false)[0];
+  const totalFilteredCount = filteredUsers.length;
+  const visibleUsers =
+    renderLimit !== undefined
+      ? filteredUsers.slice(0, renderLimit)
+      : filteredUsers;
 
   const getUserRentals = (userId: number): UserRental[] =>
     rentals.filter(
@@ -144,7 +151,7 @@ export default function UserAdminList({
   return (
     <TooltipProvider delayDuration={300}>
       <Accordion type="single" collapsible className="space-y-1.5">
-        {filteredUsers.map((user: UserType) => {
+        {visibleUsers.map((user: UserType) => {
           const userId = user.id!.toString();
           const isChecked = checked[userId] ?? false;
           const userRentals = getUserRentals(user.id!);
@@ -346,6 +353,15 @@ export default function UserAdminList({
           );
         })}
       </Accordion>
+
+      {renderLimit !== undefined && totalFilteredCount > renderLimit && (
+        <p className="mt-3 text-center text-sm text-muted-foreground">
+          {t("userAdminList.showingFirst", {
+            shown: renderLimit,
+            total: totalFilteredCount,
+          })}
+        </p>
+      )}
     </TooltipProvider>
   );
 }
