@@ -1,7 +1,7 @@
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { fileTypeFromBuffer } from "file-type";
-import { promises as fs, readFileSync } from "fs";
+import { promises as fs } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 import sharp from "sharp";
@@ -24,9 +24,7 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { isbn, bookId, mode } = req.query;
-  // Falls 'mode' in der URL fehlt, wird die Reihenfolge zufällig (0, 1 oder 2) festgelegt 
-  const rotationMode = mode ? parseInt(mode as string) : Math.floor(Math.random() * 3);
+  const { isbn, bookId } = req.query;
 
   if (!isbn || typeof isbn !== "string") {
     errorLogger.warn(
@@ -147,16 +145,14 @@ export default async function handler(
           isbn: cleanedIsbn,
           bookId: bookId || null,
           url: targetUrl,
-          url: targetUrl,
         },
         `Attempting cover fetch from ${source.name}`,
       );
 
       const response = await fetch(targetUrl, {
-      const response = await fetch(targetUrl, {
         redirect: "follow",
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "User-Agent": "OpenLibry/1.0",
         },
       });
 
