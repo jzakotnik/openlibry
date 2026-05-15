@@ -1,15 +1,15 @@
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { fileTypeFromBuffer } from "file-type";
 import { promises as fs } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
-
-import { LogEvents } from "@/lib/logEvents";
-import { businessLogger, errorLogger } from "@/lib/logger";
+import sharp from "sharp";
 
 /**
  * Fetch cover image for a book by ISBN.
  *
- * Checks DNB first, then falls back to OpenLibrary.
+ * Checks DNB, OpenLibrary and Google. Rotates the order randomly on each request.
  *
  * Query parameters:
  * - isbn (required): The ISBN to look up
@@ -44,6 +44,8 @@ export default async function handler(
   // Clean ISBN: remove dashes, spaces, keep X for ISBN-10 check digit
   const cleanedIsbn = isbn.replace(/[^0-9X]/gi, "");
 
+  const API_KEY = process.env.GOOGLE_BOOKS_API_KEY ?? "";
+
   if (!cleanedIsbn) {
     businessLogger.warn(
       {
@@ -68,34 +70,86 @@ export default async function handler(
     "Starting cover fetch",
   );
 
-  // Try DNB first, then fallback to OpenLibrary
+  // Rotate source order randomly to distribute load across providers
+  const rotationOffset = Math.floor(Math.random() * 3);
+
   const coverSources = [
     {
       name: "DNB",
-      url: `https://portal.dnb.de/opac/mvb/cover?isbn=${cleanedIsbn}`,
+      urlFetcher: async () =>
+        `https://portal.dnb.de/opac/mvb/cover?isbn=${cleanedIsbn}`,
       logEvent: LogEvents.COVER_FETCHED_DNB,
     },
     {
       name: "OpenLibrary",
-      url: `https://covers.openlibrary.org/b/isbn/${cleanedIsbn}-M.jpg`,
+      urlFetcher: async () =>
+        `https://covers.openlibrary.org/b/isbn/${cleanedIsbn}-M.jpg`,
       logEvent: LogEvents.COVER_FETCHED_OPENLIBRARY,
+    },
+    {
+      name: "Google",
+      urlFetcher: async () => {
+        // Build search URL separately so the API key is never passed to the logger
+        const searchUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanedIsbn}${API_KEY ? `&key=${API_KEY}` : ""}`;
+
+        const searchResponse = await fetch(searchUrl, {
+          signal: AbortSignal.timeout(2000),
+          headers: {
+            "User-Agent": "OpenLibry/1.0",
+            Accept: "application/json",
+            "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
+          },
+        });
+
+        if (!searchResponse.ok) return null;
+        const data = await searchResponse.json();
+
+        const firstItem = data.items?.[0];
+        const id = firstItem?.id;
+        // readingModes.image signals whether Google has a cover for this ISBN
+        const hasImage = firstItem?.volumeInfo?.readingModes?.image === true;
+
+        if (id && hasImage) {
+          return `https://books.google.com/books/content?id=${id}&printsec=frontcover&img=1&zoom=3&edge=curl`;
+        }
+
+        businessLogger.info(
+          {
+            event: LogEvents.COVER_FETCH_ATTEMPT,
+            source: "Google",
+            reason:
+              "Google API reports no image available (readingModes.image is false)",
+          },
+          "Google hat kein Cover für diese ISBN.",
+        );
+        return null;
+      },
+      logEvent: LogEvents.COVER_FETCHED_GOOGLE,
     },
   ];
 
-  for (const source of coverSources) {
+  const rotatedSources = [
+    ...coverSources.slice(rotationOffset),
+    ...coverSources.slice(0, rotationOffset),
+  ];
+
+  for (const source of rotatedSources) {
     try {
-      businessLogger.debug(
+      const targetUrl = await source.urlFetcher();
+      if (!targetUrl) continue;
+
+      businessLogger.info(
         {
           event: LogEvents.COVER_FETCH_ATTEMPT,
           source: source.name,
           isbn: cleanedIsbn,
           bookId: bookId || null,
-          url: source.url,
+          url: targetUrl,
         },
         `Attempting cover fetch from ${source.name}`,
       );
 
-      const response = await fetch(source.url, {
+      const response = await fetch(targetUrl, {
         redirect: "follow",
         headers: {
           "User-Agent": "OpenLibry/1.0",
@@ -135,7 +189,67 @@ export default async function handler(
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      let buffer: Buffer = Buffer.from(arrayBuffer);
+
+      // Normalize to baseline JPEG: resize if oversized, always enforce
+      // progressive: false to prevent silent failures in @react-pdf/renderer
+      try {
+        const image = sharp(buffer);
+        const metadata = await image.metadata();
+
+        businessLogger.debug(
+          {
+            event: LogEvents.COVER_FETCH_ATTEMPT,
+            source: source.name,
+            isbn: cleanedIsbn,
+            width: metadata.width,
+            height: metadata.height,
+            sizeKB: (buffer.length / 1024).toFixed(2),
+            format: metadata.format,
+          },
+          `Image metadata from ${source.name}`,
+        );
+
+        const needsResize =
+          metadata.width &&
+          metadata.height &&
+          (metadata.width > 1200 || metadata.height > 1200);
+
+        if (needsResize) {
+          businessLogger.debug(
+            {
+              event: LogEvents.COVER_FETCH_ATTEMPT,
+              source: source.name,
+              originalWidth: metadata.width,
+              originalHeight: metadata.height,
+            },
+            `Resizing image from ${source.name} (exceeds 1200px)`,
+          );
+        }
+
+        buffer = await (
+          needsResize
+            ? image.resize({
+                width: 1200,
+                height: 1200,
+                fit: "inside",
+                withoutEnlargement: true,
+              })
+            : image
+        )
+          .jpeg({ quality: 85, progressive: false })
+          .toBuffer();
+      } catch (error: any) {
+        errorLogger.error(
+          {
+            event: LogEvents.COVER_FETCH_FAILED,
+            source: source.name,
+            error: error?.message || String(error),
+          },
+          "Error processing image with sharp",
+        );
+        // Fall through with the original buffer
+      }
 
       // Validate actual file type using magic bytes
       const fileType = await fileTypeFromBuffer(buffer);
@@ -244,7 +358,7 @@ export default async function handler(
   );
 
   return res.status(404).json({
-    error: "Kein Cover gefunden bei DNB oder OpenLibrary",
+    error: "Kein Cover gefunden bei DNB, OpenLibrary oder Google",
     success: false,
   });
 }
