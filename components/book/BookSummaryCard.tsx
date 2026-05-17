@@ -44,12 +44,14 @@ interface BookSummaryCardProps {
   book: BookType;
   returnBook: React.MouseEventHandler<HTMLButtonElement>;
   showDetailsControl?: boolean;
+  onTopicClick?: (topic: string) => void;
 }
 
 function BookSummaryCard({
   book,
   returnBook,
   showDetailsControl = true,
+  onTopicClick,
 }: BookSummaryCardProps) {
   const [src, setSrc] = useState(`/api/images/${book.id}`);
   const [modalOpen, setModalOpen] = useState(false);
@@ -225,7 +227,7 @@ function BookSummaryCard({
           </p>
 
           {/* Topics */}
-          <TopicChips topics={topics} />
+          <TopicChips topics={topics} onTopicClick={onTopicClick} />
 
           {/* Action Buttons */}
           {showDetailsControl && (

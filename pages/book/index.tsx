@@ -33,6 +33,7 @@ interface DetailCardContainerProps {
   numberBooksToShow: number;
   onLoadMore: () => void;
   onReturnBook: (id: number, userId: number) => void;
+  onTopicClick: (topic: string) => void;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -42,6 +43,7 @@ const DetailCardContainer = memo(function DetailCardContainer({
   pageIndex,
   onLoadMore,
   onReturnBook,
+  onTopicClick,
 }: DetailCardContainerProps) {
   return (
     <div>
@@ -54,6 +56,7 @@ const DetailCardContainer = memo(function DetailCardContainer({
             key={b.id}
             book={b}
             returnBook={() => onReturnBook(b.id!, b.userId!)}
+            onTopicClick={onTopicClick}
           />
         ))}
       </div>
@@ -190,6 +193,14 @@ export default function Books({
   const handleLoadMore = useCallback(() => {
     setPageIndex((prev) => prev + numberBooksToShow);
   }, [numberBooksToShow]);
+  const handleTopicClick = useCallback(
+    (topic: string) => {
+      handleInputChange(topic);
+      setDetailView(true);
+      setPageIndex(numberBooksToShow);
+    },
+    [handleInputChange, numberBooksToShow],
+  );
 
   return (
     <Layout>
@@ -208,6 +219,7 @@ export default function Books({
           numberBooksToShow={numberBooksToShow}
           onLoadMore={handleLoadMore}
           onReturnBook={handleReturnBook}
+          onTopicClick={handleTopicClick}
         />
       ) : (
         <SummaryRowContainer
