@@ -1027,7 +1027,6 @@ export const de = {
       "Keine Mahnungen zu erstellen — keines der Bücher ist einem Benutzer zugeordnet.",
   },
 
-  // ─── Phase 11: admin index page + rentals server-side error literals ──
   adminPage: {
     pageTitle: "Administration | OpenLibry",
     // Section headers
@@ -1072,6 +1071,79 @@ export const de = {
     // Backup error fallback
     backupErrorCreating: "Fehler beim Erstellen des Backups!",
     backupErrorDownload: "Fehler beim Backup-Download!",
+  },
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Keys to add inside the German translation dictionary (lib/i18n/de.ts)
+  // Add as a top-level sibling of the existing keys, e.g. after `adminPage`.
+  // ─────────────────────────────────────────────────────────────────────────────
+  healthPage: {
+    pageTitle: "System Health | OpenLibry",
+    loading: "Lade Systemstatus...",
+    errorLoading: "Fehler beim Laden",
+    backButton: "Zurück zur Administration",
+    refreshButton: "Aktualisieren",
+    statusOk: "OK",
+    statusWarning: "Warnung",
+    statusError: "Fehler",
+    allOk: "Alles in Ordnung",
+    hasWarnings: "Warnungen vorhanden",
+    hasErrors: "Fehler erkannt",
+    timestamp: "Stand",
+    versionUnknown: "unbekannt",
+    authEnabled: "Aktiviert",
+    authDisabled: "Deaktiviert",
+    envLabels: {
+      version: "Version",
+      environment: "Umgebung",
+      auth: "Authentifizierung",
+      node: "Node.js",
+    },
+    stat: {
+      memory: "Speicher belegt",
+      memoryTooltip:
+        "Node.js-Prozessspeicher (RSS) des Servers – nicht der gesamte Arbeitsspeicher des Betriebssystems",
+      uptime: "Uptime",
+      uptimeTooltip: "Laufzeit des Node.js-Prozesses seit dem letzten Neustart",
+      activeRentals: "Aktive Ausleihen",
+      activeRentalsTooltip: "Aktuell ausgeliehene Bücher",
+      overdue: "Überfällig",
+      overdueTooltip:
+        "Bücher, die über das Rückgabedatum hinaus ausgeliehen sind",
+    },
+    memoryUsage: "Speichernutzung",
+    check: {
+      database: "Datenbank",
+      data: "Datenbestand",
+      folders: "Verzeichnisse",
+      files: "Dateien",
+    },
+    detail: {
+      exists: "✓ vorhanden",
+      missing: "✗ fehlt",
+      writable: ", beschreibbar",
+      configured: "(konfiguriert)",
+      standard: "(Standard)",
+      yes: "Ja",
+      no: "Nein",
+      files: "Files",
+    },
+    detailKey: {
+      path: "Pfad",
+      books: "Bücher",
+      users: "Nutzer",
+      loginUsers: "Login-Benutzer",
+      error: "Fehler",
+      databaseUrl: "Datenbank-URL",
+      database: "Datenbank-Ordner",
+      public: "Public-Ordner",
+      prisma: "Prisma-Ordner",
+      covers: "Cover-Bilder",
+      size: "Größe",
+      sizeFormatted: "Dateigröße",
+    },
+    footer: {
+      jsonApi: "JSON-API",
+    },
   },
   // Two literals that previously stayed in rentals.tsx getServerSideProps
   // catch blocks. Now translated for full English-locale support.
