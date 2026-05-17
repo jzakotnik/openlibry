@@ -258,6 +258,7 @@ export const en: Dictionary = {
     toastBookReturned: "Book returned",
     toastReturnError: "Error returning the book",
     loadMore: "More books...",
+    isbnCopies: "{{count}} copies with this ISBN",
   },
 
   // ── Phase 5 additions: authentication pages ──────────────────────────
@@ -951,7 +952,6 @@ export const en: Dictionary = {
       "No reminders to create — none of the books is assigned to a user.",
   },
 
-  // ─── Phase 11: admin index page + rentals server-side error literals ──
   adminPage: {
     pageTitle: "Administration | OpenLibry",
     quickActionsHeading: "Quick actions",
@@ -986,6 +986,78 @@ export const en: Dictionary = {
     lastActivity: "Last activity: {time}",
     backupErrorCreating: "Error creating backup!",
     backupErrorDownload: "Error downloading backup!",
+  },
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Keys to add inside the English translation dictionary (lib/i18n/en.ts)
+  // Must mirror the German shape exactly (TypeScript enforces this).
+  // ─────────────────────────────────────────────────────────────────────────────
+  healthPage: {
+    pageTitle: "System Health | OpenLibry",
+    loading: "Loading system status...",
+    errorLoading: "Error loading",
+    backButton: "Back to Administration",
+    refreshButton: "Refresh",
+    statusOk: "OK",
+    statusWarning: "Warning",
+    statusError: "Error",
+    allOk: "All systems operational",
+    hasWarnings: "Warnings detected",
+    hasErrors: "Errors detected",
+    timestamp: "As of",
+    versionUnknown: "unknown",
+    authEnabled: "Enabled",
+    authDisabled: "Disabled",
+    envLabels: {
+      version: "Version",
+      environment: "Environment",
+      auth: "Authentication",
+      node: "Node.js",
+    },
+    stat: {
+      memory: "Memory used",
+      memoryTooltip:
+        "Node.js server process memory (RSS) – not the total OS RAM",
+      uptime: "Uptime",
+      uptimeTooltip: "Node.js process uptime since last restart",
+      activeRentals: "Active loans",
+      activeRentalsTooltip: "Books currently on loan",
+      overdue: "Overdue",
+      overdueTooltip: "Books past their return date",
+    },
+    memoryUsage: "Memory usage",
+    check: {
+      database: "Database",
+      data: "Data",
+      folders: "Directories",
+      files: "Files",
+    },
+    detail: {
+      exists: "✓ present",
+      missing: "✗ missing",
+      writable: ", writable",
+      configured: "(configured)",
+      standard: "(default)",
+      yes: "Yes",
+      no: "No",
+      files: "files",
+    },
+    detailKey: {
+      path: "Path",
+      books: "Books",
+      users: "Users",
+      loginUsers: "Login users",
+      error: "Error",
+      databaseUrl: "Database URL",
+      database: "Database folder",
+      public: "Public folder",
+      prisma: "Prisma folder",
+      covers: "Cover images",
+      size: "Size",
+      sizeFormatted: "File size",
+    },
+    footer: {
+      jsonApi: "JSON API",
+    },
   },
   rentalsServerError: {
     invalidServerData: "Received invalid data from the server",
