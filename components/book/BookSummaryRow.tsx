@@ -1,7 +1,3 @@
-import { CheckCircle, Copy, XCircle } from "lucide-react";
-import { useRouter } from "next/router";
-import { useMemo } from "react";
-
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -10,14 +6,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import { t } from "@/lib/i18n";
+import { CheckCircle, Copy, XCircle } from "lucide-react";
+import { useRouter } from "next/router";
+import { useMemo } from "react";
 const MAX_TOPICS_LENGTH = 10;
 interface BookSummaryRowPropType {
   book: BookType;
+  count?: number;
   handleCopyBook: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export default function BookSummaryRow({
   book,
+  count = 1,
   handleCopyBook,
 }: BookSummaryRowPropType) {
   const router = useRouter();
@@ -62,7 +64,7 @@ export default function BookSummaryRow({
           )}
         </div>
 
-        {/* Title + subtitle + author (grows) */}
+        {/* Title + subtitle + author */}
         <div className="min-w-0 flex-1">
           <p
             className="truncate text-sm font-semibold leading-tight text-foreground"
@@ -103,11 +105,31 @@ export default function BookSummaryRow({
           )}
         </div>
 
-        {/* Actions (don't trigger row click) */}
+        {/* Actions */}
         <div
-          className="ml-auto flex items-center"
+          className="ml-auto flex items-center gap-2" // gap-2 to space badge + button
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Copies badge — only shown when count > 1 */}
+          {count > 1 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="secondary"
+                    className="text-xs font-semibold tabular-nums"
+                    data-cy={`book_count_badge_${book.id}`}
+                  >
+                    ×{count}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t("bookPage.isbnCopies", { count })}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

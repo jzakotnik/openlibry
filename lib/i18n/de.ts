@@ -263,6 +263,7 @@ export const de = {
     toastBookReturned: "Buch zurückgegeben",
     toastReturnError: "Fehler beim Zurückgeben des Buches",
     loadMore: "Weitere Bücher...",
+    isbnCopies: "{{count}} Exemplare mit dieser ISBN",
   },
 
   // ── Phase 5 additions: authentication pages ──────────────────────────

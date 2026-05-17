@@ -264,6 +264,7 @@ export const es: Dictionary = {
     toastBookReturned: "Libro devuelto",
     toastReturnError: "Error al devolver el libro",
     loadMore: "Más libros...",
+    isbnCopies: "{{count}} ejemplares con este ISBN",
   },
 
   // ── Phase 5: authentication pages ────────────────────────────────────

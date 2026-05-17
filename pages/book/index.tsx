@@ -84,30 +84,50 @@ const SummaryRowContainer = memo(function SummaryRowContainer({
   onLoadMore,
   onCopyBook,
 }: SummaryRowContainerProps) {
+  // Group books with the same (non-empty) ISBN into one row.
+  // Books without an ISBN each keep their own row.
+  const groupedBooks = useMemo(() => {
+    const map = new Map<string, BookType[]>();
+
+    for (const book of renderedBooks) {
+      const key = book.isbn?.trim() ? book.isbn.trim() : `__no_isbn_${book.id}`;
+      const group = map.get(key) ?? [];
+      group.push(book);
+      map.set(key, group);
+    }
+
+    return Array.from(map.values()).map((group) => {
+      // Representative: prefer first available copy so the status dot is green
+      const representative =
+        group.find((b) => b.rentalStatus !== "rented") ?? group[0];
+      return { book: representative, count: group.length };
+    });
+  }, [renderedBooks]);
+
   return (
     <div className="flex flex-col gap-2 w-full">
-      {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
+      {groupedBooks.slice(0, pageIndex).map(({ book, count }) => (
         <BookSummaryRow
-          key={b.id}
-          book={b}
-          handleCopyBook={() => onCopyBook(b)}
+          key={book.id}
+          book={book}
+          count={count}
+          handleCopyBook={() => onCopyBook(book)}
         />
       ))}
-      {renderedBooks.length - pageIndex > 0 && (
+      {groupedBooks.length - pageIndex > 0 && (
         <div className="flex justify-center mt-4">
           <button
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
             {t("bookPage.loadMore")}{" "}
-            {Math.max(0, renderedBooks.length - pageIndex)}
+            {Math.max(0, groupedBooks.length - pageIndex)}
           </button>
         </div>
       )}
     </div>
   );
 });
-
 // =============================================================================
 // Page Component
 // =============================================================================

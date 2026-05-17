@@ -258,6 +258,7 @@ export const en: Dictionary = {
     toastBookReturned: "Book returned",
     toastReturnError: "Error returning the book",
     loadMore: "More books...",
+    isbnCopies: "{{count}} copies with this ISBN",
   },
 
   // ── Phase 5 additions: authentication pages ──────────────────────────
