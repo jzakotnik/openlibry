@@ -1,12 +1,13 @@
 import Layout from "@/components/layout/Layout";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryCard from "@/components/book/BookSummaryCard";
-import BookSummaryRow from "@/components/book/BookSummaryRow";
+
+import SummaryRowContainer from "@/components/book/SummaryRowContainer";
 import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
@@ -78,56 +79,6 @@ interface SummaryRowContainerProps {
   onCopyBook: (book: BookType) => void;
 }
 
-const SummaryRowContainer = memo(function SummaryRowContainer({
-  renderedBooks,
-  pageIndex,
-  onLoadMore,
-  onCopyBook,
-}: SummaryRowContainerProps) {
-  // Group books with the same (non-empty) ISBN into one row.
-  // Books without an ISBN each keep their own row.
-  const groupedBooks = useMemo(() => {
-    const map = new Map<string, BookType[]>();
-
-    for (const book of renderedBooks) {
-      const key = book.isbn?.trim() ? book.isbn.trim() : `__no_isbn_${book.id}`;
-      const group = map.get(key) ?? [];
-      group.push(book);
-      map.set(key, group);
-    }
-
-    return Array.from(map.values()).map((group) => {
-      // Representative: prefer first available copy so the status dot is green
-      const representative =
-        group.find((b) => b.rentalStatus !== "rented") ?? group[0];
-      return { book: representative, count: group.length };
-    });
-  }, [renderedBooks]);
-
-  return (
-    <div className="flex flex-col gap-2 w-full">
-      {groupedBooks.slice(0, pageIndex).map(({ book, count }) => (
-        <BookSummaryRow
-          key={book.id}
-          book={book}
-          count={count}
-          handleCopyBook={() => onCopyBook(book)}
-        />
-      ))}
-      {groupedBooks.length - pageIndex > 0 && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={onLoadMore}
-            className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
-          >
-            {t("bookPage.loadMore")}{" "}
-            {Math.max(0, groupedBooks.length - pageIndex)}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-});
 // =============================================================================
 // Page Component
 // =============================================================================
@@ -138,6 +89,13 @@ export default function Books({
   maxBooks,
 }: BookPropsType) {
   const router = useRouter();
+  const { query } = useRouter();
+  useEffect(() => {
+    if (typeof query.q === "string" && query.q) {
+      handleInputChange(query.q);
+      setDetailView(true);
+    }
+  }, [query.q]);
 
   const { data: freshData, mutate } = useSWR("/api/book", fetcher, {
     fallbackData: { books: initialBooks },

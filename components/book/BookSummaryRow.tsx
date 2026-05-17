@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+
 import {
   Tooltip,
   TooltipContent,
@@ -7,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
 import { t } from "@/lib/i18n";
-import { CheckCircle, Copy, XCircle } from "lucide-react";
+import { CheckCircle, Copy, Layers, XCircle } from "lucide-react";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 const MAX_TOPICS_LENGTH = 10;
@@ -107,21 +108,27 @@ export default function BookSummaryRow({
 
         {/* Actions */}
         <div
-          className="ml-auto flex items-center gap-2" // gap-2 to space badge + button
+          className="ml-auto flex items-center gap-1"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Copies badge — only shown when count > 1 */}
           {count > 1 && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge
-                    variant="secondary"
-                    className="text-xs font-semibold tabular-nums"
-                    data-cy={`book_count_badge_${book.id}`}
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-1 rounded-md
+                       px-2 text-xs font-semibold text-muted-foreground
+                       hover:bg-primary/10 hover:text-primary transition-colors"
+                    aria-label="show-all-copies"
+                    onClick={() =>
+                      router.push(
+                        `/book?q=${encodeURIComponent(book.isbn ?? "")}`,
+                      )
+                    }
+                    data-cy={`book_copies_button_${book.id}`}
                   >
-                    ×{count}
-                  </Badge>
+                    <Layers className="h-4 w-4" />×{count}
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent>
                   {t("bookPage.isbnCopies", { count })}
@@ -135,7 +142,7 @@ export default function BookSummaryRow({
               <TooltipTrigger asChild>
                 <button
                   className="inline-flex h-9 w-9 items-center justify-center rounded-md
-                             text-primary hover:bg-primary/10 transition-colors"
+                     text-primary hover:bg-primary/10 transition-colors"
                   aria-label="copy-book"
                   onClick={handleCopyBook}
                   data-cy={`book_copy_button_${book.id}`}
