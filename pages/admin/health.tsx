@@ -1,4 +1,10 @@
 import Layout from "@/components/layout/Layout";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { t } from "@/lib/i18n";
 import {
   AlertTriangle,
@@ -157,11 +163,6 @@ function StatusBadge({ status }: { status: CheckStatus }) {
   );
 }
 
-/**
- * StatCard — shows a single metric with an icon and optional tooltip.
- * The tooltip is a small Info icon with a native `title` attribute,
- * giving a hover explanation without any extra dependencies.
- */
 function StatCard({
   title,
   value,
@@ -182,13 +183,18 @@ function StatCard({
       <div className="relative">
         <Icon className="w-8 h-8 mx-auto mb-2" style={{ color: colorVar }} />
         {tooltip && (
-          <span
-            title={tooltip}
-            aria-label={tooltip}
-            className="absolute top-0 right-0 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors"
-          >
-            <Info className="w-3.5 h-3.5" />
-          </span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="absolute top-0 right-0 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors">
+                  <Info className="w-3.5 h-3.5" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
       <p className={`text-2xl font-bold ${valueClass}`}>
