@@ -14,6 +14,8 @@ import Head from "next/head";
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
+import { t } from "@/lib/i18n";
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface AdminAccount {
@@ -29,6 +31,52 @@ interface AdminAccount {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+// Built once at module load — locale is fixed per deployment.
+const strings = {
+  pageTitle: t("accounts.pageTitle"),
+  heading: t("accounts.heading"),
+  subtitle: t("accounts.subtitle"),
+  existingAccounts: t("accounts.existingAccounts"),
+  newAccountSection: t("accounts.newAccountSection"),
+  backToAdmin: t("accounts.backToAdmin"),
+  loading: t("accounts.loading"),
+  loadError: t("accounts.loadError"),
+  lastAccountWarning: t("accounts.lastAccountWarning"),
+  selfBadge: t("accounts.selfBadge"),
+  deleteTitle: t("accounts.deleteTitle"),
+  editTitle: t("accounts.editTitle"),
+  confirmDeleteQuestion: t("accounts.confirmDeleteQuestion"),
+  confirmDeleteYes: t("accounts.confirmDeleteYes"),
+  confirmDeleteNo: t("accounts.confirmDeleteNo"),
+  toastDeleteError: t("accounts.toastDeleteError"),
+  edit: {
+    labelUsername: t("accounts.editForm.labelUsername"),
+    labelEmail: t("accounts.editForm.labelEmail"),
+    labelPassword: t("accounts.editForm.labelPassword"),
+    labelPasswordOptional: t("accounts.editForm.labelPasswordOptional"),
+    labelPasswordConfirm: t("accounts.editForm.labelPasswordConfirm"),
+    placeholderPassword: t("accounts.editForm.placeholderPassword"),
+    passwordTooShort: t("accounts.editForm.passwordTooShort"),
+    passwordMismatch: t("accounts.editForm.passwordMismatch"),
+    cancel: t("accounts.editForm.cancel"),
+    save: t("accounts.editForm.save"),
+  },
+  create: {
+    toggleButton: t("accounts.createForm.toggleButton"),
+    heading: t("accounts.createForm.heading"),
+    labelUsername: t("accounts.createForm.labelUsername"),
+    labelEmail: t("accounts.createForm.labelEmail"),
+    labelPassword: t("accounts.createForm.labelPassword"),
+    labelPasswordConfirm: t("accounts.createForm.labelPasswordConfirm"),
+    passwordTooShort: t("accounts.createForm.passwordTooShort"),
+    passwordMismatch: t("accounts.createForm.passwordMismatch"),
+    cancel: t("accounts.createForm.cancel"),
+    submit: t("accounts.createForm.submit"),
+  },
+};
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function Toast({
   message,
@@ -55,16 +103,12 @@ function Toast({
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
 function EditForm({
   account,
-  currentUsername,
   onSuccess,
   onCancel,
 }: {
   account: AdminAccount;
-  currentUsername: string | null | undefined;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -123,7 +167,7 @@ function EditForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Benutzername
+            {strings.edit.labelUsername}
           </label>
           <input
             type="text"
@@ -135,7 +179,7 @@ function EditForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            E-Mail
+            {strings.edit.labelEmail}
           </label>
           <input
             type="email"
@@ -147,15 +191,17 @@ function EditForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Neues Passwort{" "}
-            <span className="text-gray-400 font-normal">(optional)</span>
+            {strings.edit.labelPassword}{" "}
+            <span className="text-gray-400 font-normal">
+              {strings.edit.labelPasswordOptional}
+            </span>
           </label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             data-cy="edit_password"
-            placeholder="Leer lassen = unverändert"
+            placeholder={strings.edit.placeholderPassword}
             className={`w-full px-3 py-2 text-sm bg-white border rounded-lg outline-none focus:ring-2 ${
               passwordTooShort
                 ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
@@ -164,13 +210,13 @@ function EditForm({
           />
           {passwordTooShort && (
             <p className="mt-1 text-xs text-red-600">
-              Mindestens 3 Zeichen erforderlich
+              {strings.edit.passwordTooShort}
             </p>
           )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Passwort bestätigen
+            {strings.edit.labelPasswordConfirm}
           </label>
           <input
             type="password"
@@ -185,7 +231,7 @@ function EditForm({
           />
           {passwordMismatch && (
             <p className="mt-1 text-xs text-red-600">
-              Passwörter stimmen nicht überein
+              {strings.edit.passwordMismatch}
             </p>
           )}
         </div>
@@ -197,7 +243,7 @@ function EditForm({
           data-cy="edit_cancel"
           className="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          Abbrechen
+          {strings.edit.cancel}
         </button>
         <button
           onClick={handleSubmit}
@@ -207,7 +253,7 @@ function EditForm({
           style={{ backgroundColor: "#12556F" }}
         >
           {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-          Speichern
+          {strings.edit.save}
         </button>
       </div>
     </div>
@@ -243,11 +289,14 @@ function AccountRow({
         const data = await res.json().catch(() => null);
         throw new Error(data?.message ?? `HTTP ${res.status}`);
       }
-      onToast(`Konto „${account.username}" gelöscht.`, "success");
+      onToast(
+        t("accounts.toastDeleted", { username: account.username }),
+        "success",
+      );
       onMutate();
     } catch (err) {
       onToast(
-        err instanceof Error ? err.message : "Fehler beim Löschen",
+        err instanceof Error ? err.message : strings.toastDeleteError,
         "error",
       );
     } finally {
@@ -283,7 +332,7 @@ function AccountRow({
             {isSelf && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#12556F]/10 text-[#12556F]">
                 <Shield className="w-2.5 h-2.5" />
-                Du
+                {strings.selfBadge}
               </span>
             )}
           </div>
@@ -297,7 +346,9 @@ function AccountRow({
             !isOnly &&
             (confirmDelete ? (
               <div className="flex items-center gap-1">
-                <span className="text-xs text-red-600">Wirklich löschen?</span>
+                <span className="text-xs text-red-600">
+                  {strings.confirmDeleteQuestion}
+                </span>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
@@ -307,7 +358,7 @@ function AccountRow({
                   {isDeleting ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
                   ) : (
-                    "Ja"
+                    strings.confirmDeleteYes
                   )}
                 </button>
                 <button
@@ -315,14 +366,14 @@ function AccountRow({
                   data-cy="cancel_delete"
                   className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
                 >
-                  Nein
+                  {strings.confirmDeleteNo}
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
                 data-cy="delete_account"
-                title="Konto löschen"
+                title={strings.deleteTitle}
                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
@@ -336,7 +387,7 @@ function AccountRow({
               setConfirmDelete(false);
             }}
             data-cy="edit_account"
-            title="Bearbeiten"
+            title={strings.editTitle}
             className="flex items-center gap-1 px-2 py-1.5 text-xs text-gray-500 hover:text-[#12556F] hover:bg-[#12556F]/5 rounded-lg transition-colors"
           >
             <UserCog className="w-4 h-4" />
@@ -354,9 +405,11 @@ function AccountRow({
         <div className="px-4 pb-4">
           <EditForm
             account={account}
-            currentUsername={currentUsername}
             onSuccess={() => {
-              onToast(`Konto „${account.username}" aktualisiert.`, "success");
+              onToast(
+                t("accounts.toastUpdated", { username: account.username }),
+                "success",
+              );
               setExpanded(false);
               onMutate();
             }}
@@ -437,14 +490,16 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
         className="flex items-center gap-2 w-full px-4 py-3 text-sm text-[#12556F] border-2 border-dashed border-[#12556F]/30 rounded-xl hover:border-[#12556F]/60 hover:bg-[#12556F]/5 transition-all"
       >
         <Plus className="w-4 h-4" />
-        Neues Admin-Konto anlegen
+        {strings.create.toggleButton}
       </button>
     );
   }
 
   return (
     <div className="border-2 border-dashed border-[#12556F]/40 rounded-xl p-4 space-y-3 bg-[#12556F]/5">
-      <p className="text-sm font-medium text-[#12556F]">Neues Konto</p>
+      <p className="text-sm font-medium text-[#12556F]">
+        {strings.create.heading}
+      </p>
 
       {error && (
         <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
@@ -455,7 +510,7 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Benutzername
+            {strings.create.labelUsername}
           </label>
           <input
             type="text"
@@ -468,7 +523,7 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            E-Mail
+            {strings.create.labelEmail}
           </label>
           <input
             type="email"
@@ -480,7 +535,7 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Passwort
+            {strings.create.labelPassword}
           </label>
           <input
             type="password"
@@ -494,12 +549,14 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
             }`}
           />
           {passwordTooShort && (
-            <p className="mt-1 text-xs text-red-600">Mindestens 3 Zeichen</p>
+            <p className="mt-1 text-xs text-red-600">
+              {strings.create.passwordTooShort}
+            </p>
           )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Passwort bestätigen
+            {strings.create.labelPasswordConfirm}
           </label>
           <input
             type="password"
@@ -514,7 +571,7 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
           />
           {passwordMismatch && (
             <p className="mt-1 text-xs text-red-600">
-              Passwörter stimmen nicht überein
+              {strings.create.passwordMismatch}
             </p>
           )}
         </div>
@@ -529,7 +586,7 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
           data-cy="create_cancel"
           className="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          Abbrechen
+          {strings.create.cancel}
         </button>
         <button
           onClick={handleCreate}
@@ -539,7 +596,7 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
           style={{ backgroundColor: "#12556F" }}
         >
           {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-          Konto anlegen
+          {strings.create.submit}
         </button>
       </div>
     </div>
@@ -577,7 +634,7 @@ export default function AccountsPage() {
   return (
     <>
       <Head>
-        <title>Admin-Konten – OpenLibry</title>
+        <title>{strings.pageTitle}</title>
       </Head>
 
       {toast && <Toast message={toast.message} type={toast.type} />}
@@ -593,29 +650,29 @@ export default function AccountsPage() {
               >
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Admin-Konten</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                {strings.heading}
+              </h1>
             </div>
-            <p className="text-sm text-gray-500 ml-13">
-              Verwalte die Anmelde-Konten für OpenLibry.
-            </p>
+            <p className="text-sm text-gray-500 ml-13">{strings.subtitle}</p>
           </div>
 
           {/* Account list */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 mb-4">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              Vorhandene Konten
+              {strings.existingAccounts}
             </h2>
 
             {isLoading && (
               <div className="flex items-center justify-center py-8 text-gray-400">
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                <span className="text-sm">Lade Konten…</span>
+                <span className="text-sm">{strings.loading}</span>
               </div>
             )}
 
             {error && !isLoading && (
               <p className="text-sm text-red-600 py-4 text-center">
-                Fehler beim Laden der Konten.
+                {strings.loadError}
               </p>
             )}
 
@@ -636,8 +693,7 @@ export default function AccountsPage() {
 
             {isOnly && !isLoading && (
               <p className="mt-3 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                Das letzte Konto kann nicht gelöscht werden. Lege zuerst ein
-                weiteres Konto an.
+                {strings.lastAccountWarning}
               </p>
             )}
           </div>
@@ -645,11 +701,11 @@ export default function AccountsPage() {
           {/* Create new */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              Neues Konto anlegen
+              {strings.newAccountSection}
             </h2>
             <CreateForm
               onSuccess={() => {
-                showToast("Neues Konto erfolgreich angelegt.", "success");
+                showToast(t("accounts.toastCreated"), "success");
                 mutate();
               }}
             />
@@ -661,7 +717,7 @@ export default function AccountsPage() {
               href="/admin"
               className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
             >
-              ← Zurück zum Admin-Bereich
+              {strings.backToAdmin}
             </a>
           </div>
         </div>
