@@ -29,6 +29,12 @@ export const LogEvents = {
   LOGIN_USER_CREATE_ATTEMPT: "loginuser.create.attempt",
   LOGIN_USER_CREATED: "loginuser.created",
   LOGIN_USER_CREATE_FAILED: "loginuser.create.failed",
+  LOGIN_USER_LIST: "loginuser.list",
+  LOGIN_USER_DELETE_ATTEMPT: "loginuser.delete.attempt",
+  LOGIN_USER_DELETE_FAILED: "loginuser.delete.failed",
+  LOGIN_USER_DELETED: "loginuser.deleted",
+  LOGIN_USER_UPDATE_ATTEMPT: "loginuser.update.attempt",
+  LOGIN_USER_UPDATED: "loginuser.updated",
 
   // ISBN lookup operations
   ISBN_LOOKUP_STARTED: "isbn.lookup.started",
