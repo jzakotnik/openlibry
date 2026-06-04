@@ -1117,4 +1117,30 @@ export const en: Dictionary = {
     imprint: "Legal notice",
     privacy: "Privacy",
   },
+
+  // ─── ISBN lookup API error messages ──────────────────────────────────
+  // Used in pages/api/book/FillBookByIsbn.ts.
+  // `fetchError.*` values appear inside the `details` array of non-200
+  // responses so that users can copy-paste them into support messages.
+  isbnLookup: {
+    error: {
+      missingParam: "Missing ISBN parameter",
+      allServicesFailed:
+        "No external book source was reachable. Please check the server's internet connection.",
+      partialFailure:
+        "Book not found. Some sources could not be reached.",
+      notFound:
+        "Book not found in any of the available catalog sources.",
+      unexpected: "Unexpected error during ISBN lookup.",
+    },
+    fetchError: {
+      timeout: "Timeout",
+      connectionRefused: "Connection refused",
+      dnsError: "DNS error (host not found)",
+      connectionReset: "Connection reset",
+      tlsError: "TLS/certificate error",
+      networkError: "Network error",
+      unknown: "Unknown error",
+    },
+  },
 };

@@ -1141,4 +1141,30 @@ export const es: Dictionary = {
     imprint: "Aviso legal",
     privacy: "Privacidad",
   },
+
+  // ─── ISBN lookup API error messages ──────────────────────────────────
+  // Used in pages/api/book/FillBookByIsbn.ts.
+  // `fetchError.*` values appear inside the `details` array of non-200
+  // responses so that users can copy-paste them into support messages.
+  isbnLookup: {
+    error: {
+      missingParam: "Falta el parámetro ISBN",
+      allServicesFailed:
+        "No se pudo acceder a ninguna fuente de libros externa. Por favor, comprueba la conexión a internet del servidor.",
+      partialFailure:
+        "Libro no encontrado. Algunas fuentes no estaban disponibles.",
+      notFound:
+        "Libro no encontrado en ninguna de las fuentes de catálogo disponibles.",
+      unexpected: "Error inesperado durante la búsqueda por ISBN.",
+    },
+    fetchError: {
+      timeout: "Tiempo de espera agotado",
+      connectionRefused: "Conexión rechazada",
+      dnsError: "Error de DNS (host no encontrado)",
+      connectionReset: "Conexión interrumpida",
+      tlsError: "Error TLS/certificado",
+      networkError: "Error de red",
+      unknown: "Error desconocido",
+    },
+  },
 };

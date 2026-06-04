@@ -1210,6 +1210,32 @@ export const de = {
     imprint: "Impressum",
     privacy: "Datenschutz",
   },
+
+  // ─── ISBN lookup API error messages ──────────────────────────────────
+  // Used in pages/api/book/FillBookByIsbn.ts.
+  // `fetchError.*` values appear inside the `details` array of non-200
+  // responses so that users can copy-paste them into support messages.
+  isbnLookup: {
+    error: {
+      missingParam: "ISBN-Parameter fehlt",
+      allServicesFailed:
+        "Keine externe Buchquelle war erreichbar. Bitte Internetverbindung des Servers prüfen.",
+      partialFailure:
+        "Buch nicht gefunden. Einige Quellen konnten nicht erreicht werden.",
+      notFound:
+        "Buch nicht in einer der verfügbaren Katalogquellen gefunden.",
+      unexpected: "Unerwarteter Fehler bei der ISBN-Abfrage.",
+    },
+    fetchError: {
+      timeout: "Zeitüberschreitung (Timeout)",
+      connectionRefused: "Verbindung abgelehnt",
+      dnsError: "DNS-Fehler (Host nicht gefunden)",
+      connectionReset: "Verbindung unterbrochen",
+      tlsError: "TLS/Zertifikat-Fehler",
+      networkError: "Netzwerkfehler",
+      unknown: "Unbekannter Fehler",
+    },
+  },
 };
 
 /**
