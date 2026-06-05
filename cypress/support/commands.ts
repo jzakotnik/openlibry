@@ -24,19 +24,29 @@ Cypress.Commands.add("login", () => {
 
 // Wrapper commands that call the config tasks
 Cypress.Commands.add("resetDatabase", () => {
-  cy.task("resetDatabase").then(() => {
-    cy.log("✓ Database reset successfully");
-  });
+  cy.task("resetDatabase");
 
-  cy.request({
-    method: "POST",
-    url: "http://localhost:3000/api/db/reconnect",
-    failOnStatusCode: true, // fail if reconnect itself errors
-  }).then((resp) => {
-    expect(resp.status).to.eq(200);
-  });
+  // Retry the reconnect until the server confirms success
+  const reconnect = (attemptsLeft = 10): Cypress.Chainable => {
+    return cy
+      .request({
+        method: "POST",
+        url: "http://localhost:3000/api/db/reconnect",
+        failOnStatusCode: false,
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          cy.log("✓ Server reconnected");
+        } else if (attemptsLeft > 0) {
+          cy.wait(300);
+          return reconnect(attemptsLeft - 1);
+        } else {
+          throw new Error("Server failed to reconnect after DB reset");
+        }
+      });
+  };
 
-  cy.wait(500);
+  reconnect();
 });
 
 Cypress.Commands.add("cleanupDatabase", () => {

@@ -6,7 +6,7 @@ describe("Batch scan book import", () => {
   });
 
   after(() => {
-    cy.cleanupDatabase();
+    //cy.cleanupDatabase();
   });
 
   it("should batch scan multiple books with quantity controls and import them", () => {
