@@ -17,6 +17,18 @@ declare global {
 // Create a separate Prisma client for Cypress tests
 let testPrisma: PrismaClient | null = null;
 
+function checkFileWritable(filePath: string): void {
+  try {
+    fs.accessSync(filePath, fs.constants.W_OK);
+    console.log(`[permissions] ${filePath} is writable`);
+  } catch {
+    const stats = fs.statSync(filePath);
+    console.warn(
+      `[permissions] ${filePath} is READ-ONLY (mode: ${stats.mode.toString(8)})`,
+    );
+  }
+}
+
 function getPrismaClient() {
   if (!testPrisma) {
     const dbPath = path.join(__dirname, "prisma/database/automated-test-db.db");
@@ -183,14 +195,27 @@ export default defineConfig({
             "prisma/database/automated-test-db.db",
           );
 
+          console.log("[resetDatabase] Starting database reset");
+          console.log("[resetDatabase] Source:", sourceDb);
+          console.log("[resetDatabase] Target:", targetDb);
+
           try {
             // 1. Disconnect Prisma if connected
+            console.log("[resetDatabase] Step 1: Disconnecting Prisma...");
             if (testPrisma) {
               await testPrisma.$disconnect();
               testPrisma = null;
+              console.log(
+                "[resetDatabase] Step 1: Prisma disconnected and set to null",
+              );
+            } else {
+              console.log(
+                "[resetDatabase] Step 1: No active Prisma client, skipping disconnect",
+              );
             }
 
             // 2. Verify source exists and has content
+            console.log("[resetDatabase] Step 2: Verifying source database...");
             if (!fs.existsSync(sourceDb)) {
               throw new Error(`Source database not found: ${sourceDb}`);
             }
@@ -199,47 +224,101 @@ export default defineConfig({
             if (stats.size === 0) {
               throw new Error(`Source database is empty: ${sourceDb}`);
             }
+            console.log(
+              `[resetDatabase] Step 2: Source database OK — ${stats.size} bytes`,
+            );
 
             // 3. Wait a bit to ensure file locks are released
+            console.log(
+              "[resetDatabase] Step 3: Waiting 300ms for file locks to release...",
+            );
             await new Promise((resolve) => setTimeout(resolve, 300));
+            console.log("[resetDatabase] Step 3: Wait complete");
 
             // 4. Remove old database if it exists
+            console.log(
+              "[resetDatabase] Step 4: Removing old target database...",
+            );
             if (fs.existsSync(targetDb)) {
               fs.unlinkSync(targetDb);
+              console.log(
+                "[resetDatabase] Step 4: Old target database deleted",
+              );
+            } else {
+              console.log(
+                "[resetDatabase] Step 4: No target database found, nothing to delete",
+              );
             }
 
             // 5. Copy the database
+            console.log("[resetDatabase] Step 5: Copying source to target...");
             fs.copyFileSync(sourceDb, targetDb);
+            console.log("[resetDatabase] Step 5: Copy complete");
 
             // 6. Wait for file system to sync
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            console.log(
+              "[resetDatabase] Step 6: Waiting 500ms for file system to sync...",
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            console.log("[resetDatabase] Step 6: Wait complete");
+            console.log(
+              "[resetDatabase] Step 2b: Checking target file permissions...",
+            );
+            if (fs.existsSync(targetDb)) {
+              checkFileWritable(targetDb);
+            } else {
+              console.log(
+                "[resetDatabase] Step 2b: Target does not exist yet, checking parent directory...",
+              );
+              checkFileWritable(path.dirname(targetDb));
+            }
 
             // 7. Create fresh Prisma connection
+            console.log(
+              "[resetDatabase] Step 7: Creating fresh Prisma client and connecting...",
+            );
             const freshPrisma = getPrismaClient();
             await freshPrisma.$connect();
+            console.log(
+              "[resetDatabase] Step 7: Fresh Prisma client connected",
+            );
 
             // 8. Verify the restore worked
+            console.log(
+              "[resetDatabase] Step 8: Verifying restore with book count...",
+            );
             const bookCount = await freshPrisma.book.count();
             console.log(
-              `✓ Database reset: ${stats.size} bytes copied, ${bookCount} books found`,
+              `[resetDatabase] Step 8: ✓ Database reset complete — ${stats.size} bytes copied, ${bookCount} books found`,
             );
 
             // 9. Clear downloads folder for Excel export tests
+            console.log("[resetDatabase] Step 9: Handling downloads folder...");
             const downloadsFolder = path.join(__dirname, "cypress/downloads");
             if (fs.existsSync(downloadsFolder)) {
               const files = fs.readdirSync(downloadsFolder);
+              console.log(
+                `[resetDatabase] Step 9: Found ${files.length} file(s) to delete in downloads folder`,
+              );
               files.forEach((file) => {
                 fs.unlinkSync(path.join(downloadsFolder, file));
+                console.log(`[resetDatabase] Step 9: Deleted ${file}`);
               });
-              console.log(`✓ Downloads folder cleared`);
+              console.log("[resetDatabase] Step 9: Downloads folder cleared");
             } else {
               fs.mkdirSync(downloadsFolder, { recursive: true });
-              console.log(`✓ Downloads folder created`);
+              console.log(
+                "[resetDatabase] Step 9: Downloads folder did not exist — created",
+              );
             }
 
+            console.log("[resetDatabase] Done ✓");
             return null;
           } catch (error) {
-            console.error("❌ Error resetting database:", error);
+            console.error(
+              "[resetDatabase] ❌ Error resetting database:",
+              error,
+            );
             throw error;
           }
         },
@@ -250,27 +329,53 @@ export default defineConfig({
             "prisma/database/automated-test-db.db",
           );
 
+          console.log("[cleanupDatabase] Starting database cleanup");
+          console.log("[cleanupDatabase] Target:", targetDb);
+
           try {
             // 1. Disconnect Prisma if connected
+            console.log("[cleanupDatabase] Step 1: Disconnecting Prisma...");
             if (testPrisma) {
               await testPrisma.$disconnect();
               testPrisma = null;
+              console.log(
+                "[cleanupDatabase] Step 1: Prisma disconnected and set to null",
+              );
+            } else {
+              console.log(
+                "[cleanupDatabase] Step 1: No active Prisma client, skipping disconnect",
+              );
             }
 
             // 2. Wait for file locks to release
+            console.log(
+              "[cleanupDatabase] Step 2: Waiting 200ms for file locks to release...",
+            );
             await new Promise((resolve) => setTimeout(resolve, 200));
+            console.log("[cleanupDatabase] Step 2: Wait complete");
 
             // 3. Delete database file if it exists
+            console.log(
+              "[cleanupDatabase] Step 3: Deleting target database...",
+            );
             if (fs.existsSync(targetDb)) {
               fs.unlinkSync(targetDb);
-              console.log("✓ Database cleaned up successfully");
+              console.log(
+                "[cleanupDatabase] Step 3: ✓ Database file deleted successfully",
+              );
             } else {
-              console.log("ℹ Database file does not exist, nothing to clean");
+              console.log(
+                "[cleanupDatabase] Step 3: ℹ Database file does not exist, nothing to delete",
+              );
             }
 
+            console.log("[cleanupDatabase] Done ✓");
             return null;
           } catch (error) {
-            console.error("❌ Error cleaning up database:", error);
+            console.error(
+              "[cleanupDatabase] ❌ Error cleaning up database:",
+              error,
+            );
             throw error;
           }
         },

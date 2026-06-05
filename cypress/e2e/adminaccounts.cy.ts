@@ -23,7 +23,7 @@ describe("Admin account management", () => {
   });
 
   after(() => {
-    cy.cleanupDatabase();
+    //cy.cleanupDatabase();
   });
 
   beforeEach(() => {
