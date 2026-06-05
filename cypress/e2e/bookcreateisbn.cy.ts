@@ -4,7 +4,7 @@ describe("Book creation with ISBN autofill and editing", () => {
   let createdBookId: number;
 
   before(() => {
-    cy.task("resetDatabase");
+    cy.resetDatabase();
     cy.task("logDatabaseState");
   });
 

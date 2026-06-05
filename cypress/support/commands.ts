@@ -28,14 +28,15 @@ Cypress.Commands.add("resetDatabase", () => {
     cy.log("✓ Database reset successfully");
   });
 
-  // Reconnect via API
   cy.request({
     method: "POST",
     url: "http://localhost:3000/api/db/reconnect",
-    failOnStatusCode: false,
+    failOnStatusCode: true, // fail if reconnect itself errors
+  }).then((resp) => {
+    expect(resp.status).to.eq(200);
   });
 
-  cy.wait(500); // Reduced wait time since operations are faster now
+  cy.wait(500);
 });
 
 Cypress.Commands.add("cleanupDatabase", () => {

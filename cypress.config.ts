@@ -201,7 +201,7 @@ export default defineConfig({
             }
 
             // 3. Wait a bit to ensure file locks are released
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 300));
 
             // 4. Remove old database if it exists
             if (fs.existsSync(targetDb)) {

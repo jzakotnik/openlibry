@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 describe("Book editing and upload of cover", () => {
   before(() => {
-    cy.task("resetDatabase");
+    cy.resetDatabase();
     cy.task("logDatabaseState");
   });
 

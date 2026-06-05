@@ -56,7 +56,7 @@ describe("Rental extension logic", () => {
   let bookCId: number; // rented, MAX_EXTENSIONS renewals → disabled tests
 
   before(() => {
-    cy.task("resetDatabase");
+    cy.resetDatabase();
     cy.task("seedRentalData").then((ids: any) => {
       userId = ids.userId;
       bookAId = ids.bookAId;

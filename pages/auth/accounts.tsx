@@ -1,3 +1,5 @@
+import Layout from "@/components/layout/Layout";
+import { t } from "@/lib/i18n";
 import {
   CheckCircle,
   ChevronDown,
@@ -13,8 +15,6 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
-
-import { t } from "@/lib/i18n";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -605,6 +605,8 @@ function CreateForm({ onSuccess }: { onSuccess: () => void }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+// Replace the return statement in AccountsPage
+
 export default function AccountsPage() {
   const { data: session } = useSession();
   const currentUsername = session?.user?.name;
@@ -639,89 +641,91 @@ export default function AccountsPage() {
 
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#12556F" }}
-              >
-                <Shield className="w-5 h-5 text-white" />
+      <Layout>
+        <div className="py-8 px-4">
+          <div className="max-w-2xl mx-auto">
+            {/* Header */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: "#12556F" }}
+                >
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {strings.heading}
+                </h1>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">
-                {strings.heading}
-              </h1>
+              <p className="text-sm text-gray-500 ml-13">{strings.subtitle}</p>
             </div>
-            <p className="text-sm text-gray-500 ml-13">{strings.subtitle}</p>
-          </div>
 
-          {/* Account list */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 mb-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              {strings.existingAccounts}
-            </h2>
+            {/* Account list */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 mb-4">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">
+                {strings.existingAccounts}
+              </h2>
 
-            {isLoading && (
-              <div className="flex items-center justify-center py-8 text-gray-400">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                <span className="text-sm">{strings.loading}</span>
-              </div>
-            )}
+              {isLoading && (
+                <div className="flex items-center justify-center py-8 text-gray-400">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  <span className="text-sm">{strings.loading}</span>
+                </div>
+              )}
 
-            {error && !isLoading && (
-              <p className="text-sm text-red-600 py-4 text-center">
-                {strings.loadError}
-              </p>
-            )}
+              {error && !isLoading && (
+                <p className="text-sm text-red-600 py-4 text-center">
+                  {strings.loadError}
+                </p>
+              )}
 
-            {!isLoading && !error && accounts && (
-              <div className="space-y-2" data-cy="accounts_list">
-                {accounts.map((account) => (
-                  <AccountRow
-                    key={account.id}
-                    account={account}
-                    currentUsername={currentUsername}
-                    isOnly={isOnly}
-                    onMutate={() => mutate()}
-                    onToast={showToast}
-                  />
-                ))}
-              </div>
-            )}
+              {!isLoading && !error && accounts && (
+                <div className="space-y-2" data-cy="accounts_list">
+                  {accounts.map((account) => (
+                    <AccountRow
+                      key={account.id}
+                      account={account}
+                      currentUsername={currentUsername}
+                      isOnly={isOnly}
+                      onMutate={() => mutate()}
+                      onToast={showToast}
+                    />
+                  ))}
+                </div>
+              )}
 
-            {isOnly && !isLoading && (
-              <p className="mt-3 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                {strings.lastAccountWarning}
-              </p>
-            )}
-          </div>
+              {isOnly && !isLoading && (
+                <p className="mt-3 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  {strings.lastAccountWarning}
+                </p>
+              )}
+            </div>
 
-          {/* Create new */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              {strings.newAccountSection}
-            </h2>
-            <CreateForm
-              onSuccess={() => {
-                showToast(t("accounts.toastCreated"), "success");
-                mutate();
-              }}
-            />
-          </div>
+            {/* Create new */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">
+                {strings.newAccountSection}
+              </h2>
+              <CreateForm
+                onSuccess={() => {
+                  showToast(t("accounts.toastCreated"), "success");
+                  mutate();
+                }}
+              />
+            </div>
 
-          {/* Back link */}
-          <div className="mt-4 text-center">
-            <a
-              href="/admin"
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {strings.backToAdmin}
-            </a>
+            {/* Back link */}
+            <div className="mt-4 text-center">
+              <a
+                href="/admin"
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {strings.backToAdmin}
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </Layout>
     </>
   );
 }

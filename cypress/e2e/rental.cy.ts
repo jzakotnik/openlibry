@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 describe("Rental of books", () => {
   before(() => {
-    cy.task("resetDatabase");
+    cy.resetDatabase();
     cy.task("logDatabaseState");
   });
 

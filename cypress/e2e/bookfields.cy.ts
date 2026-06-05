@@ -57,7 +57,7 @@ function selectOption(triggerId: string, optionValue: string) {
 
 describe("Book fields — fill all and verify persistence", () => {
   before(() => {
-    cy.task("resetDatabase");
+    cy.resetDatabase();
     cy.task("logDatabaseState");
   });
 
@@ -291,7 +291,7 @@ describe("Book fields — fill all and verify persistence", () => {
 allStatuses.forEach((value) => {
   describe(`Rental status: ${value}`, () => {
     before(() => {
-      cy.task("resetDatabase");
+      cy.resetDatabase();
     });
 
     after(() => {
