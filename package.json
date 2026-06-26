@@ -24,6 +24,8 @@
     "@types/formidable": "^3.4.5",
     "@types/itemsjs": "^2.1.8",
     "@types/react-tagcloud": "^2.3.2",
+    "@zxing/browser": "^0.2.0",
+    "@zxing/library": "^0.22.0",
     "angular-expressions": "^1.5.1",
     "bwip-js": "^4.9.0",
     "cheerio": "^1.1.2",
