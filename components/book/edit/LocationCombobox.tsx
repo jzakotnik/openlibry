@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { LocationEntry } from "@/pages/api/book/locations";
-import { MapPin } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface LocationComboboxProps {
@@ -19,13 +19,28 @@ export default function LocationCombobox({
 }: LocationComboboxProps) {
   const [allLocations, setAllLocations] = useState<LocationEntry[]>([]);
   const [open, setOpen] = useState(false);
+  const [locked, setLocked] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/book/locations")
       .then((r) => r.json())
-      .then((data: LocationEntry[]) => setAllLocations(data))
+      .then((data: LocationEntry[]) => {
+        setAllLocations(data);
+        // If the current value already matches an existing location on load, lock it
+        if (
+          value.trim() &&
+          data.some(
+            (l: LocationEntry) =>
+              l.location.toLowerCase() === value.trim().toLowerCase(),
+          )
+        ) {
+          setLocked(true);
+        }
+      })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = value.trim()
@@ -39,13 +54,24 @@ export default function LocationCombobox({
   );
 
   const hint =
-    value.trim() === ""
+    locked || value.trim() === ""
       ? null
       : exactMatch
-        ? `Vorhandener Standort · ${exactMatch.count} ${exactMatch.count === 1 ? "Buch" : "Bücher"}`
+        ? null // locked state handles this case
         : `Neuer Standort wird erstellt: „${value.trim()}"`;
 
-  const hintColor = exactMatch ? "text-success" : "text-warning";
+  const handleSelect = (loc: LocationEntry) => {
+    onChange(loc.location);
+    setLocked(true);
+    setOpen(false);
+  };
+
+  const handleUnlock = () => {
+    onChange("");
+    setLocked(false);
+    setOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
 
   // Close on outside click
   useEffect(() => {
@@ -65,56 +91,80 @@ export default function LocationCombobox({
     <div ref={containerRef} className="relative flex flex-col gap-1.5">
       <Label className="text-xs text-muted-foreground">{label}</Label>
 
-      <div className="relative">
-        <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-        <Input
-          value={value}
-          autoFocus={autoFocus}
-          placeholder="z. B. Regal B-03"
-          className="pl-8"
-          onChange={(e) => {
-            onChange(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setOpen(false);
-          }}
-        />
-      </div>
-
-      {/* Hint */}
-      {hint && (
-        <p className={`text-xs ${hintColor} leading-tight`}>{hint}</p>
-      )}
-
-      {/* Dropdown */}
-      {open && filtered.length > 0 && (
-        <ul
-          className="absolute z-50 top-full mt-1 w-full rounded-md border border-border
-                     bg-popover shadow-md overflow-hidden"
-          role="listbox"
-        >
-          {filtered.map((loc) => (
-            <li
-              key={loc.location}
-              role="option"
-              aria-selected={loc.location === value}
-              className="flex items-center justify-between px-3 py-2 text-sm
-                         cursor-pointer hover:bg-muted select-none"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                onChange(loc.location);
-                setOpen(false);
+      {locked ? (
+        /* ── Locked tag ── */
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md
+                       bg-primary/10 border border-primary/25 text-sm font-medium text-primary"
+          >
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            {value}
+          </span>
+          <button
+            type="button"
+            onClick={handleUnlock}
+            aria-label="Standort zurücksetzen"
+            className="flex items-center justify-center h-6 w-6 rounded-full
+                       text-muted-foreground hover:text-destructive hover:bg-destructive/10
+                       transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        /* ── Input mode ── */
+        <>
+          <div className="relative">
+            <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              ref={inputRef}
+              value={value}
+              autoFocus={autoFocus}
+              placeholder="z. B. Regal B-03"
+              className="pl-8"
+              onChange={(e) => {
+                onChange(e.target.value);
+                setOpen(true);
               }}
+              onFocus={() => setOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setOpen(false);
+              }}
+            />
+          </div>
+
+          {hint && (
+            <p className="text-xs text-warning leading-tight">{hint}</p>
+          )}
+
+          {open && filtered.length > 0 && (
+            <ul
+              className="absolute z-50 top-full mt-1 w-full rounded-md border border-border
+                         bg-popover shadow-md overflow-hidden"
+              role="listbox"
             >
-              <span>{loc.location}</span>
-              <span className="text-xs text-muted-foreground">
-                {loc.count} {loc.count === 1 ? "Buch" : "Bücher"}
-              </span>
-            </li>
-          ))}
-        </ul>
+              {filtered.map((loc) => (
+                <li
+                  key={loc.location}
+                  role="option"
+                  aria-selected={loc.location === value}
+                  className="flex items-center justify-between px-3 py-2 text-sm
+                             cursor-pointer hover:bg-muted select-none"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelect(loc);
+                  }}
+                >
+                  <span>{loc.location}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {loc.count} {loc.count === 1 ? "Buch" : "Bücher"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );
