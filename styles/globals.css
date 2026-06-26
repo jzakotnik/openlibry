@@ -3,6 +3,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@keyframes scan {
+  0%, 100% { top: 10%; }
+  50%       { top: 90%; }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════
