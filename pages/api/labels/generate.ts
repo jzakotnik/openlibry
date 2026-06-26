@@ -90,6 +90,7 @@ async function resolveBookFilter(filter: BookFilter): Promise<BookLabelData[]> {
     subtitle: b.subtitle ?? "",
     isbn: b.isbn ?? undefined,
     topics: b.topics ?? undefined,
+    location: b.location ?? undefined,
   }));
 }
 

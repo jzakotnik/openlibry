@@ -37,6 +37,7 @@ const CONTENT_OPTIONS: { value: LabelFieldContent; label: string }[] = [
   { value: "id", label: "Buchnummer" },
   { value: "school", label: "Schulname" },
   { value: "topics", label: "Themen (max. 3)" },
+  { value: "location", label: "Standort" },
   { value: "barcode", label: "Barcode" },
   { value: "none", label: "Leer" },
 ];
