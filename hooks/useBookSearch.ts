@@ -14,6 +14,7 @@ const SEARCHABLE_FIELDS = [
   "subtitle",
   "isbn",
   "id",
+  "location",
 ] as const;
 const DEBOUNCE_MS = 150;
 

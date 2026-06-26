@@ -27,6 +27,7 @@ export const xlsbookcolumns = [
   { key: "additionalMaterial", header: "Material" },
   { key: "price", header: "Preis" },
   { key: "externalLinks", header: "Links" },
+  { key: "location", header: "Standort" },
   { key: "userId", header: "Ausgeliehen von" },
 ];
 
