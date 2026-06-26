@@ -1,3 +1,4 @@
+import LocationCombobox from "@/components/book/edit/LocationCombobox";
 import type { ScannedEntry } from "@/components/batch-scan";
 import {
   BatchScanEntryCard,
@@ -43,6 +44,7 @@ export default function BatchScan() {
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [batchLocation, setBatchLocation] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export default function BatchScan() {
       id: generateId(),
       isbn: cleanedIsbn,
       status: "loading",
-      bookData: { isbn: cleanedIsbn },
+      bookData: { isbn: cleanedIsbn, location: batchLocation || undefined },
       quantity: 1,
     };
 
@@ -324,6 +326,7 @@ export default function BatchScan() {
           physicalSize: entry.bookData.physicalSize,
           otherPhysicalAttributes: entry.bookData.otherPhysicalAttributes,
           editionDescription: entry.bookData.editionDescription,
+          location: entry.bookData.location || undefined,
         };
 
         try {
@@ -382,6 +385,20 @@ export default function BatchScan() {
 
     inputRef.current?.focus();
   }, [entries]);
+
+  // ── Apply batch location to all entries ───────────────────────────────────
+
+  const handleApplyLocationToAll = useCallback(() => {
+    if (!batchLocation.trim()) return;
+    setEntries((prev) =>
+      prev.map((entry) => ({
+        ...entry,
+        bookData: { ...entry.bookData, location: batchLocation },
+        status: entry.status === "found" ? "edited" : entry.status,
+      })),
+    );
+    toast.success(`Standort „${batchLocation}" auf alle Einträge angewendet`);
+  }, [batchLocation]);
 
   // ── Clear all ─────────────────────────────────────────────────────────────
 
@@ -555,6 +572,35 @@ export default function BatchScan() {
               </CardContent>
             </Card>
           )}
+
+          {/* Batch location preset */}
+          <Card className="mb-4">
+            <CardContent className="pt-5 pb-4">
+              <h2 className="text-base font-semibold mb-3">
+                Standort für alle Bücher
+              </h2>
+              <div className="flex flex-col sm:flex-row gap-3 items-end">
+                <div className="flex-1">
+                  <LocationCombobox
+                    value={batchLocation}
+                    onChange={setBatchLocation}
+                    label="Standard-Standort"
+                  />
+                </div>
+                {entries.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleApplyLocationToAll}
+                    disabled={!batchLocation.trim()}
+                    className="shrink-0 h-9"
+                  >
+                    Auf alle anwenden
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Entries List */}
           {entries.length === 0 ? (
