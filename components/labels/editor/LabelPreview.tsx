@@ -18,6 +18,7 @@ const SAMPLE_BOOK = {
   author: "Antoine de Saint-Exupéry",
   subtitle: "Eine Erzählung",
   topics: "Abenteuer; Freundschaft; Philosophie; Kinderbuch",
+  location: "Regal B-03",
 };
 
 interface LabelPreviewProps {

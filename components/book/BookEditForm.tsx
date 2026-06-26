@@ -531,6 +531,17 @@ export default function BookEditForm({
             {t("bookEditForm.sectionRentalStatus")}
           </SectionDivider>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mb-3">
+            <div className="sm:col-span-2">
+              <BookField
+                fieldType="location"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
             <div>
               <BookSelect
@@ -632,14 +643,6 @@ export default function BookEditForm({
             <div>
               <BookField
                 fieldType="supplierComment"
-                editable={editable}
-                setBookData={setBookData}
-                book={book}
-              />
-            </div>
-            <div>
-              <BookField
-                fieldType="location"
                 editable={editable}
                 setBookData={setBookData}
                 book={book}
