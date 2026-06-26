@@ -67,6 +67,7 @@ export type LabelFieldContent =
   | "barcode"
   | "school"
   | "topics"
+  | "location"
   | "none";
 
 export type TextAlign = "left" | "center" | "right";
@@ -124,6 +125,7 @@ export interface BookLabelData {
   subtitle?: string;
   isbn?: string;
   topics?: string;
+  location?: string;
 }
 
 /** Filter to select books from the database */

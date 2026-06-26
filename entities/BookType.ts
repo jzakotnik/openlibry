@@ -28,5 +28,6 @@ export interface BookType {
   additionalMaterial?: string;
   price?: string;
   externalLinks?: string;
+  location?: string;
   userId?: number;
 }

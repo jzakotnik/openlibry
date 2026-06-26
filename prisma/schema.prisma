@@ -75,6 +75,7 @@ model Book {
   //why is this string? In the migration, there were often DM prices or some other text
   price                   String?
   externalLinks           String?
+  location                String?
 
   user   User? @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId Int?

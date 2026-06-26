@@ -637,6 +637,14 @@ export default function BookEditForm({
                 book={book}
               />
             </div>
+            <div>
+              <BookField
+                fieldType="location"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
           </div>
         </div>
 
