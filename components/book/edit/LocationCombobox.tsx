@@ -26,22 +26,20 @@ export default function LocationCombobox({
   useEffect(() => {
     fetch("/api/book/locations")
       .then((r) => r.json())
-      .then((data: LocationEntry[]) => {
-        setAllLocations(data);
-        // If the current value already matches an existing location on load, lock it
-        if (
-          value.trim() &&
-          data.some(
-            (l: LocationEntry) =>
-              l.location.toLowerCase() === value.trim().toLowerCase(),
-          )
-        ) {
-          setLocked(true);
-        }
-      })
+      .then((data: LocationEntry[]) => setAllLocations(data))
       .catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync locked state whenever value or known locations change
+  useEffect(() => {
+    if (!allLocations.length) return;
+    const isKnown =
+      value.trim() !== "" &&
+      allLocations.some(
+        (l) => l.location.toLowerCase() === value.trim().toLowerCase(),
+      );
+    setLocked(isKnown);
+  }, [value, allLocations]);
 
   const filtered = value.trim()
     ? allLocations.filter((l) =>
