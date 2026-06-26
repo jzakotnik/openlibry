@@ -1,4 +1,5 @@
 import { BookType } from "@/entities/BookType";
+import { MapPin } from "lucide-react";
 import { InlineChipField } from "./InlineChipField";
 import { ScannedEntry } from "./types";
 
@@ -19,6 +20,12 @@ export function InlineChipRow({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-dashed border-gray-100">
+      {entry.bookData.location && (
+        <span className="inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+          <MapPin className="size-3 shrink-0" />
+          {entry.bookData.location}
+        </span>
+      )}
       <InlineChipField
         label="Schlagwörter"
         value={entry.bookData.topics || ""}
