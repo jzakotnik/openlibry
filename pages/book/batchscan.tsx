@@ -1,3 +1,4 @@
+import CameraScanner from "@/components/book/CameraScanner";
 import type { ScannedEntry } from "@/components/batch-scan";
 import {
   BatchScanEntryCard,
@@ -17,6 +18,7 @@ import { currentTime } from "@/lib/utils/dateutils";
 import { generateId } from "@/lib/utils/id";
 import {
   AlertTriangle,
+  Camera,
   CheckCircle,
   Image,
   Loader2,
@@ -43,6 +45,7 @@ export default function BatchScan() {
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -59,96 +62,103 @@ export default function BatchScan() {
     };
   }, []);
 
-  // ── Scan handler ──────────────────────────────────────────────────────────
+  // ── Core ISBN processing (shared by manual input and camera) ─────────────
 
-  const handleScan = useCallback(async () => {
-    const cleanedIsbn = isbnInput.trim().replace(/\D/g, "");
+  const processIsbn = useCallback(
+    async (rawIsbn: string) => {
+      const cleanedIsbn = rawIsbn.trim().replace(/\D/g, "");
+      if (!cleanedIsbn) return;
 
-    if (!cleanedIsbn) {
-      toast.warning("Bitte eine gültige ISBN eingeben");
-      return;
-    }
+      const existingEntry = entries.find((e) => e.isbn === cleanedIsbn);
+      if (existingEntry) {
+        setEntries((prev) =>
+          prev.map((entry) =>
+            entry.isbn === cleanedIsbn
+              ? { ...entry, quantity: entry.quantity + 1 }
+              : entry,
+          ),
+        );
+        playSound("scan");
+        toast.success(
+          `"${existingEntry.bookData.title || cleanedIsbn}" - jetzt ${existingEntry.quantity + 1} Exemplare`,
+        );
+        return;
+      }
 
-    const existingEntry = entries.find((e) => e.isbn === cleanedIsbn);
+      playSound("scan");
 
-    if (existingEntry) {
+      const newEntry: ScannedEntry = {
+        id: generateId(),
+        isbn: cleanedIsbn,
+        status: "loading",
+        bookData: { isbn: cleanedIsbn },
+        quantity: 1,
+      };
+
+      setEntries((prev) => [newEntry, ...prev]);
+
+      const [bookData, coverResult] = await Promise.all([
+        fetchBookDataByIsbn(cleanedIsbn),
+        checkCoverExists(cleanedIsbn),
+      ]);
+
+      const coverUrl =
+        coverResult.exists && coverResult.blob
+          ? URL.createObjectURL(coverResult.blob)
+          : undefined;
+
       setEntries((prev) =>
         prev.map((entry) =>
-          entry.isbn === cleanedIsbn
-            ? { ...entry, quantity: entry.quantity + 1 }
+          entry.id === newEntry.id
+            ? {
+                ...entry,
+                status: bookData ? "found" : "not_found",
+                bookData: bookData
+                  ? { ...bookData, isbn: cleanedIsbn }
+                  : { isbn: cleanedIsbn, title: "", author: "", rentalStatus: "available", renewalCount: 0 },
+                coverUrl,
+                hasCover: coverResult.exists,
+                coverBlob: coverResult.blob,
+                coverSource: coverResult.source,
+              }
             : entry,
         ),
       );
-      playSound("scan");
-      toast.success(
-        `"${existingEntry.bookData.title || cleanedIsbn}" - jetzt ${existingEntry.quantity + 1} Exemplare`,
-      );
-      setIsbnInput("");
+
+      if (bookData) {
+        playSound("success");
+        const coverInfo = coverResult.exists ? ` (Cover von ${coverResult.source})` : "";
+        toast.success(`"${bookData.title}" gefunden${coverInfo}`);
+      } else {
+        playSound("error");
+        toast.warning("ISBN nicht in Datenbank gefunden - manuelle Eingabe möglich");
+      }
+    },
+    [entries],
+  );
+
+  // ── Camera handler ────────────────────────────────────────────────────────
+
+  const handleCameraDetected = useCallback(
+    (isbn: string) => {
+      setCameraOpen(false);
       inputRef.current?.focus();
+      processIsbn(isbn);
+    },
+    [processIsbn],
+  );
+
+  // ── Scan handler ──────────────────────────────────────────────────────────
+
+  const handleScan = useCallback(async () => {
+    if (!isbnInput.trim()) {
+      toast.warning("Bitte eine gültige ISBN eingeben");
       return;
     }
-
-    playSound("scan");
-
-    const newEntry: ScannedEntry = {
-      id: generateId(),
-      isbn: cleanedIsbn,
-      status: "loading",
-      bookData: { isbn: cleanedIsbn },
-      quantity: 1,
-    };
-
-    setEntries((prev) => [newEntry, ...prev]);
     setIsbnInput("");
     inputRef.current?.focus();
-
-    const [bookData, coverResult] = await Promise.all([
-      fetchBookDataByIsbn(cleanedIsbn),
-      checkCoverExists(cleanedIsbn),
-    ]);
-
-    const coverUrl =
-      coverResult.exists && coverResult.blob
-        ? URL.createObjectURL(coverResult.blob)
-        : undefined;
-
-    setEntries((prev) =>
-      prev.map((entry) =>
-        entry.id === newEntry.id
-          ? {
-              ...entry,
-              status: bookData ? "found" : "not_found",
-              bookData: bookData
-                ? { ...bookData, isbn: cleanedIsbn }
-                : {
-                    isbn: cleanedIsbn,
-                    title: "",
-                    author: "",
-                    rentalStatus: "available",
-                    renewalCount: 0,
-                  },
-              coverUrl,
-              hasCover: coverResult.exists,
-              coverBlob: coverResult.blob,
-              coverSource: coverResult.source,
-            }
-          : entry,
-      ),
-    );
-
-    if (bookData) {
-      playSound("success");
-      const coverInfo = coverResult.exists
-        ? ` (Cover von ${coverResult.source})`
-        : "";
-      toast.success(`"${bookData.title}" gefunden${coverInfo}`);
-    } else {
-      playSound("error");
-      toast.warning(
-        "ISBN nicht in Datenbank gefunden - manuelle Eingabe möglich",
-      );
-    }
-  }, [isbnInput, entries]);
+    await processIsbn(isbnInput);
+  }, [isbnInput, processIsbn]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -435,6 +445,13 @@ export default function BatchScan() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
+    <>
+    {cameraOpen && (
+      <CameraScanner
+        onDetected={handleCameraDetected}
+        onClose={() => setCameraOpen(false)}
+      />
+    )}
     <Layout>
       <Head>
         <title>Batch-Scan | OpenLibry</title>
@@ -460,8 +477,17 @@ export default function BatchScan() {
                       autoFocus
                       placeholder="ISBN hier scannen oder eingeben…"
                       data-cy="batch-scan-isbn-input"
-                      className="pl-10 h-11"
+                      className="pl-10 pr-10 h-11"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setCameraOpen(true)}
+                      aria-label="Kamera-Scanner öffnen"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2
+                                 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Camera className="size-5" />
+                    </button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1.5 ml-1">
                     Gleiche ISBN mehrfach scannen erhöht die Anzahl
@@ -589,5 +615,6 @@ export default function BatchScan() {
         </div>
       </TooltipProvider>
     </Layout>
+    </>
   );
 }
