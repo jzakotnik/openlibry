@@ -5,7 +5,7 @@ import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const RELATED_LIMIT = 6;
+const RELATED_LIMIT = 5;
 
 function parseTopics(raw: string | null | undefined): string[] {
   if (!raw) return [];

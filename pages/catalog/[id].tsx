@@ -320,10 +320,8 @@ export default function CatalogDetailPage({ book }: CatalogDetailProps) {
 export const getServerSideProps: GetServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const baseUrl =
-    process.env.NEXTAUTH_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    "http://localhost:3000";
+  const host = context.req.headers.host ?? "localhost:3000";
+  const baseUrl = `http://${host}`;
 
   const id = context.params?.id as string;
 

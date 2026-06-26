@@ -163,12 +163,10 @@ export default function Catalog({
 // =============================================================================
 
 export const getServerSideProps: GetServerSideProps = async (
-  _context: GetServerSidePropsContext,
+  context: GetServerSidePropsContext,
 ) => {
-  const baseUrl =
-    process.env.NEXTAUTH_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    "http://localhost:3000";
+  const host = context.req.headers.host ?? "localhost:3000";
+  const baseUrl = `http://${host}`;
 
   const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
     ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
