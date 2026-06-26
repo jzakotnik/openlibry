@@ -10,6 +10,11 @@ import {
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
@@ -19,11 +24,13 @@ import { generateId } from "@/lib/utils/id";
 import {
   AlertTriangle,
   CheckCircle,
+  ChevronDown,
   Image,
   Loader2,
   PlusCircle,
   Save,
   ScanBarcode,
+  Settings2,
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -45,6 +52,7 @@ export default function BatchScan() {
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [batchLocation, setBatchLocation] = useState("");
+  const [presetOpen, setPresetOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -573,34 +581,54 @@ export default function BatchScan() {
             </Card>
           )}
 
-          {/* Batch location preset */}
-          <Card className="mb-4">
-            <CardContent className="pt-5 pb-4">
-              <h2 className="text-base font-semibold mb-3">
-                Standort für alle Bücher
-              </h2>
-              <div className="flex flex-col sm:flex-row gap-3 items-end">
-                <div className="flex-1">
-                  <LocationCombobox
-                    value={batchLocation}
-                    onChange={setBatchLocation}
-                    label="Standard-Standort"
-                  />
-                </div>
-                {entries.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleApplyLocationToAll}
-                    disabled={!batchLocation.trim()}
-                    className="shrink-0 h-9"
-                  >
-                    Auf alle anwenden
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Book preset properties */}
+          <Collapsible open={presetOpen} onOpenChange={setPresetOpen}>
+            <Card className="mb-4">
+              <CardContent className="pt-4 pb-4">
+                <CollapsibleTrigger asChild>
+                  <button className="flex w-full items-center justify-between gap-2 text-left">
+                    <div className="flex items-center gap-2">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-semibold">
+                        Buchvoreinstellungen
+                      </span>
+                      {batchLocation && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          · {batchLocation}
+                        </span>
+                      )}
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${presetOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="mt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 items-end">
+                    <div className="flex-1">
+                      <LocationCombobox
+                        value={batchLocation}
+                        onChange={setBatchLocation}
+                        label="Standard-Standort"
+                      />
+                    </div>
+                    {entries.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleApplyLocationToAll}
+                        disabled={!batchLocation.trim()}
+                        className="shrink-0 h-9"
+                      >
+                        Auf alle anwenden
+                      </Button>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </CardContent>
+            </Card>
+          </Collapsible>
 
           {/* Entries List */}
           {entries.length === 0 ? (
