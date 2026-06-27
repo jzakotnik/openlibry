@@ -57,22 +57,28 @@ export function useBookSearch(
     [extraSearchableFields.join(",")],
   ) as any;
 
+  // Stable fingerprint: only changes when books are actually added, removed,
+  // or modified. Prevents itemsjs rebuilds on SWR reference churn (e.g. the
+  // rental page polls every 1s and would otherwise rebuild the index every tick
+  // even when no data changed).
+  const booksFingerprint = books
+    .map((b) => `${b.id}:${b.updatedAt ?? ""}`)
+    .join(",");
+
   // ── Deferred index construction ────────────────────────────────────────────
   // Runs *after* the browser has painted the page, so the book list is visible
   // before we spend time building the itemsjs index.
   useEffect(() => {
-    // Reset to null immediately when books change so stale index isn't used
     setSearchEngine(null);
 
-    // Yield to the browser with setTimeout so paint happens first,
-    // then build the index on the next task.
     const id = setTimeout(() => {
       const engine = itemsjs(books, { searchableFields });
       setSearchEngine(engine);
     }, 0);
 
     return () => clearTimeout(id);
-  }, [books, searchableFields]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booksFingerprint, searchableFields]);
 
   const searchBooks = useCallback(
     (query: string) => {
