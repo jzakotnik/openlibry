@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { useRouter } from "next/router";
-import { Dispatch, useCallback, useState } from "react";
+import { Dispatch, useCallback, useRef, useState } from "react";
 
 import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
@@ -134,6 +134,8 @@ export default function BookEditForm({
   const [fetchingCover, setFetchingCover] = useState(false);
   const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const bookRef = useRef(book);
+  bookRef.current = book;
   const router = useRouter();
 
   const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
@@ -234,9 +236,9 @@ export default function BookEditForm({
   const handleCameraDetected = useCallback(
     (isbn: string) => {
       setCameraOpen(false);
-      setBookData({ ...book, isbn });
+      setBookData({ ...bookRef.current, isbn });
     },
-    [book, setBookData],
+    [setBookData],
   );
 
   // ── Sub-components ────────────────────────────────────────────────────────
