@@ -1,3 +1,4 @@
+import { cleanIsbn } from "@/lib/utils/isbn";
 import type { SourcedTag } from "../types";
 
 /**
@@ -70,7 +71,7 @@ function extractSubjects(xml: string): string[] {
 export async function fetchDnbCandidates(
   isbn: string | undefined | null,
 ): Promise<SourcedTag[]> {
-  const clean = (isbn ?? "").replace(/[^0-9X]/gi, "");
+  const clean = cleanIsbn(isbn);
   if (!clean) return [];
 
   const url =

@@ -1,3 +1,4 @@
+import { cleanIsbn } from "@/lib/utils/isbn";
 import type { SourcedTag } from "../types";
 
 /**
@@ -19,7 +20,7 @@ const NOISE = /language materials|large type|reading level|accessible book|^fict
 export async function fetchOpenLibraryCandidates(
   isbn: string | undefined | null,
 ): Promise<SourcedTag[]> {
-  const clean = (isbn ?? "").replace(/[^0-9X]/gi, "");
+  const clean = cleanIsbn(isbn);
   if (!clean) return [];
 
   const url = `${BASE}?bibkeys=ISBN:${clean}&format=json&jscmd=data`;
