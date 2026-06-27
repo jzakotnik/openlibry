@@ -47,7 +47,7 @@ describe("Public book catalog", () => {
     cy.get("[data-cy^=book_summary_card_]")
       .its("length")
       .then((totalCount) => {
-        cy.get("[data-cy=rental_input_searchbook]").click().type("a");
+        cy.get("[data-cy=rental_input_searchbook]").click().type("editierbar");
         cy.get("[data-cy^=book_summary_card_]").should(
           "have.length.lessThan",
           totalCount,
