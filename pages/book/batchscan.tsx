@@ -459,7 +459,7 @@ export default function BatchScan() {
   const handleTagAll = useCallback(async () => {
     const taggable = entries.filter((e) => e.bookData.title);
     if (taggable.length === 0) {
-      toast.warning("Keine Einträge mit Titel zum Taggen");
+      toast.warning(t("aiTagging.batchNoTaggable"));
       return;
     }
 
@@ -486,7 +486,7 @@ export default function BatchScan() {
       });
       const data = await res.json();
       if (!res.ok || data.enabled === false) {
-        toast.warning("Keine Vorschläge verfügbar");
+        toast.warning(t("aiTagging.toastNoSuggestions"));
         return;
       }
 
@@ -525,10 +525,15 @@ export default function BatchScan() {
       );
 
       if (taggedCount === 0) {
-        toast.info("Keine neuen Schlagwörter vorgeschlagen");
+        toast.info(t("aiTagging.toastNoNewTags"));
       } else {
         toast.success(
-          `${taggedCount} Einträge getaggt${newTagCount > 0 ? ` (${newTagCount} neue Schlagwörter)` : ""}`,
+          newTagCount > 0
+            ? t("aiTagging.batchTaggedSummaryNew", {
+                count: taggedCount,
+                newCount: newTagCount,
+              })
+            : t("aiTagging.batchTaggedSummary", { count: taggedCount }),
         );
       }
     } catch {
@@ -690,12 +695,12 @@ export default function BatchScan() {
                         {isTagging ? (
                           <>
                             <Loader2 className="animate-spin" />
-                            Tagge…
+                            {t("aiTagging.batchTagging")}
                           </>
                         ) : (
                           <>
                             <Sparkles />
-                            Alle taggen
+                            {t("aiTagging.batchTagAll")}
                           </>
                         )}
                       </Button>

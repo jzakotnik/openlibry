@@ -1,3 +1,4 @@
+import { LOCALE } from "@/lib/i18n";
 import type { BookTagInput, RankedTag, SourcedTag } from "./types";
 
 /**
@@ -6,6 +7,13 @@ import type { BookTagInput, RankedTag, SourcedTag } from "./types";
  * owns its SDK call + schema shape, not the wording or the JSON contract — so
  * the providers stay comparable and a prompt change lands in one place.
  */
+
+/** Human language name for the deployment locale — the tag output language. */
+const TARGET_LANGUAGE: Record<string, string> = {
+  de: "Deutsch",
+  en: "English",
+  es: "Español",
+};
 
 export const SYSTEM_PROMPT = [
   "Du bist die Assistenz einer Schulbibliothek und vergibst Schlagwörter (Tags)",
@@ -25,7 +33,8 @@ export const SYSTEM_PROMPT = [
   "- Bevorzuge die vorhandene Schreibweise eines Schlagworts, wenn es sie gibt.",
   "- Erfinde nur dann ein neues Schlagwort, wenn die Kandidaten das Buch nicht",
   "  abdecken.",
-  "- Schreibe Schlagwörter in derselben Sprache wie die vorhandene Liste.",
+  `- Gib ALLE Schlagwörter in dieser Sprache aus: ${TARGET_LANGUAGE[LOCALE] ?? "Deutsch"}.`,
+  "  Übersetze fremdsprachige Kandidaten entsprechend.",
   "- Schlagwörter sind kurze Substantive oder Nominalphrasen, kein Satz.",
   "- Verwende niemals ein Semikolon in einem Schlagwort.",
 ].join("\n");
