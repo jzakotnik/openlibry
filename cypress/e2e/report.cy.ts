@@ -1,11 +1,11 @@
 /// <reference types="cypress" />
 describe("Various Reports show data", () => {
   before(() => {
-    cy.resetDatabase();
+    cy.resetAndSeed();
   });
 
   after(() => {
-    cy.cleanupDatabase();
+    cy.clearDatabase();
   });
 
   beforeEach(() => {
@@ -17,18 +17,14 @@ describe("Various Reports show data", () => {
   it("should navigate to the rental screen and display rental data", () => {
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_reports_button]").click();
-
     cy.url().should("include", "/reports");
 
     cy.get("[data-cy=report-card-rentals-button]", { timeout: 15000 })
       .should("be.visible")
       .click();
-
     cy.url().should("include", "/reports/rentals");
 
-    cy.get("[data-cy=rentals-datagrid]", { timeout: 15000 }).should(
-      "be.visible",
-    );
+    cy.get("[data-cy=rentals-datagrid]", { timeout: 15000 }).should("be.visible");
     cy.get("[data-cy=rentals-error]").should("not.exist");
     cy.get("[data-cy=rentals-no-data]").should("not.exist");
 

@@ -85,6 +85,7 @@ const BookList = React.memo(function BookList({
               key={b.id}
               className="rounded-lg border border-border bg-card shadow-sm overflow-visible"
               data-cy={`book_item_${b.id}`}
+              data-rental-status={b.rentalStatus}
             >
               {/* HEADER ROW */}
               <div

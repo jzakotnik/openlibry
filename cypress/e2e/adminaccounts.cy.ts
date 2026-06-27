@@ -19,11 +19,11 @@ function logout() {
 describe("Admin account management", () => {
   before(() => {
     cy.viewport(1280, 800);
-    cy.resetDatabase();
+    cy.resetAndSeed();
   });
 
   after(() => {
-    cy.cleanupDatabase();
+    cy.clearDatabase();
   });
 
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe("Admin account management", () => {
 
     cy.contains("[data-cy=account_username]", NEW_USER).should("be.visible");
 
-    // ── Step 2: log out and log in as new account — no cy.session ────
+    // ── Step 2: log out and log in as new account — bypass cy.session ─
     logout();
 
     cy.get('input[id="user"]').type(NEW_USER);
@@ -60,9 +60,11 @@ describe("Admin account management", () => {
     cy.get('input[id="password"]').type("{enter}");
     cy.get("[data-cy=indexpage]").should("be.visible");
 
-    // ── Step 3: log out and switch back to original user ─────────────
+    // ── Step 3: log out and switch back to the seeded admin ───────────
     logout();
 
+    // Invalidate the cached session so cy.session re-runs login with the
+    // original seeded credentials rather than reusing the new-user cookie.
     cy.session("accounts-admin-session", () => {
       cy.login();
     });

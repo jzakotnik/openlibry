@@ -1,0 +1,93 @@
+[
+  {
+    "_comment": "Grade 1 — used for new-intake / grade-promotion tests",
+    "firstName": "Emma",
+    "lastName": "Pfau",
+    "schoolGrade": "1",
+    "schoolTeacherName": "Frau Müller",
+    "active": true
+  },
+  {
+    "firstName": "Jonas",
+    "lastName": "Berens",
+    "schoolGrade": "1",
+    "schoolTeacherName": "Frau Müller",
+    "active": true
+  },
+  {
+    "_comment": "Grade 2 — Magnus Pesch is searched by name in rental.cy.ts",
+    "firstName": "Magnus",
+    "lastName": "Pesch",
+    "schoolGrade": "2",
+    "schoolTeacherName": "Herr Schmidt",
+    "active": true
+  },
+  {
+    "firstName": "Lena",
+    "lastName": "Hübner",
+    "schoolGrade": "2",
+    "schoolTeacherName": "Herr Schmidt",
+    "active": true
+  },
+  {
+    "_comment": "Grade 3",
+    "firstName": "Noah",
+    "lastName": "Ullrich",
+    "schoolGrade": "3",
+    "schoolTeacherName": "Frau Weber",
+    "active": true
+  },
+  {
+    "firstName": "Mia",
+    "lastName": "Johannsen",
+    "schoolGrade": "3",
+    "schoolTeacherName": "Frau Weber",
+    "active": true
+  },
+  {
+    "_comment": "Grade 4",
+    "firstName": "David",
+    "lastName": "Limmer",
+    "schoolGrade": "4",
+    "schoolTeacherName": "Herr Klockmann",
+    "active": true
+  },
+  {
+    "firstName": "Hannah",
+    "lastName": "Ertl",
+    "schoolGrade": "4",
+    "schoolTeacherName": "Herr Klockmann",
+    "active": true
+  },
+  {
+    "_comment": "Grade 4b — used for rental extension tests (bookB* fixtures point to this user)",
+    "firstName": "Cypress",
+    "lastName": "Rentaltest",
+    "schoolGrade": "4b",
+    "schoolTeacherName": "Frau Testlehrerin",
+    "active": true
+  },
+  {
+    "_comment": "Grade 5",
+    "firstName": "Luuk",
+    "lastName": "Büchner",
+    "schoolGrade": "5",
+    "schoolTeacherName": "Herr Klockmann",
+    "active": true
+  },
+  {
+    "firstName": "Minouche",
+    "lastName": "Willer",
+    "schoolGrade": "5",
+    "schoolTeacherName": "Herr Klockmann",
+    "active": true
+  },
+  {
+    "_comment": "Inactive user — for filtering / export tests",
+    "firstName": "Archiv",
+    "lastName": "Inaktiv",
+    "schoolGrade": "4",
+    "schoolTeacherName": "",
+    "active": false
+  }
+]
