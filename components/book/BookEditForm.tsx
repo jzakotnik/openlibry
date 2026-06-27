@@ -10,6 +10,7 @@ import { t } from "@/lib/i18n";
 import React from "react";
 import { toast } from "sonner";
 import HoldButton from "../layout/HoldButton";
+import CameraScanner from "./CameraScanner";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
@@ -132,6 +133,7 @@ export default function BookEditForm({
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const [fetchingCover, setFetchingCover] = useState(false);
   const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const router = useRouter();
 
   const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
@@ -228,6 +230,14 @@ export default function BookEditForm({
   }, [book.isbn, book.id]);
 
   const handleAntolinClick = () => setAntolinDetailsDialog(true);
+
+  const handleCameraDetected = useCallback(
+    (isbn: string) => {
+      setCameraOpen(false);
+      setBookData({ ...book, isbn });
+    },
+    [book, setBookData],
+  );
 
   // ── Sub-components ────────────────────────────────────────────────────────
 
@@ -330,6 +340,13 @@ export default function BookEditForm({
       className="mt-8 bg-card rounded-2xl shadow-sm border border-border px-4 sm:px-6 lg:px-8 py-6"
       data-cy="book-edit-form"
     >
+      {cameraOpen && (
+        <CameraScanner
+          onDetected={handleCameraDetected}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
+
       <BookAntolinDialog
         open={antolinDetailsDialog}
         setOpen={setAntolinDetailsDialog}
@@ -387,6 +404,7 @@ export default function BookEditForm({
             setBookData={setBookData}
             book={book}
             autoFocus={isNewBook}
+            onCameraClick={() => setCameraOpen(true)}
           />
         </div>
 

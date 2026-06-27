@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
+import { Camera } from "lucide-react";
 import { Dispatch } from "react";
 
 type BookFieldProps = {
@@ -14,6 +15,8 @@ type BookFieldProps = {
   variant?: "text" | "textarea" | "number";
   /** Auto-focus this field on mount */
   autoFocus?: boolean;
+  /** If provided, renders a camera button inside the input (ISBN field only) */
+  onCameraClick?: () => void;
 };
 
 const BookField = ({
@@ -23,6 +26,7 @@ const BookField = ({
   book,
   variant = "text",
   autoFocus = false,
+  onCameraClick,
 }: BookFieldProps) => {
   const label = (translations["books"] as any)[fieldType] ?? fieldType;
   const value = (book as any)[fieldType] ?? "";
@@ -53,6 +57,28 @@ const BookField = ({
           onChange={handleChange}
           className="resize-y min-h-[2.5rem]"
         />
+      ) : onCameraClick ? (
+        <div className="relative">
+          <Input
+            data-cy={`book-${fieldType}-field`}
+            id={fieldType}
+            name={fieldType}
+            type={variant === "number" ? "number" : "text"}
+            value={value}
+            disabled={!editable}
+            autoFocus={autoFocus}
+            onChange={handleChange}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={onCameraClick}
+            aria-label="Kamera-Scanner öffnen"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Camera className="size-4" />
+          </button>
+        </div>
       ) : (
         <Input
           data-cy={`book-${fieldType}-field`}

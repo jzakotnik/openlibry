@@ -4,6 +4,7 @@
   "private": false,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:https": "NEXTAUTH_URL=https://192.168.1.100:3002 next dev --turbopack --port 3002 --experimental-https --experimental-https-key ./certs/192.168.1.100+1-key.pem --experimental-https-cert ./certs/192.168.1.100+1.pem --hostname 0.0.0.0",
     "build": "next build",
     "analyze": "ANALYZE=true next experimental-analyze",
     "start": "next start",
