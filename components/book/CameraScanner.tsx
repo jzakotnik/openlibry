@@ -1,5 +1,6 @@
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 import { NotFoundException } from "@zxing/library";
+import { isIsbnLike, normalizeIsbn } from "@/lib/isbn-services/types";
 import { Camera, CameraOff, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -14,6 +15,7 @@ export default function CameraScanner({
 }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
+  const cancelledRef = useRef(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export default function CameraScanner({
   const startScanner = useCallback(
     async (deviceId?: string) => {
       if (!videoRef.current) return;
+      cancelledRef.current = false;
       stopScanner();
       setError(null);
 
@@ -44,13 +47,13 @@ export default function CameraScanner({
           (result, err) => {
             if (detected) return;
             if (result) {
-              const text = result.getText().replace(/-/g, "");
-              if (/^\d{10,13}$/.test(text)) {
+              const text = result.getText();
+              if (isIsbnLike(text)) {
                 detected = true;
                 controlsRef.current?.stop();
                 controlsRef.current = null;
                 setScanning(false);
-                onDetected(text);
+                onDetected(normalizeIsbn(text));
               }
             }
             if (err && !(err instanceof NotFoundException)) {
@@ -58,8 +61,10 @@ export default function CameraScanner({
             }
           },
         );
-        // If detection fired before controls was returned, stop it now.
-        if (detected) {
+        // If detection fired before controls was returned, or the component
+        // was closed/unmounted while awaiting, stop the stream now — otherwise
+        // controlsRef would hold a stream nobody stops (camera stays on).
+        if (detected || cancelledRef.current) {
           controls.stop();
         } else {
           controlsRef.current = controls;
@@ -89,7 +94,10 @@ export default function CameraScanner({
       })
       .catch(() => setError("Kamerazugriff nicht möglich."));
 
-    return () => stopScanner();
+    return () => {
+      cancelledRef.current = true;
+      stopScanner();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

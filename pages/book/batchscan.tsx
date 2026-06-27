@@ -151,7 +151,9 @@ export default function BatchScan() {
   // ── Scan handler ──────────────────────────────────────────────────────────
 
   const handleScan = useCallback(async () => {
-    if (!isbnInput.trim()) {
+    // Warn (and keep the input) when nothing usable was entered, instead of
+    // silently clearing — processIsbn strips non-digits and returns quietly.
+    if (!isbnInput.trim().replace(/\D/g, "")) {
       toast.warning("Bitte eine gültige ISBN eingeben");
       return;
     }
