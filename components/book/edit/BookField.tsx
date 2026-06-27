@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
+import { t } from "@/lib/i18n";
 import { Camera } from "lucide-react";
 import { Dispatch } from "react";
 
@@ -73,8 +74,9 @@ const BookField = ({
           <button
             type="button"
             onClick={onCameraClick}
-            aria-label="Kamera-Scanner öffnen"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+            disabled={!editable}
+            aria-label={t("bookEditForm.openCameraScanner")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Camera className="size-4" />
           </button>

@@ -248,6 +248,7 @@ export const es: Dictionary = {
     toastCoverSourceUnknown: "desconocido",
     toastCoverNotFound: "No se pudo encontrar la portada.",
     toastCoverLoadError: "Error al cargar la portada.",
+    openCameraScanner: "Abrir escáner de cámara",
   },
   bookSelect: {
     renewalNone: "No renovado",
