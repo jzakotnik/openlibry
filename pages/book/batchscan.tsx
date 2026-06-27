@@ -46,6 +46,7 @@ export default function BatchScan() {
   const [importProgress, setImportProgress] = useState(0);
   const [aiTaggingEnabled, setAiTaggingEnabled] = useState(false);
   const [isTagging, setIsTagging] = useState(false);
+  const [libraryTopics, setLibraryTopics] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,6 +59,15 @@ export default function BatchScan() {
     fetch("/api/book/aiTaggingStatus")
       .then((r) => r.json())
       .then((d) => setAiTaggingEnabled(!!d.enabled))
+      .catch(() => {});
+  }, []);
+
+  // Load the library's topic vocabulary so the shared tag editor can color tags
+  // green (already in the library) vs blue (new). Failure is silent.
+  useEffect(() => {
+    fetch("/api/book/topics")
+      .then((r) => r.json())
+      .then((d) => setLibraryTopics(d.topics ?? []))
       .catch(() => {});
   }, []);
 
@@ -428,6 +438,7 @@ export default function BatchScan() {
         body: JSON.stringify({
           books: taggable.map((e) => ({
             ref: e.id,
+            isbn: e.isbn,
             title: e.bookData.title,
             subtitle: e.bookData.subtitle,
             author: e.bookData.author,
@@ -698,6 +709,8 @@ export default function BatchScan() {
                   onUpdateQuantity={handleUpdateQuantity}
                   onSetQuantity={handleSetQuantity}
                   onRetry={handleRetry}
+                  libraryTopics={libraryTopics}
+                  aiTaggingEnabled={aiTaggingEnabled}
                 />
               ))}
             </div>

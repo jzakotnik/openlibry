@@ -462,6 +462,8 @@ export default function BookEditForm({
                 book={book}
                 topics={topics}
                 aiTaggingEnabled={aiTaggingEnabled}
+                autoSuggest={isNewBook}
+                isAutoFilling={isAutoFilling}
               />
               <AntolinResult />
             </div>

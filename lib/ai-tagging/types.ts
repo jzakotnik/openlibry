@@ -16,12 +16,29 @@ export interface RankedTag {
 }
 
 /**
+ * Where a tag came from. Drives provenance shown to staff and the trust model:
+ *  - "dnb":         Deutsche Nationalbibliothek subject/classification (authoritative, German)
+ *  - "openlibrary": Open Library subjects (international/English, strong on fiction)
+ *  - "wikidata":    Wikidata genre/subject (structured, multilingual)
+ *  - "library":     another book in this library (same author/series)
+ *  - "ai":          LLM proposal (reconciled/gap-filled — the only non-deterministic source)
+ */
+export type TagSource = "dnb" | "openlibrary" | "wikidata" | "library" | "ai";
+
+/** A candidate tag from one source, before reconciliation against the vocabulary. */
+export interface SourcedTag {
+  tag: string;
+  source: TagSource;
+}
+
+/**
  * One book to be tagged. `ref` is an opaque caller-supplied id (book id,
  * batch-entry id, …) used to map batched results back to their book.
  * Only bibliographic fields are ever sent to the provider — never user data.
  */
 export interface BookTagInput {
   ref: string;
+  isbn?: string;
   title?: string;
   subtitle?: string;
   author?: string;
@@ -37,6 +54,8 @@ export interface BookTagInput {
 export interface TagSuggestion {
   tag: string;
   isNew: boolean;
+  /** Where the tag originated (provenance shown to staff). */
+  source?: TagSource;
 }
 
 /** Post-processed suggestions for a single book, keyed by its input `ref`. */
@@ -46,15 +65,17 @@ export interface BookTagSuggestions {
 }
 
 /**
- * Pluggable AI tagging provider. `suggest` is the raw model call: it returns,
- * per input ref, a flat list of proposed tag strings. All normalization,
- * vocabulary-snapping, new-tag flagging and capping happens deterministically
- * afterwards in postProcessTags — so providers stay thin.
+ * Pluggable AI tagging provider. `suggest` is the raw model call: given books,
+ * the library vocabulary and grounded source candidates, it returns per input
+ * ref a flat list of chosen/normalized tag strings. All vocabulary-snapping,
+ * provenance assignment, new-tag flagging and capping happens deterministically
+ * afterwards in reconcileTags — so providers stay thin.
  */
 export interface AiTaggingService {
   name: string;
   suggest(
     books: BookTagInput[],
     vocabulary: RankedTag[],
+    candidates: Record<string, SourcedTag[]>,
   ): Promise<Record<string, string[]>>;
 }
