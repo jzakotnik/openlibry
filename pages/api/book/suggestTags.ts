@@ -1,11 +1,13 @@
 import { prisma } from "@/entities/db";
 import {
+  gatherSourceCandidates,
   getAiTaggingService,
   getMaxTags,
-  postProcessTags,
   rankTopics,
+  reconcileTags,
   type BookTagInput,
   type BookTagSuggestions,
+  type SourcedTag,
 } from "@/lib/ai-tagging";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
@@ -54,6 +56,7 @@ export default async function handler(
   // Only bibliographic fields are forwarded to the provider — never user data.
   const books: BookTagInput[] = rawBooks.map((b: any, i: number) => ({
     ref: typeof b?.ref === "string" && b.ref ? b.ref : String(i),
+    isbn: b?.isbn,
     title: b?.title,
     subtitle: b?.subtitle,
     author: b?.author,
@@ -68,11 +71,29 @@ export default async function handler(
   try {
     const vocabulary = await rankTopics(prisma);
     const maxTags = getMaxTags();
-    const raw = await service.suggest(books, vocabulary);
+
+    // Gather grounded candidates for every book in parallel. The same-book
+    // source short-circuits naturally: if an existing copy already has tags they
+    // lead the candidates; otherwise the external sources + author signal carry.
+    const candidateEntries = await Promise.all(
+      books.map(
+        async (b) => [b.ref, await gatherSourceCandidates(prisma, b)] as const,
+      ),
+    );
+    const candidates: Record<string, SourcedTag[]> = Object.fromEntries(
+      candidateEntries,
+    );
+
+    const raw = await service.suggest(books, vocabulary, candidates);
 
     const results: BookTagSuggestions[] = books.map((b) => ({
       ref: b.ref,
-      suggestions: postProcessTags(raw[b.ref] ?? [], vocabulary, maxTags),
+      suggestions: reconcileTags(
+        raw[b.ref] ?? [],
+        candidates[b.ref] ?? [],
+        vocabulary,
+        maxTags,
+      ),
     }));
 
     businessLogger.info(
