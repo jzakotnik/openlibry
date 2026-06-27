@@ -267,6 +267,7 @@ export const de = {
     toastDeleteError: "Fehler beim Löschen des Buches",
     toastBookReturned: "Buch zurückgegeben, super!",
     toastReturnError: "Fehler beim Zurückgeben des Buches",
+    openCameraScanner: "Kamera-Scanner öffnen",
   },
   bookSelect: {
     renewalNone: "Nicht verlängert",

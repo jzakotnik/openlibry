@@ -35,14 +35,21 @@ export default function CameraScanner({
 
       try {
         setScanning(true);
+        // Local flag prevents duplicate detections if the callback fires
+        // before the outer await resolves (controlsRef not yet assigned).
+        let detected = false;
         const controls = await reader.decodeFromVideoDevice(
           deviceId,
           videoRef.current,
           (result, err) => {
+            if (detected) return;
             if (result) {
               const text = result.getText().replace(/-/g, "");
               if (/^\d{10,13}$/.test(text)) {
-                stopScanner();
+                detected = true;
+                controlsRef.current?.stop();
+                controlsRef.current = null;
+                setScanning(false);
                 onDetected(text);
               }
             }
@@ -51,7 +58,12 @@ export default function CameraScanner({
             }
           },
         );
-        controlsRef.current = controls;
+        // If detection fired before controls was returned, stop it now.
+        if (detected) {
+          controls.stop();
+        } else {
+          controlsRef.current = controls;
+        }
       } catch (e: any) {
         setScanning(false);
         if (e?.name === "NotAllowedError") {

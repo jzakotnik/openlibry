@@ -263,6 +263,7 @@ export const es: Dictionary = {
     toastDeleteError: "Error al eliminar el libro",
     toastBookReturned: "¡Libro devuelto, genial!",
     toastReturnError: "Error al devolver el libro",
+    openCameraScanner: "Abrir escáner de cámara",
   },
   bookSelect: {
     renewalNone: "No renovado",
