@@ -10,6 +10,7 @@ import {
 import { BookType } from "@/entities/BookType";
 import { AlertTriangle, Edit, Image, RefreshCw, Trash2 } from "lucide-react";
 
+import BookTopicsChips from "@/components/book/edit/BookTopicsChips";
 import { CoverThumbnail } from "./CoverThumbnail";
 import { EditField } from "./EditField";
 import { InlineChipRow } from "./InlineChipRow";
@@ -29,6 +30,10 @@ export interface BatchScanEntryCardProps {
   onUpdateQuantity: (id: string, delta: number) => void;
   onSetQuantity: (id: string, quantity: number) => void;
   onRetry: (id: string, isbn: string) => void;
+  /** Library topic vocabulary, for the shared tag editor's green/blue coloring. */
+  libraryTopics: string[];
+  /** Whether AI tag suggestions are available (provider key configured). */
+  aiTaggingEnabled: boolean;
 }
 
 const borderColors = {
@@ -47,9 +52,18 @@ export function BatchScanEntryCard({
   onUpdateQuantity,
   onSetQuantity,
   onRetry,
+  libraryTopics,
+  aiTaggingEnabled,
 }: BatchScanEntryCardProps) {
   const borderColor = borderColors[entry.status];
   const isValid = !!entry.bookData.title;
+
+  // Bridge the shared tag editor to the batch card. The editor reads only
+  // bibliographic + topics fields (all present on the partial) and writes back
+  // via setBookData, which we funnel to the card's per-field update.
+  const bookData = entry.bookData as BookType;
+  const setTopics = (updated: BookType) =>
+    onUpdateBookData(entry.id, "topics", updated.topics ?? "");
 
   return (
     <Card
@@ -206,7 +220,20 @@ export function BatchScanEntryCard({
                     )}
                   </div>
 
-                  {/* Inline chip row for quick edits */}
+                  {/* Shared tag editor — same edit + AI-suggest flow as the
+                      single book form */}
+                  <div className="mt-2.5 pt-2.5 border-t border-dashed border-gray-100">
+                    <BookTopicsChips
+                      fieldType="topics"
+                      editable
+                      book={bookData}
+                      setBookData={setTopics}
+                      topics={libraryTopics}
+                      aiTaggingEnabled={aiTaggingEnabled}
+                    />
+                  </div>
+
+                  {/* Inline chip row for quick edits (numeric fields) */}
                   <InlineChipRow
                     entry={entry}
                     onUpdateBookData={onUpdateBookData}
@@ -270,11 +297,16 @@ export function BatchScanEntryCard({
                     onUpdateBookData(entry.id, "publisherDate", v)
                   }
                 />
-                <EditField
-                  label="Schlagwörter"
-                  value={entry.bookData.topics || ""}
-                  onChange={(v) => onUpdateBookData(entry.id, "topics", v)}
-                />
+                <div className="sm:col-span-2">
+                  <BookTopicsChips
+                    fieldType="topics"
+                    editable
+                    book={bookData}
+                    setBookData={setTopics}
+                    topics={libraryTopics}
+                    aiTaggingEnabled={aiTaggingEnabled}
+                  />
+                </div>
                 <EditField
                   label="Seiten"
                   value={String(entry.bookData.pages || "")}
