@@ -15,6 +15,7 @@
     "test:e2e:ui": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test dev http-get://localhost:3000 cypress"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@auth/prisma-adapter": "^2.10.0",
     "@prisma/adapter-better-sqlite3": "^7.0.1",
     "@prisma/client": "^7.0.1",

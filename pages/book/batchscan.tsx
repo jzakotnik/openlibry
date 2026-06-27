@@ -23,6 +23,7 @@ import {
   PlusCircle,
   Save,
   ScanBarcode,
+  Sparkles,
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -43,10 +44,21 @@ export default function BatchScan() {
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [aiTaggingEnabled, setAiTaggingEnabled] = useState(false);
+  const [isTagging, setIsTagging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // Discover whether AI tagging is configured (provider key present). No key →
+  // the "Tag all" button never renders and this page behaves exactly as before.
+  useEffect(() => {
+    fetch("/api/book/aiTaggingStatus")
+      .then((r) => r.json())
+      .then((d) => setAiTaggingEnabled(!!d.enabled))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -399,6 +411,89 @@ export default function BatchScan() {
     }
   }, [entries]);
 
+  // ── AI tagging ──────────────────────────────────────────────────────────────
+
+  const handleTagAll = useCallback(async () => {
+    const taggable = entries.filter((e) => e.bookData.title);
+    if (taggable.length === 0) {
+      toast.warning("Keine Einträge mit Titel zum Taggen");
+      return;
+    }
+
+    setIsTagging(true);
+    try {
+      const res = await fetch("/api/book/suggestTags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          books: taggable.map((e) => ({
+            ref: e.id,
+            title: e.bookData.title,
+            subtitle: e.bookData.subtitle,
+            author: e.bookData.author,
+            summary: e.bookData.summary,
+            topics: e.bookData.topics,
+            publisherName: e.bookData.publisherName,
+            publisherDate: e.bookData.publisherDate,
+            minAge: e.bookData.minAge,
+            maxAge: e.bookData.maxAge,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.enabled === false) {
+        toast.warning("Keine Vorschläge verfügbar");
+        return;
+      }
+
+      // Merge suggested tags into each entry's editable topics field. Nothing is
+      // persisted until Import, so this is "propose" — staff review/edit first.
+      const byRef = new Map<string, { tag: string; isNew: boolean }[]>(
+        (data.results ?? []).map((r: any) => [r.ref, r.suggestions ?? []]),
+      );
+      let taggedCount = 0;
+      let newTagCount = 0;
+
+      setEntries((prev) =>
+        prev.map((entry) => {
+          const sugg = byRef.get(entry.id);
+          if (!sugg || sugg.length === 0) return entry;
+
+          const existing = (entry.bookData.topics ?? "")
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const merged = [...existing];
+          for (const s of sugg) {
+            if (!merged.includes(s.tag)) {
+              merged.push(s.tag);
+              if (s.isNew) newTagCount++;
+            }
+          }
+          if (merged.length === existing.length) return entry;
+          taggedCount++;
+          return {
+            ...entry,
+            bookData: { ...entry.bookData, topics: merged.join(";") },
+            status: "edited",
+          };
+        }),
+      );
+
+      if (taggedCount === 0) {
+        toast.info("Keine neuen Schlagwörter vorgeschlagen");
+      } else {
+        toast.success(
+          `${taggedCount} Einträge getaggt${newTagCount > 0 ? ` (${newTagCount} neue Schlagwörter)` : ""}`,
+        );
+      }
+    } catch {
+      toast.error("Fehler beim Taggen");
+    } finally {
+      setIsTagging(false);
+    }
+  }, [entries]);
+
   // ── Stats ─────────────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
@@ -523,6 +618,27 @@ export default function BatchScan() {
                     >
                       Alle löschen
                     </Button>
+                    {aiTaggingEnabled && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTagAll}
+                        disabled={isTagging || isImporting || entries.length === 0}
+                        className="text-primary border-primary/30 hover:bg-primary/10"
+                      >
+                        {isTagging ? (
+                          <>
+                            <Loader2 className="animate-spin" />
+                            Tagge…
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles />
+                            Alle taggen
+                          </>
+                        )}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       onClick={handleImport}

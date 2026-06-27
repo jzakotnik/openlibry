@@ -40,6 +40,7 @@ type BookEditFormPropType = {
   autofillAttempted?: boolean;
   onAutoFill?: (isbn: string) => Promise<void>;
   isAutoFilling?: boolean;
+  aiTaggingEnabled?: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -126,6 +127,7 @@ export default function BookEditForm({
   autofillAttempted = false,
   onAutoFill,
   isAutoFilling: externalIsAutoFilling,
+  aiTaggingEnabled = false,
 }: BookEditFormPropType) {
   const [editable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1);
@@ -459,6 +461,7 @@ export default function BookEditForm({
                 setBookData={setBookData}
                 book={book}
                 topics={topics}
+                aiTaggingEnabled={aiTaggingEnabled}
               />
               <AntolinResult />
             </div>
