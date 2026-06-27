@@ -128,6 +128,7 @@ export default function Rental({
     } catch {
       toast.error(t("rentalPage.serverUnreachable"));
     }
+    mutate();
   };
 
   return (

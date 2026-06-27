@@ -1,9 +1,5 @@
 /// <reference types="cypress" />
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Test data — all fields that appear in BookEditForm
-// ─────────────────────────────────────────────────────────────────────────────
-
 const testBook = {
   isbn: "9783791504285",
   title: "Cypress Feldtest Buch",
@@ -30,7 +26,6 @@ const testBook = {
   supplierComment: "Direkt vom Verlag bezogen",
 };
 
-// All rental statuses — raw values only, no display labels
 const allStatuses: string[] = [
   "available",
   "rented",
@@ -41,28 +36,23 @@ const allStatuses: string[] = [
   "remote",
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper: interact with shadcn/ui <Select> by value, not display label
-// ─────────────────────────────────────────────────────────────────────────────
-
 function selectOption(triggerId: string, optionValue: string) {
   cy.get(`#${triggerId}`).click();
   cy.get(`[data-cy=option-${optionValue}]`).click();
   cy.get("[role=option]").should("not.exist");
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Suite
-// ─────────────────────────────────────────────────────────────────────────────
-
 describe("Book fields — fill all and verify persistence", () => {
+  let bookId: number;
+
   before(() => {
-    cy.resetDatabase();
-    cy.task("logDatabaseState");
+    cy.resetAndSeed().then((ids) => {
+      bookId = ids.bookIdByLabel["bookEdit"];
+    });
   });
 
   after(() => {
-    cy.task("cleanupDatabase");
+    cy.clearDatabase();
   });
 
   beforeEach(() => {
@@ -74,27 +64,16 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.visit("http://localhost:3000/");
   });
 
-  afterEach(() => {
-    cy.task("logDatabaseState");
-  });
-
-  // ── 1. Fill every field and save ─────────────────────────────────────────
-
   it("should fill all fields and save successfully", () => {
-    cy.navigateToBookEdit(Cypress.env("bookid"));
+    cy.navigateToBookEdit(String(bookId));
 
     cy.intercept("PUT", "/api/book/*").as("saveBook");
 
-    // ── ISBN ─────────────────────────────────────────────────────────────
     cy.get("[data-cy=book-isbn-field]").clear().type(testBook.isbn);
-
-    // ── Stammdaten des Buchs ─────────────────────────────────────────────
     cy.get("[data-cy=book-title-field]").clear().type(testBook.title);
     cy.get("[data-cy=book-author-field]").clear().type(testBook.author);
     cy.get("[data-cy=book-subtitle-field]").clear().type(testBook.subtitle);
     cy.get("[data-cy=book-summary-field]").clear().type(testBook.summary);
-
-    // ── Verlag & Ausgabe ─────────────────────────────────────────────────
     cy.get("[data-cy=book-publisherName-field]")
       .clear()
       .type(testBook.publisherName);
@@ -110,7 +89,6 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.get("[data-cy=book-pages-field]").clear().type(testBook.pages);
     cy.get("[data-cy=book-price-field]").clear().type(testBook.price);
 
-    // ── Ausleih-Status ───────────────────────────────────────────────────
     selectOption("book-rentalStatus-select", testBook.rentalStatus);
     selectOption("book-renewalCount-select", testBook.renewalCount);
 
@@ -118,13 +96,11 @@ describe("Book fields — fill all and verify persistence", () => {
       .find("input[type=date]")
       .clear()
       .type(testBook.rentedDate);
-
     cy.get("[data-cy=book_dueDate_datepicker]")
       .find("input[type=date]")
       .clear()
       .type(testBook.dueDate);
 
-    // ── Weitere Angaben ──────────────────────────────────────────────────
     cy.get("[data-cy=book-minAge-field]").clear().type(testBook.minAge);
     cy.get("[data-cy=book-maxAge-field]").clear().type(testBook.maxAge);
     cy.get("[data-cy=book-minPlayers-field]").clear().type(testBook.minPlayers);
@@ -144,7 +120,6 @@ describe("Book fields — fill all and verify persistence", () => {
       .clear()
       .type(testBook.supplierComment);
 
-    // ── Save ─────────────────────────────────────────────────────────────
     cy.get("[data-cy=save-book-button]").click();
 
     cy.wait("@saveBook", { timeout: 10000 }).then((interception) => {
@@ -154,10 +129,8 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.url({ timeout: 10000 }).should("not.include", "/edit");
   });
 
-  // ── 2. Navigate back and verify every field ───────────────────────────
-
   it("should reflect all saved field values after reload", () => {
-    cy.navigateToBookEdit(Cypress.env("bookid"));
+    cy.navigateToBookEdit(String(bookId));
 
     cy.get("[data-cy=book-isbn-field]").should("have.value", testBook.isbn);
     cy.get("[data-cy=book-title-field]").should("have.value", testBook.title);
@@ -170,7 +143,6 @@ describe("Book fields — fill all and verify persistence", () => {
       "have.value",
       testBook.summary,
     );
-
     cy.get("[data-cy=book-publisherName-field]").should(
       "have.value",
       testBook.publisherName,
@@ -204,7 +176,6 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.get("[data-cy=book_rentedDate_datepicker]")
       .find("input[type=date]")
       .should("have.value", testBook.rentedDate);
-
     cy.get("[data-cy=book_dueDate_datepicker]")
       .find("input[type=date]")
       .should("have.value", testBook.dueDate);
@@ -237,24 +208,20 @@ describe("Book fields — fill all and verify persistence", () => {
     );
   });
 
-  // ── 3. Verify status badge on the book card reflects the saved status ─
-
   it("should show the correct status badge on the book card", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]")
       .should("be.visible")
-      .type(String(Cypress.env("bookid")));
+      .type(String(bookId));
 
-    cy.get(`[data-cy=book_summary_card_${Cypress.env("bookid")}]`)
+    cy.get(`[data-cy=book_summary_card_${bookId}]`)
       .should("be.visible")
       .find("[role=status]")
       .should("have.attr", "data-value", testBook.rentalStatus);
   });
 
-  // ── 4. Verify the DB record directly ─────────────────────────────────
-
   it("should persist all field values in the database", () => {
-    cy.task("verifyBook", parseInt(Cypress.env("bookid"))).then((book: any) => {
+    cy.task("verifyBook", bookId).then((book: any) => {
       expect(book).to.not.be.null;
       expect(book.title).to.equal(testBook.title);
       expect(book.author).to.equal(testBook.author);
@@ -284,18 +251,21 @@ describe("Book fields — fill all and verify persistence", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Rental status cycling — one describe block per status
-// For each status: save → verify select → verify badge → verify DB
+// Rental status cycling
 // ─────────────────────────────────────────────────────────────────────────────
 
 allStatuses.forEach((value) => {
   describe(`Rental status: ${value}`, () => {
+    let bookId: number;
+
     before(() => {
-      cy.resetDatabase();
+      cy.resetAndSeed().then((ids) => {
+        bookId = ids.bookIdByLabel["bookEdit"];
+      });
     });
 
     after(() => {
-      cy.task("cleanupDatabase");
+      cy.clearDatabase();
     });
 
     beforeEach(() => {
@@ -308,9 +278,9 @@ allStatuses.forEach((value) => {
     });
 
     it(`should save status "${value}" successfully`, () => {
-      cy.navigateToBookEdit(Cypress.env("bookid"));
-      cy.intercept("PUT", "/api/book/*").as(`save_${value}`);
+      cy.navigateToBookEdit(String(bookId));
 
+      cy.intercept("PUT", "/api/book/*").as(`save_${value}`);
       selectOption("book-rentalStatus-select", value);
 
       cy.get("[data-cy=save-book-button]").click();
@@ -321,7 +291,7 @@ allStatuses.forEach((value) => {
     });
 
     it(`should show "${value}" in the select after reload`, () => {
-      cy.navigateToBookEdit(Cypress.env("bookid"));
+      cy.navigateToBookEdit(String(bookId));
       cy.get("#book-rentalStatus-select").should(
         "have.attr",
         "data-value",
@@ -333,20 +303,18 @@ allStatuses.forEach((value) => {
       cy.get("[data-cy=index_book_button]").click();
       cy.get("[data-cy=rental_input_searchbook]")
         .should("be.visible")
-        .type(String(Cypress.env("bookid")));
-      cy.get(`[data-cy=book_summary_card_${Cypress.env("bookid")}]`)
+        .type(String(bookId));
+      cy.get(`[data-cy=book_summary_card_${bookId}]`)
         .should("be.visible")
         .find("[role=status]")
         .should("have.attr", "data-value", value);
     });
 
     it(`should persist raw status "${value}" in the database`, () => {
-      cy.task("verifyBook", parseInt(Cypress.env("bookid"))).then(
-        (book: any) => {
-          expect(book).to.not.be.null;
-          expect(book.rentalStatus).to.equal(value);
-        },
-      );
+      cy.task("verifyBook", bookId).then((book: any) => {
+        expect(book).to.not.be.null;
+        expect(book.rentalStatus).to.equal(value);
+      });
     });
   });
 });

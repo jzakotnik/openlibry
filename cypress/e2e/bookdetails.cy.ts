@@ -1,12 +1,15 @@
 /// <reference types="cypress" />
 describe("Book editing and upload of cover", () => {
+  let bookId: number;
+
   before(() => {
-    cy.resetDatabase();
-    cy.task("logDatabaseState");
+    cy.resetAndSeed().then((ids) => {
+      bookId = ids.bookIdByLabel["bookEdit"];
+    });
   });
 
   after(() => {
-    cy.task("cleanupDatabase");
+    cy.clearDatabase();
   });
 
   beforeEach(() => {
@@ -18,19 +21,14 @@ describe("Book editing and upload of cover", () => {
     cy.visit("http://localhost:3000/");
   });
 
-  afterEach(() => {
-    cy.task("logDatabaseState");
-  });
-
   it("should navigate to the book screen", () => {
-    cy.log(Cypress.env("user"));
-    cy.navigateToBookEdit(Cypress.env("bookid"));
+    cy.navigateToBookEdit(String(bookId));
     cy.get("[data-cy=book_rentedDate_datepicker]").should("be.visible");
   });
 
   it("should upload a book cover image", () => {
-    cy.deleteBookCoverImage(Cypress.env("bookid"));
-    cy.navigateToBookEdit(Cypress.env("bookid"));
+    cy.deleteBookCoverImage(String(bookId));
+    cy.navigateToBookEdit(String(bookId));
 
     cy.intercept("POST", "/api/book/cover/*").as("uploadImage");
 
@@ -55,10 +53,9 @@ describe("Book editing and upload of cover", () => {
   });
 
   it("should save book changes", () => {
-    cy.navigateToBookEdit(Cypress.env("bookid"));
+    cy.navigateToBookEdit(String(bookId));
 
     cy.intercept("PUT", "/api/book/*").as("saveBook");
-
     cy.get("[data-cy=save-book-button]").should("be.visible").click();
 
     cy.wait("@saveBook", { timeout: 10000 }).then((interception) => {
@@ -68,22 +65,18 @@ describe("Book editing and upload of cover", () => {
     cy.url({ timeout: 10000 }).should("not.include", "/edit");
     cy.get("body").should("be.visible");
 
-    // Verify the book still exists after save
     cy.visit("http://localhost:3000/");
     cy.get("[data-cy=index_book_button]").click();
-    cy.get("[data-cy=rental_input_searchbook]").type(Cypress.env("bookid"));
-    cy.get(`[data-cy=book_summary_card_${Cypress.env("bookid")}]`).should(
-      "be.visible",
-    );
+    cy.get("[data-cy=rental_input_searchbook]").type(String(bookId));
+    cy.get(`[data-cy=book_summary_card_${bookId}]`).should("be.visible");
   });
 
   it("should delete a book and verify it cannot be found", () => {
-    cy.task("verifyBook", parseInt(Cypress.env("bookid"))).then((book) => {
+    cy.task("verifyBook", bookId).then((book) => {
       expect(book).to.not.be.null;
-      cy.log("Book exists before delete:", book);
     });
 
-    cy.navigateToBookEdit(Cypress.env("bookid"));
+    cy.navigateToBookEdit(String(bookId));
 
     cy.intercept("DELETE", "/api/book/*").as("deleteBook");
 
@@ -101,19 +94,14 @@ describe("Book editing and upload of cover", () => {
 
     cy.url({ timeout: 10000 }).should("not.include", "/edit");
 
-    cy.task("verifyBook", parseInt(Cypress.env("bookid"))).should("be.null");
+    cy.task("verifyBook", bookId).should("be.null");
 
     cy.visit("http://localhost:3000/");
-    cy.get("[data-cy=indexpage]").should("be.visible");
     cy.get("[data-cy=index_book_button]").should("be.visible").click();
     cy.get("[data-cy=rental_input_searchbook]")
       .should("be.visible")
-      .type(Cypress.env("bookid"));
-
+      .type(String(bookId));
     cy.wait(1000);
-
-    cy.get(`[data-cy=book_summary_card_${Cypress.env("bookid")}]`).should(
-      "not.exist",
-    );
+    cy.get(`[data-cy=book_summary_card_${bookId}]`).should("not.exist");
   });
 });
