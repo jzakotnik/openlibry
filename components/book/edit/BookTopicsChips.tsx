@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/popover";
 import { BookType } from "@/entities/BookType";
 import type { TagSource } from "@/lib/ai-tagging/types";
+import { t } from "@/lib/i18n";
 import {
   BookMarked,
   BookOpen,
@@ -32,11 +33,11 @@ type TagSuggestion = { tag: string; isNew: boolean; source?: TagSource };
 
 /** Per-source icon + tooltip for tag provenance (shown next to a chip). */
 const SOURCE_META: Record<TagSource, { Icon: typeof Landmark; label: string }> = {
-  dnb: { Icon: Landmark, label: "Quelle: Deutsche Nationalbibliothek" },
-  openlibrary: { Icon: BookOpen, label: "Quelle: Open Library" },
-  wikidata: { Icon: Globe, label: "Quelle: Wikidata" },
-  library: { Icon: BookMarked, label: "Quelle: andere Bücher der Bibliothek" },
-  ai: { Icon: Sparkles, label: "Quelle: KI-Vorschlag" },
+  dnb: { Icon: Landmark, label: t("aiTagging.sourceDnb") },
+  openlibrary: { Icon: BookOpen, label: t("aiTagging.sourceOpenlibrary") },
+  wikidata: { Icon: Globe, label: t("aiTagging.sourceWikidata") },
+  library: { Icon: BookMarked, label: t("aiTagging.sourceLibrary") },
+  ai: { Icon: Sparkles, label: t("aiTagging.sourceAi") },
 };
 
 type BookTopicsChipsProps = {
@@ -165,7 +166,7 @@ export default function BookTopicsChips({
         });
         const data = await res.json();
         if (!res.ok || data.enabled === false) {
-          if (!silent) toast.warning("Keine Vorschläge verfügbar");
+          if (!silent) toast.warning(t("aiTagging.toastNoSuggestions"));
           return;
         }
         const found: TagSuggestion[] = data.results?.[0]?.suggestions ?? [];
@@ -180,16 +181,18 @@ export default function BookTopicsChips({
           }
         }
         if (added === 0) {
-          if (!silent) toast.info("Keine neuen Schlagwörter vorgeschlagen");
+          if (!silent) toast.info(t("aiTagging.toastNoNewTags"));
           return;
         }
         setTagSources((prev) => ({ ...prev, ...sourceUpdate }));
         setBookData({ ...book, [fieldType]: serializeTopics(merged) });
         toast.success(
-          `${added} ${added === 1 ? "Schlagwort" : "Schlagwörter"} hinzugefügt`,
+          added === 1
+            ? t("aiTagging.toastTagAddedOne", { count: added })
+            : t("aiTagging.toastTagsAddedMany", { count: added }),
         );
       } catch {
-        if (!silent) toast.error("Fehler beim Erstellen der Vorschläge");
+        if (!silent) toast.error(t("aiTagging.toastSuggestError"));
       } finally {
         setIsSuggesting(false);
       }
@@ -231,7 +234,9 @@ export default function BookTopicsChips({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs text-muted-foreground">Schlagwörter</Label>
+      <Label className="text-xs text-muted-foreground">
+        {t("aiTagging.label")}
+      </Label>
 
       {/* Chips — green: already in the library vocabulary; blue: new to it */}
       <div className="flex flex-wrap gap-1.5 min-h-[2rem] items-start">
@@ -242,7 +247,7 @@ export default function BookTopicsChips({
             <Badge
               key={topic}
               variant="outline"
-              title={isNew ? "Neues Schlagwort (noch nicht in der Bibliothek)" : "Vorhandenes Schlagwort"}
+              title={isNew ? t("aiTagging.chipNewTitle") : t("aiTagging.chipExistingTitle")}
               className={
                 isNew
                   ? "gap-1 pr-1 max-w-[16rem] bg-info/10 text-info border-info/40"
@@ -262,7 +267,7 @@ export default function BookTopicsChips({
                 <button
                   type="button"
                   onClick={() => removeTopic(topic)}
-                  aria-label={`${topic} entfernen`}
+                  aria-label={t("aiTagging.removeAria", { tag: topic })}
                   className="ml-0.5 rounded-sm opacity-60 hover:opacity-100 transition-opacity focus:outline-none focus:ring-1 focus:ring-ring"
                 >
                   <X className="w-3 h-3" />
@@ -281,13 +286,13 @@ export default function BookTopicsChips({
                 size="sm"
                 className="h-6 px-2 text-xs text-muted-foreground border-dashed"
               >
-                + Schlagwort
+                {t("aiTagging.addTag")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0 w-56" align="start">
               <Command>
                 <CommandInput
-                  placeholder="Schlagwort suchen…"
+                  placeholder={t("aiTagging.searchPlaceholder")}
                   value={inputValue}
                   onValueChange={setInputValue}
                 />
@@ -302,11 +307,11 @@ export default function BookTopicsChips({
                           setOpen(false);
                         }}
                       >
-                        „{inputValue}" hinzufügen
+                        {t("aiTagging.addNamed", { tag: inputValue })}
                       </button>
                     ) : (
                       <span className="text-muted-foreground px-3 py-2 text-sm">
-                        Keine Optionen
+                        {t("aiTagging.noOptions")}
                       </span>
                     )}
                   </CommandEmpty>
@@ -345,7 +350,7 @@ export default function BookTopicsChips({
             ) : (
               <Sparkles className="w-3 h-3" />
             )}
-            Vorschlagen
+            {t("aiTagging.suggest")}
           </Button>
         )}
       </div>

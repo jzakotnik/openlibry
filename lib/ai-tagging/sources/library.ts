@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { cleanIsbn, isbnVariants } from "@/lib/utils/isbn";
 import type { SourcedTag } from "../types";
 
 /**
@@ -13,9 +14,6 @@ import type { SourcedTag } from "../types";
  *  - fetchLibraryCandidates: tags from *other books by the same author*. Sequels
  *    and an author's body of work usually share themes.
  */
-
-const normIsbn = (isbn: string | undefined | null): string =>
-  (isbn ?? "").replace(/[^0-9X]/gi, "");
 
 /** Aggregate ";"-separated topics across rows, ranked by frequency. */
 function rankTopicRows(rows: Array<{ topics: string | null }>): SourcedTag[] {
@@ -44,10 +42,12 @@ export async function fetchSameBookCandidates(
   prisma: PrismaClient,
   isbn: string | undefined | null,
 ): Promise<SourcedTag[]> {
-  const clean = normIsbn(isbn);
-  if (!clean) return [];
+  // Match every equivalent ISBN form so an ISBN-10-catalogued copy is found
+  // from a scanned ISBN-13 of the same edition (and vice versa).
+  const variants = isbnVariants(isbn);
+  if (variants.length === 0) return [];
   const rows = await prisma.book.findMany({
-    where: { isbn: clean, topics: { not: null } },
+    where: { isbn: { in: variants }, topics: { not: null } },
     select: { topics: true },
   });
   return rankTopicRows(rows);
@@ -67,8 +67,8 @@ export async function fetchLibraryCandidates(
     select: { topics: true, isbn: true },
   });
 
-  const exclude = normIsbn(excludeIsbn);
+  const exclude = cleanIsbn(excludeIsbn);
   return rankTopicRows(
-    rows.filter((r) => !exclude || normIsbn(r.isbn) !== exclude),
+    rows.filter((r) => !exclude || cleanIsbn(r.isbn) !== exclude),
   );
 }
