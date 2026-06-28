@@ -1,5 +1,6 @@
 import { prisma } from "@/entities/db";
 import {
+  computeStyleProfile,
   gatherSourceCandidates,
   getAiTaggingService,
   getFacetMap,
@@ -7,6 +8,7 @@ import {
   loadTaggedCorpus,
   rankTopics,
   reconcileTags,
+  renderStyleProfile,
   selectExamples,
   type BookTagInput,
   type BookTagSuggestions,
@@ -92,6 +94,11 @@ export default async function handler(
     // entries to show the model as worked examples (see selectExamples).
     const corpus = await loadTaggedCorpus(prisma);
 
+    // Style learned from this library's own tags (typical count, facets used).
+    const styleProfile = renderStyleProfile(
+      computeStyleProfile(corpus, facetMap),
+    );
+
     // Gather grounded candidates for every book, capped concurrency so a large
     // batch doesn't open one external-request burst per book at once. The
     // same-book source short-circuits naturally: if an existing copy already has
@@ -114,6 +121,7 @@ export default async function handler(
       candidates,
       examples,
       facetMap,
+      styleProfile,
     );
 
     const results: BookTagSuggestions[] = books.map((b) => ({
@@ -123,6 +131,7 @@ export default async function handler(
         candidates[b.ref] ?? [],
         vocabulary,
         maxTags,
+        { title: b.title, author: b.author },
       ),
     }));
 

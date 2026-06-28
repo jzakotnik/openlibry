@@ -35,7 +35,7 @@ const RESPONSE_SCHEMA = {
 export const GoogleService: AiTaggingService = {
   name: "Google",
 
-  async suggest(books, vocabulary, candidates, examples, facetMap) {
+  async suggest(books, vocabulary, candidates, examples, facetMap, styleProfile) {
     const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     // maxTags is enforced deterministically in reconcile; we still pass it so
@@ -51,6 +51,7 @@ export const GoogleService: AiTaggingService = {
         candidates,
         examples,
         facetMap,
+        styleProfile,
       ),
       config: {
         systemInstruction: SYSTEM_PROMPT,

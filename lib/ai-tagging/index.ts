@@ -5,6 +5,7 @@ import type { AiTaggingService } from "./types";
 export * from "./types";
 export { loadTaggedCorpus, selectExamples } from "./examples";
 export { getFacetMap, FACETS, type Facet } from "./facets";
+export { computeStyleProfile, renderStyleProfile } from "./style";
 export { rankTopics } from "./rankTopics";
 export { reconcileTags } from "./reconcile";
 export { gatherSourceCandidates } from "./sources";
