@@ -46,8 +46,10 @@ export const SYSTEM_PROMPT = [
   "- Bevorzuge ein vorhandenes Schlagwort der Bibliothek, selbst wenn ein neuer",
   "  Begriff kürzer oder allgemeiner wäre (z. B. vorhandenes „Kunstgeschichte\"",
   "  verwenden statt neu „Kunst\"). Übernimm die vorhandene Schreibweise unverändert.",
-  "- Keine Dopplungen: kein Synonym und kein Ober- oder Unterbegriff eines bereits",
+  "- Keine Dopplungen innerhalb derselben Art: kein Synonym eines bereits",
   "  gewählten Schlagworts (nicht „Plastik\" UND „Skulptur\" — eines genügt).",
+  "  Verschiedene Arten ergänzen sich dagegen (z. B. Gattung „Exilliteratur\"",
+  "  zusammen mit Thema „Exil\" ist erwünscht).",
   "- Normalisiere lange/förmliche Katalogbegriffe zu kurzen Schlagwörtern",
   "  (z. B. „Geschichte des 20. Jahrhunderts\" → „20. Jahrhundert\").",
   "- Ein völlig neues Schlagwort (weder Kandidat noch im Bestand) nur, wenn weder",
@@ -97,17 +99,55 @@ export function getPromptMaxTags(): number {
   return Number.isFinite(n) && n > 0 ? n : 5;
 }
 
+// Facet group order for the grouped vocabulary (mirrors FACET_ORDER in
+// ./facets). Kept local so the prompt module stays free of the facet
+// classifier's SDK imports.
+const FACET_GROUP_ORDER = [
+  "Gattung",
+  "Epoche",
+  "Region",
+  "Strömung",
+  "Thema",
+  "Sonstiges",
+];
+
+/**
+ * Render the vocabulary for the prompt. With a facet map it's grouped by kind
+ * (so the model sees the structure and covers each axis); without one it falls
+ * back to a flat comma list. Tags with no facet land under "Sonstiges".
+ */
+function renderVocabulary(
+  vocabulary: RankedTag[],
+  facetMap: Record<string, string>,
+): string {
+  if (vocabulary.length === 0) return "(noch keine vorhandenen Schlagwörter)";
+  if (Object.keys(facetMap).length === 0)
+    return vocabulary.map((v) => v.tag).join(", ");
+
+  const groups = new Map<string, string[]>();
+  for (const v of vocabulary) {
+    const facet = facetMap[v.tag] ?? "Sonstiges";
+    (groups.get(facet) ?? groups.set(facet, []).get(facet)!).push(v.tag);
+  }
+  const order = [
+    ...FACET_GROUP_ORDER,
+    ...[...groups.keys()].filter((f) => !FACET_GROUP_ORDER.includes(f)),
+  ];
+  return order
+    .filter((f) => groups.get(f)?.length)
+    .map((f) => `${f}: ${groups.get(f)!.join(", ")}`)
+    .join("\n");
+}
+
 export function buildUserMessage(
   books: BookTagInput[],
   vocabulary: RankedTag[],
   maxTags: number,
   candidates: Record<string, SourcedTag[]> = {},
   examples: Record<string, TagExample[]> = {},
+  facetMap: Record<string, string> = {},
 ): string {
-  const vocabList =
-    vocabulary.length > 0
-      ? vocabulary.map((v) => v.tag).join(", ")
-      : "(noch keine vorhandenen Schlagwörter)";
+  const vocabList = renderVocabulary(vocabulary, facetMap);
 
   const bookList = books.map((b) => ({
     ref: b.ref,

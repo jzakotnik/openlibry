@@ -116,3 +116,5 @@ public/~$hnung-template.docx
 
 # ─── MkDocs build output ───────────────────────────────────────────
 doc/mkdocs/site/
+# AI tagging facet cache (regenerable, local)
+database/custom/ai-tag-facets.json
