@@ -3,11 +3,14 @@ import {
   gatherSourceCandidates,
   getAiTaggingService,
   getMaxTags,
+  loadTaggedCorpus,
   rankTopics,
   reconcileTags,
+  selectExamples,
   type BookTagInput,
   type BookTagSuggestions,
   type SourcedTag,
+  type TagExample,
 } from "@/lib/ai-tagging";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
@@ -80,21 +83,27 @@ export default async function handler(
     const vocabulary = await rankTopics(prisma);
     const maxTags = getMaxTags();
 
+    // Load the already-tagged catalogue once; per book we pick a few similar
+    // entries to show the model as worked examples (see selectExamples).
+    const corpus = await loadTaggedCorpus(prisma);
+
     // Gather grounded candidates for every book, capped concurrency so a large
     // batch doesn't open one external-request burst per book at once. The
     // same-book source short-circuits naturally: if an existing copy already has
     // tags they lead the candidates; otherwise the external sources + author
     // signal carry.
-    const candidateEntries = await mapLimit(
-      books,
-      GATHER_CONCURRENCY,
-      async (b) => [b.ref, await gatherSourceCandidates(prisma, b)] as const,
-    );
-    const candidates: Record<string, SourcedTag[]> = Object.fromEntries(
-      candidateEntries,
-    );
+    const entries = await mapLimit(books, GATHER_CONCURRENCY, async (b) => {
+      const cand = await gatherSourceCandidates(prisma, b);
+      return [b.ref, cand, selectExamples(corpus, b, cand)] as const;
+    });
+    const candidates: Record<string, SourcedTag[]> = {};
+    const examples: Record<string, TagExample[]> = {};
+    for (const [ref, cand, ex] of entries) {
+      candidates[ref] = cand;
+      examples[ref] = ex;
+    }
 
-    const raw = await service.suggest(books, vocabulary, candidates);
+    const raw = await service.suggest(books, vocabulary, candidates, examples);
 
     const results: BookTagSuggestions[] = books.map((b) => ({
       ref: b.ref,

@@ -1,5 +1,5 @@
 import { LOCALE } from "@/lib/i18n";
-import type { BookTagInput, RankedTag, SourcedTag } from "./types";
+import type { BookTagInput, RankedTag, SourcedTag, TagExample } from "./types";
 
 /**
  * Shared prompt construction and response parsing for every AI tagging
@@ -17,8 +17,9 @@ const TARGET_LANGUAGE: Record<string, string> = {
 
 export const SYSTEM_PROMPT = [
   "Du bist die Assistenz einer Schulbibliothek und vergibst Schlagwörter (Tags)",
-  "für Bücher. Deine Aufgabe ist NICHT, frei zu erfinden, sondern vorgegebene",
-  "Kandidaten zu prüfen, zu normalisieren und auszuwählen.",
+  "für Bücher. Du prüfst und normalisierst vorgegebene Kandidaten UND wählst",
+  "zusätzlich passende Schlagwörter aus dem vorhandenen Schlagwortbestand der",
+  "Bibliothek aus. Völlig neue, frei erfundene Begriffe bleiben die Ausnahme.",
   "",
   "Du erhältst pro Buch: bibliografische Daten, die bereits in der Bibliothek",
   "verwendeten Schlagwörter sowie KANDIDATEN aus Bibliothekskatalogen (Deutsche",
@@ -30,6 +31,18 @@ export const SYSTEM_PROMPT = [
   "  treffende Schlagwörter als viele. Fülle niemals auf, nur um die Anzahl zu",
   "  erreichen; zwei passende Schlagwörter sind besser als fünf mittelmäßige.",
   "- Wähle bevorzugt aus den Kandidaten und den vorhandenen Schlagwörtern.",
+  "- Zu jedem Buch sind ähnliche, bereits in DIESER Bibliothek verschlagwortete",
+  "  Bücher beigefügt (Feld „aehnlicheBuecher\"). Orientiere dich stark an deren",
+  "  Stil, Granularität und typischen Schlagwort-Kombinationen — sie zeigen, wie",
+  "  diese Bibliothek vergleichbare Bücher verschlagwortet (z. B. bei Lyrik",
+  "  zusätzlich Epoche, Land und Strömung).",
+  "- Nutze dein Wissen über das Buch (Epoche, Land oder Region, Gattung, Themen),",
+  "  um passende VORHANDENE Schlagwörter der Bibliothek auszuwählen, auch wenn",
+  "  sie nicht unter den Kandidaten stehen (z. B. „19. Jahrhundert\", „Deutschland\",",
+  "  „Romantik\" für einen Maler der Romantik). Wenn Autor, Epoche, Herkunftsland",
+  "  oder Gattung erkennbar sind, vergib die entsprechenden vorhandenen Schlagwörter",
+  "  aktiv — solche offensichtlichen Einordnungen sollten selten fehlen. Nur bei",
+  "  echter Unsicherheit weglassen.",
   "- Bevorzuge ein vorhandenes Schlagwort der Bibliothek, selbst wenn ein neuer",
   "  Begriff kürzer oder allgemeiner wäre (z. B. vorhandenes „Kunstgeschichte\"",
   "  verwenden statt neu „Kunst\"). Übernimm die vorhandene Schreibweise unverändert.",
@@ -37,8 +50,8 @@ export const SYSTEM_PROMPT = [
   "  gewählten Schlagworts (nicht „Plastik\" UND „Skulptur\" — eines genügt).",
   "- Normalisiere lange/förmliche Katalogbegriffe zu kurzen Schlagwörtern",
   "  (z. B. „Geschichte des 20. Jahrhunderts\" → „20. Jahrhundert\").",
-  "- Erfinde nur dann ein neues Schlagwort, wenn weder Kandidaten noch vorhandene",
-  "  Schlagwörter das Buch abdecken.",
+  "- Ein völlig neues Schlagwort (weder Kandidat noch im Bestand) nur, wenn weder",
+  "  Kandidaten noch vorhandene Schlagwörter das Buch abdecken.",
   `- Gib ALLE Schlagwörter in dieser Sprache aus: ${TARGET_LANGUAGE[LOCALE] ?? "Deutsch"}.`,
   "  Übersetze fremdsprachige Kandidaten entsprechend.",
   "- Schlagwörter sind kurze Substantive oder Nominalphrasen, kein Satz.",
@@ -65,7 +78,7 @@ export function sanitizeTopicList(raw: string | undefined | null): string[] {
   for (const piece of raw.split(/[;,/]/)) {
     const cleaned = piece
       .replace(/\([^)]*\)/g, "") // (Produktform), (VLB-WN) …
-      .replace(/^\s*\d+\s*:?/, "") // leading numeric codes ("1583:")
+      .replace(/^\s*\d+\s*:/, "") // leading numeric code WITH colon ("1583:")
       .trim();
     if (!cleaned || cleaned.length > 40) continue; // empties + exhibition titles
     if (/^\d+$/.test(cleaned)) continue; // bare codes
@@ -89,6 +102,7 @@ export function buildUserMessage(
   vocabulary: RankedTag[],
   maxTags: number,
   candidates: Record<string, SourcedTag[]> = {},
+  examples: Record<string, TagExample[]> = {},
 ): string {
   const vocabList =
     vocabulary.length > 0
@@ -108,6 +122,12 @@ export function buildUserMessage(
     maxAge: b.maxAge,
     // Grounded candidates with provenance — the model should lean on these.
     candidates: (candidates[b.ref] ?? []).map((c) => `${c.tag} (${c.source})`),
+    // Worked examples: similar books already tagged in THIS library.
+    aehnlicheBuecher: (examples[b.ref] ?? []).map((e) => ({
+      titel: e.title,
+      autor: e.author,
+      tags: e.tags,
+    })),
   }));
 
   return [
