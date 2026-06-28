@@ -1,26 +1,19 @@
 /// <reference types="cypress" />
 
-/**
- * Label System — API Tests
- *
- * Tests the REST API endpoints directly via cy.request().
- * No browser UI needed. Verifies backend correctness.
- */
-
 describe("Label API", () => {
   const API = "http://localhost:3000/api/labels";
   const TEMPLATE_FILE =
     "database/custom/labels/templates/cypress-test-vorlage.json";
 
   before(() => {
-    cy.resetDatabase();
+    cy.resetAndSeed();
   });
 
   after(() => {
-    // Remove any test-created template file
     cy.task("deleteFile", TEMPLATE_FILE);
-    cy.cleanupDatabase();
+    cy.clearDatabase();
   });
+
   beforeEach(() => {
     cy.session("user-session", () => {
       cy.login();
@@ -36,7 +29,6 @@ describe("Label API", () => {
         expect(response.body).to.be.an("array");
         expect(response.body.length).to.be.greaterThan(0);
 
-        // Every entry must have the required fields
         response.body.forEach((sheet: any) => {
           expect(sheet).to.have.property("id");
           expect(sheet).to.have.property("name");
@@ -93,7 +85,6 @@ describe("Label API", () => {
           expect(response.body.success).to.eq(true);
         });
 
-        // Verify it's now in the list
         cy.request("GET", `${API}/templates`).then((response) => {
           const ids = response.body.map((t: any) => t.id);
           expect(ids).to.include("cypress-test-vorlage");
@@ -146,17 +137,11 @@ describe("Label API", () => {
         cy.request({
           method: "POST",
           url: `${API}/generate`,
-          body: {
-            sheetConfigId: "zweckform-3474",
-            templateId: "default",
-            books,
-          },
+          body: { sheetConfigId: "zweckform-3474", templateId: "default", books },
           encoding: "binary",
         }).then((response) => {
           expect(response.status).to.eq(200);
-          expect(response.headers["content-type"]).to.include(
-            "application/pdf",
-          );
+          expect(response.headers["content-type"]).to.include("application/pdf");
           expect(response.body.substring(0, 5)).to.eq("%PDF-");
         });
       });
@@ -195,27 +180,24 @@ describe("Label API", () => {
     });
 
     it("should generate a PDF with bookFilter: IDs", () => {
-      // Dynamisch echte IDs aus der Test-DB holen
-      cy.request("GET", "http://localhost:3000/api/book").then(
-        (booksResponse) => {
-          const ids = booksResponse.body.slice(0, 2).map((b: any) => b.id);
-          expect(ids).to.have.length.greaterThan(0);
+      cy.request("GET", "http://localhost:3000/api/book").then((booksResponse) => {
+        const ids = booksResponse.body.slice(0, 2).map((b: any) => b.id);
+        expect(ids).to.have.length.greaterThan(0);
 
-          cy.request({
-            method: "POST",
-            url: `${API}/generate`,
-            body: {
-              sheetConfigId: "zweckform-3474",
-              templateId: "default",
-              bookFilter: { type: "ids", ids },
-            },
-            encoding: "binary",
-          }).then((response) => {
-            expect(response.status).to.eq(200);
-            expect(response.body.substring(0, 5)).to.eq("%PDF-");
-          });
-        },
-      );
+        cy.request({
+          method: "POST",
+          url: `${API}/generate`,
+          body: {
+            sheetConfigId: "zweckform-3474",
+            templateId: "default",
+            bookFilter: { type: "ids", ids },
+          },
+          encoding: "binary",
+        }).then((response) => {
+          expect(response.status).to.eq(200);
+          expect(response.body.substring(0, 5)).to.eq("%PDF-");
+        });
+      });
     });
 
     it("should generate a PDF with startPosition", () => {
@@ -275,21 +257,9 @@ describe("Label API", () => {
               padding: 2,
               fields: {
                 spine: { content: "id", fontSizeMax: 14, align: "center" },
-                horizontal1: {
-                  content: "title",
-                  fontSizeMax: 12,
-                  align: "left",
-                },
-                horizontal2: {
-                  content: "topics",
-                  fontSizeMax: 9,
-                  align: "left",
-                },
-                horizontal3: {
-                  content: "school",
-                  fontSizeMax: 8,
-                  align: "left",
-                },
+                horizontal1: { content: "title", fontSizeMax: 12, align: "left" },
+                horizontal2: { content: "topics", fontSizeMax: 9, align: "left" },
+                horizontal3: { content: "school", fontSizeMax: 8, align: "left" },
               },
             },
             books: books.slice(0, 1),
@@ -297,15 +267,11 @@ describe("Label API", () => {
           encoding: "binary",
         }).then((response) => {
           expect(response.status).to.eq(200);
-          expect(response.headers["content-type"]).to.include(
-            "application/pdf",
-          );
+          expect(response.headers["content-type"]).to.include("application/pdf");
           expect(response.headers["content-disposition"]).to.include("inline");
         });
       });
     });
-
-    // ── Error cases ──────────────────────────────────────────────────
 
     it("should reject out-of-bounds positions", () => {
       cy.fixture("label-test-books.json").then((books) => {
@@ -330,10 +296,7 @@ describe("Label API", () => {
       cy.request({
         method: "POST",
         url: `${API}/generate`,
-        body: {
-          sheetConfigId: "zweckform-3474",
-          templateId: "default",
-        },
+        body: { sheetConfigId: "zweckform-3474", templateId: "default" },
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(400);
@@ -374,10 +337,7 @@ describe("Label API", () => {
       cy.request({
         method: "POST",
         url: `${API}/generate`,
-        body: {
-          sheetConfigId: "zweckform-3474",
-          bookFilter: { type: "all" },
-        },
+        body: { sheetConfigId: "zweckform-3474", bookFilter: { type: "all" } },
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(400);

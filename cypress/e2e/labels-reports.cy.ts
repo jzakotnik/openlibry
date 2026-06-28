@@ -1,19 +1,12 @@
 /// <reference types="cypress" />
 
-/**
- * Label System — Reports Page Integration
- *
- * Smoke tests that the label cards exist on the Reports page
- * and navigate to the correct routes.
- */
-
 describe("Label cards on Reports page", () => {
   before(() => {
-    cy.resetDatabase();
+    cy.resetAndSeed();
   });
 
   after(() => {
-    cy.cleanupDatabase();
+    cy.clearDatabase();
   });
 
   beforeEach(() => {

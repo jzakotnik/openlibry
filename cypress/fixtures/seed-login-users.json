@@ -1,0 +1,10 @@
+[
+  {
+    "_plaintext_password": "CypressTest1234!",
+    "username": "cypress_test_admin",
+    "password": "5ed394d1b75b0b6b51aba7f8ab248d8813d0d646d42b4914a0224641b5e6582a",
+    "email": "cypress_test_admin@openlibry.test",
+    "role": "admin",
+    "active": true
+  }
+]
