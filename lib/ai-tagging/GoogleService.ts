@@ -35,7 +35,7 @@ const RESPONSE_SCHEMA = {
 export const GoogleService: AiTaggingService = {
   name: "Google",
 
-  async suggest(books, vocabulary, candidates) {
+  async suggest(books, vocabulary, candidates, examples) {
     const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     // maxTags is enforced deterministically in reconcile; we still pass it so
@@ -44,7 +44,13 @@ export const GoogleService: AiTaggingService = {
 
     const response = await client.models.generateContent({
       model: MODEL,
-      contents: buildUserMessage(books, vocabulary, maxTags, candidates),
+      contents: buildUserMessage(
+        books,
+        vocabulary,
+        maxTags,
+        candidates,
+        examples,
+      ),
       config: {
         systemInstruction: SYSTEM_PROMPT,
         temperature: 0, // determinism — same input yields the same proposals
