@@ -1,22 +1,35 @@
 import type { PrismaClient } from "@prisma/client";
+import { cleanIsbn } from "@/lib/utils/isbn";
 import type { BookTagInput, SourcedTag } from "../types";
 import { fetchDnbCandidates } from "./dnb";
 import { fetchLibraryCandidates, fetchSameBookCandidates } from "./library";
+import { memoizeSource } from "./memoize";
 import { fetchOpenLibraryCandidates } from "./openlibrary";
 import { fetchWikidataCandidates } from "./wikidata";
+
+// External lookups are keyed by stable identifiers (ISBN / title) and cached
+// in-process: this dedups duplicate lookups within a batch and across batches.
+// The live DB sources (same-book / same-author) are intentionally NOT cached.
+const dnbCached = memoizeSource(fetchDnbCandidates, (isbn) => cleanIsbn(isbn));
+const openLibraryCached = memoizeSource(fetchOpenLibraryCandidates, (isbn) =>
+  cleanIsbn(isbn),
+);
+const wikidataCached = memoizeSource(fetchWikidataCandidates, (title) =>
+  (title ?? "").trim().toLowerCase(),
+);
 
 export { fetchDnbCandidates } from "./dnb";
 export { fetchLibraryCandidates, fetchSameBookCandidates } from "./library";
 export { fetchOpenLibraryCandidates } from "./openlibrary";
 export { fetchWikidataCandidates } from "./wikidata";
 
-// Lower wins when the same tag surfaces from several sources. Library tags are
-// preferred (already in this library's vocabulary); DNB is the most
-// authoritative cataloguing source; Open Library and Wikidata round out the
-// international/fiction coverage.
+// Lower wins when the same tag surfaces from several sources. Library tags lead
+// (human-approved, already in this library's vocabulary — so the chip shows as
+// "existing"); DNB is the most authoritative external cataloguing source; Open
+// Library and Wikidata round out the international/fiction coverage.
 const SOURCE_PRIORITY: Record<SourcedTag["source"], number> = {
-  dnb: 0,
-  library: 1,
+  library: 0,
+  dnb: 1,
   openlibrary: 2,
   wikidata: 3,
   ai: 4,
@@ -34,10 +47,10 @@ export async function gatherSourceCandidates(
 ): Promise<SourcedTag[]> {
   const [sameBook, dnb, lib, openlib, wiki] = await Promise.all([
     fetchSameBookCandidates(prisma, book.isbn),
-    fetchDnbCandidates(book.isbn),
+    dnbCached(book.isbn),
     fetchLibraryCandidates(prisma, book.author, book.isbn),
-    fetchOpenLibraryCandidates(book.isbn),
-    fetchWikidataCandidates(book.title),
+    openLibraryCached(book.isbn),
+    wikidataCached(book.title),
   ]);
 
   // Same-book tags lead — human-approved tags for this exact title.
