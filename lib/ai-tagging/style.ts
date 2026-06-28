@@ -63,7 +63,11 @@ export function renderStyleProfile(p: StyleProfile): string {
   const lines = ["Stil dieser Bibliothek (an diesem Stil orientieren):"];
   if (p.typicalTagCount > 0) {
     lines.push(
-      `- Typische Anzahl Schlagwörter pro Buch: etwa ${p.typicalTagCount}.`,
+      `- Diese Bibliothek vergibt meist etwa ${p.typicalTagCount} Schlagwörter ` +
+        "pro Buch. Das ist nur ein Richtwert gegen Füll-Schlagwörter, KEINE " +
+        "Obergrenze: vergib trotzdem ALLE eindeutig passenden Schlagwörter, " +
+        "auch wenn es mehr werden — lass nur unsichere oder fast " +
+        "bedeutungsgleiche weg.",
     );
   }
   if (p.facetsInUse.length > 0) {
