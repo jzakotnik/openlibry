@@ -90,5 +90,7 @@ export interface AiTaggingService {
     vocabulary: RankedTag[],
     candidates: Record<string, SourcedTag[]>,
     examples?: Record<string, TagExample[]>,
+    /** Optional tag→facet map; groups the vocabulary by kind in the prompt. */
+    facetMap?: Record<string, string>,
   ): Promise<Record<string, string[]>>;
 }
