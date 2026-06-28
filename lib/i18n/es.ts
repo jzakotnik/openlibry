@@ -1134,6 +1134,21 @@ export const es: Dictionary = {
     fetchFailed: "Error al cargar los datos de préstamos",
   },
 
+  // ─── Catalog detail page ─────────────────────────────────────────────
+  catalogDetailPage: {
+    back: "Volver al catálogo",
+    by: "de",
+    noSummary: "Sin descripción disponible.",
+    relatedBooks: "Libros similares",
+    noRelatedBooks: "No se encontraron libros similares.",
+    fieldPublisher: "Editorial",
+    fieldYear: "Año",
+    fieldPages: "Páginas",
+    fieldAge: "Edad recomendada",
+    fieldIsbn: "ISBN",
+    notFound: "Libro no encontrado.",
+  },
+
   // ─── Phase 11f: site footer ───────────────────────────────────────────
   footer: {
     publicCatalog: "Catálogo público",

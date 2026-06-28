@@ -26,21 +26,12 @@ interface CatalogPropsType {
 // Helpers
 // =============================================================================
 
-/**
- * SWR fetcher that throws on non-2xx responses so SWR captures the error
- * instead of trying to JSON-parse an HTML error page and crashing with
- * "Unexpected token '<'".
- */
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
     if (!res.ok) throw new Error(`API ${res.status}`);
     return res.json();
   });
 
-/**
- * Map PublicBookType → BookType-compatible shape for existing components.
- * With rentalStatus kept in the public type this is now a near-direct mapping.
- */
 function toCardBook(b: PublicBookType): CatalogBookType {
   return {
     id: b.id,
@@ -83,6 +74,7 @@ const CatalogCardGrid = memo(function CatalogCardGrid({
             book={b}
             returnBook={noop}
             showDetailsControl={false}
+            detailHref={`/catalog/${b.id}`}
           />
         ))}
       </div>
@@ -112,9 +104,6 @@ export default function Catalog({
   const { data: freshData } = useSWR("/api/public/books", fetcher, {
     fallbackData: initialBooks,
     refreshInterval: 0,
-    // Disabled: a revalidation triggered by Cypress focus/reconnect events
-    // after cleanupDatabase() returns a 500 HTML page, causing a JSON parse
-    // crash. The 60 s dedupingInterval is sufficient for a public catalog.
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
@@ -124,11 +113,6 @@ export default function Catalog({
     ? freshData
     : initialBooks;
 
-  // useMemo ensures `books` keeps the same array reference between renders
-  // as long as `rawBooks` (the SWR data) hasn't changed. Without this,
-  // rawBooks.map() produces a new array on every render, which destabilises
-  // the searchEngine useMemo → searchBooks useCallback → useEffect chain
-  // inside useBookSearch, causing a "Maximum update depth exceeded" loop.
   const books = useMemo(() => rawBooks.map(toCardBook), [rawBooks]);
 
   const [pageIndex, setPageIndex] = useState(numberBooksToShow);
@@ -179,12 +163,10 @@ export default function Catalog({
 // =============================================================================
 
 export const getServerSideProps: GetServerSideProps = async (
-  _context: GetServerSidePropsContext,
+  context: GetServerSidePropsContext,
 ) => {
-  const baseUrl =
-    process.env.NEXTAUTH_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    "http://localhost:3000";
+  const host = context.req.headers.host ?? "localhost:3000";
+  const baseUrl = `http://${host}`;
 
   const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
     ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)

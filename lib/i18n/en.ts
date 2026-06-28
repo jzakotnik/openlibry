@@ -1110,6 +1110,21 @@ export const en: Dictionary = {
     fetchFailed: "Error loading rental data",
   },
 
+  // ─── Catalog detail page ─────────────────────────────────────────────
+  catalogDetailPage: {
+    back: "Back to catalog",
+    by: "by",
+    noSummary: "No description available.",
+    relatedBooks: "Similar books",
+    noRelatedBooks: "No similar books found.",
+    fieldPublisher: "Publisher",
+    fieldYear: "Year",
+    fieldPages: "Pages",
+    fieldAge: "Age recommendation",
+    fieldIsbn: "ISBN",
+    notFound: "Book not found.",
+  },
+
   // ─── Phase 11f: site footer (rendered on every Layout-wrapped page) ───
   footer: {
     publicCatalog: "Public catalog",

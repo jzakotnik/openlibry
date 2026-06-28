@@ -1199,6 +1199,21 @@ export const de = {
     fetchFailed: "Fehler beim Laden der Ausleihdaten",
   },
 
+  // ─── Catalog detail page ─────────────────────────────────────────────
+  catalogDetailPage: {
+    back: "Zurück zum Katalog",
+    by: "von",
+    noSummary: "Keine Beschreibung vorhanden.",
+    relatedBooks: "Ähnliche Bücher",
+    noRelatedBooks: "Keine ähnlichen Bücher gefunden.",
+    fieldPublisher: "Verlag",
+    fieldYear: "Jahr",
+    fieldPages: "Seiten",
+    fieldAge: "Altersempfehlung",
+    fieldIsbn: "ISBN",
+    notFound: "Buch nicht gefunden.",
+  },
+
   // ─── Phase 11f: site footer (rendered on every Layout-wrapped page) ───
   footer: {
     publicCatalog: "Öffentlicher Katalog",
