@@ -505,7 +505,7 @@ export default function BatchScan() {
         );
       }
     } catch {
-      toast.error("Fehler beim Taggen");
+      toast.error(t("aiTagging.toastSuggestError"));
     } finally {
       setIsTagging(false);
     }
