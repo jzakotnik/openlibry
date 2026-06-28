@@ -38,7 +38,7 @@ const OUTPUT_SCHEMA = {
 export const AnthropicService: AiTaggingService = {
   name: "Anthropic",
 
-  async suggest(books, vocabulary, candidates, examples, facetMap) {
+  async suggest(books, vocabulary, candidates, examples, facetMap, styleProfile) {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     // maxTags is enforced deterministically in reconcile; we still pass it so
@@ -61,6 +61,7 @@ export const AnthropicService: AiTaggingService = {
             candidates,
             examples,
             facetMap,
+            styleProfile,
           ),
         },
       ],
