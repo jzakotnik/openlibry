@@ -29,7 +29,12 @@ import {
 import { Dispatch, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type TagSuggestion = { tag: string; isNew: boolean; source?: TagSource };
+type TagSuggestion = {
+  tag: string;
+  isNew: boolean;
+  source?: TagSource;
+  offStyle?: boolean;
+};
 
 /** Per-source icon + tooltip for tag provenance (shown next to a chip). */
 const SOURCE_META: Record<TagSource, { Icon: typeof Landmark; label: string }> = {
@@ -85,6 +90,9 @@ export default function BookTopicsChips({
   // Provenance of suggested tags, keyed by lowercased tag. Ephemeral (most
   // useful right after suggesting) — not persisted, since topics is a flat string.
   const [tagSources, setTagSources] = useState<Record<string, TagSource>>({});
+  // Off-style suggestions (keyed by lowercased tag): kept but visually muted so
+  // staff notice them for review. Ephemeral, like tagSources.
+  const [offStyleTags, setOffStyleTags] = useState<Record<string, boolean>>({});
 
   const allOptions = useMemo(() => parseTopics(topics), [topics]);
   // Library-wide vocabulary, lowercased, for "is this tag already established?"
@@ -172,9 +180,11 @@ export default function BookTopicsChips({
         const found: TagSuggestion[] = data.results?.[0]?.suggestions ?? [];
         const merged = [...currentBookTopics];
         const sourceUpdate: Record<string, TagSource> = {};
+        const offStyleUpdate: Record<string, boolean> = {};
         let added = 0;
         for (const s of found) {
           if (s.source) sourceUpdate[s.tag.toLowerCase()] = s.source;
+          if (s.offStyle) offStyleUpdate[s.tag.toLowerCase()] = true;
           if (!merged.includes(s.tag)) {
             merged.push(s.tag);
             added++;
@@ -185,6 +195,7 @@ export default function BookTopicsChips({
           return;
         }
         setTagSources((prev) => ({ ...prev, ...sourceUpdate }));
+        setOffStyleTags((prev) => ({ ...prev, ...offStyleUpdate }));
         setBookData({ ...book, [fieldType]: serializeTopics(merged) });
         toast.success(
           added === 1
@@ -242,16 +253,25 @@ export default function BookTopicsChips({
       <div className="flex flex-wrap gap-1.5 min-h-[2rem] items-start">
         {currentBookTopics.map((topic) => {
           const isNew = !knownTopics.has(topic.toLowerCase());
+          const isOffStyle = isNew && offStyleTags[topic.toLowerCase()];
           const meta = SOURCE_META[tagSources[topic.toLowerCase()] as TagSource];
           return (
             <Badge
               key={topic}
               variant="outline"
-              title={isNew ? t("aiTagging.chipNewTitle") : t("aiTagging.chipExistingTitle")}
+              title={
+                isOffStyle
+                  ? t("aiTagging.chipOffStyleTitle")
+                  : isNew
+                    ? t("aiTagging.chipNewTitle")
+                    : t("aiTagging.chipExistingTitle")
+              }
               className={
-                isNew
-                  ? "gap-1 pr-1 max-w-[16rem] bg-info/10 text-info border-info/40"
-                  : "gap-1 pr-1 max-w-[16rem] bg-success/10 text-success border-success/40"
+                isOffStyle
+                  ? "gap-1 pr-1 max-w-[16rem] bg-muted/40 text-muted-foreground border-dashed border-muted-foreground/40"
+                  : isNew
+                    ? "gap-1 pr-1 max-w-[16rem] bg-info/10 text-info border-info/40"
+                    : "gap-1 pr-1 max-w-[16rem] bg-success/10 text-success border-success/40"
               }
             >
               {meta && (

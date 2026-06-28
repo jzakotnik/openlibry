@@ -253,6 +253,8 @@ export const en: Dictionary = {
     removeAria: "Remove {tag}",
     suggest: "Suggest",
     chipNewTitle: "New tag (not yet in the library)",
+    chipOffStyleTitle:
+      "New tag that may not fit the library's style — please review",
     chipExistingTitle: "Existing tag",
     sourceDnb: "Source: German National Library",
     sourceOpenlibrary: "Source: Open Library",

@@ -261,6 +261,8 @@ export const de = {
     removeAria: "{tag} entfernen",
     suggest: "Vorschlagen",
     chipNewTitle: "Neues Schlagwort (noch nicht in der Bibliothek)",
+    chipOffStyleTitle:
+      "Neues Schlagwort, passt evtl. nicht zum Stil der Bibliothek – bitte prüfen",
     chipExistingTitle: "Vorhandenes Schlagwort",
     sourceDnb: "Quelle: Deutsche Nationalbibliothek",
     sourceOpenlibrary: "Quelle: Open Library",
