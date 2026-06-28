@@ -26,18 +26,57 @@ export const SYSTEM_PROMPT = [
   "Autors. Englische Kandidaten ins Deutsche übersetzen.",
   "",
   "Regeln:",
-  "- Schlage pro Buch höchstens die angegebene Anzahl Schlagwörter vor.",
+  "- Die angegebene Anzahl ist eine OBERGRENZE, kein Ziel. Lieber wenige",
+  "  treffende Schlagwörter als viele. Fülle niemals auf, nur um die Anzahl zu",
+  "  erreichen; zwei passende Schlagwörter sind besser als fünf mittelmäßige.",
   "- Wähle bevorzugt aus den Kandidaten und den vorhandenen Schlagwörtern.",
-  "- Normalisiere lange/förmliche Katalogbegriffe zu kurzen, kindgerechten",
-  "  Schlagwörtern (z. B. „Künste, Bildende Kunst allgemein\" → „Kunst\").",
-  "- Bevorzuge die vorhandene Schreibweise eines Schlagworts, wenn es sie gibt.",
-  "- Erfinde nur dann ein neues Schlagwort, wenn die Kandidaten das Buch nicht",
-  "  abdecken.",
+  "- Bevorzuge ein vorhandenes Schlagwort der Bibliothek, selbst wenn ein neuer",
+  "  Begriff kürzer oder allgemeiner wäre (z. B. vorhandenes „Kunstgeschichte\"",
+  "  verwenden statt neu „Kunst\"). Übernimm die vorhandene Schreibweise unverändert.",
+  "- Keine Dopplungen: kein Synonym und kein Ober- oder Unterbegriff eines bereits",
+  "  gewählten Schlagworts (nicht „Plastik\" UND „Skulptur\" — eines genügt).",
+  "- Normalisiere lange/förmliche Katalogbegriffe zu kurzen Schlagwörtern",
+  "  (z. B. „Geschichte des 20. Jahrhunderts\" → „20. Jahrhundert\").",
+  "- Erfinde nur dann ein neues Schlagwort, wenn weder Kandidaten noch vorhandene",
+  "  Schlagwörter das Buch abdecken.",
   `- Gib ALLE Schlagwörter in dieser Sprache aus: ${TARGET_LANGUAGE[LOCALE] ?? "Deutsch"}.`,
   "  Übersetze fremdsprachige Kandidaten entsprechend.",
   "- Schlagwörter sind kurze Substantive oder Nominalphrasen, kein Satz.",
   "- Verwende niemals ein Semikolon in einem Schlagwort.",
 ].join("\n");
+
+// Binding/format words and product types that ride along in catalogue metadata
+// but are not subjects.
+const TOPIC_NOISE =
+  /^(hardback|hardcover|softcover|paperback|taschenbuch|gebunden|broschur|broschiert|kartoniert|leinen|e-?book|epub|pdf|buch|set|box|dvd|cd)$/i;
+
+/**
+ * Turns a raw topics string into clean subject candidates. Auto-filled
+ * catalogue metadata (DNB/VLB) packs control markers like "(Produktform)…",
+ * "(VLB-WN)1583:…", binding words and whole exhibition titles into the topics
+ * field; handed to the model as "existing tags" that noise drags the
+ * suggestions off course. Splits on the separators catalogues actually use,
+ * strips parenthetical/code markers, and drops binding/format/over-long junk.
+ */
+export function sanitizeTopicList(raw: string | undefined | null): string[] {
+  if (!raw) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const piece of raw.split(/[;,/]/)) {
+    const cleaned = piece
+      .replace(/\([^)]*\)/g, "") // (Produktform), (VLB-WN) …
+      .replace(/^\s*\d+\s*:?/, "") // leading numeric codes ("1583:")
+      .trim();
+    if (!cleaned || cleaned.length > 40) continue; // empties + exhibition titles
+    if (/^\d+$/.test(cleaned)) continue; // bare codes
+    if (TOPIC_NOISE.test(cleaned)) continue; // binding/format words
+    const key = cleaned.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(cleaned);
+  }
+  return out;
+}
 
 /** Configured max tags per book (default 5), as the model should aim for. */
 export function getPromptMaxTags(): number {
@@ -62,7 +101,7 @@ export function buildUserMessage(
     subtitle: b.subtitle,
     author: b.author,
     summary: b.summary,
-    existingTopics: b.topics,
+    existingTopics: sanitizeTopicList(b.topics),
     publisher: b.publisherName,
     year: b.publisherDate,
     minAge: b.minAge,
