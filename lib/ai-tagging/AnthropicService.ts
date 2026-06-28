@@ -1,4 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
+// Haiku 4.5 (the configured default) is the right tier for high-volume,
+// latency-sensitive classification and supports temperature 0 + structured
+// JSON output. Model name lives in ./config so it can't diverge from the facet
+// classifier's.
+import { ANTHROPIC_MODEL as MODEL } from "./config";
 import {
   buildUserMessage,
   computeMaxOutputTokens,
@@ -7,12 +12,6 @@ import {
   SYSTEM_PROMPT,
 } from "./prompt";
 import type { AiTaggingService } from "./types";
-
-// Tagging is high-volume, latency-sensitive classification — Haiku 4.5 is the
-// right tier, and it supports temperature 0 + structured JSON output, which is
-// what makes the AI step reproducible. Overridable for deployments that want a
-// different model.
-const MODEL = process.env.AI_TAGGING_MODEL || "claude-haiku-4-5";
 
 /** JSON schema constraining the model to a parseable per-book tag list. */
 const OUTPUT_SCHEMA = {

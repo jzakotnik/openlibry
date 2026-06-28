@@ -2,7 +2,7 @@ import BookEditForm from "@/components/book/BookEditForm";
 import Layout from "@/components/layout/Layout";
 import { prisma } from "@/entities/db";
 import { useBookEditor } from "@/hooks/useBookEditor";
-import { isAiTaggingEnabled } from "@/lib/ai-tagging";
+import { isAiTaggingEnabled } from "@/lib/ai-tagging/config";
 import {
   getDeleteSafetySeconds,
   getUniqueTopics,

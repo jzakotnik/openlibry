@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { cleanIsbn, isbnVariants } from "@/lib/utils/isbn";
+import { aggregateTopicCounts } from "../rankTopics";
 import type { SourcedTag } from "../types";
 
 /**
@@ -15,22 +16,12 @@ import type { SourcedTag } from "../types";
  *    and an author's body of work usually share themes.
  */
 
-/** Aggregate ";"-separated topics across rows, ranked by frequency. */
+/** Rank ";"-separated topics by frequency, tagged with "library" provenance. */
 function rankTopicRows(rows: Array<{ topics: string | null }>): SourcedTag[] {
-  const counts = new Map<string, { canonical: string; count: number }>();
-  for (const row of rows) {
-    for (const part of (row.topics ?? "").split(";")) {
-      const tag = part.trim();
-      if (!tag) continue;
-      const key = tag.toLowerCase();
-      const existing = counts.get(key);
-      if (existing) existing.count++;
-      else counts.set(key, { canonical: tag, count: 1 });
-    }
-  }
-  return [...counts.values()]
-    .sort((x, y) => y.count - x.count)
-    .map((v) => ({ tag: v.canonical, source: "library" as const }));
+  return aggregateTopicCounts(rows).map((v) => ({
+    tag: v.canonical,
+    source: "library" as const,
+  }));
 }
 
 /**
