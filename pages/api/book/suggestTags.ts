@@ -2,6 +2,7 @@ import { prisma } from "@/entities/db";
 import {
   gatherSourceCandidates,
   getAiTaggingService,
+  getFacetMap,
   getMaxTags,
   loadTaggedCorpus,
   rankTopics,
@@ -83,6 +84,10 @@ export default async function handler(
     const vocabulary = await rankTopics(prisma);
     const maxTags = getMaxTags();
 
+    // Semantic facets for the vocabulary (cached on disk, topped up for new
+    // tags). Fails soft to {} → the vocabulary is then shown as a flat list.
+    const facetMap = await getFacetMap(vocabulary.map((v) => v.tag));
+
     // Load the already-tagged catalogue once; per book we pick a few similar
     // entries to show the model as worked examples (see selectExamples).
     const corpus = await loadTaggedCorpus(prisma);
@@ -103,7 +108,13 @@ export default async function handler(
       examples[ref] = ex;
     }
 
-    const raw = await service.suggest(books, vocabulary, candidates, examples);
+    const raw = await service.suggest(
+      books,
+      vocabulary,
+      candidates,
+      examples,
+      facetMap,
+    );
 
     const results: BookTagSuggestions[] = books.map((b) => ({
       ref: b.ref,
