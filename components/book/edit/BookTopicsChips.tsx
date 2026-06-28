@@ -17,6 +17,7 @@ import {
 import { BookType } from "@/entities/BookType";
 import type { TagSource } from "@/lib/ai-tagging/types";
 import { t } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import {
   BookMarked,
   BookOpen,
@@ -73,6 +74,17 @@ function parseTopics(topics: string[] | string | undefined | null): string[] {
 }
 
 const serializeTopics = (topics: string[]): string => topics.join(";");
+
+// Chip appearance by status. Base layout is shared; only the colour scheme
+// differs — off-style (muted, dashed: review me), new-to-library (info/blue),
+// or part of the existing vocabulary (success/green).
+const CHIP_BASE = "gap-1 pr-1 max-w-64";
+const CHIP_VARIANT = {
+  offStyle:
+    "bg-muted/40 text-muted-foreground border-dashed border-muted-foreground/40",
+  new: "bg-info/10 text-info border-info/40",
+  existing: "bg-success/10 text-success border-success/40",
+} as const;
 
 export default function BookTopicsChips({
   fieldType,
@@ -137,6 +149,20 @@ export default function BookTopicsChips({
         [fieldType]: serializeTopics(
           currentBookTopics.filter((t) => t !== topic),
         ),
+      });
+      // Drop the provenance/off-style flags too — otherwise these maps grow
+      // unbounded, and a later tag with the same lowercased spelling would
+      // inherit the removed tag's icon or muted styling.
+      const key = topic.toLowerCase();
+      setTagSources((prev) => {
+        if (!(key in prev)) return prev;
+        const { [key]: _, ...rest } = prev;
+        return rest;
+      });
+      setOffStyleTags((prev) => {
+        if (!(key in prev)) return prev;
+        const { [key]: _, ...rest } = prev;
+        return rest;
       });
     },
     [book, currentBookTopics, editable, fieldType, setBookData],
@@ -250,7 +276,7 @@ export default function BookTopicsChips({
       </Label>
 
       {/* Chips — green: already in the library vocabulary; blue: new to it */}
-      <div className="flex flex-wrap gap-1.5 min-h-[2rem] items-start">
+      <div className="flex flex-wrap gap-1.5 min-h-8 items-start">
         {currentBookTopics.map((topic) => {
           const isNew = !knownTopics.has(topic.toLowerCase());
           const isOffStyle = isNew && offStyleTags[topic.toLowerCase()];
@@ -266,13 +292,14 @@ export default function BookTopicsChips({
                     ? t("aiTagging.chipNewTitle")
                     : t("aiTagging.chipExistingTitle")
               }
-              className={
+              className={cn(
+                CHIP_BASE,
                 isOffStyle
-                  ? "gap-1 pr-1 max-w-[16rem] bg-muted/40 text-muted-foreground border-dashed border-muted-foreground/40"
+                  ? CHIP_VARIANT.offStyle
                   : isNew
-                    ? "gap-1 pr-1 max-w-[16rem] bg-info/10 text-info border-info/40"
-                    : "gap-1 pr-1 max-w-[16rem] bg-success/10 text-success border-success/40"
-              }
+                    ? CHIP_VARIANT.new
+                    : CHIP_VARIANT.existing,
+              )}
             >
               {meta && (
                 <span
