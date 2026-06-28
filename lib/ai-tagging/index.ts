@@ -3,6 +3,7 @@ import { GoogleService } from "./GoogleService";
 import type { AiTaggingService } from "./types";
 
 export * from "./types";
+export { loadTaggedCorpus, selectExamples } from "./examples";
 export { rankTopics } from "./rankTopics";
 export { reconcileTags } from "./reconcile";
 export { gatherSourceCandidates } from "./sources";

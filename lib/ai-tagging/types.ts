@@ -50,6 +50,18 @@ export interface BookTagInput {
   maxAge?: string;
 }
 
+/**
+ * A worked example for the model: a book already catalogued in THIS library
+ * together with the tags a librarian gave it. Shown alongside the flat
+ * vocabulary so the model learns the library's tagging style/granularity by
+ * demonstration, not just which tag words are legal.
+ */
+export interface TagExample {
+  title: string;
+  author?: string;
+  tags: string[];
+}
+
 /** A proposed tag plus whether it is new to the library vocabulary. */
 export interface TagSuggestion {
   tag: string;
@@ -77,5 +89,6 @@ export interface AiTaggingService {
     books: BookTagInput[],
     vocabulary: RankedTag[],
     candidates: Record<string, SourcedTag[]>,
+    examples?: Record<string, TagExample[]>,
   ): Promise<Record<string, string[]>>;
 }
