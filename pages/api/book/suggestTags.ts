@@ -11,6 +11,7 @@ import {
 } from "@/lib/ai-tagging";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import { mapLimit } from "@/lib/utils/concurrency";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type SuggestTagsResponse =
@@ -20,6 +21,13 @@ type SuggestTagsResponse =
 
 /** Max books accepted per request — keeps the batched model call bounded. */
 const MAX_BOOKS = 50;
+
+/**
+ * Books whose candidates are gathered concurrently. Each book fans out to
+ * several external catalogues, so this caps total in-flight external requests
+ * (≈ GATHER_CONCURRENCY × sources) instead of opening one burst per book.
+ */
+const GATHER_CONCURRENCY = 6;
 
 /**
  * Proposes tags for one or more books. Returns per-book suggestions with each
@@ -72,13 +80,15 @@ export default async function handler(
     const vocabulary = await rankTopics(prisma);
     const maxTags = getMaxTags();
 
-    // Gather grounded candidates for every book in parallel. The same-book
-    // source short-circuits naturally: if an existing copy already has tags they
-    // lead the candidates; otherwise the external sources + author signal carry.
-    const candidateEntries = await Promise.all(
-      books.map(
-        async (b) => [b.ref, await gatherSourceCandidates(prisma, b)] as const,
-      ),
+    // Gather grounded candidates for every book, capped concurrency so a large
+    // batch doesn't open one external-request burst per book at once. The
+    // same-book source short-circuits naturally: if an existing copy already has
+    // tags they lead the candidates; otherwise the external sources + author
+    // signal carry.
+    const candidateEntries = await mapLimit(
+      books,
+      GATHER_CONCURRENCY,
+      async (b) => [b.ref, await gatherSourceCandidates(prisma, b)] as const,
     );
     const candidates: Record<string, SourcedTag[]> = Object.fromEntries(
       candidateEntries,
@@ -98,7 +108,7 @@ export default async function handler(
 
     businessLogger.info(
       {
-        event: LogEvents.BOOK_UPDATED,
+        event: LogEvents.AI_TAGS_SUGGESTED,
         provider: service.name,
         bookCount: books.length,
       },

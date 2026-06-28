@@ -101,15 +101,22 @@ export function computeMaxOutputTokens(
  */
 export function parseTagResults(text: string | undefined): Record<string, string[]> {
   if (!text) return {};
-  let parsed: { results?: Array<{ ref?: unknown; tags?: unknown }> };
+  let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
     return {};
   }
+  // JSON.parse can yield null, a primitive, or an array — guard before reaching
+  // for `.results` so malformed model output degrades to {} instead of crashing.
+  if (!parsed || typeof parsed !== "object") return {};
+  const results = (parsed as { results?: unknown }).results;
 
   const out: Record<string, string[]> = {};
-  for (const r of parsed.results ?? []) {
+  for (const r of (Array.isArray(results) ? results : []) as Array<{
+    ref?: unknown;
+    tags?: unknown;
+  }>) {
     if (r && typeof r.ref === "string" && Array.isArray(r.tags)) {
       out[r.ref] = r.tags.filter((t): t is string => typeof t === "string");
     }
