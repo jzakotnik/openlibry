@@ -53,7 +53,10 @@ export const SYSTEM_PROMPT = [
   "- Normalisiere lange/förmliche Katalogbegriffe zu kurzen Schlagwörtern",
   "  (z. B. „Geschichte des 20. Jahrhunderts\" → „20. Jahrhundert\").",
   "- Ein völlig neues Schlagwort (weder Kandidat noch im Bestand) nur, wenn weder",
-  "  Kandidaten noch vorhandene Schlagwörter das Buch abdecken.",
+  "  Kandidaten noch vorhandene Schlagwörter das Buch abdecken, und nur wenn es",
+  "  zum Stil der Bibliothek passt (gleiche Körnung und Sprache). Vergib keinen",
+  "  bloßen Eigennamen aus Titel oder Autor als neues Schlagwort (etwa den",
+  "  Künstler- oder Personennamen), außer solche Namen sind hier üblich.",
   `- Gib ALLE Schlagwörter in dieser Sprache aus: ${TARGET_LANGUAGE[LOCALE] ?? "Deutsch"}.`,
   "  Übersetze fremdsprachige Kandidaten entsprechend.",
   "- Schlagwörter sind kurze Substantive oder Nominalphrasen, kein Satz.",
@@ -146,6 +149,7 @@ export function buildUserMessage(
   candidates: Record<string, SourcedTag[]> = {},
   examples: Record<string, TagExample[]> = {},
   facetMap: Record<string, string> = {},
+  styleProfile = "",
 ): string {
   const vocabList = renderVocabulary(vocabulary, facetMap);
 
@@ -172,6 +176,7 @@ export function buildUserMessage(
 
   return [
     `Maximale Schlagwörter pro Buch: ${maxTags}`,
+    ...(styleProfile ? ["", styleProfile] : []),
     "",
     "Vorhandene Schlagwörter der Bibliothek (bevorzugen):",
     vocabList,

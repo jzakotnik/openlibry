@@ -18,6 +18,8 @@ export function reconcileTags(
   sourced: SourcedTag[],
   vocabulary: RankedTag[],
   maxTags: number,
+  /** Bibliographic context for the soft new-tag gate (title/author echo check). */
+  context?: { title?: string; author?: string },
 ): TagSuggestion[] {
   const canonicalByLower = new Map<string, string>();
   for (const v of vocabulary) canonicalByLower.set(v.tag.toLowerCase(), v.tag);
@@ -28,6 +30,27 @@ export function reconcileTags(
       sourceByLower.set(s.tag.toLowerCase(), s.source);
     }
   }
+
+  // Soft style gate (see TagSuggestion.offStyle). A *new* tag is flagged when it
+  // looks unlike the library's controlled vocabulary. Language-agnostic, no NER:
+  //  - it echoes the title/author (typically a coined proper noun), or
+  //  - it is a fragment of an existing vocabulary tag (e.g. "Kunst" when the
+  //    library uses "Kunstgeschichte") — i.e. a near-synonym we'd rather snap to.
+  // Flagged tags are kept but ranked last, so they survive on a young library
+  // (where everything is new) yet don't crowd out controlled tags on a mature one.
+  const haystack = `${context?.title ?? ""} ${context?.author ?? ""}`
+    .toLowerCase()
+    .trim();
+  const vocabLowers = [...canonicalByLower.keys()];
+  const isOffStyle = (lower: string): boolean => {
+    if (lower.length >= 3 && haystack && haystack.includes(lower)) return true;
+    if (lower.length >= 4) {
+      for (const v of vocabLowers) {
+        if (v !== lower && v.includes(lower)) return true; // new tag is a fragment of an existing one
+      }
+    }
+    return false;
+  };
 
   const seen = new Set<string>();
   const existing: TagSuggestion[] = [];
@@ -54,11 +77,15 @@ export function reconcileTags(
         tag: trimmed,
         isNew: true,
         source: sourcedFrom ?? "ai",
+        offStyle: isOffStyle(lower),
       });
     }
   }
 
-  // Existing (already-controlled) tags fill the slots first; new tags only if
-  // there is room left.
-  return [...existing, ...fresh].slice(0, Math.max(0, maxTags));
+  // Existing (controlled) tags first, then on-style new tags, then off-style
+  // new tags. The cap therefore sheds off-style tags first. Stable within groups.
+  const freshRanked = fresh.sort(
+    (a, b) => Number(a.offStyle ?? false) - Number(b.offStyle ?? false),
+  );
+  return [...existing, ...freshRanked].slice(0, Math.max(0, maxTags));
 }

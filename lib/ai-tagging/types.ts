@@ -68,6 +68,13 @@ export interface TagSuggestion {
   isNew: boolean;
   /** Where the tag originated (provenance shown to staff). */
   source?: TagSource;
+  /**
+   * A new tag that doesn't fit the library's style — a near-synonym of an
+   * existing tag, or a proper noun echoing the title/author. Kept (never
+   * dropped — a young library needs new tags) but de-emphasized so staff can
+   * review it. Always false/absent for existing-vocabulary tags.
+   */
+  offStyle?: boolean;
 }
 
 /** Post-processed suggestions for a single book, keyed by its input `ref`. */
@@ -92,5 +99,7 @@ export interface AiTaggingService {
     examples?: Record<string, TagExample[]>,
     /** Optional tag→facet map; groups the vocabulary by kind in the prompt. */
     facetMap?: Record<string, string>,
+    /** Optional rendered style-profile block (see lib/ai-tagging/style). */
+    styleProfile?: string,
   ): Promise<Record<string, string[]>>;
 }
