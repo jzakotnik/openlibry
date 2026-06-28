@@ -134,6 +134,7 @@ export default async function handler(
         vocabulary,
         maxTags,
         { title: b.title, author: b.author },
+        facetMap,
       ),
     }));
 
