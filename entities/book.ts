@@ -19,7 +19,7 @@ const rentalConfig = getRentalConfig();
  * find a copy regardless of how its ISBN was typed. Leaves a missing or
  * non-ISBN value untouched.
  */
-function normalizeIsbn<T extends { isbn?: string | null }>(book: T): T {
+export function normalizeIsbn<T extends { isbn?: string | null }>(book: T): T {
   if (typeof book.isbn !== "string" || !book.isbn.trim()) return book;
   const cleaned = cleanIsbn(book.isbn);
   return cleaned ? { ...book, isbn: cleaned } : book;

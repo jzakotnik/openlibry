@@ -4,7 +4,7 @@ import { getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { useBookEditor } from "@/hooks/useBookEditor";
-import { isAiTaggingEnabled } from "@/lib/ai-tagging";
+import { isAiTaggingEnabled } from "@/lib/ai-tagging/config";
 import { replaceBookDateString } from "@/lib/utils/dateutils";
 import {
   getDeleteSafetySeconds,

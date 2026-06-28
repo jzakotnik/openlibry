@@ -69,7 +69,9 @@ export default async function handler(
 
   // Only bibliographic fields are forwarded to the provider — never user data.
   const books: BookTagInput[] = rawBooks.map((b: any, i: number) => ({
-    ref: typeof b?.ref === "string" && b.ref ? b.ref : String(i),
+    // Namespaced fallback so a missing ref can't collide with an explicit
+    // numeric ref from another book (which would cross-assign candidates/tags).
+    ref: typeof b?.ref === "string" && b.ref ? b.ref : `__b${i}`,
     isbn: b?.isbn,
     title: b?.title,
     subtitle: b?.subtitle,

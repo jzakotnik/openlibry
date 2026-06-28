@@ -48,6 +48,9 @@ export function memoizeSource<A extends unknown[]>(
       return hit.promise;
     }
 
+    // Delete first so a re-inserted (expired) key moves to the newest LRU slot
+    // rather than keeping its old position and being evicted next.
+    cache.delete(key);
     const promise = fn(...args);
     const entry: Entry = { promise, expires: now + LONG_TTL_MS };
     cache.set(key, entry);

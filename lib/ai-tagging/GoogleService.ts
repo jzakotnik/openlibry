@@ -1,4 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
+// Flash tier is the right cost/latency point for high-volume classification.
+// Model name lives in ./config (separate from the Anthropic one so they can't
+// cross) and is shared with the facet classifier.
+import { GOOGLE_MODEL as MODEL } from "./config";
 import {
   buildUserMessage,
   computeMaxOutputTokens,
@@ -7,11 +11,6 @@ import {
   SYSTEM_PROMPT,
 } from "./prompt";
 import type { AiTaggingService } from "./types";
-
-// Flash tier is the right cost/latency point for high-volume classification.
-// Overridable; kept separate from AI_TAGGING_MODEL so an Anthropic model name
-// can't leak into the Google call.
-const MODEL = process.env.GOOGLE_AI_TAGGING_MODEL || "gemini-2.5-flash";
 
 /** Response schema constraining Gemini to a parseable per-book tag list. */
 const RESPONSE_SCHEMA = {

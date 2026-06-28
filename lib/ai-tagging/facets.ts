@@ -7,6 +7,13 @@ import {
   writeFileSync,
 } from "fs";
 import { dirname, join } from "path";
+import {
+  ANTHROPIC_MODEL,
+  FACETS,
+  GOOGLE_MODEL,
+  pickProvider,
+  type Facet,
+} from "./config";
 
 /**
  * Semantic structuring of the (otherwise flat) tag vocabulary. An LLM assigns
@@ -24,22 +31,6 @@ import { dirname, join } from "path";
  * are atomic (temp file + rename) so a crash mid-write can't corrupt the cache,
  * and a cooldown prevents an outage from triggering a model call per request.
  */
-
-export const FACETS = [
-  "Gattung",
-  "Epoche",
-  "Region",
-  "Strömung",
-  "Thema",
-  "Sonstiges",
-] as const;
-export type Facet = (typeof FACETS)[number];
-
-/** Order facets are presented in the prompt (most defining first). */
-export const FACET_ORDER: readonly Facet[] = FACETS;
-
-const ANTHROPIC_MODEL = process.env.AI_TAGGING_MODEL || "claude-haiku-4-5";
-const GOOGLE_MODEL = process.env.GOOGLE_AI_TAGGING_MODEL || "gemini-2.5-flash";
 
 const CACHE_PATH =
   process.env.AI_TAGGING_FACET_CACHE ||
@@ -102,18 +93,6 @@ const GOOGLE_SCHEMA = {
   },
   required: ["assignments"],
 };
-
-// ── provider selection (mirrors getAiTaggingService) ────────────────────────
-
-function pickProvider(): "anthropic" | "google" | null {
-  const pinned = process.env.AI_TAGGING_PROVIDER?.trim().toLowerCase();
-  if (pinned === "anthropic") return process.env.ANTHROPIC_API_KEY ? "anthropic" : null;
-  if (pinned === "google") return process.env.GEMINI_API_KEY ? "google" : null;
-  if (pinned) return null; // pinned to something unknown → off
-  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
-  if (process.env.GEMINI_API_KEY) return "google";
-  return null;
-}
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -200,6 +179,7 @@ async function classify(tags: string[]): Promise<Record<string, Facet>> {
 
 let mem: Record<string, Facet> | null = null;
 let cooldownUntil = 0;
+let inFlight: Promise<void> | null = null;
 
 function loadCache(): Record<string, Facet> {
   if (mem) return mem;
@@ -235,20 +215,30 @@ export async function getFacetMap(
   const cache = loadCache();
   const missing = tags.filter((t) => !(t.toLowerCase() in cache));
 
-  if (missing.length > 0 && Date.now() >= cooldownUntil) {
-    try {
-      const fresh = await classify(missing);
-      if (Object.keys(fresh).length > 0) {
-        for (const [k, v] of Object.entries(fresh)) cache[k] = v;
-        persistCache(cache);
-      }
-      // Anything the model skipped (or a total failure) waits out the cooldown
-      // rather than re-calling the provider on the very next request.
-      if (Object.keys(fresh).length < missing.length) {
+  // Only one categorization call at a time: concurrent requests with the same
+  // new tags would otherwise each fire a (paid) provider call. Others skip and
+  // use the current cache; the in-flight call populates it for the next request.
+  if (missing.length > 0 && Date.now() >= cooldownUntil && !inFlight) {
+    inFlight = (async () => {
+      try {
+        const fresh = await classify(missing);
+        if (Object.keys(fresh).length > 0) {
+          for (const [k, v] of Object.entries(fresh)) cache[k] = v;
+          persistCache(cache);
+        }
+        // Anything the model skipped (or a total failure) waits out the cooldown
+        // rather than re-calling the provider on the very next request.
+        if (Object.keys(fresh).length < missing.length) {
+          cooldownUntil = Date.now() + COOLDOWN_MS;
+        }
+      } catch {
         cooldownUntil = Date.now() + COOLDOWN_MS;
       }
-    } catch {
-      cooldownUntil = Date.now() + COOLDOWN_MS;
+    })();
+    try {
+      await inFlight;
+    } finally {
+      inFlight = null;
     }
   }
 

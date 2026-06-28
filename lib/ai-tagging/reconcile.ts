@@ -32,25 +32,20 @@ export function reconcileTags(
   }
 
   // Soft style gate (see TagSuggestion.offStyle). A *new* tag is flagged when it
-  // looks unlike the library's controlled vocabulary. Language-agnostic, no NER:
-  //  - it echoes the title/author (typically a coined proper noun), or
-  //  - it is a fragment of an existing vocabulary tag (e.g. "Kunst" when the
-  //    library uses "Kunstgeschichte") — i.e. a near-synonym we'd rather snap to.
-  // Flagged tags are kept but ranked last, so they survive on a young library
-  // (where everything is new) yet don't crowd out controlled tags on a mature one.
-  const haystack = `${context?.title ?? ""} ${context?.author ?? ""}`
-    .toLowerCase()
-    .trim();
-  const vocabLowers = [...canonicalByLower.keys()];
-  const isOffStyle = (lower: string): boolean => {
-    if (lower.length >= 3 && haystack && haystack.includes(lower)) return true;
-    if (lower.length >= 4) {
-      for (const v of vocabLowers) {
-        if (v !== lower && v.includes(lower)) return true; // new tag is a fragment of an existing one
-      }
-    }
-    return false;
-  };
+  // looks like a coined proper noun echoing the title/author (e.g. "Michelangelo"
+  // for a book titled "Michelangelo"). Matched on WHOLE WORDS, not substrings, so
+  // a thematic tag isn't flagged for merely appearing inside a longer title word
+  // (e.g. "eis" inside "Reise"). Language-agnostic, no NER. Flagged tags are kept
+  // but ranked last, so they survive on a young library (where everything is new)
+  // yet don't crowd out controlled tags on a mature one.
+  const titleAuthorWords = new Set(
+    `${context?.title ?? ""} ${context?.author ?? ""}`
+      .toLowerCase()
+      .split(/[^a-zà-ÿ0-9]+/)
+      .filter(Boolean),
+  );
+  const isOffStyle = (lower: string): boolean =>
+    lower.length >= 3 && titleAuthorWords.has(lower);
 
   const seen = new Set<string>();
   const existing: TagSuggestion[] = [];

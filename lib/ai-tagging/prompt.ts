@@ -1,4 +1,5 @@
 import { LOCALE } from "@/lib/i18n";
+import { FACET_ORDER } from "./config";
 import type { BookTagInput, RankedTag, SourcedTag, TagExample } from "./types";
 
 /**
@@ -102,18 +103,6 @@ export function getPromptMaxTags(): number {
   return Number.isFinite(n) && n > 0 ? n : 5;
 }
 
-// Facet group order for the grouped vocabulary (mirrors FACET_ORDER in
-// ./facets). Kept local so the prompt module stays free of the facet
-// classifier's SDK imports.
-const FACET_GROUP_ORDER = [
-  "Gattung",
-  "Epoche",
-  "Region",
-  "Strömung",
-  "Thema",
-  "Sonstiges",
-];
-
 /**
  * Render the vocabulary for the prompt. With a facet map it's grouped by kind
  * (so the model sees the structure and covers each axis); without one it falls
@@ -132,9 +121,10 @@ function renderVocabulary(
     const facet = facetMap[v.tag] ?? "Sonstiges";
     (groups.get(facet) ?? groups.set(facet, []).get(facet)!).push(v.tag);
   }
+  const facetOrder = FACET_ORDER as readonly string[];
   const order = [
-    ...FACET_GROUP_ORDER,
-    ...[...groups.keys()].filter((f) => !FACET_GROUP_ORDER.includes(f)),
+    ...facetOrder,
+    ...[...groups.keys()].filter((f) => !facetOrder.includes(f)),
   ];
   return order
     .filter((f) => groups.get(f)?.length)
