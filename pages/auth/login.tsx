@@ -10,11 +10,16 @@ import { getCsrfToken } from "next-auth/react";
 import Head from "next/head";
 
 import { t } from "@/lib/i18n";
+import { resolveLoginImage } from "@/lib/loginImage";
 import loginsplash from "./loginsplashscreen.jpg";
 
 export default function Login({
   csrfToken,
+  loginImage,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  // Configurable via LOGIN_IMAGE (a file in /public); falls back to the bundled
+  // splash when unset.
+  const splashSrc = loginImage ?? loginsplash.src;
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -61,7 +66,7 @@ export default function Login({
         <div
           className="hidden sm:block sm:w-5/12 md:w-7/12 relative"
           style={{
-            backgroundImage: `url(${loginsplash.src})`,
+            backgroundImage: `url(${splashSrc})`,
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundPosition: "center",
@@ -163,9 +168,12 @@ export default function Login({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const loginImage = resolveLoginImage();
+
   return {
     props: {
       csrfToken: (await getCsrfToken(context)) ?? null,
+      loginImage,
     },
   };
 }
