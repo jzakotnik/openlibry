@@ -43,13 +43,19 @@ export function useBookSearch(
   const [renderedBooks, setRenderedBooks] = useState<BookType[]>(books);
   const [resultCount, setResultCount] = useState(books.length);
 
+  type SearchEngine = ReturnType<typeof itemsjs>;
+
   // null = not yet built; building happens after first paint
-  const [searchEngine, setSearchEngine] = useState<ReturnType<
-    typeof itemsjs
-  > | null>(null);
+  const [searchEngine, setSearchEngine] = useState<SearchEngine | null>(null);
 
   const queryRef = useRef(bookSearchInput);
   queryRef.current = bookSearchInput;
+
+  // Keep the latest books available without making callbacks depend on the
+  // (unstable) array reference — SWR polling creates a new reference every
+  // tick even when nothing changed.
+  const booksRef = useRef(books);
+  booksRef.current = books;
 
   const searchableFields = useMemo(
     () => [...SEARCHABLE_FIELDS, ...extraSearchableFields],
@@ -57,13 +63,24 @@ export function useBookSearch(
     [extraSearchableFields.join(",")],
   ) as any;
 
-  // Stable fingerprint: only changes when books are actually added, removed,
-  // or modified. Prevents itemsjs rebuilds on SWR reference churn (e.g. the
-  // rental page polls every 1s and would otherwise rebuild the index every tick
-  // even when no data changed).
-  const booksFingerprint = books
-    .map((b) => `${b.id}:${b.updatedAt ?? ""}`)
-    .join(",");
+  // Stable fingerprint: changes when books are added/removed OR when a field
+  // relevant to rendering changes. NOTE: `updatedAt` arrives from the API with
+  // day granularity (convertDateToDayString), so it does NOT change on a
+  // second same-day mutation — rentalStatus/dueDate/userId/renewalCount must
+  // be part of the fingerprint or the index goes stale after e.g. a
+  // return-then-rent on the same day.
+  const booksFingerprint = useMemo(
+    () =>
+      books
+        .map(
+          (b) =>
+            `${b.id}:${b.rentalStatus ?? ""}:${b.dueDate ?? ""}:${
+              b.userId ?? ""
+            }:${b.renewalCount ?? ""}:${b.updatedAt ?? ""}`,
+        )
+        .join(","),
+    [books],
+  );
 
   // ── Deferred index construction ────────────────────────────────────────────
   // Runs *after* the browser has painted the page, so the book list is visible
@@ -72,7 +89,7 @@ export function useBookSearch(
     setSearchEngine(null);
 
     const id = setTimeout(() => {
-      const engine = itemsjs(books, { searchableFields });
+      const engine = itemsjs(booksRef.current, { searchableFields });
       setSearchEngine(engine);
     }, 0);
 
@@ -82,10 +99,12 @@ export function useBookSearch(
 
   const searchBooks = useCallback(
     (query: string) => {
+      const currentBooks = booksRef.current;
+
       // Index not ready yet — show all books as a passthrough
       if (!searchEngine) {
-        setRenderedBooks(books);
-        setResultCount(books.length);
+        setRenderedBooks(currentBooks);
+        setResultCount(currentBooks.length);
         return;
       }
 
@@ -101,11 +120,11 @@ export function useBookSearch(
         setResultCount(result.pagination.total);
       } catch (err) {
         errorLogger.error({ err, query }, LogEvents.SEARCH_ERROR);
-        setRenderedBooks(books);
-        setResultCount(books.length);
+        setRenderedBooks(currentBooks);
+        setResultCount(currentBooks.length);
       }
     },
-    [searchEngine, sort, perPage, books],
+    [searchEngine, sort, perPage],
   );
 
   const searchBooksRef = useRef(searchBooks);
@@ -113,7 +132,8 @@ export function useBookSearch(
     searchBooksRef.current = searchBooks;
   });
 
-  // Re-run current query once the index finishes building
+  // Re-run current query once the index finishes (re)building, so rental
+  // status changes reach the visible results while a search is active.
   useEffect(() => {
     if (!searchEngine) return;
     if (queryRef.current) {
@@ -121,9 +141,13 @@ export function useBookSearch(
     }
   }, [searchEngine]);
 
+  // Created exactly once. Routing through searchBooksRef means SWR reference
+  // churn can never recreate the debouncer and silently cancel a pending
+  // search (previously: a poll tick landing inside the 150 ms window after
+  // typing dropped the search entirely).
   const debouncedSearch = useMemo(
-    () => debounce((q: string) => searchBooks(q), DEBOUNCE_MS),
-    [searchBooks],
+    () => debounce((q: string) => searchBooksRef.current(q), DEBOUNCE_MS),
+    [],
   );
 
   useEffect(() => () => debouncedSearch.clear(), [debouncedSearch]);
@@ -147,8 +171,8 @@ export function useBookSearch(
   const handleClear = useCallback(() => {
     debouncedSearch.clear();
     setBookSearchInput("");
-    searchBooks("");
-  }, [debouncedSearch, searchBooks]);
+    searchBooksRef.current("");
+  }, [debouncedSearch]);
 
   return {
     renderedBooks,
