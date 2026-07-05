@@ -36,6 +36,18 @@ const MAX_BOOKS = 50;
 const GATHER_CONCURRENCY = 6;
 
 /**
+ * Books per model call. One call for the full 50-book batch has two failure
+ * modes this bound removes: at a high AI_TAGGING_MAX_TAGS the JSON response
+ * can exceed the output-token cap and truncate (unparseable → every book
+ * silently loses its tags), and any per-batch parse failure zeroes all books
+ * at once. Chunking confines both to ~10 books.
+ */
+const MODEL_CHUNK_SIZE = 10;
+
+/** Concurrent model calls for a chunked batch (bounds provider rate usage). */
+const SUGGEST_CONCURRENCY = 2;
+
+/**
  * Proposes tags for one or more books. Returns per-book suggestions with each
  * tag flagged new/existing relative to the library vocabulary. Auth-gated by
  * proxy.ts. Failure is non-fatal to the caller's workflow: any error returns a
@@ -117,14 +129,51 @@ export default async function handler(
       examples[ref] = ex;
     }
 
-    const raw = await service.suggest(
-      books,
-      vocabulary,
-      candidates,
-      examples,
-      facetMap,
-      styleProfile,
+    // Chunked model calls: a failed chunk loses only its own books (they come
+    // back without suggestions); other chunks' results still reach the user.
+    // Only when EVERY chunk fails is the whole request treated as failed.
+    const chunks: BookTagInput[][] = [];
+    for (let i = 0; i < books.length; i += MODEL_CHUNK_SIZE) {
+      chunks.push(books.slice(i, i + MODEL_CHUNK_SIZE));
+    }
+    const chunkErrors: unknown[] = [];
+    const chunkResults = await mapLimit(
+      chunks,
+      SUGGEST_CONCURRENCY,
+      async (chunk) => {
+        try {
+          return await service.suggest(
+            chunk,
+            vocabulary,
+            candidates,
+            examples,
+            facetMap,
+            styleProfile,
+          );
+        } catch (e) {
+          chunkErrors.push(e);
+          return {} as Record<string, string[]>;
+        }
+      },
     );
+    if (chunkErrors.length === chunks.length) throw chunkErrors[0];
+    if (chunkErrors.length > 0) {
+      errorLogger.error(
+        {
+          event: LogEvents.API_ERROR,
+          endpoint: "/api/book/suggestTags",
+          provider: service.name,
+          failedChunks: chunkErrors.length,
+          totalChunks: chunks.length,
+          error:
+            chunkErrors[0] instanceof Error
+              ? chunkErrors[0].message
+              : String(chunkErrors[0]),
+        },
+        "Some AI tag chunks failed; their books return without suggestions",
+      );
+    }
+    const raw: Record<string, string[]> = Object.assign({}, ...chunkResults);
 
     const results: BookTagSuggestions[] = books.map((b) => ({
       ref: b.ref,
