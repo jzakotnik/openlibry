@@ -79,6 +79,18 @@ export const de = {
     toastAlreadyRented: "Buch {bookId} ist bereits ausgeliehen",
     toastBookNotFound: "Buch {bookId} nicht gefunden",
     showingFirst: "Mehr Ergebnisse vorhanden",
+
+    // Status badge shown in the rental list for books that are neither
+    // "available" nor "rented" (no valid rental to extend/return).
+    // Wording mirrors pdfBooks.status* so labels stay consistent between
+    // the rental screen and the printed stock report.
+    statusBroken: "Beschädigt",
+    statusPresentation: "Vorführung",
+    statusOrdered: "Bestellt",
+    statusLost: "Verloren",
+    statusRemote: "Andere Bibliothek",
+    statusUnknown: "Unbekannter Status ({status})",
+    statusBadgeAria: "Status: {status}",
   },
   rentSearchParams: {
     overdue: "Überfällig",
@@ -805,9 +817,7 @@ export const de = {
     emptyRented: "Keine Bücher ausgeliehen",
     emptyAvailable: "Keine verfügbaren Bücher",
     footer: "OpenLibry • Bestandsbericht vom {date}",
-    // Status labels rendered inside PDF rows.
-    // Mirrors fieldTranslations.rentalStatus but lives here so the PDF stays
-    // consistent with the deployment locale.
+
     statusRented: "Ausgeliehen",
     statusAvailable: "Verfügbar",
     statusBroken: "Beschädigt",
@@ -1243,8 +1253,7 @@ export const de = {
         "Keine externe Buchquelle war erreichbar. Bitte Internetverbindung des Servers prüfen.",
       partialFailure:
         "Buch nicht gefunden. Einige Quellen konnten nicht erreicht werden.",
-      notFound:
-        "Buch nicht in einer der verfügbaren Katalogquellen gefunden.",
+      notFound: "Buch nicht in einer der verfügbaren Katalogquellen gefunden.",
       unexpected: "Unerwarteter Fehler bei der ISBN-Abfrage.",
     },
     fetchError: {

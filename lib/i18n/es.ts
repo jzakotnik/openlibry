@@ -80,6 +80,14 @@ export const es: Dictionary = {
     toastAlreadyRented: "El libro {bookId} ya está prestado",
     toastBookNotFound: "Libro {bookId} no encontrado",
     showingFirst: "Más resultados disponibles",
+
+    statusBroken: "Dañado",
+    statusPresentation: "Ejemplar de muestra",
+    statusOrdered: "Pedido",
+    statusLost: "Perdido",
+    statusRemote: "Otra biblioteca",
+    statusUnknown: "Estado desconocido ({status})",
+    statusBadgeAria: "Estado: {status}",
   },
   rentSearchParams: {
     overdue: "Vencido",

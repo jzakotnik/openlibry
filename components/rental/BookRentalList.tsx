@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -7,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  AlertTriangle,
   BookOpen,
   CircleArrowLeft,
   ListPlus,
@@ -39,6 +41,26 @@ interface BookPropsType {
   maxExtensions: number;
   sortBy: any;
   renderLimit?: number;
+}
+
+// Human-readable label for any rentalStatus that is neither "available"
+// nor "rented" (e.g. "lost", "damaged"). Falls back to a generic label
+// for statuses that don't have a dedicated translation yet.
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case "broken":
+      return t("rental.statusBroken");
+    case "presentation":
+      return t("rental.statusPresentation");
+    case "ordered":
+      return t("rental.statusOrdered");
+    case "lost":
+      return t("rental.statusLost");
+    case "remote":
+      return t("rental.statusRemote");
+    default:
+      return t("rental.statusUnknown", { status });
+  }
 }
 
 const BookList = React.memo(function BookList({
@@ -74,11 +96,16 @@ const BookList = React.memo(function BookList({
         data-cy="book_list_container"
       >
         {visibleBooks.map((b: BookType) => {
+          const isAvailable = b.rentalStatus === "available";
+          const isRented = b.rentalStatus === "rented";
+          // Anything that's neither available nor actively rented (lost,
+          // damaged, etc.) has no valid rental to extend or return.
+          const isUnavailableOther = !isAvailable && !isRented;
+
           const allowExtendBookRent = canExtendBook(b, maxExtensions);
           const extendTooltip = allowExtendBookRent
             ? t("rental.extend")
             : t("rental.maxExtensionReached");
-          const isRented = b.rentalStatus !== "available";
 
           return (
             <div
@@ -108,6 +135,29 @@ const BookList = React.memo(function BookList({
                   className="flex items-center gap-0.5 shrink-0 overflow-visible relative z-[1]"
                   data-cy={`book_actions_${b.id}`}
                 >
+                  {isUnavailableOther && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Badge
+                            variant="destructive"
+                            className="flex items-center gap-1"
+                            data-cy={`book_status_badge_${b.id}`}
+                            aria-label={t("rental.statusBadgeAria", {
+                              status: getStatusLabel(b.rentalStatus),
+                            })}
+                          >
+                            <AlertTriangle className="h-3 w-3" />
+                            {getStatusLabel(b.rentalStatus)}
+                          </Badge>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {getStatusLabel(b.rentalStatus)}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
                   {isRented && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -151,7 +201,7 @@ const BookList = React.memo(function BookList({
                     </Tooltip>
                   )}
 
-                  {userExpanded && !isRented && (
+                  {userExpanded && isAvailable && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -199,7 +249,7 @@ const BookList = React.memo(function BookList({
                   }
                 >
                   {t("rental.bookNumberPrefix")} {b.id}
-                  {isRented && b.rentalStatus !== "lost" && (
+                  {isRented && (
                     <span data-cy={`book_rented_status_${b.id}`}>
                       {" "}
                       — {t("rental.bookRentedUntil")}{" "}
@@ -208,10 +258,16 @@ const BookList = React.memo(function BookList({
                       {userNameforBook(users, b.userId!)}
                     </span>
                   )}
-                  {!isRented && (
+                  {isAvailable && (
                     <span data-cy={`book_available_status_${b.id}`}>
                       {" "}
                       — {b.author}
+                    </span>
+                  )}
+                  {isUnavailableOther && (
+                    <span data-cy={`book_unavailable_status_${b.id}`}>
+                      {" "}
+                      — {b.author} · {getStatusLabel(b.rentalStatus)}
                     </span>
                   )}
                 </span>
