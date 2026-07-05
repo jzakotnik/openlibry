@@ -21,6 +21,10 @@ export const de = {
     admin: "Administration",
     logout: "Abmelden",
   },
+  holdButton: {
+    deleteLabel: "Löschen",
+    tooltip: "Zum Ausführen gedrückt halten",
+  },
   nav: {
     rental: {
       title: "Leihe",
