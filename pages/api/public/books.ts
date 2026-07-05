@@ -1,5 +1,6 @@
 import { PublicBookType } from "@/entities/PublicBookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
+import { PUBLIC_BOOK_SELECT, toPublicBook } from "@/entities/publicBook";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -42,29 +43,14 @@ export default async function handler(
 
   try {
     const rawBooks = await prisma.book.findMany({
-      select: {
-        id: true,
-        title: true,
-        author: true,
-        isbn: true,
-        topics: true,
-        rentalStatus: true,
-      },
+      select: PUBLIC_BOOK_SELECT,
       orderBy: { title: "asc" },
     });
 
-    const books: Array<PublicBookType> = rawBooks.map((b) => ({
-      id: b.id,
-      title: b.title,
-      author: b.author,
-      isbn: b.isbn,
-      topics: b.topics,
-      rentalStatus: b.rentalStatus,
-      // Cover is served by /api/images/[id], which handles the .jpg lookup
-      // and default.jpg fallback. That route is already excluded from auth
-      // in middleware.ts so unauthenticated clients can fetch it directly.
-      coverUrl: `/api/images/${b.id}`,
-    }));
+    // Cover is served by /api/images/[id], which handles the .jpg lookup
+    // and default.jpg fallback. That route is already excluded from auth
+    // in middleware.ts so unauthenticated clients can fetch it directly.
+    const books: Array<PublicBookType> = rawBooks.map(toPublicBook);
 
     businessLogger.info(
       {

@@ -44,6 +44,7 @@ export default withAuth(
         const isPublicRoute =
           pathname === "/publicbookview" ||
           pathname === "/catalog" ||
+          pathname.startsWith("/catalog/") ||
           pathname.startsWith("/api/images") ||
           pathname === "/api/version" ||
           pathname.startsWith("/api/public/");
