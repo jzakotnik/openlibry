@@ -4,11 +4,6 @@ import { BookType } from "@/entities/BookType";
 import { PublicBookDetailType } from "@/entities/PublicBookDetailType";
 import { PublicBookType } from "@/entities/PublicBookType";
 import { translations } from "@/entities/fieldTranslations";
-
-function parseTopics(raw: string | null | undefined): string[] {
-  if (!raw) return [];
-  return raw.split(";").map((t) => t.trim()).filter(Boolean);
-}
 import { t } from "@/lib/i18n";
 import { ArrowLeft, BookOpen, Calendar, Hash, Tag, Users } from "lucide-react";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
@@ -16,6 +11,14 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+
+function parseTopics(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(";")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
 
 // =============================================================================
 // Sub-components
@@ -38,8 +41,9 @@ const STATUS_STYLES: Record<string, { bg: string; pulse: boolean }> = {
 function AvailabilityPill({ rentalStatus }: { rentalStatus: string }) {
   const style = STATUS_STYLES[rentalStatus] ?? STATUS_STYLES.available;
   const label =
-    translations.rentalStatus[rentalStatus as keyof typeof translations.rentalStatus] ??
-    rentalStatus;
+    translations.rentalStatus[
+      rentalStatus as keyof typeof translations.rentalStatus
+    ] ?? rentalStatus;
 
   return (
     <div
@@ -142,7 +146,9 @@ function RelatedBooksSection({ books }: RelatedBooksSectionProps) {
 
   return (
     <section className="mt-12 pt-8 border-t border-border">
-      <h2 className="text-xl font-semibold mb-5">{t("catalogDetailPage.relatedBooks")}</h2>
+      <h2 className="text-xl font-semibold mb-5">
+        {t("catalogDetailPage.relatedBooks")}
+      </h2>
       {books.length === 0 ? (
         <p className="text-muted-foreground text-sm">
           {t("catalogDetailPage.noRelatedBooks")}
@@ -150,7 +156,9 @@ function RelatedBooksSection({ books }: RelatedBooksSectionProps) {
       ) : (
         <div
           className="grid gap-3 justify-items-center"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+          }}
         >
           {books.map((b) => (
             <BookSummaryCard
@@ -219,7 +227,11 @@ export default function CatalogDetailPage({ book }: CatalogDetailProps) {
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             {/* Cover */}
             <div className="shrink-0 lg:w-[280px]">
-              <BookCover bookId={book.id} title={book.title ?? "Buch"} />
+              <BookCover
+                key={book.id}
+                bookId={book.id}
+                title={book.title ?? "Buch"}
+              />
             </div>
 
             {/* Info */}
