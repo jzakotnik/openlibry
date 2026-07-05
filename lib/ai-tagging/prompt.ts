@@ -179,13 +179,17 @@ export function buildUserMessage(
 /**
  * Budget output tokens by batch size so a large batch's JSON isn't truncated
  * (truncation makes it unparseable and loses every book's tags). Roughly ~12
- * tokens per tag plus a per-book envelope, with a floor for tiny batches.
+ * tokens per tag plus a per-book envelope. The base term is deliberately
+ * generous: newer models (Sonnet 5+) run adaptive thinking by default and
+ * those thinking tokens count against max_tokens — a JSON-only budget
+ * intermittently truncates there. max_tokens is a cap, not a cost, so the
+ * headroom is free on models that don't think.
  */
 export function computeMaxOutputTokens(
   bookCount: number,
   maxTags: number,
 ): number {
-  return Math.min(8192, 512 + bookCount * (maxTags * 12 + 24));
+  return Math.min(8192, 2048 + bookCount * (maxTags * 12 + 24));
 }
 
 /**
