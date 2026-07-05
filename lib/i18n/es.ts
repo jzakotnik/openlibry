@@ -22,6 +22,10 @@ export const es: Dictionary = {
     admin: "Administración",
     logout: "Cerrar sesión",
   },
+  holdButton: {
+    deleteLabel: "Eliminar",
+    tooltip: "Mantén pulsado para confirmar",
+  },
   nav: {
     rental: {
       title: "Préstamos",
