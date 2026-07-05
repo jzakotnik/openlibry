@@ -14,9 +14,13 @@ const dnbCached = memoizeSource(fetchDnbCandidates, (isbn) => cleanIsbn(isbn));
 const openLibraryCached = memoizeSource(fetchOpenLibraryCandidates, (isbn) =>
   cleanIsbn(isbn),
 );
-const wikidataCached = memoizeSource(fetchWikidataCandidates, (title) =>
-  (title ?? "").trim().toLowerCase(),
-);
+// Keyed by title AND author: generic titles ("Sämtliche Gedichte") exist for
+// many different authors, and a title-only key would hand one poet's cached
+// candidates to every other poet's collected works.
+const wikidataCached = memoizeSource(fetchWikidataCandidates, (title, author) => {
+  const t = (title ?? "").trim().toLowerCase();
+  return t ? `${t}|${(author ?? "").trim().toLowerCase()}` : "";
+});
 
 export { fetchDnbCandidates } from "./dnb";
 export { fetchLibraryCandidates, fetchSameBookCandidates } from "./library";
@@ -50,7 +54,7 @@ export async function gatherSourceCandidates(
     dnbCached(book.isbn),
     fetchLibraryCandidates(prisma, book.author, book.isbn),
     openLibraryCached(book.isbn),
-    wikidataCached(book.title),
+    wikidataCached(book.title, book.author),
   ]);
 
   // Same-book tags lead — human-approved tags for this exact title.
