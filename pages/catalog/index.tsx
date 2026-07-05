@@ -1,9 +1,13 @@
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 import Layout from "@/components/layout/Layout";
+import { getPublicBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
+import { prisma } from "@/entities/db";
 import { PublicBookType } from "@/entities/PublicBookType";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { memo, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -26,12 +30,21 @@ interface CatalogPropsType {
 // Helpers
 // =============================================================================
 
+/**
+ * SWR fetcher that throws on non-2xx responses so SWR captures the error
+ * instead of trying to JSON-parse an HTML error page and crashing with
+ * "Unexpected token '<'". Only used for client-side revalidation — the
+ * initial data comes from getServerSideProps below, not this fetch.
+ */
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
     if (!res.ok) throw new Error(`API ${res.status}`);
     return res.json();
   });
 
+/**
+ * Map PublicBookType → BookType-compatible shape for existing components.
+ */
 function toCardBook(b: PublicBookType): CatalogBookType {
   return {
     id: b.id,
@@ -163,11 +176,8 @@ export default function Catalog({
 // =============================================================================
 
 export const getServerSideProps: GetServerSideProps = async (
-  context: GetServerSidePropsContext,
+  _context: GetServerSidePropsContext,
 ) => {
-  const host = context.req.headers.host ?? "localhost:3000";
-  const baseUrl = `http://${host}`;
-
   const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
     ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
     : 10;
@@ -176,13 +186,20 @@ export const getServerSideProps: GetServerSideProps = async (
     : 1000000;
 
   try {
-    const res = await fetch(`${baseUrl}/api/public/books`);
-    if (!res.ok) throw new Error(`API responded with ${res.status}`);
-    const rawBooks: PublicBookType[] = await res.json();
+    // Calls the same entity function the API route uses, in-process —
+    // no self-HTTP round trip, no double JSON (de)serialization.
+    const rawBooks = await getPublicBooks(prisma);
     const books = rawBooks.map(toCardBook);
     return { props: { books, numberBooksToShow, maxBooks } };
   } catch (error) {
-    console.error("Error fetching public catalog:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/catalog (getServerSideProps)",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error fetching public catalog",
+    );
     return { props: { books: [], numberBooksToShow, maxBooks } };
   }
 };

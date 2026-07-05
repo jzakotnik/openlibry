@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import fs from "fs/promises";
 import path from "path";
 import { addAudit } from "./audit";
+import { PublicBookType } from "./PublicBookType";
 import { getUser } from "./user";
 
 const rentalConfig = getRentalConfig();
@@ -60,6 +61,50 @@ export async function getAllBooks(client: PrismaClient) {
           error: e instanceof Error ? e.message : String(e),
         },
         "Error getting all books",
+      );
+    }
+    throw e;
+  }
+}
+
+export async function getPublicBooks(
+  client: PrismaClient,
+): Promise<PublicBookType[]> {
+  try {
+    const rawBooks = await client.book.findMany({
+      select: {
+        id: true,
+        title: true,
+        author: true,
+        isbn: true,
+        topics: true,
+        rentalStatus: true,
+      },
+      orderBy: { title: "asc" },
+    });
+
+    return rawBooks.map((b) => ({
+      id: b.id,
+      title: b.title,
+      author: b.author,
+      isbn: b.isbn,
+      topics: b.topics,
+      rentalStatus: b.rentalStatus,
+      // Cover is served by /api/images/[id]; auth-excluded in middleware.ts
+      coverUrl: `/api/images/${b.id}`,
+    }));
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getPublicBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting public books",
       );
     }
     throw e;
