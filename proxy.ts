@@ -39,11 +39,10 @@ export default withAuth(
       authorized: ({ req, token }) => {
         const { pathname } = req.nextUrl;
 
-        // Routes explicitly excluded from authentication.
-        // Keep this list narrow — every entry here is a public attack surface.
         const isPublicRoute =
           pathname === "/publicbookview" ||
           pathname === "/catalog" ||
+          pathname.startsWith("/catalog/") ||
           pathname.startsWith("/api/images") ||
           pathname === "/api/version" ||
           pathname.startsWith("/api/public/");
@@ -51,7 +50,7 @@ export default withAuth(
         if (isPublicRoute) return true;
 
         if (
-          token === null &&
+          !token &&
           pathname !== "/auth/login" &&
           pathname !== "/auth/error" &&
           process.env.AUTH_ENABLED == "true"
