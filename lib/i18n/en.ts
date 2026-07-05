@@ -78,6 +78,14 @@ export const en: Dictionary = {
     toastAlreadyRented: "Book {bookId} is already lent out",
     toastBookNotFound: "Book {bookId} not found",
     showingFirst: "More results available",
+
+    statusBroken: "Damaged",
+    statusPresentation: "Display copy",
+    statusOrdered: "Ordered",
+    statusLost: "Lost",
+    statusRemote: "Other library",
+    statusUnknown: "Unknown status ({status})",
+    statusBadgeAria: "Status: {status}",
   },
   rentSearchParams: {
     overdue: "Overdue",
@@ -1148,10 +1156,8 @@ export const en: Dictionary = {
       missingParam: "Missing ISBN parameter",
       allServicesFailed:
         "No external book source was reachable. Please check the server's internet connection.",
-      partialFailure:
-        "Book not found. Some sources could not be reached.",
-      notFound:
-        "Book not found in any of the available catalog sources.",
+      partialFailure: "Book not found. Some sources could not be reached.",
+      notFound: "Book not found in any of the available catalog sources.",
       unexpected: "Unexpected error during ISBN lookup.",
     },
     fetchError: {
