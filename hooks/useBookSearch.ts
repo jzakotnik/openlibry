@@ -89,7 +89,12 @@ export function useBookSearch(
     setSearchEngine(null);
 
     const id = setTimeout(() => {
-      const engine = itemsjs(booksRef.current, { searchableFields });
+      const engine = itemsjs(booksRef.current, {
+        searchableFields,
+        // @ts-expect-error - removeStopWordFilter is a valid itemsjs runtime option
+        // but missing from its shipped TypeScript definitions (itemsapi/itemsjs#46)
+        removeStopWordFilter: true,
+      });
       setSearchEngine(engine);
     }, 0);
 
