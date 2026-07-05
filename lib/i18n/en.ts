@@ -432,6 +432,12 @@ export const en: Dictionary = {
             description:
               "Time in seconds until automatic logout on inactivity.",
           },
+          LOGIN_IMAGE: {
+            label: "Login page background image",
+            description:
+              "Filename of an image in the /public directory used as the login page background. Leave empty to use the built-in splash image.",
+            hint: "e.g. schule_login.jpg (the file must be in the /public directory of the app).",
+          },
           MAX_MIGRATION_SIZE: {
             label: "Max import file size",
             description:

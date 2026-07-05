@@ -1,3 +1,4 @@
+import { resolveLoginImage } from "@/lib/loginImage";
 import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -41,12 +42,16 @@ export default withAuth(
 
         // Routes explicitly excluded from authentication.
         // Keep this list narrow — every entry here is a public attack surface.
+        // The configured login background lives in /public and must load on the
+        // (unauthenticated) login page, so allow exactly that one file.
+        const loginImage = resolveLoginImage();
         const isPublicRoute =
           pathname === "/publicbookview" ||
           pathname === "/catalog" ||
           pathname.startsWith("/api/images") ||
           pathname === "/api/version" ||
-          pathname.startsWith("/api/public/");
+          pathname.startsWith("/api/public/") ||
+          (loginImage !== null && pathname === loginImage);
 
         if (isPublicRoute) return true;
 
