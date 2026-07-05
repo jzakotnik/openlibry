@@ -440,6 +440,12 @@ export const es: Dictionary = {
             description:
               "Tiempo en segundos hasta el cierre de sesión automático por inactividad.",
           },
+          LOGIN_IMAGE: {
+            label: "Imagen de fondo de la página de inicio de sesión",
+            description:
+              "Nombre de archivo de una imagen en el directorio /public usada como fondo de la página de inicio de sesión. Dejar vacío para usar la imagen predeterminada.",
+            hint: "p. ej. schule_login.jpg (el archivo debe estar en el directorio /public de la aplicación).",
+          },
           MAX_MIGRATION_SIZE: {
             label: "Tamaño máx. de archivo de importación",
             description:

@@ -186,6 +186,14 @@ const CONFIG_SECTIONS: ConfigSection[] = [
         unit: t("admin.units.seconds"),
       },
       {
+        key: "LOGIN_IMAGE",
+        label: tf("technical", "LOGIN_IMAGE", "label"),
+        description: tf("technical", "LOGIN_IMAGE", "description"),
+        hint: tf("technical", "LOGIN_IMAGE", "hint"),
+        type: "text",
+        default: "",
+      },
+      {
         key: "MAX_MIGRATION_SIZE",
         label: tf("technical", "MAX_MIGRATION_SIZE", "label"),
         description: tf("technical", "MAX_MIGRATION_SIZE", "description"),

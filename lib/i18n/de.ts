@@ -441,6 +441,12 @@ export const de = {
             description:
               "Zeit in Sekunden bis zur automatischen Abmeldung bei Inaktivität.",
           },
+          LOGIN_IMAGE: {
+            label: "Hintergrundbild der Login-Seite",
+            description:
+              "Dateiname eines Bildes im /public-Verzeichnis, das als Hintergrund der Login-Seite verwendet wird. Leer lassen für das mitgelieferte Standardbild.",
+            hint: "z.B. schule_login.jpg (die Datei muss im /public-Verzeichnis der App liegen).",
+          },
           MAX_MIGRATION_SIZE: {
             label: "Max. Import-Dateigröße",
             description:

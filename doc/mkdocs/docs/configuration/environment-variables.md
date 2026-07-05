@@ -20,11 +20,15 @@ DATABASE_URL=file:./database/dev.db
 | `AUTH_ENABLED`     | Login erforderlich?              | `true`                  |
 | `NEXTAUTH_SECRET`  | Geheimer Seed für Session-Tokens | _(muss gesetzt werden)_ |
 | `SECURITY_HEADERS` | CSRP headers für HTTP calls      | `insecure`              |
+| `LOGIN_IMAGE`      | Hintergrundbild der Login-Seite  | _(leer, eingebautes Standardbild)_ |
 
 ```env
 AUTH_ENABLED=true
 NEXTAUTH_SECRET=einLangesZufälligesGeheimnis123!
+LOGIN_IMAGE=schule_login.jpg
 ```
+
+`LOGIN_IMAGE` erwartet den Dateinamen eines Bildes im `/public`-Verzeichnis der App. Bleibt die Variable leer, wird das mitgelieferte Standardbild verwendet.
 
 !!! warning "AUTH_SECRET"
 Verwende einen langen, zufälligen String. Ändere ihn nicht nachträglich, sonst werden alle Nutzer ausgeloggt.
