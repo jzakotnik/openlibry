@@ -1,5 +1,6 @@
 import { Grid2x2, LayoutList, ListPlus, Plus, Search } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { t } from "@/lib/i18n";
+import { useEffect, useRef } from "react";
 
 interface BookSearchBarProps {
   handleInputChange: React.ChangeEventHandler<
@@ -33,6 +35,18 @@ export default function BookSearchBar({
   showNewBookControl = true,
   showViewToggle = true,
 }: BookSearchBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  useEffect(() => {
+    inputRef.current?.focus();
+
+    // Next's Pages Router moves focus to <body> after route changes
+    // complete (for a11y announcements) — re-claim it afterwards.
+    const refocus = () => inputRef.current?.focus();
+    router.events.on("routeChangeComplete", refocus);
+    return () => router.events.off("routeChangeComplete", refocus);
+  }, [router.events]);
+
   return (
     <TooltipProvider>
       <div className="flex justify-center px-4 md:px-10 my-6">
@@ -44,6 +58,7 @@ export default function BookSearchBar({
           >
             <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
+              ref={inputRef}
               type="text"
               value={bookSearchInput}
               onChange={handleInputChange}
