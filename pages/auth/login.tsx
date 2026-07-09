@@ -2,11 +2,7 @@ import { Loader2, Lock } from "lucide-react";
 import { signIn } from "next-auth/react";
 import React, { useState } from "react";
 
-import type {
-  GetServerSidePropsContext,
-  InferGetServerSidePropsType,
-} from "next";
-import { getCsrfToken } from "next-auth/react";
+import type { InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 
 import { t } from "@/lib/i18n";
@@ -14,7 +10,6 @@ import { resolveLoginImage } from "@/lib/loginImage";
 import loginsplash from "./loginsplashscreen.jpg";
 
 export default function Login({
-  csrfToken,
   loginImage,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   // Configurable via LOGIN_IMAGE (a file in /public); falls back to the bundled
@@ -34,7 +29,6 @@ export default function Login({
       const res = await signIn("credentials", {
         user,
         password,
-        hiddenFieldName: csrfToken,
         callbackUrl: "/",
         redirect: false,
       });
@@ -167,12 +161,11 @@ export default function Login({
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps() {
   const loginImage = resolveLoginImage();
 
   return {
     props: {
-      csrfToken: (await getCsrfToken(context)) ?? null,
       loginImage,
     },
   };

@@ -251,6 +251,7 @@ export const de = {
     toastCoverSourceUnknown: "unbekannt",
     toastCoverNotFound: "Cover konnte nicht gefunden werden.",
     toastCoverLoadError: "Fehler beim Laden des Covers.",
+    openCameraScanner: "Kamera-Scanner öffnen",
   },
   bookSelect: {
     renewalNone: "Nicht verlängert",

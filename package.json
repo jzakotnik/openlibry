@@ -4,6 +4,7 @@
   "private": false,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:https": "NEXTAUTH_URL=https://192.168.1.100:3002 next dev --turbopack --port 3002 --experimental-https --experimental-https-key ./certs/192.168.1.100+1-key.pem --experimental-https-cert ./certs/192.168.1.100+1.pem --hostname 0.0.0.0",
     "build": "next build",
     "analyze": "ANALYZE=true next experimental-analyze",
     "start": "next start",
@@ -24,6 +25,8 @@
     "@types/formidable": "^3.4.5",
     "@types/itemsjs": "^2.1.8",
     "@types/react-tagcloud": "^2.3.2",
+    "@zxing/browser": "^0.2.0",
+    "@zxing/library": "^0.22.0",
     "angular-expressions": "^1.5.1",
     "bwip-js": "^4.9.0",
     "cheerio": "^1.1.2",

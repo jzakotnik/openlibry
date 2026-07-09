@@ -243,6 +243,7 @@ export const en: Dictionary = {
     toastCoverSourceUnknown: "unknown",
     toastCoverNotFound: "Cover could not be found.",
     toastCoverLoadError: "Error loading cover.",
+    openCameraScanner: "Open camera scanner",
   },
   bookSelect: {
     renewalNone: "Not renewed",
