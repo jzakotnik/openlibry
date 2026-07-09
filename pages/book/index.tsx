@@ -8,50 +8,120 @@ import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 
 import SummaryRowContainer from "@/components/book/SummaryRowContainer";
-import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
+import { getCopyCountsByIsbn } from "@/entities/book";
 import { prisma, reconnectPrisma } from "@/entities/db";
-import { useBookSearch } from "@/hooks/useBookSearch";
 import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
+import { Prisma } from "@prisma/client";
 import { toast } from "sonner";
 
 interface SearchableBookType extends BookType {
   searchableTopics: Array<string>;
+  copyCount?: number;
 }
 
 interface BookPropsType {
   books: Array<SearchableBookType>;
+  total: number;
   numberBooksToShow: number;
   maxBooks: number;
+  initialSearch: string;
   _timestamp?: number;
 }
 
 interface DetailCardContainerProps {
   renderedBooks: BookType[];
-  pageIndex: number;
-  numberBooksToShow: number;
+  totalBooks: number;
+  maxBooks: number;
   onLoadMore: () => void;
   onReturnBook: (id: number, userId: number) => void;
   onTopicClick: (topic: string) => void;
+}
+
+interface PagedBooksResponse {
+  books: Array<SearchableBookType>;
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+const listBookSelect = {
+  createdAt: true,
+  updatedAt: true,
+  id: true,
+  rentalStatus: true,
+  rentedDate: true,
+  dueDate: true,
+  renewalCount: true,
+  title: true,
+  subtitle: true,
+  author: true,
+  topics: true,
+  isbn: true,
+  userId: true,
+} satisfies Prisma.BookSelect;
+
+function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
+  const q = query.trim();
+  if (!q) return undefined;
+
+  const or: Prisma.BookWhereInput[] = [
+    { title: { contains: q } },
+    { author: { contains: q } },
+    { subtitle: { contains: q } },
+    { isbn: { contains: q } },
+    { topics: { contains: q } },
+  ];
+
+  const numericId = parseInt(q.replace(/^0+/, "") || q, 10);
+  if (/^\d+$/.test(q) && Number.isFinite(numericId)) {
+    or.unshift({ id: numericId });
+  }
+
+  return { OR: or };
+}
+
+function toSearchableBook(
+  b: Prisma.BookGetPayload<{ select: typeof listBookSelect }>,
+  copyCountsByIsbn: Map<string, number> = new Map(),
+): SearchableBookType {
+  const isbn = b.isbn?.trim();
+
+  return {
+    ...b,
+    createdAt: convertDateToDayString(b.createdAt) as any,
+    updatedAt: convertDateToDayString(b.updatedAt) as any,
+    rentedDate: b.rentedDate ? convertDateToDayString(b.rentedDate) : "",
+    dueDate: b.dueDate ? convertDateToDayString(b.dueDate) : "",
+    subtitle: b.subtitle ?? undefined,
+    topics: b.topics ?? undefined,
+    isbn: b.isbn ?? undefined,
+    userId: b.userId ?? undefined,
+    copyCount: isbn ? copyCountsByIsbn.get(isbn) : undefined,
+    searchableTopics: b.topics ? b.topics.split(";") : [],
+  };
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const DetailCardContainer = memo(function DetailCardContainer({
   renderedBooks,
-  pageIndex,
+  totalBooks,
+  maxBooks,
   onLoadMore,
   onReturnBook,
   onTopicClick,
 }: DetailCardContainerProps) {
+  const visibleLimit = Math.min(totalBooks, maxBooks);
+
   return (
     <div>
       <div
         className="grid gap-3 justify-items-center py-2"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}
       >
-        {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
+        {renderedBooks.map((b: BookType) => (
           <BookSummaryCard
             key={b.id}
             book={b}
@@ -60,14 +130,14 @@ const DetailCardContainer = memo(function DetailCardContainer({
           />
         ))}
       </div>
-      {renderedBooks.length - pageIndex > 0 && (
+      {visibleLimit - renderedBooks.length > 0 && (
         <div className="flex justify-center mt-4">
           <button
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
             {t("bookPage.loadMore")}{" "}
-            {Math.max(0, renderedBooks.length - pageIndex)}
+            {Math.max(0, visibleLimit - renderedBooks.length)}
           </button>
         </div>
       )}
@@ -75,62 +145,80 @@ const DetailCardContainer = memo(function DetailCardContainer({
   );
 });
 
-interface SummaryRowContainerProps {
-  renderedBooks: BookType[];
-  pageIndex: number;
-  onLoadMore: () => void;
-  onCopyBook: (book: BookType) => void;
-}
-
 // =============================================================================
 // Page Component
 // =============================================================================
 
 export default function Books({
   books: initialBooks,
+  total: initialTotal,
   numberBooksToShow,
   maxBooks,
+  initialSearch,
 }: BookPropsType) {
   const router = useRouter();
   const { query } = useRouter();
+  const [bookSearchInput, setBookSearchInput] = useState(initialSearch);
+  const [serverSearch, setServerSearch] = useState(initialSearch);
+  const [pageSize, setPageSize] = useState(numberBooksToShow);
+
   useEffect(() => {
     if (typeof query.q === "string" && query.q) {
-      handleInputChange(query.q);
+      setBookSearchInput(query.q);
+      setServerSearch(query.q);
+      setPageSize(numberBooksToShow);
       setDetailView(true);
     }
-  }, [query.q]);
+  }, [query.q, numberBooksToShow]);
 
-  const { data: freshData, mutate } = useSWR("/api/book", fetcher, {
-    fallbackData: { books: initialBooks },
-    refreshInterval: 0,
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-    dedupingInterval: 0,
-  });
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setServerSearch(bookSearchInput);
+      setPageSize(numberBooksToShow);
+    }, 150);
+
+    return () => clearTimeout(id);
+  }, [bookSearchInput, numberBooksToShow]);
+
+  const requestUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      page: "1",
+      pageSize: Math.min(pageSize, maxBooks).toString(),
+    });
+    if (serverSearch.trim()) params.set("q", serverSearch.trim());
+    return `/api/book?${params.toString()}`;
+  }, [pageSize, maxBooks, serverSearch]);
+
+  const { data: freshData, mutate } = useSWR<PagedBooksResponse>(
+    requestUrl,
+    fetcher,
+    {
+      fallbackData: {
+        books: initialBooks,
+        total: initialTotal,
+        page: 1,
+        pageSize: numberBooksToShow,
+      },
+      refreshInterval: 0,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      dedupingInterval: 60000,
+    },
+  );
 
   const books = freshData?.books || initialBooks;
+  const resultCount = freshData?.total ?? initialTotal;
 
   const [detailView, setDetailView] = useState(true);
-  const [pageIndex, setPageIndex] = useState(numberBooksToShow);
-
-  const {
-    renderedBooks: searchedBooks,
-    bookSearchInput,
-    handleInputChange,
-    resultCount,
-  } = useBookSearch(books, {
-    extraSearchableFields: ["searchableTopics"],
-    perPage: maxBooks,
-  });
 
   // Numeric-query priority sort: if the query contains digits, bubble books
   // whose title contains those digits to the top. Runs only when the query
   // or the base results change — no extra state needed.
   const renderedBooks = useMemo(() => {
     const numbersInQuery = bookSearchInput.match(/\d+/g);
-    if (!numbersInQuery) return searchedBooks;
+    if (!numbersInQuery) return books;
 
-    return [...searchedBooks].sort((a, b) => {
+    return [...books].sort((a, b) => {
       const aMatch = numbersInQuery.some((n) =>
         a.title?.toString().includes(n),
       );
@@ -141,16 +229,15 @@ export default function Books({
       if (!aMatch && bMatch) return 1;
       return 0;
     });
-  }, [searchedBooks, bookSearchInput]);
+  }, [books, bookSearchInput]);
 
   // Adapt hook's string-based handler to the event-based signature
   // BookSearchBar expects, and reset pagination on every new search.
   const handleInputChangeEvent = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-      handleInputChange(e.target.value);
-      setPageIndex(numberBooksToShow);
+      setBookSearchInput(e.target.value);
     },
-    [handleInputChange, numberBooksToShow],
+    [],
   );
 
   const handleCreateNewBook = useCallback(() => {
@@ -187,19 +274,19 @@ export default function Books({
 
   const toggleView = useCallback(() => {
     setDetailView((prev) => !prev);
-    setPageIndex(numberBooksToShow);
-  }, [numberBooksToShow]);
+  }, []);
 
   const handleLoadMore = useCallback(() => {
-    setPageIndex((prev) => prev + numberBooksToShow);
-  }, [numberBooksToShow]);
+    setPageSize((prev) => Math.min(prev + numberBooksToShow, maxBooks));
+  }, [numberBooksToShow, maxBooks]);
   const handleTopicClick = useCallback(
     (topic: string) => {
-      handleInputChange(topic);
+      setBookSearchInput(topic);
+      setServerSearch(topic);
       setDetailView(true);
-      setPageIndex(numberBooksToShow);
+      setPageSize(numberBooksToShow);
     },
-    [handleInputChange, numberBooksToShow],
+    [numberBooksToShow],
   );
 
   return (
@@ -215,8 +302,8 @@ export default function Books({
       {detailView ? (
         <DetailCardContainer
           renderedBooks={renderedBooks}
-          pageIndex={pageIndex}
-          numberBooksToShow={numberBooksToShow}
+          totalBooks={resultCount}
+          maxBooks={maxBooks}
           onLoadMore={handleLoadMore}
           onReturnBook={handleReturnBook}
           onTopicClick={handleTopicClick}
@@ -224,7 +311,9 @@ export default function Books({
       ) : (
         <SummaryRowContainer
           renderedBooks={renderedBooks}
-          pageIndex={pageIndex}
+          pageIndex={renderedBooks.length}
+          totalBooks={resultCount}
+          maxBooks={maxBooks}
           onLoadMore={handleLoadMore}
           onCopyBook={handleCopyBook}
         />
@@ -252,36 +341,54 @@ export const getServerSideProps: GetServerSideProps = async (
   context.res.setHeader("Expires", "0");
 
   try {
-    const allBooks = await getAllBooks(prisma);
     const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
       ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
       : 10;
     const maxBooks = process.env.NUMBER_BOOKS_MAX
       ? parseInt(process.env.NUMBER_BOOKS_MAX)
       : 1000000;
+    const initialSearch =
+      typeof context.query.q === "string" ? context.query.q : "";
+    const where = getBookWhere(initialSearch);
 
-    const books = allBooks.map((b) => {
-      const newBook = { ...b } as any;
-      newBook.createdAt = convertDateToDayString(b.createdAt);
-      newBook.updatedAt = convertDateToDayString(b.updatedAt);
-      newBook.rentedDate = b.rentedDate
-        ? convertDateToDayString(b.rentedDate)
-        : "";
-      newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
-      newBook.searchableTopics = b.topics ? b.topics.split(";") : "";
-      return newBook;
-    });
+    const [rawBooks, total] = await Promise.all([
+      prisma.book.findMany({
+        select: listBookSelect,
+        where,
+        orderBy: [{ id: "desc" }],
+        take: numberBooksToShow,
+      }),
+      prisma.book.count({ where }),
+    ]);
+    const copyCountsByIsbn = await getCopyCountsByIsbn(
+      prisma,
+      rawBooks,
+      where,
+    );
+
+    const books = rawBooks.map((book) =>
+      toSearchableBook(book, copyCountsByIsbn),
+    );
 
     return {
-      props: { books, numberBooksToShow, maxBooks, _timestamp: Date.now() },
+      props: {
+        books,
+        total,
+        numberBooksToShow,
+        maxBooks,
+        initialSearch,
+        _timestamp: Date.now(),
+      },
     };
   } catch (error) {
     console.error("Error fetching books:", error);
     return {
       props: {
         books: [],
+        total: 0,
         numberBooksToShow: 10,
         maxBooks: 1000000,
+        initialSearch: "",
         _timestamp: Date.now(),
       },
     };

@@ -11,6 +11,110 @@ import { PublicBookType } from "./PublicBookType";
 import { getUser } from "./user";
 
 const rentalConfig = getRentalConfig();
+
+const publicBookSelect = {
+  id: true,
+  title: true,
+  author: true,
+  isbn: true,
+  topics: true,
+  rentalStatus: true,
+} satisfies Prisma.BookSelect;
+
+function toPublicBook(b: {
+  id: number;
+  title: string;
+  author: string;
+  isbn: string | null;
+  topics: string | null;
+  rentalStatus: string;
+}): PublicBookType {
+  return {
+    id: b.id,
+    title: b.title,
+    author: b.author,
+    isbn: b.isbn,
+    topics: b.topics,
+    rentalStatus: b.rentalStatus,
+    // Cover is served by /api/images/[id]; auth-excluded in middleware.ts
+    coverUrl: `/api/images/${b.id}`,
+  };
+}
+
+export type PagedPublicBooks = {
+  books: PublicBookType[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export function getPublicBookWhere(
+  query: string,
+): Prisma.BookWhereInput | undefined {
+  const q = query.trim();
+  if (!q) return undefined;
+
+  const or: Prisma.BookWhereInput[] = [
+    { title: { contains: q } },
+    { author: { contains: q } },
+    { isbn: { contains: q } },
+    { topics: { contains: q } },
+  ];
+
+  const numericId = parseInt(q.replace(/^0+/, "") || q, 10);
+  if (/^\d+$/.test(q) && Number.isFinite(numericId)) {
+    or.unshift({ id: numericId });
+  }
+
+  return { OR: or };
+}
+
+export async function getCopyCountsByIsbn(
+  client: PrismaClient,
+  books: Array<{ isbn?: string | null }>,
+  where: Prisma.BookWhereInput | undefined,
+): Promise<Map<string, number>> {
+  const rawIsbns = Array.from(
+    new Set(
+      books
+        .map((book) => book.isbn)
+        .filter((isbn): isbn is string => Boolean(isbn?.trim())),
+    ),
+  );
+
+  if (rawIsbns.length === 0) return new Map();
+
+  const counts = await client.book.groupBy({
+    by: ["isbn"],
+    where: {
+      AND: [
+        ...(where ? [where] : []),
+        {
+          isbn: {
+            in: rawIsbns,
+          },
+        },
+      ],
+    },
+    _count: {
+      _all: true,
+    },
+  });
+
+  const countByTrimmedIsbn = new Map<string, number>();
+
+  for (const count of counts) {
+    const isbn = count.isbn?.trim();
+    if (!isbn) continue;
+    countByTrimmedIsbn.set(
+      isbn,
+      (countByTrimmedIsbn.get(isbn) ?? 0) + count._count._all,
+    );
+  }
+
+  return countByTrimmedIsbn;
+}
+
 export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
 }
@@ -72,27 +176,11 @@ export async function getPublicBooks(
 ): Promise<PublicBookType[]> {
   try {
     const rawBooks = await client.book.findMany({
-      select: {
-        id: true,
-        title: true,
-        author: true,
-        isbn: true,
-        topics: true,
-        rentalStatus: true,
-      },
+      select: publicBookSelect,
       orderBy: { title: "asc" },
     });
 
-    return rawBooks.map((b) => ({
-      id: b.id,
-      title: b.title,
-      author: b.author,
-      isbn: b.isbn,
-      topics: b.topics,
-      rentalStatus: b.rentalStatus,
-      // Cover is served by /api/images/[id]; auth-excluded in middleware.ts
-      coverUrl: `/api/images/${b.id}`,
-    }));
+    return rawBooks.map(toPublicBook);
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -105,6 +193,52 @@ export async function getPublicBooks(
           error: e instanceof Error ? e.message : String(e),
         },
         "Error getting public books",
+      );
+    }
+    throw e;
+  }
+}
+
+export async function getPagedPublicBooks(
+  client: PrismaClient,
+  {
+    page,
+    pageSize,
+    query = "",
+  }: { page: number; pageSize: number; query?: string },
+): Promise<PagedPublicBooks> {
+  const where = getPublicBookWhere(query);
+
+  try {
+    const [rawBooks, total] = await Promise.all([
+      client.book.findMany({
+        select: publicBookSelect,
+        where,
+        orderBy: { title: "asc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      client.book.count({ where }),
+    ]);
+
+    return {
+      books: rawBooks.map(toPublicBook),
+      total,
+      page,
+      pageSize,
+    };
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getPagedPublicBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting paged public books",
       );
     }
     throw e;
