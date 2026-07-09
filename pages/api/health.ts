@@ -1,4 +1,5 @@
 import { prisma } from "@/entities/db";
+import { pickProvider } from "@/lib/ai-tagging/config";
 import { getCustomPathInfo } from "@/lib/utils/customPath";
 import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -23,6 +24,7 @@ interface HealthCheckResponse {
     data: CheckResult;
     folders: CheckResult;
     files: CheckResult;
+    apiKeys: CheckResult;
   };
   environment: {
     nodeEnv: string;
@@ -140,6 +142,7 @@ export default async function handle(
       data: { status: "ok", message: "" },
       folders: { status: "ok", message: "" },
       files: { status: "ok", message: "" },
+      apiKeys: { status: "ok", message: "" },
     },
     environment: {
       nodeEnv: process.env.NODE_ENV || "development",
@@ -538,6 +541,67 @@ export default async function handle(
       status: "ok",
       message: "Alle konfigurierten Dateien vorhanden",
       details: fileResults,
+    };
+  }
+
+  // 5. Check optional API keys without exposing secret values.
+  const activeAiProvider = pickProvider();
+  const pinnedAiProvider = process.env.AI_TAGGING_PROVIDER?.trim() || null;
+  const apiKeyResults: Record<
+    string,
+    { loaded: boolean; purpose: string; active?: boolean }
+  > = {
+    GOOGLE_BOOKS_API_KEY: {
+      loaded: Boolean(process.env.GOOGLE_BOOKS_API_KEY),
+      purpose: "Google Books / cover lookup",
+    },
+    GEMINI_API_KEY: {
+      loaded: Boolean(process.env.GEMINI_API_KEY),
+      purpose: "AI tagging via Google Gemini",
+      active: activeAiProvider === "google",
+    },
+    ANTHROPIC_API_KEY: {
+      loaded: Boolean(process.env.ANTHROPIC_API_KEY),
+      purpose: "AI tagging via Anthropic",
+      active: activeAiProvider === "anthropic",
+    },
+  };
+  const loadedApiKeys = Object.entries(apiKeyResults)
+    .filter(([, result]) => result.loaded)
+    .map(([name]) => name);
+
+  const missingPinnedProviderKey =
+    pinnedAiProvider &&
+    !["anthropic", "google"].includes(pinnedAiProvider.toLowerCase())
+      ? `AI_TAGGING_PROVIDER=${pinnedAiProvider}`
+      : pinnedAiProvider && !activeAiProvider;
+
+  if (missingPinnedProviderKey) {
+    response.checks.apiKeys = {
+      status: "warning",
+      message:
+        "AI_TAGGING_PROVIDER ist gesetzt, aber der passende API-Key ist nicht geladen",
+      details: {
+        activeAiProvider: activeAiProvider || "none",
+        pinnedAiProvider,
+        ...apiKeyResults,
+      },
+    };
+    if (response.status === "ok") {
+      response.status = "warning";
+    }
+  } else {
+    response.checks.apiKeys = {
+      status: "ok",
+      message:
+        loadedApiKeys.length > 0
+          ? `Geladene API-Keys: ${loadedApiKeys.join(", ")}`
+          : "Keine optionalen API-Keys geladen",
+      details: {
+        activeAiProvider: activeAiProvider || "none",
+        pinnedAiProvider: pinnedAiProvider || "none",
+        ...apiKeyResults,
+      },
     };
   }
 

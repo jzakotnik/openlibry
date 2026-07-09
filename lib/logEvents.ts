@@ -36,6 +36,9 @@ export const LogEvents = {
   LOGIN_USER_UPDATE_ATTEMPT: "loginuser.update.attempt",
   LOGIN_USER_UPDATED: "loginuser.updated",
 
+  // AI tag suggestion operations
+  AI_TAGS_SUGGESTED: "ai.tags.suggested",
+
   // ISBN lookup operations
   ISBN_LOOKUP_STARTED: "isbn.lookup.started",
   ISBN_LOOKUP_SUCCESS_DNB: "isbn.lookup.success.dnb",

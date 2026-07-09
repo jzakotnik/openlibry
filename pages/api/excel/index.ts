@@ -1,6 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
+import { cleanIsbn } from "@/lib/utils/isbn";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import { t } from "@/lib/i18n";
@@ -247,7 +248,7 @@ export default async function handle(
                   author: b["Autor"],
                   topics: b["Schlagworte"] || "",
                   imageLink: b["Bild"],
-                  isbn: b["ISBN"]?.toString() || "",
+                  isbn: cleanIsbn(b["ISBN"]?.toString()),
                   editionDescription: b["Edition"],
                   publisherLocation: b["Verlagsort"],
                   pages: parseInt(b["Seiten"]) || 0,

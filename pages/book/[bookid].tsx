@@ -4,6 +4,7 @@ import { getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { useBookEditor } from "@/hooks/useBookEditor";
+import { isAiTaggingEnabled } from "@/lib/ai-tagging/config";
 import { replaceBookDateString } from "@/lib/utils/dateutils";
 import {
   getDeleteSafetySeconds,
@@ -16,12 +17,14 @@ interface BookDetailProps {
   book: BookType;
   topics: string[];
   deleteSafetySeconds: number;
+  aiTaggingEnabled: boolean;
 }
 
 export default function BookDetail({
   book,
   topics,
   deleteSafetySeconds,
+  aiTaggingEnabled,
 }: BookDetailProps) {
   const router = useRouter();
 
@@ -47,6 +50,7 @@ export default function BookDetail({
         topics={topics}
         antolinResults={editor.antolinResults}
         isSaving={editor.isSaving}
+        aiTaggingEnabled={aiTaggingEnabled}
       />
     </Layout>
   );
@@ -67,5 +71,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const topics = await getUniqueTopics(prisma);
 
-  return { props: { book, topics, deleteSafetySeconds } };
+  return {
+    props: {
+      book,
+      topics,
+      deleteSafetySeconds,
+      aiTaggingEnabled: isAiTaggingEnabled(),
+    },
+  };
 }
