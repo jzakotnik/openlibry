@@ -1,15 +1,14 @@
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryCard from "@/components/book/BookSummaryCard";
 import Layout from "@/components/layout/Layout";
-import { getPublicBooks } from "@/entities/book";
+import { getPagedPublicBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { PublicBookType } from "@/entities/PublicBookType";
-import { useBookSearch } from "@/hooks/useBookSearch";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 // =============================================================================
@@ -22,8 +21,17 @@ interface CatalogBookType extends BookType {
 
 interface CatalogPropsType {
   books: Array<CatalogBookType>;
+  total: number;
   numberBooksToShow: number;
   maxBooks: number;
+  initialSearch: string;
+}
+
+interface PagedCatalogResponse {
+  books: Array<PublicBookType | CatalogBookType>;
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 // =============================================================================
@@ -45,7 +53,7 @@ const fetcher = (url: string) =>
 /**
  * Map PublicBookType → BookType-compatible shape for existing components.
  */
-function toCardBook(b: PublicBookType): CatalogBookType {
+function toCardBook(b: PublicBookType | CatalogBookType): CatalogBookType {
   return {
     id: b.id,
     title: b.title ?? "",
@@ -64,16 +72,19 @@ function toCardBook(b: PublicBookType): CatalogBookType {
 
 interface CatalogCardGridProps {
   renderedBooks: BookType[];
-  pageIndex: number;
+  totalBooks: number;
+  maxBooks: number;
   onLoadMore: () => void;
 }
 
 const CatalogCardGrid = memo(function CatalogCardGrid({
   renderedBooks,
-  pageIndex,
+  totalBooks,
+  maxBooks,
   onLoadMore,
 }: CatalogCardGridProps) {
   const noop = useCallback(() => {}, []);
+  const visibleLimit = Math.min(totalBooks, maxBooks);
 
   return (
     <div>
@@ -81,7 +92,7 @@ const CatalogCardGrid = memo(function CatalogCardGrid({
         className="grid gap-3 justify-items-center py-2"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}
       >
-        {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
+        {renderedBooks.map((b: BookType) => (
           <BookSummaryCard
             key={b.id}
             book={b}
@@ -91,13 +102,13 @@ const CatalogCardGrid = memo(function CatalogCardGrid({
           />
         ))}
       </div>
-      {renderedBooks.length - pageIndex > 0 && (
+      {visibleLimit - renderedBooks.length > 0 && (
         <div className="flex justify-center mt-4">
           <button
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
-            Weitere Bücher… {Math.max(0, renderedBooks.length - pageIndex)}
+            Weitere Bücher… {Math.max(0, visibleLimit - renderedBooks.length)}
           </button>
         </div>
       )}
@@ -111,42 +122,62 @@ const CatalogCardGrid = memo(function CatalogCardGrid({
 
 export default function Catalog({
   books: initialBooks,
+  total: initialTotal,
   numberBooksToShow,
   maxBooks,
+  initialSearch,
 }: CatalogPropsType) {
-  const { data: freshData } = useSWR("/api/public/books", fetcher, {
-    fallbackData: initialBooks,
+  const [bookSearchInput, setBookSearchInput] = useState(initialSearch);
+  const [serverSearch, setServerSearch] = useState(initialSearch);
+  const [pageSize, setPageSize] = useState(numberBooksToShow);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setServerSearch(bookSearchInput);
+      setPageSize(numberBooksToShow);
+    }, 150);
+
+    return () => clearTimeout(id);
+  }, [bookSearchInput, numberBooksToShow]);
+
+  const requestUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      page: "1",
+      pageSize: Math.min(pageSize, maxBooks).toString(),
+    });
+    if (serverSearch.trim()) params.set("q", serverSearch.trim());
+    return `/api/public/books?${params.toString()}`;
+  }, [pageSize, maxBooks, serverSearch]);
+
+  const { data } = useSWR<PagedCatalogResponse>(requestUrl, fetcher, {
+    fallbackData: {
+      books: initialBooks,
+      total: initialTotal,
+      page: 1,
+      pageSize: numberBooksToShow,
+    },
     refreshInterval: 0,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
   });
 
-  const rawBooks: PublicBookType[] = Array.isArray(freshData)
-    ? freshData
-    : initialBooks;
-
-  const books = useMemo(() => rawBooks.map(toCardBook), [rawBooks]);
-
-  const [pageIndex, setPageIndex] = useState(numberBooksToShow);
-
-  const { renderedBooks, bookSearchInput, handleInputChange, resultCount } =
-    useBookSearch(books, {
-      extraSearchableFields: ["searchableTopics"],
-      perPage: maxBooks,
-    });
+  const books = useMemo(
+    () => (data?.books ?? initialBooks).map(toCardBook),
+    [data?.books, initialBooks],
+  );
+  const resultCount = data?.total ?? initialTotal;
 
   const handleInputChangeEvent = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-      handleInputChange(e.target.value);
-      setPageIndex(numberBooksToShow);
+      setBookSearchInput(e.target.value);
     },
-    [handleInputChange, numberBooksToShow],
+    [],
   );
 
   const handleLoadMore = useCallback(() => {
-    setPageIndex((prev) => prev + numberBooksToShow);
-  }, [numberBooksToShow]);
+    setPageSize((prev) => Math.min(prev + numberBooksToShow, maxBooks));
+  }, [numberBooksToShow, maxBooks]);
 
   const noop = useCallback(() => {}, []);
 
@@ -163,8 +194,9 @@ export default function Catalog({
         showViewToggle={false}
       />
       <CatalogCardGrid
-        renderedBooks={renderedBooks}
-        pageIndex={pageIndex}
+        renderedBooks={books}
+        totalBooks={resultCount}
+        maxBooks={maxBooks}
         onLoadMore={handleLoadMore}
       />
     </Layout>
@@ -176,7 +208,7 @@ export default function Catalog({
 // =============================================================================
 
 export const getServerSideProps: GetServerSideProps = async (
-  _context: GetServerSidePropsContext,
+  context: GetServerSidePropsContext,
 ) => {
   const numberBooksToShow = process.env.NUMBER_BOOKS_OVERVIEW
     ? parseInt(process.env.NUMBER_BOOKS_OVERVIEW)
@@ -184,13 +216,27 @@ export const getServerSideProps: GetServerSideProps = async (
   const maxBooks = process.env.NUMBER_BOOKS_MAX
     ? parseInt(process.env.NUMBER_BOOKS_MAX)
     : 1000000;
+  const initialSearch =
+    typeof context.query.q === "string" ? context.query.q : "";
 
   try {
-    // Calls the same entity function the API route uses, in-process —
-    // no self-HTTP round trip, no double JSON (de)serialization.
-    const rawBooks = await getPublicBooks(prisma);
-    const books = rawBooks.map(toCardBook);
-    return { props: { books, numberBooksToShow, maxBooks } };
+    // Calls the same entity function the API route uses, in-process:
+    // no self-HTTP round trip, no double JSON serialization.
+    const data = await getPagedPublicBooks(prisma, {
+      page: 1,
+      pageSize: numberBooksToShow,
+      query: initialSearch,
+    });
+    const books = data.books.map(toCardBook);
+    return {
+      props: {
+        books,
+        total: data.total,
+        numberBooksToShow,
+        maxBooks,
+        initialSearch,
+      },
+    };
   } catch (error) {
     errorLogger.error(
       {
@@ -200,6 +246,14 @@ export const getServerSideProps: GetServerSideProps = async (
       },
       "Error fetching public catalog",
     );
-    return { props: { books: [], numberBooksToShow, maxBooks } };
+    return {
+      props: {
+        books: [],
+        total: 0,
+        numberBooksToShow,
+        maxBooks,
+        initialSearch,
+      },
+    };
   }
 };
