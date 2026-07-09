@@ -19,6 +19,7 @@ import {
   FileText,
   FolderOpen,
   Info,
+  KeyRound,
   RefreshCw,
   XCircle,
 } from "lucide-react";
@@ -47,6 +48,7 @@ interface HealthCheckResponse {
     data: CheckResult;
     folders: CheckResult;
     files: CheckResult;
+    apiKeys: CheckResult;
   };
   environment: {
     nodeEnv: string;
@@ -241,6 +243,15 @@ function CheckCard({
           : ` ${t("healthPage.detail.standard")}`;
         return `${status}${configured}`;
       }
+      if ("loaded" in obj) {
+        const loaded = obj.loaded
+          ? t("healthPage.detail.loaded")
+          : t("healthPage.detail.notLoaded");
+        const active = obj.active ? `, ${t("healthPage.detail.active")}` : "";
+        const purpose =
+          typeof obj.purpose === "string" ? ` (${obj.purpose})` : "";
+        return `${loaded}${active}${purpose}`;
+      }
       return JSON.stringify(obj);
     }
     if (typeof value === "number")
@@ -264,6 +275,9 @@ function CheckCard({
       covers: t("healthPage.detailKey.covers"),
       size: t("healthPage.detailKey.size"),
       sizeFormatted: t("healthPage.detailKey.sizeFormatted"),
+      apiKeys: t("healthPage.detailKey.apiKeys"),
+      activeAiProvider: t("healthPage.detailKey.activeAiProvider"),
+      pinnedAiProvider: t("healthPage.detailKey.pinnedAiProvider"),
     };
     return labels[key] ?? key;
   };
@@ -555,6 +569,11 @@ export default function HealthPage() {
                 title={t("healthPage.check.files")}
                 icon={FileText}
                 check={data.checks.files}
+              />
+              <CheckCard
+                title={t("healthPage.check.apiKeys")}
+                icon={KeyRound}
+                check={data.checks.apiKeys}
               />
             </div>
 
