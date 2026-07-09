@@ -239,6 +239,17 @@ function BookSummaryCard({
             {book.author}
           </p>
 
+          {/* Location */}
+          {book.location && (
+            <span
+              className="self-start px-1.5 py-0.5 rounded bg-black/40 backdrop-blur-sm
+                         text-[0.6rem] font-medium text-white/90 truncate max-w-full"
+              title={book.location}
+            >
+              {book.location}
+            </span>
+          )}
+
           {/* Topics */}
           <TopicChips topics={topics} onTopicClick={onTopicClick} />
 

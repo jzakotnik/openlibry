@@ -1,3 +1,4 @@
+import LocationCombobox from "@/components/book/edit/LocationCombobox";
 import type { ScannedEntry } from "@/components/batch-scan";
 import {
   BatchScanEntryCard,
@@ -9,6 +10,11 @@ import {
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
@@ -18,11 +24,13 @@ import { generateId } from "@/lib/utils/id";
 import {
   AlertTriangle,
   CheckCircle,
+  ChevronDown,
   Image,
   Loader2,
   PlusCircle,
   Save,
   ScanBarcode,
+  Settings2,
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -43,6 +51,8 @@ export default function BatchScan() {
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [batchLocation, setBatchLocation] = useState("");
+  const [presetOpen, setPresetOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -94,7 +104,7 @@ export default function BatchScan() {
       id: generateId(),
       isbn: cleanedIsbn,
       status: "loading",
-      bookData: { isbn: cleanedIsbn },
+      bookData: { isbn: cleanedIsbn, location: batchLocation || undefined },
       quantity: 1,
     };
 
@@ -324,6 +334,7 @@ export default function BatchScan() {
           physicalSize: entry.bookData.physicalSize,
           otherPhysicalAttributes: entry.bookData.otherPhysicalAttributes,
           editionDescription: entry.bookData.editionDescription,
+          location: entry.bookData.location || undefined,
         };
 
         try {
@@ -382,6 +393,20 @@ export default function BatchScan() {
 
     inputRef.current?.focus();
   }, [entries]);
+
+  // ── Apply batch location to all entries ───────────────────────────────────
+
+  const handleApplyLocationToAll = useCallback(() => {
+    if (!batchLocation.trim()) return;
+    setEntries((prev) =>
+      prev.map((entry) => ({
+        ...entry,
+        bookData: { ...entry.bookData, location: batchLocation },
+        status: entry.status === "found" ? "edited" : entry.status,
+      })),
+    );
+    toast.success(`Standort „${batchLocation}" auf alle Einträge angewendet`);
+  }, [batchLocation]);
 
   // ── Clear all ─────────────────────────────────────────────────────────────
 
@@ -555,6 +580,55 @@ export default function BatchScan() {
               </CardContent>
             </Card>
           )}
+
+          {/* Book preset properties */}
+          <Collapsible open={presetOpen} onOpenChange={setPresetOpen}>
+            <Card className="mb-4">
+              <CardContent className="pt-4 pb-4">
+                <CollapsibleTrigger asChild>
+                  <button className="flex w-full items-center justify-between gap-2 text-left">
+                    <div className="flex items-center gap-2">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-base font-semibold">
+                        Buchvoreinstellungen
+                      </span>
+                      {batchLocation && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          · {batchLocation}
+                        </span>
+                      )}
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${presetOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="mt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 items-end">
+                    <div className="flex-1">
+                      <LocationCombobox
+                        value={batchLocation}
+                        onChange={setBatchLocation}
+                        label="Standard-Standort"
+                      />
+                    </div>
+                    {entries.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleApplyLocationToAll}
+                        disabled={!batchLocation.trim()}
+                        className="shrink-0 h-9"
+                      >
+                        Auf alle anwenden
+                      </Button>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </CardContent>
+            </Card>
+          </Collapsible>
 
           {/* Entries List */}
           {entries.length === 0 ? (

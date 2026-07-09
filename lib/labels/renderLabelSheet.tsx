@@ -227,6 +227,9 @@ function getFieldText(
     case "id":
       text = book.id || "";
       break;
+    case "location":
+      text = book.location || "";
+      break;
     case "school":
       text = process.env.SCHOOL_NAME || "";
       break;

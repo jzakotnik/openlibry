@@ -10,6 +10,7 @@ import {
 import { BookType } from "@/entities/BookType";
 import { AlertTriangle, Edit, Image, RefreshCw, Trash2 } from "lucide-react";
 
+import LocationCombobox from "@/components/book/edit/LocationCombobox";
 import { CoverThumbnail } from "./CoverThumbnail";
 import { EditField } from "./EditField";
 import { InlineChipRow } from "./InlineChipRow";
@@ -274,6 +275,10 @@ export function BatchScanEntryCard({
                   label="Schlagwörter"
                   value={entry.bookData.topics || ""}
                   onChange={(v) => onUpdateBookData(entry.id, "topics", v)}
+                />
+                <LocationCombobox
+                  value={entry.bookData.location ?? ""}
+                  onChange={(v) => onUpdateBookData(entry.id, "location", v)}
                 />
                 <EditField
                   label="Seiten"

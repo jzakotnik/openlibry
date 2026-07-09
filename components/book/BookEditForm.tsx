@@ -20,6 +20,7 @@ import BookSelect, {
   rentalStatusOptions,
 } from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
+import LocationCombobox from "./edit/LocationCombobox";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -530,6 +531,13 @@ export default function BookEditForm({
           <SectionDivider>
             {t("bookEditForm.sectionRentalStatus")}
           </SectionDivider>
+
+          <div className="mb-3">
+            <LocationCombobox
+              value={book.location ?? ""}
+              onChange={(v) => setBookData({ ...book, location: v })}
+            />
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
             <div>

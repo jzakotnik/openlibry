@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { translations } from "@/entities/fieldTranslations";
 import type {
   LabelFieldConfig,
   LabelFieldContent,
@@ -37,6 +38,7 @@ const CONTENT_OPTIONS: { value: LabelFieldContent; label: string }[] = [
   { value: "id", label: "Buchnummer" },
   { value: "school", label: "Schulname" },
   { value: "topics", label: "Themen (max. 3)" },
+  { value: "location", label: translations.books.location },
   { value: "barcode", label: "Barcode" },
   { value: "none", label: "Leer" },
 ];

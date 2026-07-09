@@ -67,6 +67,7 @@ export type LabelFieldContent =
   | "barcode"
   | "school"
   | "topics"
+  | "location"
   | "none";
 
 export type TextAlign = "left" | "center" | "right";
@@ -124,14 +125,15 @@ export interface BookLabelData {
   subtitle?: string;
   isbn?: string;
   topics?: string;
+  location?: string;
 }
 
 /** Filter to select books from the database */
 export interface BookFilter {
-  type: "latest" | "topic" | "all" | "ids";
+  type: "latest" | "topic" | "location" | "all" | "ids";
   /** For "latest": number of most recent books */
   count?: number;
-  /** For "topic": topic/category string to match */
+  /** For "topic" / "location": values to match against */
   values?: string[];
   /** For "ids": explicit list of book IDs */
   ids?: number[];

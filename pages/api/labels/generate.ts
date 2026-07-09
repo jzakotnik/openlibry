@@ -70,6 +70,22 @@ async function resolveBookFilter(filter: BookFilter): Promise<BookLabelData[]> {
       break;
     }
 
+    case "location": {
+      const selectedLocations = (filter.values ?? []).map((v) =>
+        v.toLowerCase(),
+      );
+      if (selectedLocations.length === 0) {
+        filtered = [];
+      } else {
+        filtered = allBooks.filter((b) =>
+          selectedLocations.some((loc) =>
+            b.location?.toLowerCase().includes(loc),
+          ),
+        );
+      }
+      break;
+    }
+
     case "ids":
       if (!filter.ids || filter.ids.length === 0) {
         filtered = [];
@@ -88,8 +104,9 @@ async function resolveBookFilter(filter: BookFilter): Promise<BookLabelData[]> {
     title: b.title ?? "",
     author: b.author ?? "",
     subtitle: b.subtitle ?? "",
-    isbn: b.isbn ?? undefined,
-    topics: b.topics ?? undefined,
+    isbn: b.isbn ?? "",
+    topics: b.topics ?? "",
+    location: b.location ?? "",
   }));
 }
 
