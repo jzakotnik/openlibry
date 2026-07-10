@@ -3,20 +3,12 @@ import { prisma, reconnectPrisma } from "@/entities/db";
 import { PublicBookType } from "@/entities/PublicBookType";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import { getPositiveInt, getSingleQueryValue } from "@/lib/utils/queryParams";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type ErrorData = {
   result: string;
 };
-
-function getSingleQueryValue(value: string | string[] | undefined): string {
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
-}
-
-function getPositiveInt(value: string | string[] | undefined): number | null {
-  const parsed = parseInt(getSingleQueryValue(value), 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-}
 
 /**
  * GET /api/public/books
