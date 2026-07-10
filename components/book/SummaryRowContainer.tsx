@@ -7,7 +7,6 @@ type SummaryBook = BookType & { copyCount?: number };
 
 interface SummaryRowContainerProps {
   renderedBooks: SummaryBook[];
-  pageIndex: number;
   totalBooks: number;
   maxBooks: number;
   onLoadMore: () => void;
@@ -16,7 +15,6 @@ interface SummaryRowContainerProps {
 
 const SummaryRowContainer = memo(function SummaryRowContainer({
   renderedBooks,
-  pageIndex,
   totalBooks,
   maxBooks,
   onLoadMore,
@@ -47,7 +45,7 @@ const SummaryRowContainer = memo(function SummaryRowContainer({
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      {groupedBooks.slice(0, pageIndex).map(({ book, count }) => (
+      {groupedBooks.map(({ book, count }) => (
         <BookSummaryRow
           key={book.id}
           book={book}

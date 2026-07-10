@@ -1139,6 +1139,8 @@ export const en: Dictionary = {
     fieldYear: "Year",
     fieldPages: "Pages",
     fieldAge: "Age recommendation",
+    ageFrom: "from {min}",
+    ageUpTo: "up to {max}",
     fieldIsbn: "ISBN",
     notFound: "Book not found.",
   },

@@ -1230,6 +1230,9 @@ export const de = {
     fieldYear: "Jahr",
     fieldPages: "Seiten",
     fieldAge: "Altersempfehlung",
+    // Rendered when only one bound of the age range is set.
+    ageFrom: "ab {min}",
+    ageUpTo: "bis {max}",
     fieldIsbn: "ISBN",
     notFound: "Buch nicht gefunden.",
   },

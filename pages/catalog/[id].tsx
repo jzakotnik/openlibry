@@ -200,9 +200,9 @@ export default function CatalogDetailPage({ book }: CatalogDetailProps) {
     book.minAge && book.maxAge
       ? `${book.minAge}–${book.maxAge}`
       : book.minAge
-        ? `${book.minAge}`
+        ? t("catalogDetailPage.ageFrom", { min: book.minAge })
         : book.maxAge
-          ? `- ${book.maxAge}`
+          ? t("catalogDetailPage.ageUpTo", { max: book.maxAge })
           : null;
 
   return (

@@ -2,6 +2,7 @@ import { BookType } from "@/entities/BookType";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import fs from "fs/promises";
@@ -48,25 +49,66 @@ export type PagedPublicBooks = {
   pageSize: number;
 };
 
-export function getPublicBookWhere(
+type SearchableBookField = "title" | "author" | "subtitle" | "isbn" | "topics";
+
+function capitalizeFirst(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * SQLite's LIKE only case-folds ASCII, so `contains: "möwe"` would not match
+ * "Möwe" (and Prisma's SQLite connector has no `mode: "insensitive"`).
+ * Matching the term as typed, lowercased, and with a capitalized first letter
+ * covers the common casings without a custom collation. Mixed-case matches in
+ * the middle of a word (e.g. "McDonald" for query "mcdonald") still slip
+ * through — accepted limitation.
+ */
+function termVariants(term: string): string[] {
+  const lower = term.toLowerCase();
+  return Array.from(new Set([term, lower, capitalizeFirst(lower)]));
+}
+
+function buildBookWhere(
   query: string,
+  fields: SearchableBookField[],
 ): Prisma.BookWhereInput | undefined {
   const q = query.trim();
   if (!q) return undefined;
 
-  const or: Prisma.BookWhereInput[] = [
-    { title: { contains: q } },
-    { author: { contains: q } },
-    { isbn: { contains: q } },
-    { topics: { contains: q } },
-  ];
+  // AND across whitespace-separated terms, OR across fields per term, so
+  // "Harry Rowling" finds a book whose title contains "Harry" and whose
+  // author contains "Rowling".
+  const perTerm: Prisma.BookWhereInput[] = q.split(/\s+/).map((term) => ({
+    OR: fields.flatMap((field) =>
+      termVariants(term).map((variant) => ({
+        [field]: { contains: variant },
+      })),
+    ),
+  }));
 
   const numericId = parseInt(q.replace(/^0+/, "") || q, 10);
   if (/^\d+$/.test(q) && Number.isFinite(numericId)) {
-    or.unshift({ id: numericId });
+    return { OR: [{ id: numericId }, { AND: perTerm }] };
   }
 
-  return { OR: or };
+  return { AND: perTerm };
+}
+
+export function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
+  return buildBookWhere(query, [
+    "title",
+    "author",
+    "subtitle",
+    "isbn",
+    "topics",
+  ]);
+}
+
+export function getPublicBookWhere(
+  query: string,
+): Prisma.BookWhereInput | undefined {
+  // No subtitle: the public catalog's select doesn't expose it.
+  return buildBookWhere(query, ["title", "author", "isbn", "topics"]);
 }
 
 export async function getCopyCountsByIsbn(
@@ -113,6 +155,106 @@ export async function getCopyCountsByIsbn(
   }
 
   return countByTrimmedIsbn;
+}
+
+// Fields the (authenticated) book list needs — a strict subset of the full
+// Book model so list queries stay lean. Shared by /api/book and the book
+// page's getServerSideProps so SSR and client revalidation return identical
+// shapes.
+export const listBookSelect = {
+  createdAt: true,
+  updatedAt: true,
+  id: true,
+  rentalStatus: true,
+  rentedDate: true,
+  dueDate: true,
+  renewalCount: true,
+  title: true,
+  subtitle: true,
+  author: true,
+  topics: true,
+  isbn: true,
+  userId: true,
+} satisfies Prisma.BookSelect;
+
+export type ListBookType = BookType & {
+  searchableTopics: string[];
+  copyCount?: number;
+};
+
+export type PagedBooks = {
+  books: ListBookType[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export function toListBook(
+  book: Prisma.BookGetPayload<{ select: typeof listBookSelect }>,
+  copyCountsByIsbn: Map<string, number> = new Map(),
+): ListBookType {
+  const isbn = book.isbn?.trim();
+
+  return {
+    ...book,
+    createdAt: convertDateToDayString(book.createdAt) as any,
+    updatedAt: convertDateToDayString(book.updatedAt) as any,
+    rentedDate: book.rentedDate ? convertDateToDayString(book.rentedDate) : "",
+    dueDate: book.dueDate ? convertDateToDayString(book.dueDate) : "",
+    subtitle: book.subtitle ?? undefined,
+    topics: book.topics ?? undefined,
+    isbn: book.isbn ?? undefined,
+    userId: book.userId ?? undefined,
+    copyCount: isbn ? copyCountsByIsbn.get(isbn) : undefined,
+    searchableTopics: book.topics ? book.topics.split(";") : [],
+  };
+}
+
+export async function getPagedBooks(
+  client: PrismaClient,
+  {
+    page,
+    pageSize,
+    query = "",
+  }: { page: number; pageSize: number; query?: string },
+): Promise<PagedBooks> {
+  const where = getBookWhere(query);
+
+  try {
+    const [rawBooks, total] = await Promise.all([
+      client.book.findMany({
+        select: listBookSelect,
+        where,
+        orderBy: [{ id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      client.book.count({ where }),
+    ]);
+    const copyCountsByIsbn = await getCopyCountsByIsbn(client, rawBooks, where);
+
+    return {
+      books: rawBooks.map((book) => toListBook(book, copyCountsByIsbn)),
+      total,
+      page,
+      pageSize,
+    };
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getPagedBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting paged books",
+      );
+    }
+    throw e;
+  }
 }
 
 export async function getBook(client: PrismaClient, id: number) {
@@ -411,61 +553,73 @@ export async function updateBook(
       id,
     );
 
-    const transaction: any[] = [];
+    // Invariant: a book may only stay connected to a user while it's
+    // actually "rented". If the status is being explicitly changed to
+    // anything else (lost, broken, available, ...), sever the connection
+    // too - otherwise the book keeps a dangling userId and gets
+    // cascade-deleted if that user is later removed, even though it's no
+    // longer their book. A partial update that omits rentalStatus must NOT
+    // sever an active rental, hence the undefined check.
+    const severConnection =
+      bookData.rentalStatus !== undefined && bookData.rentalStatus !== "rented";
 
-    transaction.push(
-      client.book.update({
-        where: {
-          id,
-        },
-        data: { ...bookData },
-      }),
+    // Interactive transaction: the userId read, the disconnect, the book
+    // update, and the audit entry commit (or roll back) together, so the
+    // audit trail can never claim a disconnect that didn't happen.
+    const { updatedBook, disconnectedUserId } = await client.$transaction(
+      async (tx) => {
+        let disconnectedUserId: number | null = null;
+
+        if (severConnection) {
+          const current = await tx.book.findUnique({
+            where: { id },
+            select: { userId: true },
+          });
+
+          if (current?.userId) {
+            await tx.user.update({
+              where: { id: current.userId },
+              data: {
+                books: {
+                  disconnect: { id },
+                },
+              },
+            });
+            disconnectedUserId = current.userId;
+
+            await addAudit(
+              tx,
+              "Update book - rental connection severed",
+              `book id ${id}, ${book.title}, status changed to "${bookData.rentalStatus}", disconnected from user id ${current.userId}`,
+              id,
+              current.userId,
+            );
+          }
+        }
+
+        const updatedBook = await tx.book.update({
+          where: {
+            id,
+          },
+          data: { ...bookData },
+        });
+
+        return { updatedBook, disconnectedUserId };
+      },
     );
 
-    // Invariant: a book may only stay connected to a user while it's
-    // actually "rented". If the status is being changed to anything else
-    // (lost, broken, available, ...), sever the connection here too -
-    // otherwise the book keeps a dangling userId and gets cascade-deleted
-    // if that user is later removed, even though it's no longer their book.
-    if (bookData.rentalStatus !== "rented") {
-      const current = await client.book.findUnique({
-        where: { id },
-        select: { userId: true },
-      });
-
-      if (current?.userId) {
-        transaction.push(
-          client.user.update({
-            where: { id: current.userId },
-            data: {
-              books: {
-                disconnect: { id },
-              },
-            },
-          }),
-        );
-
-        await addAudit(
-          client,
-          "Update book - rental connection severed",
-          `book id ${id}, ${book.title}, status changed to "${bookData.rentalStatus}", disconnected from user id ${current.userId}`,
-          id,
-          current.userId,
-        );
-
-        businessLogger.info(
-          {
-            event: LogEvents.BOOK_UPDATED,
-            bookId: id,
-            userId: current.userId,
-            newRentalStatus: bookData.rentalStatus,
-          },
-          "Book status changed away from 'rented' - severed user connection",
-        );
-      }
+    if (disconnectedUserId !== null) {
+      businessLogger.info(
+        {
+          event: LogEvents.BOOK_UPDATED,
+          bookId: id,
+          userId: disconnectedUserId,
+          newRentalStatus: bookData.rentalStatus,
+        },
+        "Book status changed away from 'rented' - severed user connection",
+      );
     }
 
-    const [updatedBook] = await client.$transaction(transaction);
     return updatedBook;
   } catch (e) {
     if (
