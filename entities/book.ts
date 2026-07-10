@@ -1,5 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { LOCALE } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/types";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
@@ -55,6 +57,52 @@ function capitalizeFirst(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+// Inflection endings per deployment locale, longest first so "Deutschen"
+// strips "en" rather than "n". Keyed by Locale so wiring a new locale into
+// the i18n layer forces a decision here too.
+const STEM_SUFFIXES_BY_LOCALE: Record<Locale, string[]> = {
+  de: ["en", "er", "es", "em", "e", "n", "s"],
+  // "ies" covers y-plurals by prefix: "stories" → "stor" matches "story".
+  en: ["ies", "ing", "ed", "es", "er", "e", "s"],
+};
+const STEM_SUFFIXES =
+  STEM_SUFFIXES_BY_LOCALE[LOCALE] ?? STEM_SUFFIXES_BY_LOCALE.de;
+const MIN_STEM_LENGTH = 4;
+
+/**
+ * Cheap query-side stemming: strip one inflection suffix when the remaining
+ * stem keeps at least MIN_STEM_LENGTH characters. Because matching is
+ * substring-based, searching for the stem covers every longer inflected form
+ * in the data ("Deutsche" → "Deutsch" also finds "Deutschen" and
+ * "Deutschland"; "Geschichten" → "Geschicht" also finds "Geschichte").
+ * Umlaut plurals ("Bücher" vs "Buch") are out of scope. The minimum length
+ * keeps short names intact ("Hans" stays "Hans" instead of matching every
+ * "Han…"). Stripping only ever broadens a match (the stem is a prefix of
+ * the term), so an imperfectly fitting suffix list costs precision on rare
+ * queries, never correctness.
+ *
+ * Deliberately NOT a real stemmer (Snowball/Porter via a library): those
+ * normalize both the indexed text and the query symmetrically, but here the
+ * data sits unstemmed in SQLite and matching is `contains`, so the output
+ * must stay a literal prefix of the inflected word. Library stemmers break
+ * that invariant (Snowball German de-umlauts: "Gebäude" → "gebaud"; Porter:
+ * "stories" → "stori", not a substring of "story") and would silently LOSE
+ * results if applied to the query alone. A real stemmer only becomes
+ * appropriate once stemming moves to index time (a stemmed shadow column or
+ * SQLite FTS5) and is applied to both sides.
+ */
+function stemTerm(term: string): string | null {
+  for (const suffix of STEM_SUFFIXES) {
+    if (
+      term.length - suffix.length >= MIN_STEM_LENGTH &&
+      term.toLowerCase().endsWith(suffix)
+    ) {
+      return term.slice(0, -suffix.length);
+    }
+  }
+  return null;
+}
+
 /**
  * SQLite's LIKE only case-folds ASCII, so `contains: "möwe"` would not match
  * "Möwe" (and Prisma's SQLite connector has no `mode: "insensitive"`).
@@ -62,10 +110,14 @@ function capitalizeFirst(s: string): string {
  * covers the common casings without a custom collation. Mixed-case matches in
  * the middle of a word (e.g. "McDonald" for query "mcdonald") still slip
  * through — accepted limitation.
+ *
+ * When the term carries an inflection suffix, the variants are built from its
+ * stem instead; the stem is a prefix of the term, so it matches strictly more.
  */
 function termVariants(term: string): string[] {
-  const lower = term.toLowerCase();
-  return Array.from(new Set([term, lower, capitalizeFirst(lower)]));
+  const base = stemTerm(term) ?? term;
+  const lower = base.toLowerCase();
+  return Array.from(new Set([base, lower, capitalizeFirst(lower)]));
 }
 
 function buildBookWhere(
