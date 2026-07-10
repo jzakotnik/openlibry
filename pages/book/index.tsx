@@ -9,20 +9,13 @@ import BookSummaryCard from "@/components/book/BookSummaryCard";
 
 import SummaryRowContainer from "@/components/book/SummaryRowContainer";
 import { BookType } from "@/entities/BookType";
-import { getCopyCountsByIsbn } from "@/entities/book";
+import { getPagedBooks, ListBookType, PagedBooks } from "@/entities/book";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { t } from "@/lib/i18n";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
-import { Prisma } from "@prisma/client";
 import { toast } from "sonner";
 
-interface SearchableBookType extends BookType {
-  searchableTopics: Array<string>;
-  copyCount?: number;
-}
-
 interface BookPropsType {
-  books: Array<SearchableBookType>;
+  books: Array<ListBookType>;
   total: number;
   numberBooksToShow: number;
   maxBooks: number;
@@ -37,70 +30,6 @@ interface DetailCardContainerProps {
   onLoadMore: () => void;
   onReturnBook: (id: number, userId: number) => void;
   onTopicClick: (topic: string) => void;
-}
-
-interface PagedBooksResponse {
-  books: Array<SearchableBookType>;
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
-const listBookSelect = {
-  createdAt: true,
-  updatedAt: true,
-  id: true,
-  rentalStatus: true,
-  rentedDate: true,
-  dueDate: true,
-  renewalCount: true,
-  title: true,
-  subtitle: true,
-  author: true,
-  topics: true,
-  isbn: true,
-  userId: true,
-} satisfies Prisma.BookSelect;
-
-function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
-  const q = query.trim();
-  if (!q) return undefined;
-
-  const or: Prisma.BookWhereInput[] = [
-    { title: { contains: q } },
-    { author: { contains: q } },
-    { subtitle: { contains: q } },
-    { isbn: { contains: q } },
-    { topics: { contains: q } },
-  ];
-
-  const numericId = parseInt(q.replace(/^0+/, "") || q, 10);
-  if (/^\d+$/.test(q) && Number.isFinite(numericId)) {
-    or.unshift({ id: numericId });
-  }
-
-  return { OR: or };
-}
-
-function toSearchableBook(
-  b: Prisma.BookGetPayload<{ select: typeof listBookSelect }>,
-  copyCountsByIsbn: Map<string, number> = new Map(),
-): SearchableBookType {
-  const isbn = b.isbn?.trim();
-
-  return {
-    ...b,
-    createdAt: convertDateToDayString(b.createdAt) as any,
-    updatedAt: convertDateToDayString(b.updatedAt) as any,
-    rentedDate: b.rentedDate ? convertDateToDayString(b.rentedDate) : "",
-    dueDate: b.dueDate ? convertDateToDayString(b.dueDate) : "",
-    subtitle: b.subtitle ?? undefined,
-    topics: b.topics ?? undefined,
-    isbn: b.isbn ?? undefined,
-    userId: b.userId ?? undefined,
-    copyCount: isbn ? copyCountsByIsbn.get(isbn) : undefined,
-    searchableTopics: b.topics ? b.topics.split(";") : [],
-  };
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -189,22 +118,25 @@ export default function Books({
     return `/api/book?${params.toString()}`;
   }, [pageSize, maxBooks, serverSearch]);
 
-  const { data: freshData, mutate } = useSWR<PagedBooksResponse>(
-    requestUrl,
-    fetcher,
-    {
-      fallbackData: {
-        books: initialBooks,
-        total: initialTotal,
-        page: 1,
-        pageSize: numberBooksToShow,
-      },
-      refreshInterval: 0,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-      dedupingInterval: 60000,
+  const { data: freshData, mutate } = useSWR<PagedBooks>(requestUrl, fetcher, {
+    fallbackData: {
+      books: initialBooks,
+      total: initialTotal,
+      page: 1,
+      pageSize: numberBooksToShow,
     },
-  );
+    // Without this, every key change (new search term, larger pageSize from
+    // "load more") would fall back to the initial unfiltered page-1 data
+    // while the fetch is in flight — a visible flash of wrong results.
+    keepPreviousData: true,
+    refreshInterval: 0,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    // Keep this short (SWR default is 2s): edits happen on other pages, and
+    // a long window would serve a stale cached list when navigating back.
+    // It doesn't help with typing anyway — each search term is its own key.
+    dedupingInterval: 2000,
+  });
 
   const books = freshData?.books || initialBooks;
   const resultCount = freshData?.total ?? initialTotal;
@@ -311,7 +243,6 @@ export default function Books({
       ) : (
         <SummaryRowContainer
           renderedBooks={renderedBooks}
-          pageIndex={renderedBooks.length}
           totalBooks={resultCount}
           maxBooks={maxBooks}
           onLoadMore={handleLoadMore}
@@ -349,26 +280,14 @@ export const getServerSideProps: GetServerSideProps = async (
       : 1000000;
     const initialSearch =
       typeof context.query.q === "string" ? context.query.q : "";
-    const where = getBookWhere(initialSearch);
 
-    const [rawBooks, total] = await Promise.all([
-      prisma.book.findMany({
-        select: listBookSelect,
-        where,
-        orderBy: [{ id: "desc" }],
-        take: numberBooksToShow,
-      }),
-      prisma.book.count({ where }),
-    ]);
-    const copyCountsByIsbn = await getCopyCountsByIsbn(
-      prisma,
-      rawBooks,
-      where,
-    );
-
-    const books = rawBooks.map((book) =>
-      toSearchableBook(book, copyCountsByIsbn),
-    );
+    // Same entity function the API route uses, in-process — SSR and client
+    // revalidation can't drift apart.
+    const { books, total } = await getPagedBooks(prisma, {
+      page: 1,
+      pageSize: numberBooksToShow,
+      query: initialSearch,
+    });
 
     return {
       props: {

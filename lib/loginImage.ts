@@ -13,5 +13,20 @@
 export function resolveLoginImage(): string | null {
   const raw = process.env.LOGIN_IMAGE?.trim();
   if (!raw) return null;
-  return raw.startsWith("/") ? raw : `/${raw}`;
+  const rooted = raw.startsWith("/") ? raw : `/${raw}`;
+  // Percent-encode each path segment: browsers request the encoded form
+  // ("/schule login.jpg" arrives as "/schule%20login.jpg" in
+  // req.nextUrl.pathname), and CSS url(...) can't contain raw spaces either.
+  // Decode first so an already-encoded value isn't double-encoded.
+  return rooted
+    .split("/")
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        // Malformed escape sequence in the segment (e.g. a literal "%")
+        return encodeURIComponent(segment);
+      }
+    })
+    .join("/");
 }

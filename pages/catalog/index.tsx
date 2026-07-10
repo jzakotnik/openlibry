@@ -156,6 +156,10 @@ export default function Catalog({
       page: 1,
       pageSize: numberBooksToShow,
     },
+    // Without this, every key change (new search term, larger pageSize from
+    // "load more") would fall back to the initial unfiltered page-1 data
+    // while the fetch is in flight — a visible flash of wrong results.
+    keepPreviousData: true,
     refreshInterval: 0,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
