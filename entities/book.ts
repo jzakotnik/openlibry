@@ -1,7 +1,10 @@
 import { BookType } from "@/entities/BookType";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { LOCALE } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/types";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import fs from "fs/promises";
@@ -11,6 +14,301 @@ import { PublicBookType } from "./PublicBookType";
 import { getUser } from "./user";
 
 const rentalConfig = getRentalConfig();
+
+const publicBookSelect = {
+  id: true,
+  title: true,
+  author: true,
+  isbn: true,
+  topics: true,
+  rentalStatus: true,
+} satisfies Prisma.BookSelect;
+
+function toPublicBook(b: {
+  id: number;
+  title: string;
+  author: string;
+  isbn: string | null;
+  topics: string | null;
+  rentalStatus: string;
+}): PublicBookType {
+  return {
+    id: b.id,
+    title: b.title,
+    author: b.author,
+    isbn: b.isbn,
+    topics: b.topics,
+    rentalStatus: b.rentalStatus,
+    // Cover is served by /api/images/[id]; auth-excluded in middleware.ts
+    coverUrl: `/api/images/${b.id}`,
+  };
+}
+
+export type PagedPublicBooks = {
+  books: PublicBookType[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+type SearchableBookField = "title" | "author" | "subtitle" | "isbn" | "topics";
+
+function capitalizeFirst(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Inflection endings per deployment locale, longest first so "Deutschen"
+// strips "en" rather than "n". Keyed by Locale so wiring a new locale into
+// the i18n layer forces a decision here too.
+const STEM_SUFFIXES_BY_LOCALE: Record<Locale, string[]> = {
+  de: ["en", "er", "es", "em", "e", "n", "s"],
+  // "ies" covers y-plurals by prefix: "stories" → "stor" matches "story".
+  en: ["ies", "ing", "ed", "es", "er", "e", "s"],
+};
+const STEM_SUFFIXES =
+  STEM_SUFFIXES_BY_LOCALE[LOCALE] ?? STEM_SUFFIXES_BY_LOCALE.de;
+const MIN_STEM_LENGTH = 4;
+
+/**
+ * Cheap query-side stemming: strip one inflection suffix when the remaining
+ * stem keeps at least MIN_STEM_LENGTH characters. Because matching is
+ * substring-based, searching for the stem covers every longer inflected form
+ * in the data ("Deutsche" → "Deutsch" also finds "Deutschen" and
+ * "Deutschland"; "Geschichten" → "Geschicht" also finds "Geschichte").
+ * Umlaut plurals ("Bücher" vs "Buch") are out of scope. The minimum length
+ * keeps short names intact ("Hans" stays "Hans" instead of matching every
+ * "Han…"). Stripping only ever broadens a match (the stem is a prefix of
+ * the term), so an imperfectly fitting suffix list costs precision on rare
+ * queries, never correctness.
+ *
+ * Deliberately NOT a real stemmer (Snowball/Porter via a library): those
+ * normalize both the indexed text and the query symmetrically, but here the
+ * data sits unstemmed in SQLite and matching is `contains`, so the output
+ * must stay a literal prefix of the inflected word. Library stemmers break
+ * that invariant (Snowball German de-umlauts: "Gebäude" → "gebaud"; Porter:
+ * "stories" → "stori", not a substring of "story") and would silently LOSE
+ * results if applied to the query alone. A real stemmer only becomes
+ * appropriate once stemming moves to index time (a stemmed shadow column or
+ * SQLite FTS5) and is applied to both sides.
+ */
+function stemTerm(term: string): string | null {
+  for (const suffix of STEM_SUFFIXES) {
+    if (
+      term.length - suffix.length >= MIN_STEM_LENGTH &&
+      term.toLowerCase().endsWith(suffix)
+    ) {
+      return term.slice(0, -suffix.length);
+    }
+  }
+  return null;
+}
+
+/**
+ * SQLite's LIKE only case-folds ASCII, so `contains: "möwe"` would not match
+ * "Möwe" (and Prisma's SQLite connector has no `mode: "insensitive"`).
+ * Matching the term as typed, lowercased, and with a capitalized first letter
+ * covers the common casings without a custom collation. Mixed-case matches in
+ * the middle of a word (e.g. "McDonald" for query "mcdonald") still slip
+ * through — accepted limitation.
+ *
+ * When the term carries an inflection suffix, the variants are built from its
+ * stem instead; the stem is a prefix of the term, so it matches strictly more.
+ */
+function termVariants(term: string): string[] {
+  const base = stemTerm(term) ?? term;
+  const lower = base.toLowerCase();
+  return Array.from(new Set([base, lower, capitalizeFirst(lower)]));
+}
+
+function buildBookWhere(
+  query: string,
+  fields: SearchableBookField[],
+): Prisma.BookWhereInput | undefined {
+  const q = query.trim();
+  if (!q) return undefined;
+
+  // AND across whitespace-separated terms, OR across fields per term, so
+  // "Harry Rowling" finds a book whose title contains "Harry" and whose
+  // author contains "Rowling".
+  const perTerm: Prisma.BookWhereInput[] = q.split(/\s+/).map((term) => ({
+    OR: fields.flatMap((field) =>
+      termVariants(term).map((variant) => ({
+        [field]: { contains: variant },
+      })),
+    ),
+  }));
+
+  const numericId = parseInt(q.replace(/^0+/, "") || q, 10);
+  if (/^\d+$/.test(q) && Number.isFinite(numericId)) {
+    return { OR: [{ id: numericId }, { AND: perTerm }] };
+  }
+
+  return { AND: perTerm };
+}
+
+export function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
+  return buildBookWhere(query, [
+    "title",
+    "author",
+    "subtitle",
+    "isbn",
+    "topics",
+  ]);
+}
+
+export function getPublicBookWhere(
+  query: string,
+): Prisma.BookWhereInput | undefined {
+  // No subtitle: the public catalog's select doesn't expose it.
+  return buildBookWhere(query, ["title", "author", "isbn", "topics"]);
+}
+
+export async function getCopyCountsByIsbn(
+  client: PrismaClient,
+  books: Array<{ isbn?: string | null }>,
+  where: Prisma.BookWhereInput | undefined,
+): Promise<Map<string, number>> {
+  const rawIsbns = Array.from(
+    new Set(
+      books
+        .map((book) => book.isbn)
+        .filter((isbn): isbn is string => Boolean(isbn?.trim())),
+    ),
+  );
+
+  if (rawIsbns.length === 0) return new Map();
+
+  const counts = await client.book.groupBy({
+    by: ["isbn"],
+    where: {
+      AND: [
+        ...(where ? [where] : []),
+        {
+          isbn: {
+            in: rawIsbns,
+          },
+        },
+      ],
+    },
+    _count: {
+      _all: true,
+    },
+  });
+
+  const countByTrimmedIsbn = new Map<string, number>();
+
+  for (const count of counts) {
+    const isbn = count.isbn?.trim();
+    if (!isbn) continue;
+    countByTrimmedIsbn.set(
+      isbn,
+      (countByTrimmedIsbn.get(isbn) ?? 0) + count._count._all,
+    );
+  }
+
+  return countByTrimmedIsbn;
+}
+
+// Fields the (authenticated) book list needs — a strict subset of the full
+// Book model so list queries stay lean. Shared by /api/book and the book
+// page's getServerSideProps so SSR and client revalidation return identical
+// shapes.
+export const listBookSelect = {
+  createdAt: true,
+  updatedAt: true,
+  id: true,
+  rentalStatus: true,
+  rentedDate: true,
+  dueDate: true,
+  renewalCount: true,
+  title: true,
+  subtitle: true,
+  author: true,
+  topics: true,
+  isbn: true,
+  userId: true,
+} satisfies Prisma.BookSelect;
+
+export type ListBookType = BookType & {
+  searchableTopics: string[];
+  copyCount?: number;
+};
+
+export type PagedBooks = {
+  books: ListBookType[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export function toListBook(
+  book: Prisma.BookGetPayload<{ select: typeof listBookSelect }>,
+  copyCountsByIsbn: Map<string, number> = new Map(),
+): ListBookType {
+  const isbn = book.isbn?.trim();
+
+  return {
+    ...book,
+    createdAt: convertDateToDayString(book.createdAt) as any,
+    updatedAt: convertDateToDayString(book.updatedAt) as any,
+    rentedDate: book.rentedDate ? convertDateToDayString(book.rentedDate) : "",
+    dueDate: book.dueDate ? convertDateToDayString(book.dueDate) : "",
+    subtitle: book.subtitle ?? undefined,
+    topics: book.topics ?? undefined,
+    isbn: book.isbn ?? undefined,
+    userId: book.userId ?? undefined,
+    copyCount: isbn ? copyCountsByIsbn.get(isbn) : undefined,
+    searchableTopics: book.topics ? book.topics.split(";") : [],
+  };
+}
+
+export async function getPagedBooks(
+  client: PrismaClient,
+  {
+    page,
+    pageSize,
+    query = "",
+  }: { page: number; pageSize: number; query?: string },
+): Promise<PagedBooks> {
+  const where = getBookWhere(query);
+
+  try {
+    const [rawBooks, total] = await Promise.all([
+      client.book.findMany({
+        select: listBookSelect,
+        where,
+        orderBy: [{ id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      client.book.count({ where }),
+    ]);
+    const copyCountsByIsbn = await getCopyCountsByIsbn(client, rawBooks, where);
+
+    return {
+      books: rawBooks.map((book) => toListBook(book, copyCountsByIsbn)),
+      total,
+      page,
+      pageSize,
+    };
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getPagedBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting paged books",
+      );
+    }
+    throw e;
+  }
+}
+
 export async function getBook(client: PrismaClient, id: number) {
   return await client.book.findUnique({ where: { id } });
 }
@@ -72,27 +370,11 @@ export async function getPublicBooks(
 ): Promise<PublicBookType[]> {
   try {
     const rawBooks = await client.book.findMany({
-      select: {
-        id: true,
-        title: true,
-        author: true,
-        isbn: true,
-        topics: true,
-        rentalStatus: true,
-      },
+      select: publicBookSelect,
       orderBy: { title: "asc" },
     });
 
-    return rawBooks.map((b) => ({
-      id: b.id,
-      title: b.title,
-      author: b.author,
-      isbn: b.isbn,
-      topics: b.topics,
-      rentalStatus: b.rentalStatus,
-      // Cover is served by /api/images/[id]; auth-excluded in middleware.ts
-      coverUrl: `/api/images/${b.id}`,
-    }));
+    return rawBooks.map(toPublicBook);
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -105,6 +387,52 @@ export async function getPublicBooks(
           error: e instanceof Error ? e.message : String(e),
         },
         "Error getting public books",
+      );
+    }
+    throw e;
+  }
+}
+
+export async function getPagedPublicBooks(
+  client: PrismaClient,
+  {
+    page,
+    pageSize,
+    query = "",
+  }: { page: number; pageSize: number; query?: string },
+): Promise<PagedPublicBooks> {
+  const where = getPublicBookWhere(query);
+
+  try {
+    const [rawBooks, total] = await Promise.all([
+      client.book.findMany({
+        select: publicBookSelect,
+        where,
+        orderBy: { title: "asc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      client.book.count({ where }),
+    ]);
+
+    return {
+      books: rawBooks.map(toPublicBook),
+      total,
+      page,
+      pageSize,
+    };
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getPagedPublicBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting paged public books",
       );
     }
     throw e;
@@ -277,61 +605,73 @@ export async function updateBook(
       id,
     );
 
-    const transaction: any[] = [];
+    // Invariant: a book may only stay connected to a user while it's
+    // actually "rented". If the status is being explicitly changed to
+    // anything else (lost, broken, available, ...), sever the connection
+    // too - otherwise the book keeps a dangling userId and gets
+    // cascade-deleted if that user is later removed, even though it's no
+    // longer their book. A partial update that omits rentalStatus must NOT
+    // sever an active rental, hence the undefined check.
+    const severConnection =
+      bookData.rentalStatus !== undefined && bookData.rentalStatus !== "rented";
 
-    transaction.push(
-      client.book.update({
-        where: {
-          id,
-        },
-        data: { ...bookData },
-      }),
+    // Interactive transaction: the userId read, the disconnect, the book
+    // update, and the audit entry commit (or roll back) together, so the
+    // audit trail can never claim a disconnect that didn't happen.
+    const { updatedBook, disconnectedUserId } = await client.$transaction(
+      async (tx) => {
+        let disconnectedUserId: number | null = null;
+
+        if (severConnection) {
+          const current = await tx.book.findUnique({
+            where: { id },
+            select: { userId: true },
+          });
+
+          if (current?.userId) {
+            await tx.user.update({
+              where: { id: current.userId },
+              data: {
+                books: {
+                  disconnect: { id },
+                },
+              },
+            });
+            disconnectedUserId = current.userId;
+
+            await addAudit(
+              tx,
+              "Update book - rental connection severed",
+              `book id ${id}, ${book.title}, status changed to "${bookData.rentalStatus}", disconnected from user id ${current.userId}`,
+              id,
+              current.userId,
+            );
+          }
+        }
+
+        const updatedBook = await tx.book.update({
+          where: {
+            id,
+          },
+          data: { ...bookData },
+        });
+
+        return { updatedBook, disconnectedUserId };
+      },
     );
 
-    // Invariant: a book may only stay connected to a user while it's
-    // actually "rented". If the status is being changed to anything else
-    // (lost, broken, available, ...), sever the connection here too -
-    // otherwise the book keeps a dangling userId and gets cascade-deleted
-    // if that user is later removed, even though it's no longer their book.
-    if (bookData.rentalStatus !== "rented") {
-      const current = await client.book.findUnique({
-        where: { id },
-        select: { userId: true },
-      });
-
-      if (current?.userId) {
-        transaction.push(
-          client.user.update({
-            where: { id: current.userId },
-            data: {
-              books: {
-                disconnect: { id },
-              },
-            },
-          }),
-        );
-
-        await addAudit(
-          client,
-          "Update book - rental connection severed",
-          `book id ${id}, ${book.title}, status changed to "${bookData.rentalStatus}", disconnected from user id ${current.userId}`,
-          id,
-          current.userId,
-        );
-
-        businessLogger.info(
-          {
-            event: LogEvents.BOOK_UPDATED,
-            bookId: id,
-            userId: current.userId,
-            newRentalStatus: bookData.rentalStatus,
-          },
-          "Book status changed away from 'rented' - severed user connection",
-        );
-      }
+    if (disconnectedUserId !== null) {
+      businessLogger.info(
+        {
+          event: LogEvents.BOOK_UPDATED,
+          bookId: id,
+          userId: disconnectedUserId,
+          newRentalStatus: bookData.rentalStatus,
+        },
+        "Book status changed away from 'rented' - severed user connection",
+      );
     }
 
-    const [updatedBook] = await client.$transaction(transaction);
     return updatedBook;
   } catch (e) {
     if (

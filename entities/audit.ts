@@ -105,7 +105,9 @@ export async function getAllAudit(
 }
 
 export async function addAudit(
-  client: PrismaClient,
+  // Accepts a transaction client too, so callers can write the audit entry
+  // atomically with the change it describes.
+  client: PrismaClient | Prisma.TransactionClient,
   eventType: string,
   eventContent: string,
   // Schema has bookid/userid as Int? (nullable) – use undefined, not 0,
