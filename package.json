@@ -36,7 +36,7 @@
     "docxtemplater": "^3.65.2",
     "eslint-config-next": "^16.0.6",
     "eslint-plugin-cypress": "^5.1.0",
-    "exceljs": "^4.4.0",
+    "exceljs": "^3.4.0",
     "file-type": "^21.1.1",
     "formidable": "^3.5.4",
     "html-entities": "^2.6.0",
@@ -57,7 +57,7 @@
     "react-dom": "^19.2.0",
     "react-image-file-resizer": "^0.4.8",
     "react-tagcloud": "^2.3.3",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.3",
     "sonner": "^2.0.7",
     "swr": "^2.3.5",
     "tailwind-merge": "^3.4.0"
