@@ -24,7 +24,7 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { isbn, bookId } = req.query;
+  const { isbn, bookId: rawBookId } = req.query;
 
   if (!isbn || typeof isbn !== "string") {
     errorLogger.warn(
@@ -39,7 +39,25 @@ export default async function handler(
   }
 
   // bookId is optional - if provided, we save to disk; if not, we return the image
-  const shouldSave = bookId && typeof bookId === "string";
+  const bookIdStr = Array.isArray(rawBookId) ? rawBookId[0] : rawBookId;
+  const shouldSave = typeof bookIdStr === "string" && bookIdStr.length > 0;
+
+  // bookId is used to build a filesystem path below, so it must be a plain
+  // integer — reject anything else (traversal segments, slashes, etc.)
+  if (shouldSave && !/^\d+$/.test(bookIdStr as string)) {
+    errorLogger.warn(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/book/fetchCover",
+        rawBookId,
+        reason: "Invalid bookId",
+      },
+      "Rejected fetchCover save with non-numeric bookId",
+    );
+    return res.status(400).json({ error: "Invalid book id", success: false });
+  }
+
+  const bookId = bookIdStr as string | undefined;
 
   // Clean ISBN: remove dashes, spaces, keep X for ISBN-10 check digit
   const cleanedIsbn = isbn.replace(/[^0-9X]/gi, "");
