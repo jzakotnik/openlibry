@@ -79,7 +79,7 @@ describe("Label Template Editor", () => {
 
     const expectedOptions = [
       "Titel", "Untertitel", "Autor", "Buchnummer",
-      "Schulname", "Themen (max. 3)", "Barcode", "Leer",
+      "Schulname", "Themen (max. 3)", "Systematik", "Barcode", "Leer",
     ];
     expectedOptions.forEach((option) => {
       cy.contains("[role=option]", option).should("exist");

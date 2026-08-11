@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 import type {
   LabelFieldConfig,
   LabelFieldContent,
@@ -35,8 +36,9 @@ const CONTENT_OPTIONS: { value: LabelFieldContent; label: string }[] = [
   { value: "subtitle", label: "Untertitel" },
   { value: "author", label: "Autor" },
   { value: "id", label: "Buchnummer" },
-  { value: "school", label: "Schulname" },
+  { value: "school", label: t("fieldAssigner.contentOptions.school") },
   { value: "topics", label: "Themen (max. 3)" },
+  { value: "systematics", label: "Systematik" },
   { value: "barcode", label: "Barcode" },
   { value: "none", label: "Leer" },
 ];

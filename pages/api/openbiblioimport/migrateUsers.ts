@@ -1,5 +1,6 @@
 import { addUser } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
@@ -25,8 +26,10 @@ export default async function handler(
           id: parseInt(u.mbrid),
           lastName: u.last_name,
           firstName: u.first_name,
-          schoolTeacherName: u.school_teacher,
-          schoolGrade: u.school_grade,
+          ...(showsSchoolFields() && {
+            schoolTeacherName: u.school_teacher,
+            schoolGrade: u.school_grade,
+          }),
         } as UserType;
         addUser(prisma, user);
         return user;

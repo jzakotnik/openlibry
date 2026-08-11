@@ -16,6 +16,7 @@ export const LogEvents = {
   // User operations
   USER_CREATED: "user.created",
   USER_CREATE_ATTEMPT: "user.create.attempt",
+  USER_CREATE_FAILED: "user.create.failed",
   USER_UPDATED: "user.updated",
   USER_DELETED: "user.deleted",
   USER_RETRIEVED: "user.retrieved",

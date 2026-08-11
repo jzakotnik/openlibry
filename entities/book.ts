@@ -291,8 +291,10 @@ export async function updateBook(
     // Invariant: a book may only stay connected to a user while it's
     // actually "rented". If the status is being changed to anything else
     // (lost, broken, available, ...), sever the connection here too -
-    // otherwise the book keeps a dangling userId and gets cascade-deleted
-    // if that user is later removed, even though it's no longer their book.
+    // otherwise the book keeps a dangling userId pointing at someone who
+    // may no longer be its borrower (Book.user is onDelete: SetNull, and
+    // deleteUser() marks a still-connected book "lost" when that user is
+    // removed - a book that's no longer actually theirs shouldn't be).
     if (bookData.rentalStatus !== "rented") {
       const current = await client.book.findUnique({
         where: { id },
@@ -579,7 +581,11 @@ export async function rentBook(
   const user = await getUser(client, userid);
 
   try {
-    if (book?.rentalStatus == "rented") {
+    // Reject only if the book is actually on loan to someone (a real
+    // userId). A book whose rentalStatus was set to "rented" without a
+    // borrower yet (e.g. manually via the book edit form) must still be
+    // assignable - that's the whole point of that flow.
+    if (book?.rentalStatus == "rented" && book?.userId) {
       businessLogger.warn(
         {
           event: LogEvents.BOOK_RENTAL_REJECTED,

@@ -12,6 +12,10 @@ export const en: Dictionary = {
   app: {
     title: "OpenLibry Library",
   },
+  common: {
+    unsavedChangesWarning:
+      "You have unsaved changes. Leave the page anyway?",
+  },
   topbar: {
     brand: "OpenLibry",
     tagline: "Library Management",
@@ -88,8 +92,10 @@ export const en: Dictionary = {
     statusOrdered: "Ordered",
     statusLost: "Lost",
     statusRemote: "Other library",
+    statusUnassigned: "Not assigned to anyone yet",
     statusUnknown: "Unknown status ({status})",
     statusBadgeAria: "Status: {status}",
+    statusBadgeEditHint: "{status} — click to edit the book",
   },
   rentSearchParams: {
     overdue: "Overdue",
@@ -164,6 +170,7 @@ export const en: Dictionary = {
     autoIdLabel: "Automatic ID",
     autoIdHint: "Next available number is assigned automatically",
     userIdLabel: "User ID",
+    idInvalidHint: "The user ID must be at least 1.",
     cancel: "Cancel",
     create: "Create",
   },
@@ -195,6 +202,11 @@ export const en: Dictionary = {
     save: "Save",
     print: "Print",
     delete: "Delete",
+    deleteWarningTitle: "Warning: borrowed books will be marked as lost",
+    deleteWarningBodyOne:
+      "This user currently has 1 borrowed book. Deleting them will automatically set it to \"Lost\" status to prevent data loss.",
+    deleteWarningBodyMany:
+      "This user currently has {count} borrowed books. Deleting them will automatically set them to \"Lost\" status to prevent data loss.",
   },
   bookEditForm: {
     save: "Save",
@@ -244,6 +256,15 @@ export const en: Dictionary = {
     toastCoverNotFound: "Cover could not be found.",
     toastCoverLoadError: "Error loading cover.",
   },
+  bookUserAssign: {
+    label: "Rented to",
+    currentlyWith: "Currently rented to {name}",
+    searchPlaceholder: "Search for a user...",
+    notFound: "No user found.",
+    placeholder: "Select a user...",
+    toastAssigned: "Book assigned, nice!",
+    toastAssignFailed: "Error assigning the user",
+  },
   bookSelect: {
     renewalNone: "Not renewed",
     renewalCountFormat: "{n}× renewed",
@@ -251,6 +272,9 @@ export const en: Dictionary = {
   userPage: {
     toastUserCreateFailed:
       "New user could not be created. Is the user ID already taken?",
+    toastUserIdExists:
+      "This user ID is already taken. Please choose a different ID.",
+    toastUserIdInvalid: "The user ID must be at least 1.",
     toastGradeIncreased: "Grade increased for selected users",
     toastUsersDeleted: "Users deleted successfully",
   },
@@ -508,6 +532,16 @@ export const en: Dictionary = {
         title: "School Configuration",
         description: "Name, logo, lending periods, and labels",
         fields: {
+          USAGE_CONTEXT: {
+            label: "Usage context",
+            description:
+              "Determines whether the UI is set up for a school (with grade/teacher) or a club/organization (without those fields).",
+            hint: "Changing this requires a restart of the application.",
+            options: {
+              school: "School",
+              club: "Club / Organization",
+            },
+          },
           SCHOOL_NAME: {
             label: "School name",
             description:
@@ -704,6 +738,11 @@ export const en: Dictionary = {
     description:
       "Assign fields, adjust font sizes, set spine width. Preview directly in the browser.",
     button: "Edit template",
+  },
+  fieldAssigner: {
+    contentOptions: {
+      school: "School name",
+    },
   },
 
   // ─── Phase 7b1: report table pages ───────────────────────────────────

@@ -1,8 +1,10 @@
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { uploadCoverBlob } from "@/lib/utils/coverutils";
-import { convertStringToDay } from "@/lib/utils/dateutils";
+import { convertDateToDayString, convertStringToDay } from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,12 +28,14 @@ type BookEditorMode =
 export interface UseBookEditorReturn {
   bookData: BookType;
   setBookData: React.Dispatch<React.SetStateAction<BookType>>;
+  dirty: boolean;
   isSaving: boolean;
   antolinResults: AntolinResultType | null;
 
   handleSave: () => Promise<void>;
   handleDelete: () => Promise<void>;
   handleReturnBook: (userid: number) => Promise<void>;
+  handleAssignUser: (userid: number) => Promise<void>;
   handleCancel: () => void;
 
   // New-book-specific cover & autofill state
@@ -71,7 +75,7 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
   const isNew = mode.kind === "new";
   const bookId = mode.kind === "edit" ? mode.book.id : undefined;
 
-  const [bookData, setBookData] = useState<BookType>(() => {
+  const [bookData, setBookDataState] = useState<BookType>(() => {
     if (mode.kind === "edit") return mode.book;
     return {
       title: "",
@@ -79,6 +83,7 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       author: "",
       renewalCount: 0,
       rentalStatus: "available",
+      mediaType: "book",
       topics: "",
       rentedDate: new Date().toISOString(),
       dueDate: new Date().toISOString(),
@@ -86,10 +91,29 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
     };
   });
 
+  // --- Dirty tracking / unsaved-changes warning ---------------------------
+
+  const [dirty, setDirty] = useState(false);
+
+  // Every edit made through this setter (exposed to BookEditForm and used
+  // for autofill) counts as an unsaved change. Places that sync already-
+  // persisted data (SSR prop sync, handleAssignUser) use setBookDataState
+  // directly and manage `dirty` themselves instead.
+  const setBookData = useCallback<React.Dispatch<React.SetStateAction<BookType>>>(
+    (value) => {
+      setBookDataState(value);
+      setDirty(true);
+    },
+    [],
+  );
+
+  const { allowNextNavigation } = useUnsavedChangesWarning(dirty);
+
   // Keep local state in sync when the SSR prop changes (edit mode only)
   useEffect(() => {
     if (mode.kind === "edit") {
-      setBookData(mode.book);
+      setBookDataState(mode.book);
+      setDirty(false);
     }
   }, [mode.kind === "edit" ? mode.book : null]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -103,7 +127,7 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
     useState<AntolinResultType | null>(null);
 
   useEffect(() => {
-    if (mode.kind !== "edit" || !mode.book.id) return;
+    if (mode.kind !== "edit" || !mode.book.id || !showsSchoolFields()) return;
 
     const controller = new AbortController();
 
@@ -280,6 +304,8 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       toast.success(
         `Buch "${bookData.title}" erfolgreich erstellt${coverInfo}!`,
       );
+      setDirty(false);
+      allowNextNavigation();
       router.push("/book");
     }
 
@@ -303,9 +329,11 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
 
       await res.json();
       toast.success(`Buch "${bookData.title}" gespeichert, gut gemacht!`);
+      setDirty(false);
+      allowNextNavigation();
       router.push("/book");
     }
-  }, [bookData, bookId, isNew, coverData, router]);
+  }, [bookData, bookId, isNew, coverData, router, allowNextNavigation]);
 
   // --- Delete ------------------------------------------------------------
 
@@ -319,12 +347,13 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       });
       await res.json();
       toast.success("Buch gelöscht");
+      allowNextNavigation();
       router.push("/book");
     } catch (error) {
       console.error("Failed to delete book:", error);
       toast.error("Fehler beim Löschen des Buches");
     }
-  }, [bookId, router]);
+  }, [bookId, router, allowNextNavigation]);
 
   // --- Return book -------------------------------------------------------
 
@@ -347,26 +376,68 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
     [bookId],
   );
 
+  // --- Assign user ---------------------------------------------------------
+
+  const handleAssignUser = useCallback(
+    async (userid: number) => {
+      if (!bookId) return;
+
+      try {
+        const res = await fetch(`/api/book/${bookId}/user/${userid}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          console.error("Failed to assign user:", data.result);
+          toast.error(t("bookUserAssign.toastAssignFailed"));
+          return;
+        }
+
+        // Merge just the fields rentBook() changed instead of reloading the
+        // page - a full reload would wipe any other unsaved edit the user
+        // made in this same form (title, author, ...) before assigning.
+        const [, updatedBook] = JSON.parse(data.result);
+        setBookDataState((prev) => ({
+          ...prev,
+          rentalStatus: updatedBook.rentalStatus,
+          userId: updatedBook.userId,
+          renewalCount: updatedBook.renewalCount,
+          rentedDate: convertDateToDayString(updatedBook.rentedDate),
+          dueDate: convertDateToDayString(updatedBook.dueDate),
+        }));
+        toast.success(t("bookUserAssign.toastAssigned"));
+      } catch (error) {
+        console.error("Failed to assign user:", error);
+        toast.error(t("bookUserAssign.toastAssignFailed"));
+      }
+    },
+    [bookId],
+  );
+
   // --- Cancel (new-book mode) --------------------------------------------
 
   const handleCancel = useCallback(() => {
     if (coverPreviewUrlRef.current) {
       URL.revokeObjectURL(coverPreviewUrlRef.current);
     }
+    allowNextNavigation();
     router.push("/book");
-  }, [router]);
+  }, [router, allowNextNavigation]);
 
   // --- Return value -------------------------------------------------------
 
   return {
     bookData,
     setBookData,
+    dirty,
     isSaving,
     antolinResults,
 
     handleSave,
     handleDelete,
     handleReturnBook,
+    handleAssignUser,
     handleCancel,
 
     coverPreviewUrl: coverData?.previewUrl,

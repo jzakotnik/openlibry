@@ -1,3 +1,4 @@
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
@@ -173,73 +174,75 @@ export default function UserLabelsCard({
         </div>
 
         {/* School grade combobox */}
-        <div className="space-y-1.5">
-          <Label>{t("userLabelsCard.classFilterLabel")}</Label>
-          <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={comboboxOpen}
-                className="w-full justify-between font-normal"
-                data-cy="user-labels-schoolgrade-filter"
-              >
-                {topicsFilter
-                  ? `${topicsFilter.topic} (${topicsFilter.count})`
-                  : t("userLabelsCard.classSelectPlaceholder")}
-                <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command>
-                <CommandInput
-                  placeholder={t("userLabelsCard.classSearchPlaceholder")}
-                />
-                <CommandList>
-                  <CommandEmpty>
-                    {t("userLabelsCard.classNotFound")}
-                  </CommandEmpty>
-                  <CommandGroup>
-                    {topicsFilter && (
-                      <CommandItem
-                        value="__clear__"
-                        onSelect={() => {
-                          setTopicsFilter(null);
-                          setComboboxOpen(false);
-                        }}
-                        className="text-muted-foreground italic"
-                      >
-                        {t("userLabelsCard.filterClear")}
-                      </CommandItem>
-                    )}
-                    {allTopics.map((option) => (
-                      <CommandItem
-                        key={option.topic}
-                        value={option.topic}
-                        onSelect={() => {
-                          setTopicsFilter(option);
-                          setComboboxOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={`mr-2 size-4 ${
-                            topicsFilter?.topic === option.topic
-                              ? "opacity-100"
-                              : "opacity-0"
-                          }`}
-                        />
-                        {option.topic}
-                        <span className="ml-auto text-muted-foreground">
-                          {option.count}
-                        </span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
+        {showsSchoolFields() && (
+          <div className="space-y-1.5">
+            <Label>{t("userLabelsCard.classFilterLabel")}</Label>
+            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={comboboxOpen}
+                  className="w-full justify-between font-normal"
+                  data-cy="user-labels-schoolgrade-filter"
+                >
+                  {topicsFilter
+                    ? `${topicsFilter.topic} (${topicsFilter.count})`
+                    : t("userLabelsCard.classSelectPlaceholder")}
+                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput
+                    placeholder={t("userLabelsCard.classSearchPlaceholder")}
+                  />
+                  <CommandList>
+                    <CommandEmpty>
+                      {t("userLabelsCard.classNotFound")}
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {topicsFilter && (
+                        <CommandItem
+                          value="__clear__"
+                          onSelect={() => {
+                            setTopicsFilter(null);
+                            setComboboxOpen(false);
+                          }}
+                          className="text-muted-foreground italic"
+                        >
+                          {t("userLabelsCard.filterClear")}
+                        </CommandItem>
+                      )}
+                      {allTopics.map((option) => (
+                        <CommandItem
+                          key={option.topic}
+                          value={option.topic}
+                          onSelect={() => {
+                            setTopicsFilter(option);
+                            setComboboxOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={`mr-2 size-4 ${
+                              topicsFilter?.topic === option.topic
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          {option.topic}
+                          <span className="ml-auto text-muted-foreground">
+                            {option.count}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </CardContent>
 
       <CardFooter>

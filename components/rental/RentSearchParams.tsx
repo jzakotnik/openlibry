@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 
 interface RentSearchParamsType {
@@ -14,12 +15,14 @@ export default function RentSearchParams({
   setUserSearchInput,
 }: RentSearchParamsType) {
   const [isOverdue, setIsOverdue] = React.useState(overdue);
-  const [selectedGrade, setSelectedGrade] = React.useState<string>(grade[0]);
+  const [selectedGrade, setSelectedGrade] = React.useState<string>(
+    grade[0] ?? "",
+  );
 
   useEffect(() => {
     setUserSearchInput(
       (isOverdue ? "fällig? " : " ") +
-        (selectedGrade !== "" ? "klasse?" + selectedGrade : " "),
+        (selectedGrade ? "klasse?" + selectedGrade : " "),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setState is stable
   }, [isOverdue, selectedGrade]);
@@ -40,28 +43,30 @@ export default function RentSearchParams({
         </label>
 
         {/* Grade select */}
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor="grade-select"
-            className="text-xs font-medium text-muted-foreground"
-          >
-            {t("rentSearchParams.grade")}
-          </label>
-          <select
-            id="grade-select"
-            value={selectedGrade}
-            onChange={(e) => setSelectedGrade(e.target.value)}
-            className="h-9 rounded-md border border-border bg-card px-3 text-sm
+        {showsSchoolFields() && (
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="grade-select"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              {t("rentSearchParams.grade")}
+            </label>
+            <select
+              id="grade-select"
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value)}
+              className="h-9 rounded-md border border-border bg-card px-3 text-sm
                        text-foreground
                        focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {grade.map((g, index) => (
-              <option key={index} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-        </div>
+            >
+              {grade.map((g, index) => (
+                <option key={index} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );

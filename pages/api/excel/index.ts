@@ -3,6 +3,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import {
   convertDateToDayString,
@@ -56,7 +57,11 @@ export default async function handle(
           booksheet.addRow(b);
         });
 
-        usersheet.columns = xlsusercolumns;
+        usersheet.columns = showsSchoolFields()
+          ? xlsusercolumns
+          : xlsusercolumns.filter(
+              (c) => c.key !== "schoolGrade" && c.key !== "schoolTeacherName",
+            );
         users.forEach((u: UserType) => {
           usersheet.addRow(u);
         });
@@ -193,6 +198,25 @@ export default async function handle(
             importLog.push(t("excelApi.logDropAllBooks"));
           }
           if (importUsers) {
+            // Book.user is onDelete: SetNull, so dropping all users would
+            // otherwise silently strip the borrower off every rented book
+            // with no trace. Mark those "lost" first - unless the books are
+            // being dropped too (importBooks above), in which case this
+            // would be immediately overwritten and is skipped.
+            if (!importBooks) {
+              const rentedBooks = await prisma.book.findMany({
+                where: { rentalStatus: { contains: "rented" } },
+                select: { id: true },
+              });
+              if (rentedBooks.length > 0) {
+                transaction.push(
+                  prisma.book.updateMany({
+                    where: { id: { in: rentedBooks.map((b) => b.id) } },
+                    data: { rentalStatus: "lost" },
+                  })
+                );
+              }
+            }
             transaction.push(prisma.user.deleteMany({}));
             importLog.push(t("excelApi.logDropAllUsers"));
           }
@@ -216,8 +240,10 @@ export default async function handle(
                   id: u["Nummer"],
                   lastName: u["Nachname"],
                   firstName: u["Vorname"],
-                  schoolGrade: u["Klasse"],
-                  schoolTeacherName: u["Lehrkraft"],
+                  ...(showsSchoolFields() && {
+                    schoolGrade: u["Klasse"],
+                    schoolTeacherName: u["Lehrkraft"],
+                  }),
                   active: u["Freigeschaltet"],
                 },
               })
@@ -263,6 +289,8 @@ export default async function handle(
                   additionalMaterial: b["Material"],
                   price: b["Preis"],
                   externalLinks: b["Links"],
+                  mediaType: b["Medienart"] || "book",
+                  systematics: b["Systematik"],
                   userId: b["Ausgeliehen von"],
                 },
               })

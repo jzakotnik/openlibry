@@ -9,3 +9,6 @@ export interface UserType {
   active: boolean;
   eMail?: string | null;
 }
+
+/** Minimal shape needed by user-picker UIs (e.g. BookUserAssign). */
+export type UserPickerOption = Pick<UserType, "id" | "firstName" | "lastName">;

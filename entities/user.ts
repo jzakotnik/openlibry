@@ -1,4 +1,5 @@
 import { UserType } from "@/entities/UserType";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
@@ -30,14 +31,9 @@ export async function getUser(client: PrismaClient, id: number) {
 export async function getAllUsers(client: PrismaClient) {
   try {
     return await client.user.findMany({
-      orderBy: [
-        {
-          schoolGrade: "asc",
-        },
-        {
-          lastName: "asc",
-        },
-      ],
+      orderBy: showsSchoolFields()
+        ? [{ schoolGrade: "asc" }, { lastName: "asc" }]
+        : [{ lastName: "asc" }, { firstName: "asc" }],
     });
   } catch (e) {
     if (
@@ -234,6 +230,17 @@ export async function countUser(client: PrismaClient) {
 }
 
 export async function addUser(client: PrismaClient, user: UserType) {
+  if (user.id !== undefined && user.id < 1) {
+    errorLogger.warn(
+      {
+        event: LogEvents.USER_CREATE_FAILED,
+        userId: user.id,
+        reason: "Invalid user ID (must be >= 1)",
+      },
+      "Failed to create user - invalid ID"
+    );
+    throw new Error("INVALID_USER_ID");
+  }
   try {
     await addAudit(
       client,
@@ -248,6 +255,20 @@ export async function addUser(client: PrismaClient, user: UserType) {
       data: { ...user },
     });
   } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      // Expected user-input error (ID already taken), not a server bug -
+      // log a short warning instead of dumping the full Prisma invocation
+      // trace at error level.
+      errorLogger.warn(
+        {
+          event: LogEvents.USER_CREATE_FAILED,
+          userId: user.id,
+          reason: "Duplicate user ID",
+        },
+        "Failed to create user - ID already exists"
+      );
+      throw e;
+    }
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
       e instanceof Prisma.PrismaClientValidationError
@@ -383,30 +404,84 @@ export async function isActive(client: PrismaClient, id: number) {
 }
 
 export async function deleteUser(client: PrismaClient, id: number) {
-  await addAudit(client, "Delete user", id.toString(), 0, id);
-  return await client.user.delete({
-    where: {
-      id,
-    },
+  // A book still on loan to this user must not be deleted along with them
+  // (the Book.user relation is now onDelete: SetNull, not Cascade) - instead
+  // it's flagged "lost" so the catalog entry survives.
+  const rentedBooks = await client.book.findMany({
+    where: { userId: id, rentalStatus: { contains: "rented" } },
+    select: { id: true, title: true },
   });
+
+  // updateMany with the same where-clause re-checked at transaction time,
+  // not a plain update-by-id - if the book was concurrently returned or
+  // re-rented to someone else between the findMany above and now, it no
+  // longer matches and this becomes a no-op instead of clobbering that
+  // change.
+  const transaction: Array<any> = rentedBooks.map((b) =>
+    client.book.updateMany({
+      where: { id: b.id, userId: id, rentalStatus: { contains: "rented" } },
+      data: { rentalStatus: "lost" },
+    })
+  );
+  transaction.push(client.user.delete({ where: { id } }));
+
+  const result = await client.$transaction(transaction);
+
+  // Audited after the transaction commits, so the log can't claim a change
+  // that was actually rolled back.
+  await Promise.all(
+    rentedBooks.map((b) =>
+      addAudit(
+        client,
+        "Delete user - book marked lost",
+        `book id ${b.id}, ${b.title}, borrower user ${id} deleted`,
+        b.id,
+        id
+      )
+    )
+  );
+  await addAudit(client, "Delete user", id.toString(), 0, id);
+  // The user delete is always the last operation pushed onto the
+  // transaction, so it's the last result - keep returning the deleted
+  // user record itself, matching this function's contract before the
+  // book-updates were folded into the same transaction.
+  return result[result.length - 1];
 }
 
 export async function deleteManyUsers(
   client: PrismaClient,
   ids: Array<number>
 ) {
-  const transaction = [] as Array<any>;
-  ids.map((i: number) => {
-    transaction.push(
-      client.user.delete({
-        where: {
-          id: i,
-        },
-      })
-    );
+  const rentedBooks = await client.book.findMany({
+    where: { userId: { in: ids }, rentalStatus: { contains: "rented" } },
+    select: { id: true, title: true, userId: true },
   });
 
+  const transaction: Array<any> = rentedBooks.map((b) =>
+    client.book.updateMany({
+      where: {
+        id: b.id,
+        userId: b.userId ?? undefined,
+        rentalStatus: { contains: "rented" },
+      },
+      data: { rentalStatus: "lost" },
+    })
+  );
+  ids.forEach((i) => transaction.push(client.user.delete({ where: { id: i } })));
+
   const result = await client.$transaction(transaction);
+
+  await Promise.all(
+    rentedBooks.map((b) =>
+      addAudit(
+        client,
+        "Delete user - book marked lost",
+        `book id ${b.id}, ${b.title}, borrower user ${b.userId} deleted`,
+        b.id,
+        b.userId ?? undefined
+      )
+    )
+  );
   businessLogger.info(
     {
       event: LogEvents.USER_BATCH_DELETE,
@@ -415,5 +490,9 @@ export async function deleteManyUsers(
     },
     "Batch delete user database operation succeeded"
   );
-  return result;
+  // The user deletes are always the last `ids.length` operations pushed
+  // onto the transaction (after any book updates) - keep returning just
+  // the deleted user records, matching this function's contract before
+  // the book updates were folded into the same transaction.
+  return result.slice(result.length - ids.length);
 }

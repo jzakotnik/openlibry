@@ -320,6 +320,25 @@ const CONFIG_SECTIONS: ConfigSection[] = [
     icon: BookOpen,
     fields: [
       {
+        key: "USAGE_CONTEXT",
+        label: tf("school", "USAGE_CONTEXT", "label"),
+        description: tf("school", "USAGE_CONTEXT", "description"),
+        hint: tf("school", "USAGE_CONTEXT", "hint"),
+        type: "select",
+        default: "school",
+        required: true,
+        options: [
+          {
+            value: "school",
+            label: t("admin.sections.school.fields.USAGE_CONTEXT.options.school"),
+          },
+          {
+            value: "club",
+            label: t("admin.sections.school.fields.USAGE_CONTEXT.options.club"),
+          },
+        ],
+      },
+      {
         key: "SCHOOL_NAME",
         label: tf("school", "SCHOOL_NAME", "label"),
         description: tf("school", "SCHOOL_NAME", "description"),

@@ -3,6 +3,7 @@ import { getRentEventsByUser } from "@/entities/audit";
 import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
@@ -108,10 +109,12 @@ const pdfStyles = StyleSheet.create({
     paddingHorizontal: 8,
     backgroundColor: "#ffffff",
   },
+  // colGrade's 10% is redistributed into colBooks in club mode (resolved
+  // once, same as USAGE_CONTEXT itself — no runtime switching).
   colGrade: { width: "10%" },
   colName: { width: "22%", paddingRight: 4 },
   colCount: { width: "8%", textAlign: "center" },
-  colBooks: { width: "60%" },
+  colBooks: showsSchoolFields() ? { width: "60%" } : { width: "70%" },
   headerText: { color: "#fff", fontWeight: "bold" },
   bookEntry: { marginBottom: 3, fontSize: 8 },
   dateLabel: { color: "#1976d2", fontWeight: "bold" },
@@ -162,9 +165,11 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
 
         {/* Table Header */}
         <View style={pdfStyles.tableHeader}>
-          <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
-            {t("pdfHistory.colKlasse")}
-          </Text>
+          {showsSchoolFields() && (
+            <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
+              {t("pdfHistory.colKlasse")}
+            </Text>
+          )}
           <Text style={[pdfStyles.colName, pdfStyles.headerText]}>
             {t("pdfHistory.colName")}
           </Text>
@@ -188,7 +193,9 @@ const HistoryPdfDocument = ({ data }: HistoryPdfProps) => {
 
             return (
               <View key={index} style={pdfStyles.tableRow}>
-                <Text style={pdfStyles.colGrade}>{row.schoolGrade}</Text>
+                {showsSchoolFields() && (
+                  <Text style={pdfStyles.colGrade}>{row.schoolGrade}</Text>
+                )}
                 <Text style={pdfStyles.colName}>
                   {`${row.lastName}, ${row.firstName}`}
                 </Text>
@@ -252,7 +259,9 @@ async function exportToExcel(data: HistoryRow[]): Promise<void> {
   const sheet = workbook.addWorksheet("Historie");
 
   sheet.columns = [
-    { header: "Klasse", key: "schoolGrade", width: 10 },
+    ...(showsSchoolFields()
+      ? [{ header: "Klasse", key: "schoolGrade", width: 10 }]
+      : []),
     { header: "Name", key: "fullName", width: 30 },
     { header: "Anzahl", key: "borrowCount", width: 10 },
     { header: "Bücher", key: "books", width: 70 },
@@ -364,9 +373,11 @@ function MobileHistoryCard({
         className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xs font-medium bg-blue-100 text-blue-700 rounded px-1.5 py-0.5 shrink-0">
-            {row.schoolGrade}
-          </span>
+          {showsSchoolFields() && (
+            <span className="text-xs font-medium bg-blue-100 text-blue-700 rounded px-1.5 py-0.5 shrink-0">
+              {row.schoolGrade}
+            </span>
+          )}
           <span className="font-medium text-gray-800 truncate">
             {row.lastName}, {row.firstName}
           </span>
@@ -457,32 +468,38 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
 
   const columns = useMemo<ColumnDef<HistoryRow>[]>(
     () => [
-      {
-        accessorKey: "schoolGrade",
-        size: COLUMN_WIDTHS.schoolGrade,
-        header: ({ column }) => (
-          <div className="flex flex-col gap-1.5 py-1">
-            <span className={headerClass}>
-              {t("reportHistoryPage.colKlasse")}
-            </span>
-            <select
-              value={(column.getFilterValue() as string) ?? ""}
-              onChange={(e) =>
-                column.setFilterValue(e.target.value || undefined)
-              }
-              data-cy="history-grade-filter"
-              className="font-normal text-xs border border-gray-300 rounded px-1 py-1 bg-white outline-none focus:ring-1 focus:ring-primary text-black w-20"
-            >
-              <option value="">{t("reportHistoryPage.filterAllGrades")}</option>
-              {allGrades.map((grade) => (
-                <option key={grade} value={grade}>
-                  {grade}
-                </option>
-              ))}
-            </select>
-          </div>
-        ),
-      },
+      ...(showsSchoolFields()
+        ? [
+            {
+              accessorKey: "schoolGrade",
+              size: COLUMN_WIDTHS.schoolGrade,
+              header: ({ column }) => (
+                <div className="flex flex-col gap-1.5 py-1">
+                  <span className={headerClass}>
+                    {t("reportHistoryPage.colKlasse")}
+                  </span>
+                  <select
+                    value={(column.getFilterValue() as string) ?? ""}
+                    onChange={(e) =>
+                      column.setFilterValue(e.target.value || undefined)
+                    }
+                    data-cy="history-grade-filter"
+                    className="font-normal text-xs border border-gray-300 rounded px-1 py-1 bg-white outline-none focus:ring-1 focus:ring-primary text-black w-20"
+                  >
+                    <option value="">
+                      {t("reportHistoryPage.filterAllGrades")}
+                    </option>
+                    {allGrades.map((grade) => (
+                      <option key={grade} value={grade}>
+                        {grade}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ),
+            } satisfies ColumnDef<HistoryRow>,
+          ]
+        : []),
       {
         id: "fullName",
         accessorFn: (row) => `${row.lastName}, ${row.firstName}`,
@@ -754,35 +771,39 @@ export default function UserHistory({ history, error }: HistoryPropsType) {
                   className="w-full text-sm border border-gray-200 rounded-lg pl-8 pr-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
-              <select
-                value={
-                  (table
-                    .getColumn("schoolGrade")
-                    ?.getFilterValue() as string) ?? ""
-                }
-                onChange={(e) =>
-                  table
-                    .getColumn("schoolGrade")
-                    ?.setFilterValue(e.target.value || undefined)
-                }
-                data-cy="history-mobile-grade-filter"
-                className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">
-                  {t("reportHistoryPage.mobileGradeAll")}
-                </option>
-                {allGrades.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
+              {showsSchoolFields() && (
+                <select
+                  value={
+                    (table
+                      .getColumn("schoolGrade")
+                      ?.getFilterValue() as string) ?? ""
+                  }
+                  onChange={(e) =>
+                    table
+                      .getColumn("schoolGrade")
+                      ?.setFilterValue(e.target.value || undefined)
+                  }
+                  data-cy="history-mobile-grade-filter"
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">
+                    {t("reportHistoryPage.mobileGradeAll")}
                   </option>
-                ))}
-              </select>
+                  {allGrades.map((grade) => (
+                    <option key={grade} value={grade}>
+                      {grade}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Desktop table — hidden on small screens */}
             <div className="hidden md:block overflow-x-auto bg-white rounded-lg border border-gray-200">
               <table
-                className="w-full text-sm border-collapse table-fixed min-w-[855px]"
+                className={`w-full text-sm border-collapse table-fixed ${
+                  showsSchoolFields() ? "min-w-[855px]" : "min-w-[755px]"
+                }`}
                 data-cy="history-table"
               >
                 <thead>

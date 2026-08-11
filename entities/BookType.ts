@@ -28,5 +28,7 @@ export interface BookType {
   additionalMaterial?: string;
   price?: string;
   externalLinks?: string;
+  mediaType: string;
+  systematics?: string;
   userId?: number;
 }

@@ -12,4 +12,5 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=file:/app/database/dev.db
       - NEXTAUTH_SECRET=${AUTH_SECRET:-changeme}
+      - USAGE_CONTEXT=${USAGE_CONTEXT:-school}
     restart: unless-stopped

@@ -13,6 +13,10 @@ export const de = {
   app: {
     title: "OpenLibry Bibliothek",
   },
+  common: {
+    unsavedChangesWarning:
+      "Es gibt ungespeicherte Änderungen. Seite trotzdem verlassen?",
+  },
   topbar: {
     brand: "OpenLibry",
     tagline: "Bibliotheksverwaltung",
@@ -93,8 +97,10 @@ export const de = {
     statusOrdered: "Bestellt",
     statusLost: "Verloren",
     statusRemote: "Andere Bibliothek",
+    statusUnassigned: "Noch niemandem zugeordnet",
     statusUnknown: "Unbekannter Status ({status})",
     statusBadgeAria: "Status: {status}",
+    statusBadgeEditHint: "{status} — klicken, um das Buch zu bearbeiten",
   },
   rentSearchParams: {
     overdue: "Überfällig",
@@ -170,6 +176,7 @@ export const de = {
     autoIdLabel: "Automatische ID",
     autoIdHint: "Nächste verfügbare Nummer wird automatisch vergeben",
     userIdLabel: "Nutzer-ID",
+    idInvalidHint: "Die Nutzer-ID muss mindestens 1 sein.",
     cancel: "Abbrechen",
     create: "Erstellen",
   },
@@ -201,6 +208,12 @@ export const de = {
     save: "Speichern",
     print: "Drucken",
     delete: "Löschen",
+    deleteWarningTitle:
+      "Achtung: Ausgeliehene Bücher werden als „Verloren“ markiert",
+    deleteWarningBodyOne:
+      "Dieser Nutzer hat aktuell 1 ausgeliehenes Buch. Beim Löschen wird es automatisch auf den Status „Verloren“ gesetzt, um Datenverlust zu vermeiden.",
+    deleteWarningBodyMany:
+      "Dieser Nutzer hat aktuell {count} ausgeliehene Bücher. Beim Löschen werden sie automatisch auf den Status „Verloren“ gesetzt, um Datenverlust zu vermeiden.",
   },
   bookEditForm: {
     save: "Speichern",
@@ -252,6 +265,15 @@ export const de = {
     toastCoverNotFound: "Cover konnte nicht gefunden werden.",
     toastCoverLoadError: "Fehler beim Laden des Covers.",
   },
+  bookUserAssign: {
+    label: "Ausgeliehen an",
+    currentlyWith: "Aktuell ausgeliehen an {name}",
+    searchPlaceholder: "Nutzer suchen...",
+    notFound: "Kein Nutzer gefunden.",
+    placeholder: "Nutzer auswählen...",
+    toastAssigned: "Buch zugeordnet, super!",
+    toastAssignFailed: "Fehler beim Zuordnen des Nutzers",
+  },
   bookSelect: {
     renewalNone: "Nicht verlängert",
     renewalCountFormat: "{n}x verlängert",
@@ -259,8 +281,11 @@ export const de = {
   userPage: {
     toastUserCreateFailed:
       "Neuer User konnte nicht erzeugt werden. Ist die Nutzer ID schon vorhanden?",
+    toastUserIdExists:
+      "Diese Nutzer-ID ist bereits vergeben. Bitte wähle eine andere ID.",
+    toastUserIdInvalid: "Die Nutzer-ID muss mindestens 1 sein.",
     toastGradeIncreased: "Klassenstufe für Schüler erhöht",
-    toastUsersDeleted: "Schüler erfolgreich gelöscht",
+    toastUsersDeleted: "Nutzer erfolgreich gelöscht",
   },
   userDetailPage: {
     idNotFound: "ID nicht gefunden",
@@ -522,6 +547,16 @@ export const de = {
         title: "Schulkonfiguration",
         description: "Name, Logo, Ausleihfristen und Etiketten",
         fields: {
+          USAGE_CONTEXT: {
+            label: "Nutzungskontext",
+            description:
+              "Bestimmt, ob die Oberfläche für eine Schule (mit Klasse/Lehrkraft) oder einen Verein/eine Organisation (ohne diese Felder) ausgelegt ist.",
+            hint: "Änderung erfordert einen Neustart der Anwendung.",
+            options: {
+              school: "Schule",
+              club: "Verein / Organisation",
+            },
+          },
           SCHOOL_NAME: {
             label: "Schulname",
             description:
@@ -723,6 +758,11 @@ export const de = {
     description:
       "Felder zuordnen, Schriftgrößen anpassen, Buchrücken-Breite einstellen. Vorschau direkt im Browser.",
     button: "Vorlage bearbeiten",
+  },
+  fieldAssigner: {
+    contentOptions: {
+      school: "Schulname",
+    },
   },
 
   // ─── Phase 7b1: report table pages ───────────────────────────────────

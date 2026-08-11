@@ -308,6 +308,7 @@ export default function BatchScan() {
           author: entry.bookData.author || "",
           renewalCount: 0,
           rentalStatus: "available",
+          mediaType: "book",
           topics: entry.bookData.topics || ";",
           rentedDate: currentTime(),
           dueDate: currentTime(),

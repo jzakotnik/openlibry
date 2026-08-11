@@ -1,5 +1,6 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import dayjs from "dayjs";
 
@@ -300,9 +301,15 @@ export default function UserEditForm({
                   {user.firstName} {user.lastName}
                 </h2>
                 <p className="text-sm text-white/60">
-                  {t("userEditForm.metaPrefix")} {user.id} ·{" "}
-                  {t("userEditForm.gradePrefix")} {user.schoolGrade}
-                  {user.schoolTeacherName && ` · ${user.schoolTeacherName}`}
+                  {t("userEditForm.metaPrefix")} {user.id}
+                  {showsSchoolFields() && (
+                    <>
+                      {" "}
+                      · {t("userEditForm.gradePrefix")} {user.schoolGrade}
+                      {user.schoolTeacherName &&
+                        ` · ${user.schoolTeacherName}`}
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -353,23 +360,29 @@ export default function UserEditForm({
               tabIndex={2}
               onChange={(v) => setUserData({ ...user, lastName: v })}
             />
-            <FormField
-              id="schoolGrade"
-              label={t("userEditForm.fieldGrade")}
-              value={user.schoolGrade ?? ""}
-              disabled={!editable}
-              required
-              tabIndex={3}
-              onChange={(v) => setUserData({ ...user, schoolGrade: v })}
-            />
-            <FormField
-              id="schoolTeacherName"
-              label={t("userEditForm.fieldTeacher")}
-              value={user.schoolTeacherName ?? ""}
-              disabled={!editable}
-              tabIndex={4}
-              onChange={(v) => setUserData({ ...user, schoolTeacherName: v })}
-            />
+            {showsSchoolFields() && (
+              <>
+                <FormField
+                  id="schoolGrade"
+                  label={t("userEditForm.fieldGrade")}
+                  value={user.schoolGrade ?? ""}
+                  disabled={!editable}
+                  required
+                  tabIndex={3}
+                  onChange={(v) => setUserData({ ...user, schoolGrade: v })}
+                />
+                <FormField
+                  id="schoolTeacherName"
+                  label={t("userEditForm.fieldTeacher")}
+                  value={user.schoolTeacherName ?? ""}
+                  disabled={!editable}
+                  tabIndex={4}
+                  onChange={(v) =>
+                    setUserData({ ...user, schoolTeacherName: v })
+                  }
+                />
+              </>
+            )}
             <FormField
               id="createdAt"
               label={t("userEditForm.fieldCreatedAt")}
@@ -466,6 +479,24 @@ export default function UserEditForm({
         {/*  Action bar                                    */}
         {/* ═══════════════════════════════════════════════ */}
         <div className="px-6 pb-6 pt-5">
+          {editable && books.length > 0 && (
+            <div className="mb-4 rounded-xl border border-warning/30 bg-warning/5 p-4 flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">
+                  {t("userEditForm.deleteWarningTitle")}
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {books.length === 1
+                    ? t("userEditForm.deleteWarningBodyOne")
+                    : t("userEditForm.deleteWarningBodyMany", {
+                        count: books.length,
+                      })}
+                </p>
+              </div>
+            </div>
+          )}
+
           <Separator className="mb-5" />
 
           <div className="flex flex-wrap items-center gap-2">

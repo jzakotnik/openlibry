@@ -90,6 +90,16 @@ export const rentalStatusOptions: SelectOption[] = [
   label: (translations as any)["rentalStatus"][s],
 }));
 
+export const mediaTypeOptions: SelectOption[] = [
+  "book",
+  "magazine",
+  "cd_dvd",
+  "boardgame",
+].map((s) => ({
+  value: s,
+  label: (translations as any)["mediaType"][s],
+}));
+
 export const renewalCountOptions: SelectOption[] = [
   { value: 0, label: t("bookSelect.renewalNone") },
   { value: 1, label: t("bookSelect.renewalCountFormat", { n: 1 }) },

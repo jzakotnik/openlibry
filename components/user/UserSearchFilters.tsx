@@ -15,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
@@ -123,50 +124,54 @@ export default function UserSearchFilters({
           </div>
 
           {/* Grade Dropdown */}
-          <div className="flex-1">
-            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t("userSearchFilters.grade")}
-            </Label>
-            <Select
-              value={selectedGrade || "__all__"}
-              onValueChange={(v) => setSelectedGrade(v === "__all__" ? "" : v)}
-            >
-              <SelectTrigger
-                className={cn(
-                  "rounded-lg",
-                  selectedGrade
-                    ? "border-primary bg-primary/5"
-                    : "border-primary/20",
-                )}
+          {showsSchoolFields() && (
+            <div className="flex-1">
+              <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                {t("userSearchFilters.grade")}
+              </Label>
+              <Select
+                value={selectedGrade || "__all__"}
+                onValueChange={(v) =>
+                  setSelectedGrade(v === "__all__" ? "" : v)
+                }
               >
-                <div className="flex items-center gap-2">
-                  <GraduationCap
-                    size={16}
-                    className={
-                      selectedGrade
-                        ? "text-primary"
-                        : "text-muted-foreground/50"
-                    }
-                  />
-                  <SelectValue
-                    placeholder={t("userSearchFilters.allGrades")}
-                  />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">
-                  <span className="text-muted-foreground">
-                    {t("userSearchFilters.allGrades")}
-                  </span>
-                </SelectItem>
-                {sortedGrades.map((grade) => (
-                  <SelectItem key={grade} value={grade}>
-                    {t("userSearchFilters.gradeChipPrefix")} {grade}
+                <SelectTrigger
+                  className={cn(
+                    "rounded-lg",
+                    selectedGrade
+                      ? "border-primary bg-primary/5"
+                      : "border-primary/20",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <GraduationCap
+                      size={16}
+                      className={
+                        selectedGrade
+                          ? "text-primary"
+                          : "text-muted-foreground/50"
+                      }
+                    />
+                    <SelectValue
+                      placeholder={t("userSearchFilters.allGrades")}
+                    />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">
+                    <span className="text-muted-foreground">
+                      {t("userSearchFilters.allGrades")}
+                    </span>
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                  {sortedGrades.map((grade) => (
+                    <SelectItem key={grade} value={grade}>
+                      {t("userSearchFilters.gradeChipPrefix")} {grade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Active Filters Summary */}
@@ -187,7 +192,9 @@ export default function UserSearchFilters({
                 </button>
               </Badge>
             )}
-            {selectedGrade && selectedGrade !== "__all__" && (
+            {showsSchoolFields() &&
+              selectedGrade &&
+              selectedGrade !== "__all__" && (
               <Badge
                 variant="secondary"
                 className="gap-1 bg-primary/10 pr-1 text-primary"

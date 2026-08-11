@@ -83,6 +83,7 @@ Mehr Details: [Mahnschreiben konfigurieren](reminders.md)
 
 | Variable               | Beschreibung                                                    | Standard    |
 | ---------------------- | --------------------------------------------------------------- | ----------- |
+| `USAGE_CONTEXT` | Nutzungskontext: `school` (Klasse/Lehrkraft sichtbar) oder `club` (ausgeblendet, generische Begriffe) | `school` |
 | `OPENLIBRY_LOCALE`, `NEXT_PUBLIC_OPENLIBRY_LOCALE`     | Sprache der Applikation                                         | `de`      |
 | `PORT`                 | Server-Port                                                     | `3000`      |
 | `MAX_MIGRATION_SIZE`   | Max. Import-Größe (MB)                                          | `250`       |

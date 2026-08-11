@@ -230,6 +230,9 @@ function getFieldText(
     case "school":
       text = process.env.SCHOOL_NAME || "";
       break;
+    case "systematics":
+      text = book.systematics || "";
+      break;
     case "topics": {
       if (!book.topics) {
         text = "";

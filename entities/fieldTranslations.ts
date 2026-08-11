@@ -65,6 +65,8 @@ const fieldTranslationsDe = {
     additionalMaterial: "Material",
     price: "Preis",
     externalLinks: "Externe Links",
+    mediaType: "Medienart",
+    systematics: "Systematik",
   },
   rentals: {
     id: "id",
@@ -92,6 +94,12 @@ const fieldTranslationsDe = {
     ordered: "Bestellt",
     lost: "Verloren",
     remote: "Andere Bibliothek",
+  },
+  mediaType: {
+    book: "Buch",
+    magazine: "Zeitschrift",
+    cd_dvd: "CD/DVD",
+    boardgame: "Brettspiel",
   },
 };
 
@@ -144,6 +152,8 @@ const fieldTranslationsEn: typeof fieldTranslationsDe = {
     additionalMaterial: "Accompanying material",
     price: "Price",
     externalLinks: "External links",
+    mediaType: "Media type",
+    systematics: "Classification",
   },
   rentals: {
     id: "id",
@@ -171,6 +181,12 @@ const fieldTranslationsEn: typeof fieldTranslationsDe = {
     ordered: "Ordered",
     lost: "Lost",
     remote: "Other library",
+  },
+  mediaType: {
+    book: "Book",
+    magazine: "Magazine",
+    cd_dvd: "CD/DVD",
+    boardgame: "Board game",
   },
 };
 

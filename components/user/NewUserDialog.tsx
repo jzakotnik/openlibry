@@ -36,6 +36,7 @@ export default function NewUserDialog({
   }, [maxUserID]);
 
   const displayId = idAuto ? maxUserID : idValue;
+  const idInvalid = !idAuto && idValue < 1;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -138,19 +139,25 @@ export default function NewUserDialog({
               <Input
                 id="user-id-input"
                 type="number"
+                min={1}
                 disabled={idAuto}
                 value={idValue}
                 onChange={(e) => {
-                  setIdValue(
-                    parseInt(e.target.value) ? parseInt(e.target.value) : 0,
-                  );
+                  const parsed = parseInt(e.target.value);
+                  setIdValue(Number.isNaN(parsed) ? 0 : parsed);
                 }}
                 className={cn(
                   "pl-9 tabular-nums",
                   !idAuto && "border-primary/60",
+                  idInvalid && "border-destructive",
                 )}
               />
             </div>
+            {idInvalid && (
+              <p className="text-xs text-destructive">
+                {t("newUserDialog.idInvalidHint")}
+              </p>
+            )}
           </div>
         </div>
 
@@ -167,6 +174,7 @@ export default function NewUserDialog({
           </Button>
           <Button
             onClick={() => onCreate(idValue, idAuto)}
+            disabled={idInvalid}
             className="gap-2 rounded-lg px-5 text-sm font-semibold shadow-sm"
           >
             <UserPlus size={16} />
