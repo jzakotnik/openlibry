@@ -207,7 +207,12 @@ export default function UserSearchBar({
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem
-                    onClick={onDeleteUsers}
+                    onSelect={(e) => {
+                      if (!confirmDelete) {
+                        e.preventDefault(); // stay open so the user can actually see "Wirklich löschen"
+                      }
+                      onDeleteUsers();
+                    }}
                     className={cn(
                       "gap-3",
                       confirmDelete
