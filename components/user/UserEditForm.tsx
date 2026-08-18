@@ -371,6 +371,15 @@ export default function UserEditForm({
               onChange={(v) => setUserData({ ...user, schoolTeacherName: v })}
             />
             <FormField
+              id="eMail"
+              label={t("userEditForm.fieldEmail")}
+              value={user.eMail ?? ""}
+              disabled={!editable}
+              tabIndex={5}
+              onChange={(v) => setUserData({ ...user, eMail: v })}
+            />
+            <div className="col-span-2 hidden sm:block" aria-hidden="true"></div>
+            <FormField
               id="createdAt"
               label={t("userEditForm.fieldCreatedAt")}
               value={t("userEditForm.createdAtValue", {
@@ -397,7 +406,7 @@ export default function UserEditForm({
               user.active ? "border-primary" : "border-border",
               !editable && "pointer-events-none opacity-60",
             )}
-            tabIndex={5}
+            tabIndex={6}
           >
             <Checkbox
               id="user-active"
@@ -472,7 +481,7 @@ export default function UserEditForm({
             <Button
               variant={editable ? "outline" : "default"}
               size="sm"
-              tabIndex={6}
+              tabIndex={7}
               onClick={toggleEdit}
               className="gap-2 rounded-lg font-medium"
             >
@@ -484,7 +493,7 @@ export default function UserEditForm({
               <>
                 <Button
                   size="sm"
-                  tabIndex={7}
+                  tabIndex={8}
                   onClick={() => {
                     saveUser();
                     toggleEdit();
@@ -498,7 +507,7 @@ export default function UserEditForm({
                 <Button
                   variant="outline"
                   size="sm"
-                  tabIndex={8}
+                  tabIndex={9}
                   onClick={() =>
                     window.open(
                       `/api/report/userlabels?id=${user.id}`,

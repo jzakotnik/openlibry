@@ -178,6 +178,7 @@ export const en: Dictionary = {
     fieldLastName: "Last name",
     fieldGrade: "Grade",
     fieldTeacher: "Teacher",
+    fieldEmail: "Email address",
     fieldCreatedAt: "Created on",
     fieldLastUpdated: "Last update",
     createdAtValue: "User created on {date} with user ID {id}",
