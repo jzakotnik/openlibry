@@ -1,0 +1,9 @@
+# Alle Textdateien auf LF normalisieren (für Docker)
+* text=auto
+
+# Spezifische Dateien für den Build
+.dockerignore text eol=lf
+docker-entrypoint.sh text eol=lf
+Dockerfile text eol=lf
+package.json text eol=lf
+package-lock.json text eol=lf

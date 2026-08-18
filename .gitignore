@@ -116,3 +116,9 @@ public/~$hnung-template.docx
 
 # ─── MkDocs build output ───────────────────────────────────────────
 doc/mkdocs/site/
+# Temporäre und Sicherungsdateien
+*.bak
+*.tmp
+*.log
+*.swp
+*.swo
