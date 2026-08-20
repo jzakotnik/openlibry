@@ -158,9 +158,24 @@ export default function Books({
   }, [router]);
 
   const handleCopyBook = useCallback(
-    (_book: BookType) => {
-      router.push("/book/new");
-      toast.info(t("bookPage.toastCreateNewBook"));
+    async (_book: BookType) => {
+      try {
+        console.log("Calling API: /api/book/copyById?id=", _book.id);
+        const response = await fetch(`/api/book/copyById?id=${_book.id}`, {
+          method: "POST",
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API Error Response:", errorText);
+          throw new Error(`API returned ${response.status}`);
+        }
+        const data = await response.json();
+        toast.success(t("bookPage.toastBookCopied"));
+        router.push(`/book/${data.id}`);
+      } catch (error) {
+        console.error("Full error details:", error);
+        toast.error(t("bookPage.toastCopyError"));
+      }
     },
     [router],
   );
