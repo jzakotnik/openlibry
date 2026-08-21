@@ -11,6 +11,7 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { prisma } from "@/entities/db";
 
 function parseTopics(raw: string | null | undefined): string[] {
   if (!raw) return [];
@@ -330,22 +331,74 @@ export default function CatalogDetailPage({ book }: CatalogDetailProps) {
 // =============================================================================
 
 export const getServerSideProps: GetServerSideProps = async (
-  context: GetServerSidePropsContext,
+  context: GetServerSidePropsContext
 ) => {
-  const host = context.req.headers.host ?? "localhost:3000";
-  const baseUrl = `http://${host}`;
-
   const id = context.params?.id as string;
+  if (!id) return { notFound: true };
 
   try {
-    const res = await fetch(`${baseUrl}/api/public/books/${id}`);
+    const bookId = parseInt(id, 10);
 
-    if (!res.ok) {
-      return { notFound: true };
+    // 1. Hauptbuch abfragen
+    const book = await prisma.book.findUnique({
+      where: { id: bookId },
+    });
+
+    if (!book) return { notFound: true };
+
+    // 2. Ähnliche Bücher über Topics (einfache Implementierung)
+    const topics = book.topics ? book.topics.split(";").map((t) => t.trim()).filter(Boolean) : [];
+    let relatedBooks: PublicBookType[] = [];
+    if (topics.length > 0) {
+      const related = await prisma.book.findMany({
+        where: {
+          AND: topics.map((topic) => ({
+            topics: { contains: topic },
+          })),
+          NOT: { id: bookId },
+        },
+        take: 10,
+        select: {
+          id: true,
+          title: true,
+          author: true,
+          isbn: true,
+          topics: true,
+          rentalStatus: true,
+        },
+      });
+
+      relatedBooks = related.map((b) => ({
+        id: b.id,
+        title: b.title ?? "",
+        author: b.author ?? "",
+        isbn: b.isbn ?? "",
+        topics: b.topics ?? "",
+        rentalStatus: b.rentalStatus ?? "available",
+        coverUrl: "", // Standardwert (kein Cover)
+      }));
     }
 
-    const book: PublicBookDetailType = await res.json();
-    return { props: { book } };
+    // 3. Buch in PublicBookDetailType umwandeln
+    const detailBook: PublicBookDetailType = {
+      id: book.id,
+      title: book.title ?? "",
+      subtitle: book.subtitle ?? null,
+      author: book.author ?? "",
+      isbn: book.isbn ?? "",
+      topics: book.topics ?? "",
+      summary: book.summary ?? null,
+      pages: book.pages ?? null,
+      publisherName: null,
+      publisherDate: null,
+      minAge: book.minAge ?? null,
+      maxAge: book.maxAge ?? null,
+      rentalStatus: book.rentalStatus ?? "available",
+      relatedBooks: relatedBooks,
+      coverUrl: "", // Standardwert
+    };
+
+    return { props: { book: detailBook } };
   } catch (error) {
     console.error("Error fetching catalog book detail:", error);
     return { notFound: true };
