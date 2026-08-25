@@ -252,7 +252,7 @@ export default async function handle(
                   renewalCount: b["Anzahl Verlängerungen"],
                   title: b["Titel"],
                   subtitle: b["Untertitel"],
-                  author: b["Autor"],
+                  author: b["Autor"] || "n/a",
                   topics: b["Schlagworte"] || "",
                   imageLink: b["Bild"],
                   isbn: b["ISBN"]?.toString() || "",
