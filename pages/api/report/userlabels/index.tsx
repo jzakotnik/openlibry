@@ -95,6 +95,18 @@ const barcodeMinLength: number =
     ? parseInt(process.env.BARCODE_MINCODELENGTH)
     : DEFAULT_BARCODE_MINCODELENGTH;
 
+// Postfix & Prefix for Barcode
+// Hilfs-Funktion zum "Auflösen" von Hex-Strings aus Barcode Prefix/Suffix
+const parseEnv = (str: string) => 
+  str.replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+     .replace(/\\r/g, "\r")
+     .replace(/\\n/g, "\n")
+     .replace(/\\t/g, "\t");
+
+const barcodePrefix = parseEnv(process.env.USERLABEL_BARCODE_PREFIX || "");
+const barcodeSuffix = parseEnv(process.env.USERLABEL_BARCODE_SUFFIX || "");
+
+
 // =============================================================================
 // Styles
 // =============================================================================
@@ -222,13 +234,15 @@ const generateBarcode = async (id: string) => {
 
   try {
     const png = await bwipjs.toBuffer({
-      bcid: BARCODE_SETTINGS[4], // Barcode type (e.g., 'code128')
-      text: barId,
+      bcid: BARCODE_SETTINGS[4],
+      text: barcodePrefix + barId + barcodeSuffix,
+      alttext: barId, // Zeigt unten nur die Nummer an
       scale: 3,
+      parse: true,
       height: 10,
       includetext: true,
       textxalign: "center",
-    });
+  });
 
     return (
       <PdfImage
