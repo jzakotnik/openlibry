@@ -1,0 +1,12 @@
+{
+  "id": "herma-4360",
+  "name": "HERMA 4360",
+  "description": "Universal-Etiketten 70 × 37 mm, 24 Stück/Blatt (3 Spalten × 8 Reihen). Kompatibel mit Zweckform 3474.",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 70, "height": 37 },
+  "grid": { "columns": 3, "rows": 8 },
+  "margins": { "top": 0.5, "left": 0, "right": 0, "bottom": 0.5 },
+  "gap": { "horizontal": 0, "vertical": 0 },
+  "labelsPerSheet": 24
+}

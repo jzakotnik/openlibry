@@ -1,6 +1,7 @@
-import { ArrowLeftFromLine, Pencil, Printer } from "lucide-react";
+import { ArrowLeftFromLine, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import {
@@ -44,13 +45,19 @@ interface BookSummaryCardProps {
   book: BookType;
   returnBook: React.MouseEventHandler<HTMLButtonElement>;
   showDetailsControl?: boolean;
+  onTopicClick?: (topic: string) => void;
+  /** When set, cover clicks and title navigate here instead of opening the cover modal. */
+  detailHref?: string;
 }
 
 function BookSummaryCard({
   book,
   returnBook,
   showDetailsControl = true,
+  onTopicClick,
+  detailHref,
 }: BookSummaryCardProps) {
+  const router = useRouter();
   const [src, setSrc] = useState(`/api/images/${book.id}`);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -60,8 +67,12 @@ function BookSummaryCard({
   const handleOpenModal = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setModalOpen(true);
-  }, []);
+    if (detailHref) {
+      router.push(detailHref);
+    } else {
+      setModalOpen(true);
+    }
+  }, [detailHref, router]);
 
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
@@ -82,9 +93,13 @@ function BookSummaryCard({
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      setModalOpen(true);
+      if (detailHref) {
+        router.push(detailHref);
+      } else {
+        setModalOpen(true);
+      }
     }
-  }, []);
+  }, [detailHref, router]);
 
   return (
     <TooltipProvider>
@@ -178,10 +193,10 @@ function BookSummaryCard({
 
         {/* Content Area */}
         <div className="absolute bottom-0 left-0 right-0 p-3 z-[3] flex flex-col gap-1">
-          {/* Title — linked to detail page only when controls are enabled */}
-          {showDetailsControl ? (
+          {/* Title — linked to detail/admin page when applicable */}
+          {showDetailsControl || detailHref ? (
             <Link
-              href={`/book/${book.id}`}
+              href={detailHref ?? `/book/${book.id}`}
               aria-label={`Details zu ${book.title}`}
               className="no-underline"
             >
@@ -225,7 +240,7 @@ function BookSummaryCard({
           </p>
 
           {/* Topics */}
-          <TopicChips topics={topics} />
+          <TopicChips topics={topics} onTopicClick={onTopicClick} />
 
           {/* Action Buttons */}
           {showDetailsControl && (
@@ -260,26 +275,6 @@ function BookSummaryCard({
                   Details anzeigen &amp; bearbeiten
                 </TooltipContent>
               </Tooltip>
-
-              {/* Print label — icon-only, secondary */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={`/reports/print?id=${book.id}`}
-                    data-cy="book_card_printbutton"
-                    aria-label="Buchlabel drucken"
-                    className="flex items-center justify-center
-                               h-8 w-8 rounded-md
-                               bg-white/15 text-white backdrop-blur-sm
-                               hover:bg-secondary hover:scale-110
-                               focus-visible:outline-2 focus-visible:outline-primary-light focus-visible:outline-offset-2
-                               transition-all duration-200"
-                  >
-                    <Printer className="h-4 w-4" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>Label drucken</TooltipContent>
-              </Tooltip>
             </div>
           )}
         </div>
@@ -296,15 +291,17 @@ function BookSummaryCard({
           }}
         />
 
-        {/* Cover Modal */}
-        <CoverModal
-          open={modalOpen}
-          onClose={handleCloseModal}
-          src={src}
-          title={book.title ?? "Unbekannter Titel"}
-          subtitle={book.subtitle}
-          author={book.author ?? "Unbekannter Autor"}
-        />
+        {/* Cover Modal — only when not using detailHref */}
+        {!detailHref && (
+          <CoverModal
+            open={modalOpen}
+            onClose={handleCloseModal}
+            src={src}
+            title={book.title ?? "Unbekannter Titel"}
+            subtitle={book.subtitle}
+            author={book.author ?? "Unbekannter Autor"}
+          />
+        )}
       </article>
     </TooltipProvider>
   );

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
+import { t } from "@/lib/i18n";
 import { Dispatch } from "react";
 
 type SelectOption = {
@@ -35,8 +36,7 @@ const BookSelect = ({
   const value = String((book as any)[fieldType] ?? "");
 
   const handleChange = (raw: string) => {
-    const parsed =
-      typeof options[0]?.value === "number" ? Number(raw) : raw;
+    const parsed = typeof options[0]?.value === "number" ? Number(raw) : raw;
     setBookData({ ...book, [fieldType]: parsed });
   };
 
@@ -48,17 +48,20 @@ const BookSelect = ({
       >
         {label}
       </Label>
-      <Select
-        value={value}
-        onValueChange={handleChange}
-        disabled={!editable}
-      >
-        <SelectTrigger id={`book-${fieldType}-select`}>
+      <Select value={value} onValueChange={handleChange} disabled={!editable}>
+        <SelectTrigger
+          id={`book-${fieldType}-select`}
+          data-value={book[fieldType as keyof BookType]}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {options.map((opt) => (
-            <SelectItem key={opt.value} value={String(opt.value)}>
+            <SelectItem
+              key={opt.value}
+              value={String(opt.value)}
+              data-cy={`option-${opt.value}`}
+            >
               {opt.label}
             </SelectItem>
           ))}
@@ -88,10 +91,10 @@ export const rentalStatusOptions: SelectOption[] = [
 }));
 
 export const renewalCountOptions: SelectOption[] = [
-  { value: 0, label: "Nicht verlängert" },
-  { value: 1, label: "1x verlängert" },
-  { value: 2, label: "2x verlängert" },
-  { value: 3, label: "3x verlängert" },
-  { value: 4, label: "4x verlängert" },
-  { value: 5, label: "5x verlängert" },
+  { value: 0, label: t("bookSelect.renewalNone") },
+  { value: 1, label: t("bookSelect.renewalCountFormat", { n: 1 }) },
+  { value: 2, label: t("bookSelect.renewalCountFormat", { n: 2 }) },
+  { value: 3, label: t("bookSelect.renewalCountFormat", { n: 3 }) },
+  { value: 4, label: t("bookSelect.renewalCountFormat", { n: 4 }) },
+  { value: 5, label: t("bookSelect.renewalCountFormat", { n: 5 }) },
 ];

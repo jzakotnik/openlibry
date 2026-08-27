@@ -4,6 +4,7 @@ export const LogEvents = {
   BOOK_UPDATED: "book.updated",
   BOOK_DELETED: "book.deleted",
   BOOK_LIST_FETCHED: "book.list.fetched",
+  SEARCH_ERROR: "book.lust.search",
 
   // Rental operations
   BOOK_RENTED: "book.rented",
@@ -28,6 +29,12 @@ export const LogEvents = {
   LOGIN_USER_CREATE_ATTEMPT: "loginuser.create.attempt",
   LOGIN_USER_CREATED: "loginuser.created",
   LOGIN_USER_CREATE_FAILED: "loginuser.create.failed",
+  LOGIN_USER_LIST: "loginuser.list",
+  LOGIN_USER_DELETE_ATTEMPT: "loginuser.delete.attempt",
+  LOGIN_USER_DELETE_FAILED: "loginuser.delete.failed",
+  LOGIN_USER_DELETED: "loginuser.deleted",
+  LOGIN_USER_UPDATE_ATTEMPT: "loginuser.update.attempt",
+  LOGIN_USER_UPDATED: "loginuser.updated",
 
   // ISBN lookup operations
   ISBN_LOOKUP_STARTED: "isbn.lookup.started",
@@ -51,6 +58,8 @@ export const LogEvents = {
   REPORT_EXCEL_EXPORTED: "report.excel.exported",
   REMINDER_TEMPLATE_LOADED: "report.template.loaded",
   REMINDER_TEMPLATE_NOT_FOUND: "report.template.notfound",
+  REMINDER_GENERATE: "report.reminder.generate",
+  EXPORT_ERROR: "report.history.error",
 
   // Import operations
   IMPORT_EXCEL_STARTED: "import.excel.started",
@@ -70,7 +79,10 @@ export const LogEvents = {
   COVER_FETCH_ATTEMPT: "cover.fetch.attempt",
   COVER_FETCHED_DNB: "cover.fetched.dnb",
   COVER_FETCHED_OPENLIBRARY: "cover.fetched.openlibrary",
+  COVER_FETCHED_GOOGLE: "cover.fetched.google",
   COVER_FETCH_FAILED: "cover.fetch.failed",
+  //Cover-Resize-Errors
+  IMAGE_PROCESSING_ERROR: "image.processing.error",
   //manual upload events
   COVER_UPLOAD_ERROR: "cover.upload.error",
   COVER_UPLOAD_FIELD: "cover.upload.field",

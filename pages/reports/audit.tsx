@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import { t } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 
 import { AuditType } from "@/entities/AuditType";
@@ -67,61 +68,91 @@ function parseEventContent(
     if (simpleBookPattern[2]) details.bookTitle = simpleBookPattern[2].trim();
   }
 
+  // Fallback for missing book id
+  const unknownId = t("reportAuditPage.sentenceUnknownIdMissing");
+
   let sentence = "";
 
   switch (eventType.toLowerCase()) {
     case "rent book":
       if (details.bookTitle && details.userName) {
-        sentence = `Buch "${details.bookTitle}" wurde an ${details.userName} (${details.userId}) ausgeliehen`;
+        sentence = t("reportAuditPage.sentenceRentBookFull", {
+          bookTitle: details.bookTitle,
+          userName: details.userName,
+          userId: details.userId,
+        });
       } else if (details.bookTitle && details.userId) {
-        sentence = `Buch "${details.bookTitle}" wurde an Benutzer #${details.userId} ausgeliehen`;
+        sentence = t("reportAuditPage.sentenceRentBookUserId", {
+          bookTitle: details.bookTitle,
+          userId: details.userId,
+        });
       } else if (details.bookTitle) {
-        sentence = `Buch "${details.bookTitle}" wurde ausgeliehen`;
+        sentence = t("reportAuditPage.sentenceRentBookTitle", {
+          bookTitle: details.bookTitle,
+        });
       } else {
-        sentence = `Buch #${details.bookId || "?"} wurde ausgeliehen`;
+        sentence = t("reportAuditPage.sentenceRentBookId", {
+          bookId: details.bookId || unknownId,
+        });
       }
       break;
 
     case "return book":
       if (details.bookTitle) {
-        sentence = `Buch "${details.bookTitle}" wurde zurückgegeben`;
+        sentence = t("reportAuditPage.sentenceReturnBookTitle", {
+          bookTitle: details.bookTitle,
+        });
       } else {
-        sentence = `Buch #${details.bookId || "?"} wurde zurückgegeben`;
+        sentence = t("reportAuditPage.sentenceReturnBookId", {
+          bookId: details.bookId || unknownId,
+        });
       }
       break;
 
     case "extend book":
       if (details.bookTitle) {
-        sentence = `Ausleihe von "${details.bookTitle}" wurde verlängert`;
+        sentence = t("reportAuditPage.sentenceExtendBookTitle", {
+          bookTitle: details.bookTitle,
+        });
       } else {
-        sentence = `Ausleihe von Buch #${
-          details.bookId || "?"
-        } wurde verlängert`;
+        sentence = t("reportAuditPage.sentenceExtendBookId", {
+          bookId: details.bookId || unknownId,
+        });
       }
       break;
 
     case "add book":
-      sentence = `Neues Buch "${eventContent}" wurde hinzugefügt`;
+      sentence = t("reportAuditPage.sentenceAddBook", {
+        bookTitle: eventContent,
+      });
       break;
 
     case "update book":
       if (details.bookTitle) {
-        sentence = `Buch "${details.bookTitle}" wurde aktualisiert`;
+        sentence = t("reportAuditPage.sentenceUpdateBookTitle", {
+          bookTitle: details.bookTitle,
+        });
       } else {
-        sentence = `Buch #${details.bookId || eventContent} wurde aktualisiert`;
+        sentence = t("reportAuditPage.sentenceUpdateBookId", {
+          bookId: details.bookId || eventContent,
+        });
       }
       break;
 
     case "delete book":
-      sentence = `Buch #${eventContent} wurde gelöscht`;
+      sentence = t("reportAuditPage.sentenceDeleteBook", {
+        bookId: eventContent,
+      });
       break;
 
     case "add user": {
       const userNameMatch = eventContent.match(/^\d+,\s*(.+)$/);
       if (userNameMatch) {
-        sentence = `Neuer Benutzer "${userNameMatch[1]}" wurde angelegt`;
+        sentence = t("reportAuditPage.sentenceAddUserNamed", {
+          userName: userNameMatch[1],
+        });
       } else {
-        sentence = `Neuer Benutzer wurde angelegt`;
+        sentence = t("reportAuditPage.sentenceAddUserAnon");
       }
       break;
     }
@@ -129,23 +160,33 @@ function parseEventContent(
     case "update user": {
       const userNameMatch = eventContent.match(/^\d+,\s*(.+)$/);
       if (userNameMatch) {
-        sentence = `Benutzer "${userNameMatch[1]}" wurde aktualisiert`;
+        sentence = t("reportAuditPage.sentenceUpdateUserNamed", {
+          userName: userNameMatch[1],
+        });
       } else {
-        sentence = `Benutzer #${eventContent} wurde aktualisiert`;
+        sentence = t("reportAuditPage.sentenceUpdateUserId", {
+          userId: eventContent,
+        });
       }
       break;
     }
 
     case "delete user":
-      sentence = `Benutzer #${eventContent} wurde gelöscht`;
+      sentence = t("reportAuditPage.sentenceDeleteUser", {
+        userId: eventContent,
+      });
       break;
 
     case "disable user":
-      sentence = `Benutzer #${eventContent} wurde deaktiviert`;
+      sentence = t("reportAuditPage.sentenceDisableUser", {
+        userId: eventContent,
+      });
       break;
 
     case "enable user":
-      sentence = `Benutzer #${eventContent} wurde aktiviert`;
+      sentence = t("reportAuditPage.sentenceEnableUser", {
+        userId: eventContent,
+      });
       break;
 
     default:
@@ -234,7 +275,7 @@ export default function Audit({ audits }: AuditPropsType) {
             />
             <input
               type="text"
-              placeholder="Suche nach Büchern, Aktionen oder Datum..."
+              placeholder={t("reportAuditPage.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="
@@ -273,8 +314,8 @@ export default function Audit({ audits }: AuditPropsType) {
             <div className="p-8 text-center">
               <p className="text-sm text-muted-foreground">
                 {searchQuery
-                  ? "Keine Ergebnisse gefunden"
-                  : "Keine Aktivitäten verfügbar"}
+                  ? t("reportAuditPage.emptySearch")
+                  : t("reportAuditPage.emptyAll")}
               </p>
             </div>
           )}
@@ -282,7 +323,10 @@ export default function Audit({ audits }: AuditPropsType) {
 
         {/* Count */}
         <p className="text-xs text-muted-foreground mt-2 text-right">
-          {filteredAudits.length} von {parsedAudits.length} Einträgen
+          {t("reportAuditPage.countSuffix", {
+            filtered: filteredAudits.length,
+            total: parsedAudits.length,
+          })}
         </p>
       </div>
     </Layout>

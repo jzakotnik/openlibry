@@ -1,32 +1,13 @@
 /// <reference types="cypress" />
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Rental extension tests
-//
-// Extend path: POST /api/book/{id}/extend
-//   → newDueDate = currentDueDate + EXTENSION_DURATION_DAYS
-// Rent   path: POST /api/book/{id}/user/{userid}
-//   → newDueDate = today + RENTAL_DURATION_DAYS
-//
-// After every mutation we cy.reload() to get a clean SSR response from the
-// real DB state — no SWR / React.memo timing to fight.
-//
-// DB assertions via cy.task("verifyBook") are the authoritative truth.
-//
-// cypress.env.json must match the server's .env EXACTLY:
-//   {
-//     "RENTAL_DURATION_DAYS": <same as server>,
-//     "EXTENSION_DURATION_DAYS": <same as server>,
-//     "MAX_EXTENSIONS": <same as server>
-//   }
-// ─────────────────────────────────────────────────────────────────────────────
-
 const pad = (n: number) => String(n).padStart(2, "0");
 
 const formatDE = (d: Date) =>
   `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
 
-/** Add `days` to a given base date (defaults to today). */
+const formatISO = (d: Date) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
 const addDays = (days: number, base: Date = new Date()): Date => {
   const d = new Date(base);
   d.setDate(d.getDate() + days);
@@ -38,19 +19,21 @@ const EXTENSION_DURATION_DAYS: number =
   Cypress.env("EXTENSION_DURATION_DAYS") ?? 14;
 const MAX_EXTENSIONS: number = Cypress.env("MAX_EXTENSIONS") ?? 2;
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 describe("Rental extension logic", () => {
+  // IDs are populated from resetAndSeed() in before() and shared via
+  // module-level variables — safe within a single spec file.
   let userId: number;
-  let bookAId: number; // available → fresh rental
-  let bookBUserColId: number; // rented, 0 renewals → user column extension
-  let bookBBookColId: number; // rented, 0 renewals → book column extension
-  let bookBUserPageId: number; // rented, 0 renewals → user detail page extension
-  let bookCId: number; // rented, MAX_EXTENSIONS renewals → disabled tests
+  let bookAId: number;
+  let bookBUserColId: number;
+  let bookBBookColId: number;
+  let bookBUserPageId: number;
+  let bookCId: number;
 
   before(() => {
-    cy.task("resetDatabase");
-    cy.task("seedRentalData").then((ids: any) => {
+    // resetAndSeed() already contains all the rental fixture books defined
+    // in seed-books.json (bookA, bookBUserCol, bookBBookCol, bookBUserPage,
+    // bookC) so no separate seedRentalData task is needed.
+    cy.resetAndSeed().then((ids) => {
       userId = ids.userId;
       bookAId = ids.bookAId;
       bookBUserColId = ids.bookBUserColId;
@@ -61,7 +44,7 @@ describe("Rental extension logic", () => {
   });
 
   after(() => {
-    cy.task("cleanupDatabase");
+    cy.clearDatabase();
   });
 
   beforeEach(() => {
@@ -72,8 +55,6 @@ describe("Rental extension logic", () => {
     });
     cy.visit("/");
   });
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   const openRentalUserAccordion = () => {
     cy.get("[data-cy=index_rental_button]").click();
@@ -86,8 +67,7 @@ describe("Rental extension logic", () => {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 1. FRESH RENTAL – POST /api/book/{id}/user/{userId}
-  //    Expected due date: today + RENTAL_DURATION_DAYS
+  // 1. FRESH RENTAL
   // ═══════════════════════════════════════════════════════════════════════════
 
   it("rents Book A and verifies due date = today + RENTAL_DURATION_DAYS", () => {
@@ -97,6 +77,7 @@ describe("Rental extension logic", () => {
     ).to.not.equal(EXTENSION_DURATION_DAYS);
 
     const expectedDue = formatDE(addDays(RENTAL_DURATION_DAYS));
+    const expectedDueISO = formatISO(addDays(RENTAL_DURATION_DAYS));
     const wrongDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
 
     cy.get("[data-cy=index_rental_button]").click();
@@ -113,12 +94,11 @@ describe("Rental extension logic", () => {
     cy.get(`[data-cy=book_rent_button_${bookAId}]`).click();
     cy.wait("@rentBook").its("response.statusCode").should("eq", 200);
 
-    // ── DB check (authoritative) ──────────────────────────────────────────
     cy.task("verifyBook", bookAId).then((book: any) => {
       const dbDue = formatDE(new Date(book.dueDate));
       expect(
         dbDue,
-        "dueDate in DB should equal today + RENTAL_DURATION_DAYS",
+        "dueDate should equal today + RENTAL_DURATION_DAYS",
       ).to.equal(expectedDue);
       expect(
         dbDue,
@@ -128,30 +108,28 @@ describe("Rental extension logic", () => {
       expect(book.rentalStatus).to.equal("rented");
     });
 
-    // ── DOM check after reload ────────────────────────────────────────────
-    // reload() stays on /rental — navigate home first to find index_rental_button
     cy.visit("/");
     cy.get("[data-cy=index_rental_button]").click();
     cy.get("[data-cy=book_search_input]").type(String(bookAId));
-    cy.get(`[data-cy=book_info_${bookAId}]`, { timeout: 6000 })
-      .should("contain", `ausgeliehen bis ${expectedDue}`)
-      .and("not.contain", `ausgeliehen bis ${wrongDue}`);
+    cy.get(`[data-cy=book_info_${bookAId}]`, { timeout: 6000 }).should(
+      "have.attr",
+      "data-due-date",
+      expectedDueISO,
+    );
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 2. EXTENSION – user column (UserRentalList)
-  //    POST /api/book/{id}/extend
-  //    Expected due date: currentDueDate + EXTENSION_DURATION_DAYS
+  // 2. EXTENSION – user column
   // ═══════════════════════════════════════════════════════════════════════════
 
-  it("extends Book B (user column) and verifies due date = currentDueDate + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB BEFORE extending
+  it("extends Book B (user column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
     cy.task("verifyBook", bookBUserColId).then((bookBefore: any) => {
-      const currentDueDate = new Date(bookBefore.dueDate);
-      const expectedDue = formatDE(
-        addDays(EXTENSION_DURATION_DAYS, currentDueDate),
+      const previousDueDate = new Date(bookBefore.dueDate);
+      const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const expectedDueISO = formatISO(addDays(EXTENSION_DURATION_DAYS));
+      const wrongDue = formatDE(
+        addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
-      const wrongDue = formatDE(addDays(RENTAL_DURATION_DAYS));
 
       openRentalUserAccordion();
 
@@ -162,50 +140,45 @@ describe("Rental extension logic", () => {
       cy.intercept("POST", `/api/book/${bookBUserColId}/extend`).as(
         "extendBook",
       );
-      cy.get(`[data-cy=book_extend_button_${bookBUserColId}]`)
+      cy.get("[data-cy=rental_user_column]")
+        .find(`[data-cy=book_extend_button_${bookBUserColId}]`)
         .should("not.be.disabled")
         .click();
       cy.wait("@extendBook").its("response.statusCode").should("eq", 200);
 
-      // ── DB check ───────────────────────────────────────────────────────
       cy.task("verifyBook", bookBUserColId).then((bookAfter: any) => {
         const dbDue = formatDE(new Date(bookAfter.dueDate));
         expect(
           dbDue,
-          "dueDate should equal currentDueDate + EXTENSION_DURATION_DAYS",
+          "dueDate should equal today + EXTENSION_DURATION_DAYS",
         ).to.equal(expectedDue);
         expect(
           dbDue,
-          "dueDate must NOT equal today + RENTAL_DURATION_DAYS",
+          "must NOT equal previousDueDate + EXTENSION_DURATION_DAYS",
         ).to.not.equal(wrongDue);
         expect(bookAfter.renewalCount).to.equal(1);
       });
 
-      // ── DOM check after reload ──────────────────────────────────────────
-      // reload() stays on /rental — navigate home first so openRentalUserAccordion works
       cy.visit("/");
       openRentalUserAccordion();
       cy.get(`[data-cy=rental_book_details_${bookBUserColId}]`, {
         timeout: 6000,
-      })
-        .should("contain", `bis ${expectedDue}`)
-        .and("not.contain", `bis ${wrongDue}`);
+      }).should("have.attr", "data-due-date", expectedDueISO);
     });
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 3. EXTENSION – book column (BookRentalList)
-  //    Expected due date: currentDueDate + EXTENSION_DURATION_DAYS
+  // 3. EXTENSION – book column
   // ═══════════════════════════════════════════════════════════════════════════
 
-  it("extends Book B (book column) and verifies due date = currentDueDate + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB BEFORE extending
+  it("extends Book B (book column) and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
     cy.task("verifyBook", bookBBookColId).then((bookBefore: any) => {
-      const currentDueDate = new Date(bookBefore.dueDate);
-      const expectedDue = formatDE(
-        addDays(EXTENSION_DURATION_DAYS, currentDueDate),
+      const previousDueDate = new Date(bookBefore.dueDate);
+      const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const expectedDueISO = formatISO(addDays(EXTENSION_DURATION_DAYS));
+      const wrongDue = formatDE(
+        addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
-      const wrongDue = formatDE(addDays(RENTAL_DURATION_DAYS));
 
       cy.get("[data-cy=index_rental_button]").click();
       cy.url().should("include", "/rental");
@@ -226,45 +199,43 @@ describe("Rental extension logic", () => {
         .click();
       cy.wait("@extendBookCol").its("response.statusCode").should("eq", 200);
 
-      // ── DB check ───────────────────────────────────────────────────────
       cy.task("verifyBook", bookBBookColId).then((bookAfter: any) => {
         const dbDue = formatDE(new Date(bookAfter.dueDate));
         expect(
           dbDue,
-          "dueDate should equal currentDueDate + EXTENSION_DURATION_DAYS",
+          "dueDate should equal today + EXTENSION_DURATION_DAYS",
         ).to.equal(expectedDue);
         expect(
           dbDue,
-          "dueDate must NOT equal today + RENTAL_DURATION_DAYS",
+          "must NOT equal previousDueDate + EXTENSION_DURATION_DAYS",
         ).to.not.equal(wrongDue);
         expect(bookAfter.renewalCount).to.equal(1);
       });
 
-      // ── DOM check after reload ──────────────────────────────────────────
-      // reload() stays on /rental — navigate home first to find index_rental_button
       cy.visit("/");
       cy.get("[data-cy=index_rental_button]").click();
       cy.get("[data-cy=book_search_input]").type(String(bookBBookColId));
       cy.wait(1500);
-      cy.get(`[data-cy=book_info_${bookBBookColId}]`, { timeout: 6000 })
-        .should("contain", `ausgeliehen bis ${expectedDue}`)
-        .and("not.contain", `ausgeliehen bis ${wrongDue}`);
+      cy.get(`[data-cy=book_info_${bookBBookColId}]`, { timeout: 6000 }).should(
+        "have.attr",
+        "data-due-date",
+        expectedDueISO,
+      );
     });
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 4. EXTENSION – /user/[id] detail page (UserEditForm)
-  //    Expected due date: currentDueDate + EXTENSION_DURATION_DAYS
+  // 4. EXTENSION – /user/[id] detail page
   // ═══════════════════════════════════════════════════════════════════════════
 
-  it("extends Book B from the user detail page and verifies due date = currentDueDate + EXTENSION_DURATION_DAYS", () => {
-    // Read current dueDate from DB BEFORE extending
+  it("extends Book B from the user detail page and verifies due date = today + EXTENSION_DURATION_DAYS", () => {
     cy.task("verifyBook", bookBUserPageId).then((bookBefore: any) => {
-      const currentDueDate = new Date(bookBefore.dueDate);
-      const expectedDue = formatDE(
-        addDays(EXTENSION_DURATION_DAYS, currentDueDate),
+      const previousDueDate = new Date(bookBefore.dueDate);
+      const expectedDue = formatDE(addDays(EXTENSION_DURATION_DAYS));
+      const expectedDueISO = formatISO(addDays(EXTENSION_DURATION_DAYS));
+      const wrongDue = formatDE(
+        addDays(EXTENSION_DURATION_DAYS, previousDueDate),
       );
-      const wrongDue = formatDE(addDays(RENTAL_DURATION_DAYS));
 
       cy.visit(`/user/${userId}`);
       cy.url().should("include", `/user/${userId}`);
@@ -282,27 +253,24 @@ describe("Rental extension logic", () => {
 
       cy.wait("@extendUserPage").its("response.statusCode").should("eq", 200);
 
-      // ── DB check ───────────────────────────────────────────────────────
       cy.task("verifyBook", bookBUserPageId).then((bookAfter: any) => {
         const dbDue = formatDE(new Date(bookAfter.dueDate));
         expect(
           dbDue,
-          "dueDate should equal currentDueDate + EXTENSION_DURATION_DAYS",
+          "dueDate should equal today + EXTENSION_DURATION_DAYS",
         ).to.equal(expectedDue);
         expect(
           dbDue,
-          "dueDate must NOT equal today + RENTAL_DURATION_DAYS",
+          "must NOT equal previousDueDate + EXTENSION_DURATION_DAYS",
         ).to.not.equal(wrongDue);
         expect(bookAfter.renewalCount).to.equal(1);
       });
 
-      // ── DOM check after reload ──────────────────────────────────────────
       cy.reload();
       cy.url().should("include", `/user/${userId}`);
-      cy.contains("Cypress Verlaengerbar UserPage")
-        .closest("div.rounded-lg")
-        .should("contain", expectedDue)
-        .and("not.contain", wrongDue);
+      cy.get(`[data-cy=book_due_date_${bookBUserPageId}]`, {
+        timeout: 6000,
+      }).should("have.attr", "data-due-date", expectedDueISO);
     });
   });
 
@@ -319,7 +287,9 @@ describe("Rental extension logic", () => {
     });
 
     openRentalUserAccordion();
-    cy.get(`[data-cy=book_extend_button_${bookCId}]`).should("be.disabled");
+    cy.get("[data-cy=rental_user_column]")
+      .find(`[data-cy=book_extend_button_${bookCId}]`)
+      .should("be.disabled");
   });
 
   // ═══════════════════════════════════════════════════════════════════════════

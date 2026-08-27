@@ -19,6 +19,7 @@ export function QuantityControl({
         size="icon-xs"
         onClick={onDecrement}
         disabled={quantity <= 1}
+        data-cy="quantity-decrement"
       >
         <Minus className="size-3.5" />
       </Button>
@@ -32,7 +33,12 @@ export function QuantityControl({
         min={1}
         className="w-10 text-center text-sm font-medium bg-transparent border-none outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      <Button variant="ghost" size="icon-xs" onClick={onIncrement}>
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={onIncrement}
+        data-cy="quantity-increment"
+      >
         <Plus className="size-3.5" />
       </Button>
       <span className="text-xs text-muted-foreground ml-0.5">

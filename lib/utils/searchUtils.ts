@@ -1,3 +1,4 @@
+import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 
@@ -52,35 +53,70 @@ export function filterUsers(
     ? updatedString.replace("fällig?", "").trim()
     : updatedString;
 
-  const filteredUsers = users.filter((u: UserType) => {
-    const filterForClass = foundKlasse;
-    const filterForOverdue = searchPattern.overdue;
+  const searchWords = finalString.split(/\s+/).filter(Boolean);
+  const isMultiWord = searchWords.length > 1;
 
-    const foundString =
-      u.lastName.toLowerCase().includes(finalString) ||
-      u.firstName.toLowerCase().includes(finalString) ||
-      u.id!.toString().includes(finalString);
+  // Precompute which users have overdue books in a single pass over rentals,
+  // instead of re-filtering the whole rentals array for every user
+  // (was O(users * rentals), now O(users + rentals)).
+  let overdueUserIds: Set<number> | null = null;
+  if (searchPattern.overdue) {
+    overdueUserIds = new Set();
+    for (const r of rentals) {
+      if (r.remainingDays > 0) overdueUserIds.add(r.userid);
+    }
+  }
+
+  // Single pass over users: builds filteredUsers and finds the id-matched
+  // user at the same time, instead of two separate .filter() passes.
+  const filteredUsers: Array<UserType> = [];
+  let idMatchedUser: UserType | null = null;
+
+  for (const u of users) {
+    const idStr = u.id!.toString();
+    if (idStr === finalString) idMatchedUser = u;
+
+    const lastName = u.lastName.toLowerCase();
+    const firstName = u.firstName.toLowerCase();
+
+    let foundString: boolean;
+    if (isMultiWord) {
+      // Only build the combined name strings when we actually need
+      // multi-word matching (e.g. "donald duck").
+      const comboA = `${firstName} ${lastName}`;
+      const comboB = `${lastName} ${firstName}`;
+      foundString = searchWords.every(
+        (word) => comboA.includes(word) || comboB.includes(word),
+      );
+    } else {
+      foundString =
+        lastName.includes(finalString) ||
+        firstName.includes(finalString) ||
+        idStr.includes(finalString);
+    }
+
+    if (!foundString) continue;
 
     const foundClass =
-      !filterForClass ||
+      !foundKlasse ||
       u.schoolGrade!.toLowerCase().startsWith(searchPattern.klasse);
 
+    if (!foundClass) continue;
+
     const foundOverdue =
-      !filterForOverdue ||
-      searchPattern.overdue === hasOverdueBooks(booksForUser(u.id!, rentals));
+      !searchPattern.overdue ||
+      searchPattern.overdue === overdueUserIds!.has(u.id!);
 
-    return foundString && foundClass && foundOverdue;
-  });
+    if (!foundOverdue) continue;
 
-  const idMatchedUser = users.filter(
-    (u: UserType) => u.id!.toString() === finalString,
-  );
+    filteredUsers.push(u);
+  }
 
   const exactMatchUserIdRes =
     filteredUsers.length === 1
       ? filteredUsers[0].id!
-      : idMatchedUser.length === 1
-        ? idMatchedUser[0].id!
+      : idMatchedUser
+        ? idMatchedUser.id!
         : exactMatchUserIdDefault;
 
   return [filteredUsers, exactMatchUserIdRes];
@@ -93,4 +129,26 @@ export function booksForUser(
   const userRentals = rentals.filter((r: RentalsUserType) => r.userid == id);
   //console.log("Filtered rentals", userRentals);
   return userRentals;
+}
+
+/**
+ * If the query is a pure integer that exactly matches a book's numeric id,
+ * move that book to the front of the result list.
+ * All other books keep their original itemsjs relevance order.
+ */
+export function promoteExactIdMatch(
+  books: BookType[],
+  query: string,
+): BookType[] {
+  const trimmed = query.trim();
+  if (!/^\d+$/.test(trimmed)) return books; // not a bare integer — nothing to promote
+
+  const targetId = parseInt(trimmed, 10);
+  const exactIdx = books.findIndex((b) => b.id === targetId);
+
+  if (exactIdx <= 0) return books; // already first or not found
+  const promoted = books[exactIdx];
+  const rest = [...books];
+  rest.splice(exactIdx, 1);
+  return [promoted, ...rest];
 }

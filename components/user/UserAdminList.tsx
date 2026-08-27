@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import dayjs from "dayjs";
@@ -42,6 +43,7 @@ interface UserAdminListProps {
   searchString: string;
   checked: Record<string, boolean>;
   setChecked: (checked: Record<string, boolean>) => void;
+  renderLimit?: number;
 }
 
 interface UserRental {
@@ -90,6 +92,7 @@ export default function UserAdminList({
   searchString,
   checked,
   setChecked,
+  renderLimit,
 }: UserAdminListProps) {
   const rentalCountByUser = rentals.reduce<Record<number, number>>(
     (acc, rental) => {
@@ -113,6 +116,11 @@ export default function UserAdminList({
   }, [users]);
 
   const filteredUsers = filterUsers(users, searchString, rentals, false)[0];
+  const totalFilteredCount = filteredUsers.length;
+  const visibleUsers =
+    renderLimit !== undefined
+      ? filteredUsers.slice(0, renderLimit)
+      : filteredUsers;
 
   const getUserRentals = (userId: number): UserRental[] =>
     rentals.filter(
@@ -128,13 +136,13 @@ export default function UserAdminList({
       <div className="rounded-lg bg-primary/5 px-3 py-6 text-center">
         <p className="mb-1 text-base text-muted-foreground">
           {searchString
-            ? "Keine Benutzer gefunden"
-            : "Noch keine Benutzer vorhanden"}
+            ? t("userAdminList.noUsersSearch")
+            : t("userAdminList.noUsersEmpty")}
         </p>
         <p className="text-sm text-muted-foreground/60">
           {searchString
-            ? "Versuche einen anderen Suchbegriff"
-            : "Erstelle einen neuen Benutzer um zu beginnen"}
+            ? t("userAdminList.tryDifferentSearch")
+            : t("userAdminList.createNewToBegin")}
         </p>
       </div>
     );
@@ -143,7 +151,7 @@ export default function UserAdminList({
   return (
     <TooltipProvider delayDuration={300}>
       <Accordion type="single" collapsible className="space-y-1.5">
-        {filteredUsers.map((user: UserType) => {
+        {visibleUsers.map((user: UserType) => {
           const userId = user.id!.toString();
           const isChecked = checked[userId] ?? false;
           const userRentals = getUserRentals(user.id!);
@@ -187,8 +195,10 @@ export default function UserAdminList({
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          {rentalCount} {rentalCount === 1 ? "Buch" : "Bücher"}{" "}
-                          ausgeliehen
+                          {rentalCount}{" "}
+                          {rentalCount === 1
+                            ? t("userAdminList.booksRentedSingular")
+                            : t("userAdminList.booksRentedPlural")}
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -208,7 +218,7 @@ export default function UserAdminList({
                               />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Hat überfällige Bücher</p>
+                              <p>{t("userAdminList.hasOverdue")}</p>
                             </TooltipContent>
                           </Tooltip>
                         )}
@@ -219,7 +229,7 @@ export default function UserAdminList({
                           className="text-muted-foreground/50"
                         />
                         <span className="text-xs text-muted-foreground">
-                          Klasse {user.schoolGrade}
+                          {t("userAdminList.gradePrefix")} {user.schoolGrade}
                           {user.schoolTeacherName &&
                             ` · ${user.schoolTeacherName}`}
                         </span>
@@ -231,7 +241,7 @@ export default function UserAdminList({
                       variant="secondary"
                       className="hidden shrink-0 bg-primary/10 text-[0.7rem] text-muted-foreground sm:inline-flex"
                     >
-                      Nr. {user.id}
+                      {t("userAdminList.metaPrefix")} {user.id}
                     </Badge>
 
                     {/* Custom chevron */}
@@ -248,7 +258,7 @@ export default function UserAdminList({
                     <div className="mb-2.5 flex items-center gap-2">
                       <BookOpen size={16} className="text-primary" />
                       <span className="text-sm font-semibold text-primary">
-                        Ausgeliehene Bücher
+                        {t("userAdminList.rentalSection")}
                       </span>
                     </div>
 
@@ -256,7 +266,7 @@ export default function UserAdminList({
                     {userRentals.length === 0 ? (
                       <div className="rounded-md bg-success/15 px-3 py-2.5 text-center">
                         <span className="text-sm font-medium text-success">
-                          Keine ausgeliehenen Bücher
+                          {t("userAdminList.noBorrowedBooks")}
                         </span>
                       </div>
                     ) : (
@@ -310,7 +320,7 @@ export default function UserAdminList({
                           data-cy="user_card_editbutton"
                         >
                           <Pencil size={14} />
-                          Editieren
+                          {t("userAdminList.edit")}
                         </Button>
                       </Link>
 
@@ -332,7 +342,7 @@ export default function UserAdminList({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Benutzerlabel drucken</p>
+                          <p>{t("userAdminList.printUserLabel")}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -343,6 +353,15 @@ export default function UserAdminList({
           );
         })}
       </Accordion>
+
+      {renderLimit !== undefined && totalFilteredCount > renderLimit && (
+        <p className="mt-3 text-center text-sm text-muted-foreground">
+          {t("userAdminList.showingFirst", {
+            shown: renderLimit,
+            total: totalFilteredCount,
+          })}
+        </p>
+      )}
     </TooltipProvider>
   );
 }

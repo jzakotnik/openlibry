@@ -5,6 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/lib/i18n";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface HoldButtonProps {
@@ -17,12 +18,14 @@ interface HoldButtonProps {
 const HoldButton: React.FC<HoldButtonProps> = ({
   onClick,
   duration = 3000,
-  buttonLabel = "Löschen",
+  buttonLabel,
   "data-cy": dataCy,
 }) => {
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
   const onClickRef = useRef(onClick);
+
+  const resolvedLabel = buttonLabel ?? t("holdButton.deleteLabel");
 
   // Keep callback ref current without re-triggering the effect
   useEffect(() => {
@@ -74,12 +77,10 @@ const HoldButton: React.FC<HoldButtonProps> = ({
               }`}
               style={{ width: `${progress}%` }}
             />
-            <span className="relative z-10">{buttonLabel}</span>
+            <span className="relative z-10">{resolvedLabel}</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="top">
-          Zum Ausführen gedrückt halten
-        </TooltipContent>
+        <TooltipContent side="top">{t("holdButton.tooltip")}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

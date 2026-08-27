@@ -1,0 +1,12 @@
+{
+  "id": "zweckform-3679",
+  "name": "Avery Zweckform 3679",
+  "description": "Universal-Etiketten 97 × 55 mm, 10 Stück/Blatt (2 Spalten × 5 Reihen)",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 97, "height": 55 },
+  "grid": { "columns": 2, "rows": 5 },
+  "margins": { "top": 11, "left": 8, "right": 8, "bottom": 11 },
+  "gap": { "horizontal": 0, "vertical": 0 },
+  "labelsPerSheet": 10
+}

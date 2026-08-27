@@ -1,11 +1,22 @@
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Cross2Icon,
   GearIcon,
   HamburgerMenuIcon,
   ReaderIcon,
 } from "@radix-ui/react-icons";
+import { LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+
+import { t } from "@/lib/i18n";
+
 import { publicNavItems } from "./NavigationItems";
 
 interface TopBarProps {
@@ -19,6 +30,11 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
   const handleNavigation = (slug: string) => {
     setMobileMenuOpen(false);
     router.push(slug);
+  };
+
+  const handleLogout = () => {
+    setMobileMenuOpen(false);
+    signOut({ callbackUrl: "/auth/login" });
   };
 
   const isActivePage = (slug: string) => {
@@ -37,7 +53,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
   }, [mobileMenuOpen]);
 
   return (
-    <>
+    <TooltipProvider>
       {/* Sticky App Bar */}
       <nav
         data-cy="topbar"
@@ -67,7 +83,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
                 className="text-white font-bold text-lg tracking-wider"
                 data-cy="topbar_title_desktop"
               >
-                OpenLibry
+                {t("topbar.brand")}
               </span>
             </div>
 
@@ -75,7 +91,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
             <button
               className="md:hidden p-2 rounded-lg text-white mr-2 transition-colors hover:bg-white/10"
               onClick={() => setMobileMenuOpen(true)}
-              aria-label="Navigation öffnen"
+              aria-label={t("topbar.openMenu")}
               data-cy="topbar_menu_button_mobile"
             >
               <HamburgerMenuIcon width={24} height={24} />
@@ -91,7 +107,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
                 className="font-bold text-lg tracking-wide"
                 data-cy="topbar_title_mobile"
               >
-                OpenLibry
+                {t("topbar.brand")}
               </span>
             </div>
 
@@ -124,20 +140,39 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
 
             {/* Admin Button */}
             {showAdminButton && (
-              <button
-                onClick={() => router.push("/admin")}
-                aria-label="Administration"
-                title="Administration"
-                data-cy="topbar_admin_button"
-                className={`
-                  ml-2 p-2 rounded-lg text-white border border-white/20
-                  transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20
-                  ${isActivePage("/admin") ? "bg-white/20" : "bg-white/10"}
-                `}
-              >
-                <GearIcon width={24} height={24} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => router.push("/admin")}
+                    aria-label={t("topbar.admin")}
+                    data-cy="topbar_admin_button"
+                    className={`
+                      ml-2 p-2 rounded-lg text-white border border-white/20
+                      transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20
+                      ${isActivePage("/admin") ? "bg-white/20" : "bg-white/10"}
+                    `}
+                  >
+                    <GearIcon width={24} height={24} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{t("topbar.admin")}</TooltipContent>
+              </Tooltip>
             )}
+
+            {/* Logout Button - Desktop */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleLogout}
+                  aria-label={t("topbar.logout")}
+                  data-cy="topbar_logout_button"
+                  className="ml-2 p-2 rounded-lg text-white border border-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20 bg-white/10"
+                >
+                  <LogOut width={20} height={20} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{t("topbar.logout")}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </nav>
@@ -157,7 +192,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
       <div
         className={`
           fixed top-0 left-0 z-50 h-full w-[280px] flex flex-col
-        bg-card
+          bg-card
           transition-transform duration-300 ease-in-out
           ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
         `}
@@ -175,14 +210,16 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
               <ReaderIcon width={26} height={26} />
             </div>
             <div>
-              <div className="font-bold tracking-wide">OpenLibry</div>
-              <div className="text-white/70 text-xs">Bibliotheksverwaltung</div>
+              <div className="font-bold tracking-wide">{t("topbar.brand")}</div>
+              <div className="text-white/70 text-xs">
+                {t("topbar.tagline")}
+              </div>
             </div>
           </div>
           <button
             onClick={() => setMobileMenuOpen(false)}
             className="text-white/80 hover:text-white p-1"
-            aria-label="Menü schließen"
+            aria-label={t("topbar.closeMenu")}
           >
             <Cross2Icon width={24} height={24} />
           </button>
@@ -233,9 +270,9 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
           </ul>
         </nav>
 
-        {/* Admin Button in Drawer */}
-        {showAdminButton && (
-          <div className="px-4 pb-4 mt-auto">
+        {/* Bottom Actions: Admin + Logout */}
+        <div className="px-4 pb-4 mt-auto flex flex-col gap-2">
+          {showAdminButton && (
             <button
               onClick={() => handleNavigation("/admin")}
               data-cy="topbar_menu_item_admin"
@@ -250,11 +287,20 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
               `}
             >
               <GearIcon width={20} height={20} />
-              Administration
+              {t("topbar.admin")}
             </button>
-          </div>
-        )}
+          )}
+
+          <button
+            onClick={handleLogout}
+            data-cy="topbar_menu_logout"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium text-destructive border border-destructive/30 hover:bg-destructive/5 transition-colors"
+          >
+            <LogOut size={18} />
+            {t("topbar.logout")}
+          </button>
+        </div>
       </div>
-    </>
+    </TooltipProvider>
   );
 }

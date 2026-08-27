@@ -1,14 +1,16 @@
 import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import dayjs from "dayjs";
 
-import BookLabelsCard from "@/components/reports/cards/BookLabelsCard";
-import LinkCard from "@/components/reports/cards/LinkCard";
+import BookLabelEditorCard from "@/components/labels/BookLabelEditorCard";
+import BookLabelPrintCard from "@/components/labels/BookLabelPrintCard";
+import ExcelCard from "@/components/reports/cards/ExcelCard";
+import PdfCatalogCard from "@/components/reports/cards/PdfCatalogCard";
 import ReminderCard from "@/components/reports/cards/ReminderCard";
 import ReportCard from "@/components/reports/cards/ReportCard";
 import UserLabelsCard from "@/components/reports/cards/UserLabelsCard";
-import { useBookLabelFilters } from "@/components/reports/hooks/useBookLabelFilters";
 import { useUserLabelFilters } from "@/components/reports/hooks/useUserLabelFilters";
 import TagCloudDashboard from "@/components/reports/TagCloud";
 import { countAudit } from "@/entities/audit";
@@ -44,7 +46,6 @@ export default function Reports({
   schoolGradeSet,
   auditCount = 0,
 }: ReportPropsType) {
-  const bookLabelFilters = useBookLabelFilters();
   const userLabelFilters = useUserLabelFilters();
 
   return (
@@ -54,68 +55,54 @@ export default function Reports({
         data-cy="reports-grid"
       >
         <ReportCard
-          title="Nutzerinnen"
-          subtitle="Liste aller Nutzerinnen"
-          unit="users"
+          title={t("reportsPage.cardUsers.title")}
+          subtitle={t("reportsPage.cardUsers.subtitle")}
+          unit={t("reportsPage.cardUsers.unit")}
           totalNumber={users.length}
           link="reports/users"
+          dataCyId="users"
         />
         <ReportCard
-          title="Bücher"
-          subtitle="Liste aller Bücher"
-          unit="books"
+          title={t("reportsPage.cardBooks.title")}
+          subtitle={t("reportsPage.cardBooks.subtitle")}
+          unit={t("reportsPage.cardBooks.unit")}
           totalNumber={books.length}
           link="reports/books"
+          dataCyId="books"
         />
         <ReportCard
-          title="Leihen"
-          subtitle="Liste aller Leihen"
-          unit="rentals"
+          title={t("reportsPage.cardRentals.title")}
+          subtitle={t("reportsPage.cardRentals.subtitle")}
+          unit={t("reportsPage.cardRentals.unit")}
           totalNumber={rentals.length}
           link="reports/rentals"
+          dataCyId="rentals"
         />
-        <LinkCard
-          title="Excel Export"
-          subtitle="Excel Export der Daten"
-          buttonTitle="Download Excel"
-          link="api/excel"
-          dataCy="excel-export-card"
-        />
-        <LinkCard
-          title="Excel Import"
-          subtitle="Excel Import der Daten"
-          buttonTitle="Upload Excel"
-          link="reports/xlsimport"
-          dataCy="excel-import-card"
+        <ExcelCard dataCy="excel-card" />
+        <ReportCard
+          title={t("reportsPage.cardUserHistory.title")}
+          subtitle={t("reportsPage.cardUserHistory.subtitle")}
+          unit={t("reportsPage.cardUserHistory.unit")}
+          totalNumber={rentals.length}
+          link="reports/userhistory"
+          dataCyId="userhistory"
         />
         <ReportCard
-          title="Historie"
-          subtitle="Aktivitäten Bücher/User"
-          unit="Einträge"
+          title={t("reportsPage.cardAudit.title")}
+          subtitle={t("reportsPage.cardAudit.subtitle")}
+          unit={t("reportsPage.cardAudit.unit")}
           totalNumber={auditCount}
           link="reports/audit"
+          dataCyId="audit"
         />
-        <BookLabelsCard
-          title="Buch Etiketten"
-          subtitle=""
-          unit="Etiketten"
-          link="api/report/booklabels"
-          totalNumber={books.length}
-          startLabel={bookLabelFilters.startLabel}
-          setStartLabel={bookLabelFilters.setStartLabel}
-          startId={bookLabelFilters.startId}
-          setStartId={bookLabelFilters.setStartId}
-          endId={bookLabelFilters.endId}
-          setEndId={bookLabelFilters.setEndId}
-          idFilter={bookLabelFilters.idFilter}
-          setIdFilter={bookLabelFilters.setIdFilter}
-          topicsFilter={bookLabelFilters.topicsFilter}
-          setTopicsFilter={bookLabelFilters.setTopicsFilter}
-          allTopics={tagSet}
-        />
+        {/* Etiketten cards stacked in one column */}
+        <div className="flex flex-col gap-3">
+          <BookLabelPrintCard />
+          <BookLabelEditorCard />
+        </div>
         <UserLabelsCard
-          title="Ausweise"
-          subtitle="Liste aller Ausweise"
+          title={t("reportsPage.cardUserLabels.title")}
+          subtitle={t("reportsPage.cardUserLabels.subtitle")}
           link="api/report/userlabels"
           totalNumber={users.length}
           startLabel={userLabelFilters.startLabel}
@@ -131,13 +118,15 @@ export default function Reports({
           allTopics={schoolGradeSet}
         />
         <ReminderCard
-          title="Mahnungen"
-          subtitle="Ausdruck der Mahnungen als Word-Dokument"
+          title={t("reportsPage.cardReminder.title")}
+          subtitle={t("reportsPage.cardReminder.subtitle")}
           link="/api/report/reminder"
           overdueCount={overdueCount}
           nonExtendableCount={nonExtendableCount}
-        />{" "}
-      </div>{" "}
+        />
+
+        <PdfCatalogCard />
+      </div>
       <TagCloudDashboard tagsSet={tagSet} />
     </Layout>
   );
@@ -186,11 +175,9 @@ export async function getServerSideProps() {
     };
   });
 
-  // Pre-compute topic and school grade counts on the server
   const tagSet = getBookTopicCounts(allBooks);
   const schoolGradeSet = getSchoolGradeCounts(allUsers);
 
-  // Pre-compute reminder counts for the ReminderCard
   const overdueRentals = rentals.filter((r) => r.remainingDays > 0);
   const overdueCount = new Set(
     overdueRentals.map((r) => r.userid).filter(Boolean),

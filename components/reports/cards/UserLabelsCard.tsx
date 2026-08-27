@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 import { type TopicCount } from "./cardConstants";
@@ -98,7 +99,9 @@ export default function UserLabelsCard({
       <CardContent className="space-y-3">
         {/* Count */}
         <div className="space-y-1.5">
-          <Label htmlFor="user-label-count">Anzahl Etiketten</Label>
+          <Label htmlFor="user-label-count">
+            {t("userLabelsCard.countLabel")}
+          </Label>
           <Input
             id="user-label-count"
             type="number"
@@ -112,7 +115,9 @@ export default function UserLabelsCard({
             data-cy="user-labels-count-input"
           />
           {startLabel > totalNumber && (
-            <p className="text-xs text-destructive">So viele gibt es nicht?</p>
+            <p className="text-xs text-destructive">
+              {t("userLabelsCard.countTooMany")}
+            </p>
           )}
         </div>
 
@@ -120,11 +125,13 @@ export default function UserLabelsCard({
 
         {/* ID Range */}
         <p className="text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">
-          ID-Bereich
+          {t("userLabelsCard.idRangeHeading")}
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="idUserRangeFrom">Von ID</Label>
+            <Label htmlFor="idUserRangeFrom">
+              {t("userLabelsCard.fromId")}
+            </Label>
             <Input
               id="idUserRangeFrom"
               type="number"
@@ -134,7 +141,7 @@ export default function UserLabelsCard({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="idUserRangeTo">Bis ID</Label>
+            <Label htmlFor="idUserRangeTo">{t("userLabelsCard.toId")}</Label>
             <Input
               id="idUserRangeTo"
               type="number"
@@ -149,11 +156,13 @@ export default function UserLabelsCard({
 
         {/* Filters */}
         <p className="text-[0.6875rem] font-semibold text-muted-foreground uppercase tracking-wider">
-          Filter
+          {t("userLabelsCard.filtersHeading")}
         </p>
 
         <div className="space-y-1.5">
-          <Label htmlFor="user-label-single-id">Etikett für UserID</Label>
+          <Label htmlFor="user-label-single-id">
+            {t("userLabelsCard.singleIdLabel")}
+          </Label>
           <Input
             id="user-label-single-id"
             type="number"
@@ -165,7 +174,7 @@ export default function UserLabelsCard({
 
         {/* School grade combobox */}
         <div className="space-y-1.5">
-          <Label>Klassen Filter</Label>
+          <Label>{t("userLabelsCard.classFilterLabel")}</Label>
           <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -177,15 +186,19 @@ export default function UserLabelsCard({
               >
                 {topicsFilter
                   ? `${topicsFilter.topic} (${topicsFilter.count})`
-                  : "Klasse auswählen…"}
+                  : t("userLabelsCard.classSelectPlaceholder")}
                 <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
               <Command>
-                <CommandInput placeholder="Suche Klasse…" />
+                <CommandInput
+                  placeholder={t("userLabelsCard.classSearchPlaceholder")}
+                />
                 <CommandList>
-                  <CommandEmpty>Keine Klasse gefunden.</CommandEmpty>
+                  <CommandEmpty>
+                    {t("userLabelsCard.classNotFound")}
+                  </CommandEmpty>
                   <CommandGroup>
                     {topicsFilter && (
                       <CommandItem
@@ -196,7 +209,7 @@ export default function UserLabelsCard({
                         }}
                         className="text-muted-foreground italic"
                       >
-                        Filter zurücksetzen
+                        {t("userLabelsCard.filterClear")}
                       </CommandItem>
                     )}
                     {allTopics.map((option) => (
@@ -237,7 +250,7 @@ export default function UserLabelsCard({
           className="text-primary hover:bg-primary/5 font-semibold"
           data-cy="user-labels-generate-button"
         >
-          Erzeuge PDF
+          {t("userLabelsCard.generatePdf")}
         </Button>
       </CardFooter>
     </Card>

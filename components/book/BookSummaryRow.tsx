@@ -1,8 +1,5 @@
-import { CheckCircle, Copy, XCircle } from "lucide-react";
-import { useRouter } from "next/router";
-import { useMemo } from "react";
-
 import { Badge } from "@/components/ui/badge";
+
 import {
   Tooltip,
   TooltipContent,
@@ -10,14 +7,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import { t } from "@/lib/i18n";
+import { CheckCircle, Copy, Layers, XCircle } from "lucide-react";
+import { useRouter } from "next/router";
+import { useMemo } from "react";
 const MAX_TOPICS_LENGTH = 10;
 interface BookSummaryRowPropType {
   book: BookType;
+  count?: number;
   handleCopyBook: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export default function BookSummaryRow({
   book,
+  count = 1,
   handleCopyBook,
 }: BookSummaryRowPropType) {
   const router = useRouter();
@@ -62,7 +65,7 @@ export default function BookSummaryRow({
           )}
         </div>
 
-        {/* Title + subtitle + author (grows) */}
+        {/* Title + subtitle + author */}
         <div className="min-w-0 flex-1">
           <p
             className="truncate text-sm font-semibold leading-tight text-foreground"
@@ -103,17 +106,43 @@ export default function BookSummaryRow({
           )}
         </div>
 
-        {/* Actions (don't trigger row click) */}
+        {/* Actions */}
         <div
-          className="ml-auto flex items-center"
+          className="ml-auto flex items-center gap-1"
           onClick={(e) => e.stopPropagation()}
         >
+          {count > 1 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-1 rounded-md
+                       px-2 text-xs font-semibold text-muted-foreground
+                       hover:bg-primary/10 hover:text-primary transition-colors"
+                    aria-label="show-all-copies"
+                    onClick={() =>
+                      router.push(
+                        `/book?q=${encodeURIComponent(book.isbn ?? "")}`,
+                      )
+                    }
+                    data-cy={`book_copies_button_${book.id}`}
+                  >
+                    <Layers className="h-4 w-4" />×{count}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t("bookPage.isbnCopies", { count })}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   className="inline-flex h-9 w-9 items-center justify-center rounded-md
-                             text-primary hover:bg-primary/10 transition-colors"
+                     text-primary hover:bg-primary/10 transition-colors"
                   aria-label="copy-book"
                   onClick={handleCopyBook}
                   data-cy={`book_copy_button_${book.id}`}

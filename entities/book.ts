@@ -4,7 +4,10 @@ import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
+import fs from "fs/promises";
+import path from "path";
 import { addAudit } from "./audit";
+import { PublicBookType } from "./PublicBookType";
 import { getUser } from "./user";
 
 const rentalConfig = getRentalConfig();
@@ -58,6 +61,50 @@ export async function getAllBooks(client: PrismaClient) {
           error: e instanceof Error ? e.message : String(e),
         },
         "Error getting all books",
+      );
+    }
+    throw e;
+  }
+}
+
+export async function getPublicBooks(
+  client: PrismaClient,
+): Promise<PublicBookType[]> {
+  try {
+    const rawBooks = await client.book.findMany({
+      select: {
+        id: true,
+        title: true,
+        author: true,
+        isbn: true,
+        topics: true,
+        rentalStatus: true,
+      },
+      orderBy: { title: "asc" },
+    });
+
+    return rawBooks.map((b) => ({
+      id: b.id,
+      title: b.title,
+      author: b.author,
+      isbn: b.isbn,
+      topics: b.topics,
+      rentalStatus: b.rentalStatus,
+      // Cover is served by /api/images/[id]; auth-excluded in middleware.ts
+      coverUrl: `/api/images/${b.id}`,
+    }));
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError ||
+      e instanceof Prisma.PrismaClientValidationError
+    ) {
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          operation: "getPublicBooks",
+          error: e instanceof Error ? e.message : String(e),
+        },
+        "Error getting public books",
       );
     }
     throw e;
@@ -229,12 +276,63 @@ export async function updateBook(
       book.id ? book.id.toString() + ", " + book.title : "undefined",
       id,
     );
-    return await client.book.update({
-      where: {
-        id,
-      },
-      data: { ...bookData },
-    });
+
+    const transaction: any[] = [];
+
+    transaction.push(
+      client.book.update({
+        where: {
+          id,
+        },
+        data: { ...bookData },
+      }),
+    );
+
+    // Invariant: a book may only stay connected to a user while it's
+    // actually "rented". If the status is being changed to anything else
+    // (lost, broken, available, ...), sever the connection here too -
+    // otherwise the book keeps a dangling userId and gets cascade-deleted
+    // if that user is later removed, even though it's no longer their book.
+    if (bookData.rentalStatus !== "rented") {
+      const current = await client.book.findUnique({
+        where: { id },
+        select: { userId: true },
+      });
+
+      if (current?.userId) {
+        transaction.push(
+          client.user.update({
+            where: { id: current.userId },
+            data: {
+              books: {
+                disconnect: { id },
+              },
+            },
+          }),
+        );
+
+        await addAudit(
+          client,
+          "Update book - rental connection severed",
+          `book id ${id}, ${book.title}, status changed to "${bookData.rentalStatus}", disconnected from user id ${current.userId}`,
+          id,
+          current.userId,
+        );
+
+        businessLogger.info(
+          {
+            event: LogEvents.BOOK_UPDATED,
+            bookId: id,
+            userId: current.userId,
+            newRentalStatus: bookData.rentalStatus,
+          },
+          "Book status changed away from 'rented' - severed user connection",
+        );
+      }
+    }
+
+    const [updatedBook] = await client.$transaction(transaction);
+    return updatedBook;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -258,11 +356,36 @@ export async function updateBook(
 export async function deleteBook(client: PrismaClient, id: number) {
   try {
     await addAudit(client, "Delete book", id.toString(), id);
-    return await client.book.delete({
+    const deletedBook = await client.book.delete({
       where: {
         id,
       },
     });
+
+    const storagePath = process.env.COVERIMAGE_FILESTORAGE_PATH;
+
+    if (storagePath) {
+      const fileName = `${id}.jpg`;
+      const filePath = path.join(storagePath, fileName);
+
+      try {
+        // Löschversuch der .jpg Datei
+        await fs.unlink(filePath);
+      } catch (fileError: any) {
+        // Falls die Datei gar nicht existiert, ignorieren.
+        if (fileError.code !== "ENOENT") {
+          errorLogger.warn(
+            {
+              bookId: id,
+              error: fileError.message,
+              path: filePath,
+            },
+            "Bilddatei konnte nicht gelöscht werden",
+          );
+        }
+      }
+    }
+    return deletedBook;
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||
@@ -312,8 +435,10 @@ export async function extendBook(
     const book = await getBook(client, bookid);
     if (!book?.dueDate) return null; // you can't extend a book without a due date
 
-    const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
-
+    //
+    // this was using the last due date instead of today
+    // const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
+    const updatedDueDate = dayjs().add(days, "day").toISOString();
     const updatedBook = await client.book.update({
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },

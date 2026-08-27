@@ -58,13 +58,15 @@ Bearbeite die `.env`-Datei:
 nano .env
 ```
 
-Wichtige Einstellungen:
+Wichtige Einstellungen die Du einstellen solltest:
 
 ```env
 AUTH_ENABLED=false
 NEXTAUTH_SECRET=dein-geheimer-schluessel-hier
 NEXTAUTH_URL=http://localhost:3000
 DATABASE_URL=file:./database/dev.db
+# Ordner wo die Bilder der Cover gespeichtert werden sollten:
+COVERIMAGE_FILESTORAGE_PATH=./database
 ```
 
 **Hinweise:**

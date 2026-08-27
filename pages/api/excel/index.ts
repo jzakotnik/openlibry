@@ -3,6 +3,7 @@ import { UserType } from "@/entities/UserType";
 import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
+import { t } from "@/lib/i18n";
 import {
   convertDateToDayString,
   convertDayToISOString,
@@ -14,9 +15,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb", // bump as needed
+    },
+  },
+};
+
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   switch (req.method) {
     case "GET":
@@ -44,6 +53,9 @@ export default async function handle(
         });
 
         const workbook = new Excel.Workbook();
+        // Worksheet names are wire-protocol identifiers — pinned to German
+        // across all locales. Cypress fixtures + the import path read them
+        // by name. See xlsColumnsMapping.ts for column header pinning.
         const booksheet = workbook.addWorksheet("Bücherliste");
         const usersheet = workbook.addWorksheet("Userliste");
 
@@ -64,7 +76,7 @@ export default async function handle(
             userCount: users.length,
             fileName,
           },
-          "Excel export completed"
+          "Excel export completed",
         );
 
         res.writeHead(200, {
@@ -83,14 +95,14 @@ export default async function handle(
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
           },
-          "Failed to export Excel file"
+          "Failed to export Excel file",
         );
         res.status(400).json({ data: "ERROR: " + error });
       }
       break;
 
     case "POST":
-      const importLog = ["Starte den Transfer in die Datenbank"];
+      const importLog = [t("excelApi.logTransferStarted")];
 
       try {
         const importBooks = req.body.importBooks !== false;
@@ -109,7 +121,7 @@ export default async function handle(
             bookCount: bookData.length,
             userCount: userData.length,
           },
-          "Excel import started"
+          "Excel import started",
         );
 
         // Validation
@@ -119,10 +131,10 @@ export default async function handle(
               event: LogEvents.IMPORT_EXCEL_FAILED,
               reason: "No import option selected",
             },
-            "Excel import rejected - no import options"
+            "Excel import rejected - no import options",
           );
           return res.status(400).json({
-            data: "ERROR: Mindestens eine Import-Option (Bücher oder User) muss aktiviert sein",
+            data: t("excelApi.errNoOptionSelected"),
             logs: importLog,
           });
         }
@@ -133,10 +145,10 @@ export default async function handle(
               event: LogEvents.IMPORT_EXCEL_FAILED,
               reason: "Books import enabled but no book data",
             },
-            "Excel import rejected - missing book data"
+            "Excel import rejected - missing book data",
           );
           return res.status(400).json({
-            data: "ERROR: Bücher-Import aktiviert, aber keine Bücher-Daten vorhanden",
+            data: t("excelApi.errNoBookData"),
             logs: importLog,
           });
         }
@@ -147,19 +159,26 @@ export default async function handle(
               event: LogEvents.IMPORT_EXCEL_FAILED,
               reason: "Users import enabled but no user data",
             },
-            "Excel import rejected - missing user data"
+            "Excel import rejected - missing user data",
           );
           return res.status(400).json({
-            data: "ERROR: User-Import aktiviert, aber keine User-Daten vorhanden",
+            data: t("excelApi.errNoUserData"),
             logs: importLog,
           });
         }
 
         importLog.push(
-          `Import-Einstellungen: Bücher=${importBooks}, User=${importUsers}, Vorher löschen=${dropBeforeImport}`
+          t("excelApi.logImportSettings", {
+            importBooks: String(importBooks),
+            importUsers: String(importUsers),
+            dropBeforeImport: String(dropBeforeImport),
+          }),
         );
         importLog.push(
-          `Header Zeilen aus Excel entfernt, damit bleiben ${bookData.length} Bücher und ${userData.length} User`
+          t("excelApi.logHeaderRowsRemoved", {
+            bookCount: bookData.length,
+            userCount: userData.length,
+          }),
         );
 
         businessLogger.debug(
@@ -168,7 +187,7 @@ export default async function handle(
             sampleBooks: bookData.slice(0, 2),
             sampleUsers: userData.slice(0, 2),
           },
-          "Excel import data sample"
+          "Excel import data sample",
         );
 
         const transaction = [];
@@ -179,11 +198,11 @@ export default async function handle(
         if (dropBeforeImport) {
           if (importBooks) {
             transaction.push(prisma.book.deleteMany({}));
-            importLog.push("Alle Bücher werden vor dem Import gelöscht");
+            importLog.push(t("excelApi.logDropAllBooks"));
           }
           if (importUsers) {
             transaction.push(prisma.user.deleteMany({}));
-            importLog.push("Alle User werden vor dem Import gelöscht");
+            importLog.push(t("excelApi.logDropAllUsers"));
           }
 
           businessLogger.warn(
@@ -192,7 +211,7 @@ export default async function handle(
               dropBooks: importBooks,
               dropUsers: importUsers,
             },
-            "Excel import will delete existing data before import"
+            "Excel import will delete existing data before import",
           );
         }
 
@@ -209,13 +228,15 @@ export default async function handle(
                   schoolTeacherName: u["Lehrkraft"],
                   active: u["Freigeschaltet"],
                 },
-              })
+              }),
             );
             userImportedCount++;
           });
-          importLog.push(`${userImportedCount} User werden importiert`);
+          importLog.push(
+            t("excelApi.logUsersImporting", { count: userImportedCount }),
+          );
         } else if (!importUsers) {
-          importLog.push("User-Import übersprungen (Flag nicht gesetzt)");
+          importLog.push(t("excelApi.logUsersSkipped"));
         }
 
         // Import books after users
@@ -231,7 +252,7 @@ export default async function handle(
                   renewalCount: b["Anzahl Verlängerungen"],
                   title: b["Titel"],
                   subtitle: b["Untertitel"],
-                  author: b["Autor"],
+                  author: b["Autor"] || "n/a",
                   topics: b["Schlagworte"] || "",
                   imageLink: b["Bild"],
                   isbn: b["ISBN"]?.toString() || "",
@@ -252,24 +273,24 @@ export default async function handle(
                   externalLinks: b["Links"],
                   userId: b["Ausgeliehen von"],
                 },
-              })
+              }),
             );
             bookImportedCount++;
           });
-          importLog.push(`${bookImportedCount} Bücher werden importiert`);
+          importLog.push(
+            t("excelApi.logBooksImporting", { count: bookImportedCount }),
+          );
         } else if (!importBooks) {
-          importLog.push("Bücher-Import übersprungen (Flag nicht gesetzt)");
+          importLog.push(t("excelApi.logBooksSkipped"));
         }
 
         // Execute transaction
         if (transaction.length > 0) {
-          importLog.push(
-            "Transaction für alle Daten erzeugt, importiere jetzt"
-          );
+          importLog.push(t("excelApi.logTransactionCreated"));
           await prisma.$transaction(transaction);
-          importLog.push("Daten erfolgreich importiert");
+          importLog.push(t("excelApi.logTransactionDone"));
         } else {
-          importLog.push("Keine Daten zum Importieren");
+          importLog.push(t("excelApi.logNoData"));
         }
 
         businessLogger.info(
@@ -279,7 +300,7 @@ export default async function handle(
             booksImported: bookImportedCount,
             dropBeforeImport,
           },
-          "Excel import completed successfully"
+          "Excel import completed successfully",
         );
 
         res.status(200).json({
@@ -299,10 +320,12 @@ export default async function handle(
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
           },
-          "Excel import failed"
+          "Excel import failed",
         );
 
-        importLog.push("Fehler beim Import: " + (error as Error).toString());
+        importLog.push(
+          t("excelApi.logImportFailed", { error: (error as Error).toString() }),
+        );
         res.status(400).json({ data: "ERROR: " + error, logs: importLog });
       }
       break;
@@ -315,7 +338,7 @@ export default async function handle(
           method: req.method,
           reason: "Method not allowed",
         },
-        "Unsupported HTTP method for Excel endpoint"
+        "Unsupported HTTP method for Excel endpoint",
       );
       res.status(405).end(`${req.method} Not Allowed`);
       break;

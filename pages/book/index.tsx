@@ -1,16 +1,18 @@
 import Layout from "@/components/layout/Layout";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import BookSearchBar from "@/components/book/BookSearchBar";
 import BookSummaryCard from "@/components/book/BookSummaryCard";
-import BookSummaryRow from "@/components/book/BookSummaryRow";
+
+import SummaryRowContainer from "@/components/book/SummaryRowContainer";
 import { getAllBooks } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import { toast } from "sonner";
 
@@ -31,6 +33,7 @@ interface DetailCardContainerProps {
   numberBooksToShow: number;
   onLoadMore: () => void;
   onReturnBook: (id: number, userId: number) => void;
+  onTopicClick: (topic: string) => void;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -40,6 +43,7 @@ const DetailCardContainer = memo(function DetailCardContainer({
   pageIndex,
   onLoadMore,
   onReturnBook,
+  onTopicClick,
 }: DetailCardContainerProps) {
   return (
     <div>
@@ -52,6 +56,7 @@ const DetailCardContainer = memo(function DetailCardContainer({
             key={b.id}
             book={b}
             returnBook={() => onReturnBook(b.id!, b.userId!)}
+            onTopicClick={onTopicClick}
           />
         ))}
       </div>
@@ -61,7 +66,8 @@ const DetailCardContainer = memo(function DetailCardContainer({
             onClick={onLoadMore}
             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
           >
-            Weitere Bücher... {Math.max(0, renderedBooks.length - pageIndex)}
+            {t("bookPage.loadMore")}{" "}
+            {Math.max(0, renderedBooks.length - pageIndex)}
           </button>
         </div>
       )}
@@ -76,35 +82,6 @@ interface SummaryRowContainerProps {
   onCopyBook: (book: BookType) => void;
 }
 
-const SummaryRowContainer = memo(function SummaryRowContainer({
-  renderedBooks,
-  pageIndex,
-  onLoadMore,
-  onCopyBook,
-}: SummaryRowContainerProps) {
-  return (
-    <div className="flex flex-col gap-2 w-full">
-      {renderedBooks.slice(0, pageIndex).map((b: BookType) => (
-        <BookSummaryRow
-          key={b.id}
-          book={b}
-          handleCopyBook={() => onCopyBook(b)}
-        />
-      ))}
-      {renderedBooks.length - pageIndex > 0 && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={onLoadMore}
-            className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
-          >
-            Weitere Bücher... {Math.max(0, renderedBooks.length - pageIndex)}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-});
-
 // =============================================================================
 // Page Component
 // =============================================================================
@@ -115,6 +92,13 @@ export default function Books({
   maxBooks,
 }: BookPropsType) {
   const router = useRouter();
+  const { query } = useRouter();
+  useEffect(() => {
+    if (typeof query.q === "string" && query.q) {
+      handleInputChange(query.q);
+      setDetailView(true);
+    }
+  }, [query.q]);
 
   const { data: freshData, mutate } = useSWR("/api/book", fetcher, {
     fallbackData: { books: initialBooks },
@@ -176,9 +160,7 @@ export default function Books({
   const handleCopyBook = useCallback(
     (_book: BookType) => {
       router.push("/book/new");
-      toast.info(
-        "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
-      );
+      toast.info(t("bookPage.toastCreateNewBook"));
     },
     [router],
   );
@@ -194,10 +176,10 @@ export default function Books({
         .then((res) => res.json())
         .then(() => {
           mutate();
-          toast.success("Buch zurückgegeben");
+          toast.success(t("bookPage.toastBookReturned"));
         })
         .catch(() => {
-          toast.error("Fehler beim Zurückgeben des Buches");
+          toast.error(t("bookPage.toastReturnError"));
         });
     },
     [mutate],
@@ -211,6 +193,14 @@ export default function Books({
   const handleLoadMore = useCallback(() => {
     setPageIndex((prev) => prev + numberBooksToShow);
   }, [numberBooksToShow]);
+  const handleTopicClick = useCallback(
+    (topic: string) => {
+      handleInputChange(topic);
+      setDetailView(true);
+      setPageIndex(numberBooksToShow);
+    },
+    [handleInputChange, numberBooksToShow],
+  );
 
   return (
     <Layout>
@@ -229,6 +219,7 @@ export default function Books({
           numberBooksToShow={numberBooksToShow}
           onLoadMore={handleLoadMore}
           onReturnBook={handleReturnBook}
+          onTopicClick={handleTopicClick}
         />
       ) : (
         <SummaryRowContainer

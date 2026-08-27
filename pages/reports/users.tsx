@@ -3,6 +3,7 @@ import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { getAllUsers } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
   Document,
@@ -21,6 +22,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import Excel from "exceljs";
 import { Download, FileText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -45,7 +47,7 @@ function getWidth(columnName: string = ""): number {
 }
 
 // =============================================================================
-// PDF Styles (unchanged)
+// PDF Styles
 // =============================================================================
 
 const pdfStyles = StyleSheet.create({
@@ -146,7 +148,7 @@ const pdfStyles = StyleSheet.create({
 });
 
 // =============================================================================
-// PDF Document Component (unchanged)
+// PDF Document Component
 // =============================================================================
 
 interface UsersPdfProps {
@@ -160,7 +162,8 @@ const UsersPdfDocument = ({
   inactiveUsers,
   columns,
 }: UsersPdfProps) => {
-  const today = new Date().toLocaleDateString("de-DE");
+  const today = dayjs().format(t("pdfDocs.dateFormat"));
+  const total = activeUsers.length + inactiveUsers.length;
 
   const getColumnHeader = (field: string) => {
     const col = columns.find((c) => c.field === field);
@@ -259,19 +262,21 @@ const UsersPdfDocument = ({
     <Document>
       <Page size="A4" style={pdfStyles.page}>
         <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>Nutzerübersicht</Text>
+          <Text style={pdfStyles.title}>{t("pdfUsers.titleUsers")}</Text>
           <Text style={pdfStyles.subtitle}>
-            Erstellt am {today} • {activeUsers.length + inactiveUsers.length}{" "}
-            Nutzer gesamt
+            {t("pdfDocs.createdOn", { date: today })} •{" "}
+            {t("pdfUsers.subtitleTotal", { total })}
             {inactiveUsers.length > 0
-              ? ` • davon ${inactiveUsers.length} inaktiv`
+              ? t("pdfUsers.subtitleInactive", {
+                  inactive: inactiveUsers.length,
+                })
               : ""}
           </Text>
         </View>
 
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
-            👥 Aktive Nutzer ({activeUsers.length})
+            {t("pdfUsers.sectionActive", { count: activeUsers.length })}
           </Text>
           {activeUsers.length > 0 ? (
             <View style={pdfStyles.table}>
@@ -281,14 +286,16 @@ const UsersPdfDocument = ({
               ))}
             </View>
           ) : (
-            <Text style={pdfStyles.emptyMessage}>Keine aktiven Nutzer</Text>
+            <Text style={pdfStyles.emptyMessage}>
+              {t("pdfUsers.emptyActive")}
+            </Text>
           )}
         </View>
 
         {inactiveUsers.length > 0 && (
           <View style={pdfStyles.section}>
             <Text style={pdfStyles.sectionTitleInactive}>
-              Inaktive Nutzer ({inactiveUsers.length})
+              {t("pdfUsers.sectionInactive", { count: inactiveUsers.length })}
             </Text>
             <View style={pdfStyles.table}>
               <TableHeader />
@@ -300,7 +307,7 @@ const UsersPdfDocument = ({
         )}
 
         <Text style={pdfStyles.footer}>
-          OpenLibry • Nutzerbericht vom {today}
+          {t("pdfUsers.footer", { date: today })}
         </Text>
       </Page>
     </Document>
@@ -308,7 +315,7 @@ const UsersPdfDocument = ({
 };
 
 // =============================================================================
-// Excel & PDF export functions (unchanged)
+// Excel & PDF export functions
 // =============================================================================
 
 async function exportToPdf(
@@ -505,10 +512,17 @@ export default function Users({ users }: UsersPropsType) {
                 className="text-base font-bold text-primary"
                 data-cy="users-status"
               >
-                👥 {totalCount} Nutzer • {uniqueGrades} Klassen
+                {t(
+                  totalCount === 1
+                    ? "reportUsersPage.statusBaseOne"
+                    : "reportUsersPage.statusBaseMany",
+                  { totalCount, grades: uniqueGrades },
+                )}
                 {inactiveCount > 0 && (
                   <span className="font-normal text-gray-500 ml-1">
-                    ({inactiveCount} inaktiv)
+                    {t("reportUsersPage.statusInactiveSuffix", {
+                      inactiveCount,
+                    })}
                   </span>
                 )}
               </h2>
@@ -526,7 +540,7 @@ export default function Users({ users }: UsersPropsType) {
                   "
                 >
                   <Download size={16} />
-                  Excel Export
+                  {t("reportTable.excelExport")}
                 </button>
                 <button
                   type="button"
@@ -541,7 +555,7 @@ export default function Users({ users }: UsersPropsType) {
                   "
                 >
                   <FileText size={16} />
-                  PDF Export
+                  {t("reportTable.pdfExport")}
                 </button>
               </div>
             </div>
@@ -621,7 +635,7 @@ export default function Users({ users }: UsersPropsType) {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>Zeilen pro Seite:</span>
+                <span>{t("reportTable.rowsPerPage")}</span>
                 <select
                   value={table.getState().pagination.pageSize}
                   onChange={(e) => table.setPageSize(Number(e.target.value))}
@@ -640,7 +654,10 @@ export default function Users({ users }: UsersPropsType) {
 
               <div className="flex items-center gap-2">
                 <span>
-                  Seite {pageIndex + 1} von {pageCount}
+                  {t("reportTable.pageOfTotal", {
+                    page: pageIndex + 1,
+                    total: pageCount,
+                  })}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -684,7 +701,7 @@ export default function Users({ users }: UsersPropsType) {
             className="text-muted-foreground py-8 text-center"
             data-cy="users-no-data"
           >
-            Keine Daten verfügbar
+            {t("reportTable.noData")}
           </p>
         )}
       </div>

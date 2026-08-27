@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import { t } from "@/lib/i18n";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -17,7 +18,6 @@ import {
   RefreshCw,
   Server,
   Settings,
-  Tag,
   User,
 } from "lucide-react";
 import Head from "next/head";
@@ -58,154 +58,255 @@ interface ConfigSection {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Translation helpers
+//
+// Built once at module load — locale is fixed per deployment, so this is safe
+// and avoids re-evaluating t() on every render. Same pattern as
+// renewalCountOptions in BookSelect.tsx and errorMessages in error.tsx.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const tf = (sectionId: string, fieldKey: string, leaf: string): string =>
+  t(`admin.sections.${sectionId}.fields.${fieldKey}.${leaf}`);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Config schema
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CONFIG_SECTIONS: ConfigSection[] = [
   {
     id: "technical",
-    title: "Technische Konfiguration",
-    description: "Datenbankverbindung, Authentifizierung und Serverpfade",
+    title: t("admin.sections.technical.title"),
+    description: t("admin.sections.technical.description"),
     icon: Server,
     fields: [
       {
         key: "DATABASE_URL",
-        label: "Datenbankpfad",
-        description:
-          "Pfad zur SQLite-Datenbankdatei. Relativ zum Anwendungsverzeichnis.",
-        hint: "Beispiel: file:./database/dev.db — der Ordner muss existieren und beschreibbar sein.",
+        label: tf("technical", "DATABASE_URL", "label"),
+        description: tf("technical", "DATABASE_URL", "description"),
+        hint: tf("technical", "DATABASE_URL", "hint"),
         type: "text",
         default: "file:./database/dev.db",
         required: true,
       },
       {
         key: "NEXTAUTH_URL",
-        label: "Anwendungs-URL",
-        description:
-          "Vollständige URL der Anwendung, wie sie im Browser aufgerufen wird. Wird für Login-Weiterleitungen benötigt.",
-        hint: "Für lokale Installation: http://localhost:3000. Mit nginx: https://bibliothek.schule.de",
+        label: tf("technical", "NEXTAUTH_URL", "label"),
+        description: tf("technical", "NEXTAUTH_URL", "description"),
+        hint: tf("technical", "NEXTAUTH_URL", "hint"),
         type: "text",
         default: "http://localhost:3000",
         required: true,
       },
       {
         key: "NEXTAUTH_SECRET",
-        label: "Sicherheitsschlüssel (Secret)",
-        description:
-          "Zufälliger geheimer Schlüssel für die Verschlüsselung von Sessions und Tokens.",
-        hint: "Mindestens 32 Zeichen. Einmal gesetzt nicht mehr ändern — alle Nutzer werden sonst ausgeloggt. Tipp: pwgen 32 1",
+        label: tf("technical", "NEXTAUTH_SECRET", "label"),
+        description: tf("technical", "NEXTAUTH_SECRET", "description"),
+        hint: tf("technical", "NEXTAUTH_SECRET", "hint"),
         type: "password",
         default: "",
         required: true,
       },
       {
         key: "AUTH_ENABLED",
-        label: "Authentifizierung aktiviert",
-        description:
-          "Legt fest, ob ein Login erforderlich ist. Nur während der Einrichtung deaktivieren.",
-        hint: "⚠️ Im Schulbetrieb immer auf true setzen!",
+        label: tf("technical", "AUTH_ENABLED", "label"),
+        description: tf("technical", "AUTH_ENABLED", "description"),
+        hint: tf("technical", "AUTH_ENABLED", "hint"),
         type: "boolean",
         default: "true",
         required: true,
       },
       {
+        key: "OPENLIBRY_LOCALE",
+        label: tf("technical", "OPENLIBRY_LOCALE", "label"),
+        description: tf("technical", "OPENLIBRY_LOCALE", "description"),
+        hint: tf("technical", "OPENLIBRY_LOCALE", "hint"),
+        type: "select",
+        default: "de",
+        required: true,
+        options: [
+          {
+            value: "de",
+            label: t(
+              "admin.sections.technical.fields.OPENLIBRY_LOCALE.options.de",
+            ),
+          },
+          {
+            value: "en",
+            label: t(
+              "admin.sections.technical.fields.OPENLIBRY_LOCALE.options.en",
+            ),
+          },
+        ],
+      },
+      {
+        key: "NEXT_PUBLIC_OPENLIBRY_LOCALE",
+        label: tf("technical", "NEXT_PUBLIC_OPENLIBRY_LOCALE", "label"),
+        description: tf(
+          "technical",
+          "NEXT_PUBLIC_OPENLIBRY_LOCALE",
+          "description",
+        ),
+        hint: tf("technical", "NEXT_PUBLIC_OPENLIBRY_LOCALE", "hint"),
+        type: "select",
+        default: "de",
+        required: true,
+        options: [
+          {
+            value: "de",
+            label: t(
+              "admin.sections.technical.fields.NEXT_PUBLIC_OPENLIBRY_LOCALE.options.de",
+            ),
+          },
+          {
+            value: "en",
+            label: t(
+              "admin.sections.technical.fields.NEXT_PUBLIC_OPENLIBRY_LOCALE.options.en",
+            ),
+          },
+        ],
+      },
+      {
         key: "COVERIMAGE_FILESTORAGE_PATH",
-        label: "Pfad für Cover-Bilder",
-        description:
-          "Verzeichnis, in dem hochgeladene Buchcover gespeichert werden.",
-        hint: "In Docker: /app/images (im Container). Ohne Docker: z.B. ./images",
+        label: tf("technical", "COVERIMAGE_FILESTORAGE_PATH", "label"),
+        description: tf(
+          "technical",
+          "COVERIMAGE_FILESTORAGE_PATH",
+          "description",
+        ),
+        hint: tf("technical", "COVERIMAGE_FILESTORAGE_PATH", "hint"),
         type: "text",
         default: "/app/images",
       },
       {
         key: "LOGIN_SESSION_TIMEOUT",
-        label: "Session-Timeout",
-        description:
-          "Zeit in Sekunden bis zur automatischen Abmeldung bei Inaktivität.",
+        label: tf("technical", "LOGIN_SESSION_TIMEOUT", "label"),
+        description: tf("technical", "LOGIN_SESSION_TIMEOUT", "description"),
         type: "number",
         default: "3600",
-        unit: "Sekunden",
+        unit: t("admin.units.seconds"),
+      },
+      {
+        key: "LOGIN_IMAGE",
+        label: tf("technical", "LOGIN_IMAGE", "label"),
+        description: tf("technical", "LOGIN_IMAGE", "description"),
+        hint: tf("technical", "LOGIN_IMAGE", "hint"),
+        type: "text",
+        default: "",
       },
       {
         key: "MAX_MIGRATION_SIZE",
-        label: "Max. Import-Dateigröße",
-        description:
-          "Maximale Dateigröße für JSON-Importe (z.B. OpenBiblio-Migration).",
+        label: tf("technical", "MAX_MIGRATION_SIZE", "label"),
+        description: tf("technical", "MAX_MIGRATION_SIZE", "description"),
         type: "text",
         default: "250mb",
         advanced: true,
       },
       {
         key: "SECURITY_HEADERS",
-        label: "Sicherheits-Header",
-        description:
-          "Steuert Content-Security-Policy-Header. Im Produktionsbetrieb leer lassen.",
-        hint: 'Nur "insecure" setzen wenn CSP-Header deaktiviert werden sollen (nicht empfohlen).',
+        label: tf("technical", "SECURITY_HEADERS", "label"),
+        description: tf("technical", "SECURITY_HEADERS", "description"),
+        hint: tf("technical", "SECURITY_HEADERS", "hint"),
         type: "select",
         default: "",
         options: [
-          { value: "", label: "Aktiv (Standard, empfohlen)" },
-          { value: "insecure", label: "Deaktiviert (nur Entwicklung)" },
+          {
+            value: "",
+            label: t(
+              "admin.sections.technical.fields.SECURITY_HEADERS.options.active",
+            ),
+          },
+          {
+            value: "insecure",
+            label: t(
+              "admin.sections.technical.fields.SECURITY_HEADERS.options.insecure",
+            ),
+          },
         ],
         advanced: true,
       },
       {
         key: "DELETE_SAFETY_SECONDS",
-        label: "Lösch-Verzögerung",
-        description:
-          "Wartezeit in Sekunden bevor ein Buch/Nutzer endgültig gelöscht wird. Gibt Zeit zum Abbrechen.",
+        label: tf("technical", "DELETE_SAFETY_SECONDS", "label"),
+        description: tf("technical", "DELETE_SAFETY_SECONDS", "description"),
         type: "number",
         default: "5",
-        unit: "Sekunden",
+        unit: t("admin.units.seconds"),
         advanced: true,
       },
       {
         key: "RENTAL_SORT_BOOKS",
-        label: "Sortierung Ausleihansicht",
-        description:
-          "Standardmäßige Sortierreihenfolge der Bücher in der Ausleih-Ansicht.",
+        label: tf("technical", "RENTAL_SORT_BOOKS", "label"),
+        description: tf("technical", "RENTAL_SORT_BOOKS", "description"),
         type: "select",
         default: "title_asc",
         options: [
-          { value: "title_asc", label: "Titel A–Z" },
-          { value: "title_desc", label: "Titel Z–A" },
-          { value: "id_asc", label: "ID aufsteigend" },
-          { value: "id_desc", label: "ID absteigend" },
+          {
+            value: "title_asc",
+            label: t(
+              "admin.sections.technical.fields.RENTAL_SORT_BOOKS.options.title_asc",
+            ),
+          },
+          {
+            value: "title_desc",
+            label: t(
+              "admin.sections.technical.fields.RENTAL_SORT_BOOKS.options.title_desc",
+            ),
+          },
+          {
+            value: "id_asc",
+            label: t(
+              "admin.sections.technical.fields.RENTAL_SORT_BOOKS.options.id_asc",
+            ),
+          },
+          {
+            value: "id_desc",
+            label: t(
+              "admin.sections.technical.fields.RENTAL_SORT_BOOKS.options.id_desc",
+            ),
+          },
         ],
       },
       {
         key: "BARCODE_MINCODELENGTH",
-        label: "Minimale Barcode-Länge",
-        description:
-          "Kürzere Barcodes werden mit Leerzeichen aufgefüllt bis diese Länge erreicht ist.",
+        label: tf("technical", "BARCODE_MINCODELENGTH", "label"),
+        description: tf("technical", "BARCODE_MINCODELENGTH", "description"),
         type: "number",
         default: "3",
         advanced: true,
       },
       {
         key: "ADMIN_BUTTON_SWITCH",
-        label: "Admin-Schaltfläche anzeigen",
-        description: "Zeigt den Backup-Button in der Navigationsleiste an.",
+        label: tf("technical", "ADMIN_BUTTON_SWITCH", "label"),
+        description: tf("technical", "ADMIN_BUTTON_SWITCH", "description"),
         type: "select",
         default: "1",
         options: [
-          { value: "1", label: "Anzeigen" },
-          { value: "0", label: "Ausblenden" },
+          {
+            value: "1",
+            label: t(
+              "admin.sections.technical.fields.ADMIN_BUTTON_SWITCH.options.show",
+            ),
+          },
+          {
+            value: "0",
+            label: t(
+              "admin.sections.technical.fields.ADMIN_BUTTON_SWITCH.options.hide",
+            ),
+          },
         ],
         advanced: true,
       },
       {
         key: "NUMBER_BOOKS_OVERVIEW",
-        label: "Bücher pro Seite",
-        description: "Anzahl der Bücher pro Seite in der Übersichtsliste.",
+        label: tf("technical", "NUMBER_BOOKS_OVERVIEW", "label"),
+        description: tf("technical", "NUMBER_BOOKS_OVERVIEW", "description"),
         type: "number",
         default: "20",
       },
       {
         key: "NUMBER_BOOKS_MAX",
-        label: "Maximale Buchanzahl",
-        description:
-          "Erwartete maximale Anzahl Bücher in der Bibliothek. Beeinflusst Suche und Paginierung.",
+        label: tf("technical", "NUMBER_BOOKS_MAX", "label"),
+        description: tf("technical", "NUMBER_BOOKS_MAX", "description"),
         type: "number",
         default: "10000",
         advanced: true,
@@ -214,347 +315,171 @@ const CONFIG_SECTIONS: ConfigSection[] = [
   },
   {
     id: "school",
-    title: "Schulkonfiguration",
-    description: "Name, Logo und Ausleihfristen",
+    title: t("admin.sections.school.title"),
+    description: t("admin.sections.school.description"),
     icon: BookOpen,
     fields: [
       {
         key: "SCHOOL_NAME",
-        label: "Schulname",
-        description:
-          "Vollständiger Name der Schule — wird in der Oberfläche, auf Ausweisen und in Berichten angezeigt.",
-        hint: 'Beispiel: "Grundschule Mammolshain"',
+        label: tf("school", "SCHOOL_NAME", "label"),
+        description: tf("school", "SCHOOL_NAME", "description"),
+        hint: tf("school", "SCHOOL_NAME", "hint"),
         type: "text",
-        default: "Mustermann Schule",
+        default: t("admin.placeholders.schoolName"),
         required: true,
       },
       {
         key: "LOGO_LABEL",
-        label: "Schul-Logo (Dateiname)",
-        description:
-          "Dateiname des Schullogos im public/-Verzeichnis. Wird auf Benutzerausweisen und in der UI verwendet.",
-        hint: "Datei muss in /public liegen (Bare Metal) oder in database/custom/ (Docker).",
+        label: tf("school", "LOGO_LABEL", "label"),
+        description: tf("school", "LOGO_LABEL", "description"),
+        hint: tf("school", "LOGO_LABEL", "hint"),
         type: "text",
         default: "schullogo.jpg",
       },
       {
         key: "RENTAL_DURATION_DAYS",
-        label: "Leihfrist",
-        description:
-          "Standardmäßige Ausleihdauer in Tagen ab dem Ausleihzeitpunkt.",
+        label: tf("school", "RENTAL_DURATION_DAYS", "label"),
+        description: tf("school", "RENTAL_DURATION_DAYS", "description"),
         type: "number",
         default: "14",
-        unit: "Tage",
+        unit: t("admin.units.days"),
         required: true,
       },
       {
         key: "EXTENSION_DURATION_DAYS",
-        label: "Verlängerungsdauer",
-        description:
-          "Anzahl der Tage, um die eine Ausleihe verlängert werden kann.",
+        label: tf("school", "EXTENSION_DURATION_DAYS", "label"),
+        description: tf("school", "EXTENSION_DURATION_DAYS", "description"),
         type: "number",
         default: "21",
-        unit: "Tage",
+        unit: t("admin.units.days"),
       },
       {
         key: "MAX_EXTENSIONS",
-        label: "Maximale Verlängerungen",
-        description: "Wie oft ein Buch maximal verlängert werden darf.",
+        label: tf("school", "MAX_EXTENSIONS", "label"),
+        description: tf("school", "MAX_EXTENSIONS", "description"),
         type: "number",
         default: "2",
+      },
+      {
+        key: "LABEL_CONFIG_DIR",
+        label: tf("school", "LABEL_CONFIG_DIR", "label"),
+        description: tf("school", "LABEL_CONFIG_DIR", "description"),
+        hint: tf("school", "LABEL_CONFIG_DIR", "hint"),
+        type: "text",
+        default: "./database/custom/labels",
+        advanced: true,
       },
     ],
   },
   {
     id: "reminder",
-    title: "Mahnwesen",
-    description: "Einstellungen für automatische Mahnschreiben",
+    title: t("admin.sections.reminder.title"),
+    description: t("admin.sections.reminder.description"),
     icon: Mail,
     fields: [
       {
         key: "REMINDER_TEMPLATE_DOC",
-        label: "Mahnungs-Vorlage",
-        description: "Dateiname der Word-Vorlage (.docx) für Mahnschreiben.",
-        hint: "Datei muss in database/custom/ (Docker) oder im Anwendungsverzeichnis liegen.",
+        label: tf("reminder", "REMINDER_TEMPLATE_DOC", "label"),
+        description: tf("reminder", "REMINDER_TEMPLATE_DOC", "description"),
+        hint: tf("reminder", "REMINDER_TEMPLATE_DOC", "hint"),
         type: "text",
         default: "mahnung-template.docx",
       },
       {
         key: "REMINDER_RESPONSIBLE_NAME",
-        label: "Verantwortliche Stelle",
-        description:
-          "Name der verantwortlichen Person oder Abteilung, der in Mahnschreiben erscheint.",
+        label: tf("reminder", "REMINDER_RESPONSIBLE_NAME", "label"),
+        description: tf("reminder", "REMINDER_RESPONSIBLE_NAME", "description"),
         type: "text",
-        default: "Schulbücherei",
+        default: t("admin.placeholders.reminderName"),
       },
       {
         key: "REMINDER_RESPONSIBLE_EMAIL",
-        label: "Kontakt-E-Mail",
-        description:
-          "E-Mail-Adresse die in Mahnschreiben als Rückfrage-Kontakt angegeben wird.",
+        label: tf("reminder", "REMINDER_RESPONSIBLE_EMAIL", "label"),
+        description: tf(
+          "reminder",
+          "REMINDER_RESPONSIBLE_EMAIL",
+          "description",
+        ),
         type: "text",
         default: "info@email.de",
       },
       {
         key: "REMINDER_RENEWAL_COUNT",
-        label: "Maximale Mahnungswiederholungen",
-        description:
-          "Wie oft eine Mahnung verlängert werden kann, bevor eine Eskalation erfolgt.",
+        label: tf("reminder", "REMINDER_RENEWAL_COUNT", "label"),
+        description: tf("reminder", "REMINDER_RENEWAL_COUNT", "description"),
         type: "number",
         default: "5",
-      },
-    ],
-  },
-  {
-    id: "booklabels",
-    title: "Bücherlabels",
-    description: "Layout, Maße und Inhalt der gedruckten Bücherschilder",
-    icon: Tag,
-    advanced: true,
-    fields: [
-      {
-        key: "BOOKLABEL_MARGIN_LEFT",
-        label: "Linker Rand (cm)",
-        description:
-          "Abstand vom linken Blattrand bis zum ersten Label. Abhängig vom verwendeten Etikettenformat.",
-        hint: "Für Avery Zweckform L4732: 0.6",
-        type: "number",
-        default: "3",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_MARGIN_TOP",
-        label: "Oberer Rand (cm)",
-        description: "Abstand vom oberen Blattrand bis zum ersten Label.",
-        hint: "Für Avery Zweckform L4732: 1.3",
-        type: "number",
-        default: "2",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_LABEL_WIDTH",
-        label: "Label-Breite (cm)",
-        description: "Breite eines einzelnen Etiketts.",
-        type: "number",
-        default: "7.0",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_LABEL_HEIGHT",
-        label: "Label-Höhe (cm)",
-        description: "Höhe eines einzelnen Etiketts.",
-        type: "number",
-        default: "3.2",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_ROWSONPAGE",
-        label: "Zeilen pro Seite",
-        description: "Anzahl der Etikettenzeilen pro A4-Seite.",
-        type: "number",
-        default: "5",
-      },
-      {
-        key: "BOOKLABEL_COLUMNSONPAGE",
-        label: "Spalten pro Seite",
-        description: "Anzahl der Etikettenspalten pro A4-Seite.",
-        type: "number",
-        default: "2",
-      },
-      {
-        key: "BOOKLABEL_LABEL_SPACING_HORIZONTAL",
-        label: "Horizontaler Abstand (cm)",
-        description: "Abstand zwischen zwei nebeneinanderliegenden Labels.",
-        type: "number",
-        default: "1.7",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_LABEL_SPACING_VERTICAL",
-        label: "Vertikaler Abstand (cm)",
-        description: "Abstand zwischen zwei übereinanderliegenden Labels.",
-        type: "number",
-        default: "2.2",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_MARGIN_IN_LABEL",
-        label: "Innenrand im Label (cm)",
-        description:
-          "Innerer Rand innerhalb des Labels, um Druckerversatz auszugleichen.",
-        type: "number",
-        default: "0.05",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_PRINT_LABEL_FRAME",
-        label: "Rahmen drucken",
-        description:
-          "Zeichnet einen sichtbaren Rahmen um jedes Etikett. Hilfreich zur Kalibrierung.",
-        type: "boolean",
-        default: "false",
-      },
-      {
-        key: "BOOKLABEL_AUTHORLINE",
-        label: "Autorenzeile",
-        description:
-          'Konfiguration der seitlichen Autorenzeile. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        hint: "Mögliche Inhalte: Book.author, Book.title, Book.topics, Book.isbn, firstTopic",
-        type: "json",
-        default: '["Book.author",9,"center"]',
-      },
-      {
-        key: "BOOKLABEL_AUTHOR_SPACING",
-        label: "Autorenzeilen-Abstand (cm)",
-        description: "Abstand der Autorenzeile vom linken Rand.",
-        type: "number",
-        default: "1.8",
-        unit: "cm",
-      },
-      {
-        key: "BOOKLABEL_MAX_AUTHORLINE_LENGTH",
-        label: "Max. Zeichenanzahl Autorenzeile",
-        description:
-          "Maximale Anzahl Zeichen in der Autorenzeile. 19 ≈ eine Zeile, 38 ≈ zwei Zeilen.",
-        type: "number",
-        default: "38",
-      },
-      {
-        key: "BOOKLABEL_LINE_ABOVE",
-        label: "Zeile über Barcode",
-        description:
-          'Textzeile über dem Barcode. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        type: "json",
-        default: '["Book.title",10,"left"]',
-      },
-      {
-        key: "BOOKLABEL_LINE_ABOVE_USE_MAX_SPACE",
-        label: "Obere Zeile: vollen Platz nutzen",
-        description:
-          "Wenn aktiv, darf die Zeile über dem Barcode die volle Label-Breite nutzen.",
-        type: "boolean",
-        default: "true",
-      },
-      {
-        key: "BOOKLABEL_LINE_BELOW_1",
-        label: "1. Zeile unter Barcode",
-        description:
-          'Erste Textzeile unterhalb des Barcodes. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        type: "json",
-        default: '["firstTopic",10,"left"]',
-      },
-      {
-        key: "BOOKLABEL_LINE_BELOW_1_LENGTH",
-        label: "Max. Länge 1. Unterzeile",
-        description:
-          "Maximale Zeichenanzahl der ersten Unterzeile. 32 Zeichen ≈ eine Zeile.",
-        type: "number",
-        default: "32",
-      },
-      {
-        key: "BOOKLABEL_LINE_BELOW_2",
-        label: "2. Zeile unter Barcode",
-        description:
-          'Zweite Textzeile unterhalb des Barcodes. Format: ["Inhalt", Schriftgröße, "Ausrichtung"]',
-        hint: "Fester Text ist möglich, z.B. der Schulname",
-        type: "json",
-        default: '["Mustermann Schule",10,"left"]',
-      },
-      {
-        key: "BOOKLABEL_LOGO",
-        label: "Logo-Datei",
-        description:
-          "Dateiname des Logos für Bücherlabels (im public/-Verzeichnis).",
-        type: "text",
-        default: "schullogo_buchlabel.png",
-      },
-      {
-        key: "BOOKLABEL_BARCODE_WIDTH",
-        label: "Barcode-Breite",
-        description: "Breite des Barcodes auf dem Label (CSS-Einheit).",
-        type: "text",
-        default: "3cm",
-      },
-      {
-        key: "BOOKLABEL_BARCODE_HEIGHT",
-        label: "Barcode-Höhe",
-        description: "Höhe des Barcodes auf dem Label (CSS-Einheit).",
-        type: "text",
-        default: "1.6cm",
       },
     ],
   },
   {
     id: "userlabels",
-    title: "Benutzerausweise",
-    description: "Layout und Inhalt der gedruckten Schülerausweise",
+    title: t("admin.sections.userlabels.title"),
+    description: t("admin.sections.userlabels.description"),
     icon: User,
     advanced: true,
     fields: [
       {
         key: "USERID_LABEL_IMAGE",
-        label: "Hintergrundbild",
-        description:
-          "Dateiname des Hintergrundbilds für Benutzerausweise. In database/custom/ (Docker) oder public/ (Bare Metal).",
+        label: tf("userlabels", "USERID_LABEL_IMAGE", "label"),
+        description: tf("userlabels", "USERID_LABEL_IMAGE", "description"),
         type: "text",
         default: "userlabeltemplate.jpg",
       },
       {
         key: "USERLABEL_WIDTH",
-        label: "Ausweis-Breite",
-        description:
-          "Breite eines Benutzerausweises in CSS-Einheiten. Beeinflusst die Darstellung im Browser.",
-        hint: "Typische Werte: 42vw, 9cm, 400px",
+        label: tf("userlabels", "USERLABEL_WIDTH", "label"),
+        description: tf("userlabels", "USERLABEL_WIDTH", "description"),
+        hint: tf("userlabels", "USERLABEL_WIDTH", "hint"),
         type: "text",
         default: "42vw",
       },
       {
         key: "USERLABEL_PER_PAGE",
-        label: "Ausweise pro Seite",
-        description: "Anzahl der Benutzerausweise pro Druckseite.",
+        label: tf("userlabels", "USERLABEL_PER_PAGE", "label"),
+        description: tf("userlabels", "USERLABEL_PER_PAGE", "description"),
         type: "number",
         default: "6",
       },
       {
         key: "USERLABEL_SEPARATE_COLORBAR",
-        label: "Farbbalken",
-        description:
-          'Optionaler Farbbalken unter dem Bild. Format: [Breite, Höhe, "Farbe"]',
-        hint: "CSS-Farbnamen oder Hex-Werte, z.B. lightgreen, #4caf50",
+        label: tf("userlabels", "USERLABEL_SEPARATE_COLORBAR", "label"),
+        description: tf(
+          "userlabels",
+          "USERLABEL_SEPARATE_COLORBAR",
+          "description",
+        ),
+        hint: tf("userlabels", "USERLABEL_SEPARATE_COLORBAR", "hint"),
         type: "json",
         default: '[250,70,"lightgreen"]',
       },
       {
         key: "USERLABEL_LINE_1",
-        label: "Textzeile 1",
-        description:
-          'Erste Textzeile auf dem Ausweis. Format: ["Inhalt","top","left","Breite","margin","Farbe",Schriftgröße]',
-        hint: "Platzhalter: User.firstName, User.lastName, User.schoolGrade",
+        label: tf("userlabels", "USERLABEL_LINE_1", "label"),
+        description: tf("userlabels", "USERLABEL_LINE_1", "description"),
+        hint: tf("userlabels", "USERLABEL_LINE_1", "hint"),
         type: "json",
         default:
           '["User.firstName User.lastName","75%","3%","35vw","2pt","black",14]',
       },
       {
         key: "USERLABEL_LINE_2",
-        label: "Textzeile 2",
-        description:
-          "Zweite Textzeile auf dem Ausweis (gleiche Syntax wie Zeile 1).",
+        label: tf("userlabels", "USERLABEL_LINE_2", "label"),
+        description: tf("userlabels", "USERLABEL_LINE_2", "description"),
         type: "json",
         default: '["Mustermann Schule","83%","3%","35vw","2pt","black",10]',
       },
       {
         key: "USERLABEL_LINE_3",
-        label: "Textzeile 3",
-        description:
-          "Dritte Textzeile auf dem Ausweis (gleiche Syntax wie Zeile 1).",
+        label: tf("userlabels", "USERLABEL_LINE_3", "label"),
+        description: tf("userlabels", "USERLABEL_LINE_3", "description"),
         type: "json",
         default: '["User.schoolGrade","90%","3%","35vw","2pt","black",12]',
       },
       {
         key: "USERLABEL_BARCODE",
-        label: "Barcode-Position",
-        description:
-          'Position und Größe des Barcodes auf dem Ausweis. Format: ["top","left","Breite","Höhe","Typ"]',
+        label: tf("userlabels", "USERLABEL_BARCODE", "label"),
+        description: tf("userlabels", "USERLABEL_BARCODE", "description"),
         type: "json",
         default: '["80%","63%","3cm","1.6cm","code128"]',
       },
@@ -599,11 +524,10 @@ function generateEnvContent(values: Record<string, string>): string {
   const lines: string[] = [];
 
   const sectionHeaders: Record<string, string> = {
-    technical: "🔧 TECHNISCHE KONFIGURATION",
-    school: "🏫 SCHULKONFIGURATION",
-    reminder: "📧 MAHNWESEN",
-    booklabels: "🏷️ BÜCHERLABELS",
-    userlabels: "🆔 BENUTZERAUSWEISE",
+    technical: t("admin.envHeaders.technical"),
+    school: t("admin.envHeaders.school"),
+    reminder: t("admin.envHeaders.reminder"),
+    userlabels: t("admin.envHeaders.userlabels"),
   };
 
   for (const section of CONFIG_SECTIONS) {
@@ -718,13 +642,17 @@ function FieldInput({
               type={visible ? "text" : "password"}
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="Zufälligen Wert eingeben oder generieren..."
+              placeholder={t("admin.passwordField.placeholder")}
               className={`${base} pr-9`}
             />
             <button
               type="button"
               onClick={() => setVisible((v) => !v)}
-              title={visible ? "Verbergen" : "Anzeigen"}
+              title={
+                visible
+                  ? t("admin.passwordField.hide")
+                  : t("admin.passwordField.show")
+              }
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               {visible ? (
@@ -738,7 +666,7 @@ function FieldInput({
             type="button"
             onClick={copyToClipboard}
             disabled={!value}
-            title="In Zwischenablage kopieren"
+            title={t("admin.passwordField.copyTitle")}
             className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-2 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
               copied
                 ? "border-success/50 text-success bg-success/10"
@@ -748,28 +676,28 @@ function FieldInput({
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5" />
-                Kopiert!
+                {t("admin.passwordField.copied")}
               </>
             ) : (
               <>
                 <ClipboardCopy className="w-3.5 h-3.5" />
-                Kopieren
+                {t("admin.passwordField.copy")}
               </>
             )}
           </button>
           <button
             type="button"
             onClick={generateSecret}
-            title="Sicheren Zufallswert erzeugen"
+            title={t("admin.passwordField.generateTitle")}
             className="flex items-center gap-1.5 whitespace-nowrap px-3 py-2 rounded-lg text-xs font-semibold border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Generieren
+            {t("admin.passwordField.generate")}
           </button>
         </div>
         {value && (
           <p className="text-[11px] text-success flex items-center gap-1">
-            ✓ {value.length} Zeichen — stark genug
+            {t("admin.passwordField.strength", { chars: value.length })}
           </p>
         )}
       </div>
@@ -832,7 +760,7 @@ function FieldRow({
               type="button"
               onClick={() => setShowHint((v) => !v)}
               className="text-muted-foreground hover:text-primary transition-colors"
-              title="Hinweis anzeigen"
+              title={t("admin.sectionCard.hintTooltip")}
             >
               <Info className="w-3.5 h-3.5" />
             </button>
@@ -935,8 +863,14 @@ function SectionCard({
                   <ChevronRight className="w-3.5 h-3.5" />
                 )}
                 {showAdvanced
-                  ? "Erweiterte Einstellungen ausblenden"
-                  : `${advancedFields.length} erweiterte Einstellung${advancedFields.length > 1 ? "en" : ""} anzeigen`}
+                  ? t("admin.sectionCard.hideAdvanced")
+                  : advancedFields.length === 1
+                    ? t("admin.sectionCard.showAdvancedSingular", {
+                        n: advancedFields.length,
+                      })
+                    : t("admin.sectionCard.showAdvancedPlural", {
+                        n: advancedFields.length,
+                      })}
               </button>
 
               {showAdvanced &&
@@ -996,7 +930,7 @@ export default function SettingsPage() {
   return (
     <Layout>
       <Head>
-        <title>Konfiguration | OpenLibry</title>
+        <title>{t("admin.pageTitle")}</title>
       </Head>
 
       <div className="max-w-4xl mx-auto px-4 py-8 pb-28">
@@ -1005,7 +939,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => router.push("/admin")}
-            title="Zurück zur Administration"
+            title={t("admin.backToAdmin")}
             className="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -1013,10 +947,10 @@ export default function SettingsPage() {
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Settings className="w-6 h-6 text-primary" />
-              Konfiguration
+              {t("admin.heading")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Einstellungen für die .env-Datei zusammenstellen und herunterladen
+              {t("admin.subheading")}
             </p>
           </div>
         </div>
@@ -1026,19 +960,20 @@ export default function SettingsPage() {
           <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="text-sm font-semibold text-foreground">
-              Wie diese Seite funktioniert
+              {t("admin.infoBanner.title")}
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Hier kannst du eine{" "}
-              <code className="bg-muted px-1 py-0.5 rounded text-xs">.env</code>
-              -Datei zusammenstellen. Alle Eingaben bleiben lokal im Browser —
-              es wird <strong>nichts gespeichert oder gesendet</strong>. Lade
-              die fertige Datei herunter und lege sie im OpenLibry-Verzeichnis
-              ab. Danach OpenLibry neu starten.
+              {t("admin.infoBanner.bodyP1")}
+              <code className="bg-muted px-1 py-0.5 rounded text-xs">
+                {t("admin.infoBanner.bodyCode")}
+              </code>
+              {t("admin.infoBanner.bodyP2")}
+              <strong>{t("admin.infoBanner.bodyStrong")}</strong>
+              {t("admin.infoBanner.bodyP3")}
             </p>
             <div className="flex gap-4 mt-2 text-xs text-muted-foreground font-mono">
-              <span>Bare Metal: pm2 restart openlibry</span>
-              <span>Docker: docker restart openlibry</span>
+              <span>{t("admin.infoBanner.bareMetalCmd")}</span>
+              <span>{t("admin.infoBanner.dockerCmd")}</span>
             </div>
           </div>
         </div>
@@ -1061,7 +996,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <FileCode className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-semibold text-foreground">
-                Vorschau: .env
+                {t("admin.preview.title")}
               </span>
             </div>
             <button
@@ -1070,7 +1005,9 @@ export default function SettingsPage() {
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
             >
               <ClipboardCopy className="w-3.5 h-3.5" />
-              {copied ? "Kopiert!" : "In Zwischenablage"}
+              {copied
+                ? t("admin.preview.copyDone")
+                : t("admin.preview.copyAction")}
             </button>
           </div>
           <pre className="p-4 text-xs font-mono text-muted-foreground overflow-x-auto leading-relaxed max-h-64 overflow-y-auto whitespace-pre-wrap">
@@ -1084,7 +1021,9 @@ export default function SettingsPage() {
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground hidden sm:block">
             <Hash className="w-3.5 h-3.5 inline mr-1" />
-            {Object.keys(values).length} Variablen konfiguriert
+            {t("admin.stickyBar.varCount", {
+              count: Object.keys(values).length,
+            })}
           </p>
           <div className="flex gap-3 ml-auto">
             <button
@@ -1092,7 +1031,7 @@ export default function SettingsPage() {
               onClick={() => dispatch({ type: "RESET" })}
               className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted transition-colors border border-border"
             >
-              Zurücksetzen
+              {t("admin.stickyBar.reset")}
             </button>
             <button
               type="button"
@@ -1100,7 +1039,7 @@ export default function SettingsPage() {
               className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
             >
               <Download className="w-4 h-4" />
-              .env herunterladen
+              {t("admin.stickyBar.download")}
             </button>
           </div>
         </div>

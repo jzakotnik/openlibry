@@ -6,21 +6,23 @@ import type {
 import { getCsrfToken } from "next-auth/react";
 import Head from "next/head";
 
+import { t } from "@/lib/i18n";
 import errorsplash from "./errorsplashscreen.jpg";
 
-// Map NextAuth error codes to user-friendly German messages
+// Map NextAuth error codes to user-friendly messages.
+// Built once at module load — locale is fixed per deployment, so this is
+// safe and avoids re-evaluating t() on every render.
 const errorMessages: Record<string, string> = {
-  Signin: "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-  OAuthSignin: "Fehler beim Aufbau der OAuth-Verbindung.",
-  OAuthCallback: "Fehler bei der OAuth-Rückgabe.",
-  OAuthCreateAccount: "OAuth-Konto konnte nicht erstellt werden.",
-  EmailCreateAccount: "E-Mail-Konto konnte nicht erstellt werden.",
-  Callback: "Fehler bei der Rückrufverarbeitung.",
-  OAuthAccountNotLinked:
-    "Diese E-Mail ist bereits mit einem anderen Konto verknüpft.",
-  CredentialsSignin: "Benutzername oder Passwort ist falsch.",
-  SessionRequired: "Bitte melden Sie sich an, um fortzufahren.",
-  Default: "Ein unbekannter Fehler ist aufgetreten.",
+  Signin: t("authError.codes.Signin"),
+  OAuthSignin: t("authError.codes.OAuthSignin"),
+  OAuthCallback: t("authError.codes.OAuthCallback"),
+  OAuthCreateAccount: t("authError.codes.OAuthCreateAccount"),
+  EmailCreateAccount: t("authError.codes.EmailCreateAccount"),
+  Callback: t("authError.codes.Callback"),
+  OAuthAccountNotLinked: t("authError.codes.OAuthAccountNotLinked"),
+  CredentialsSignin: t("authError.codes.CredentialsSignin"),
+  SessionRequired: t("authError.codes.SessionRequired"),
+  Default: t("authError.codes.Default"),
 };
 
 function getErrorMessage(error: string | null): string {
@@ -38,7 +40,7 @@ export default function Error({
   return (
     <>
       <Head>
-        <title>Anmeldefehler | OpenLibry</title>
+        <title>{t("authError.pageTitle")}</title>
       </Head>
 
       <div className="min-h-screen flex">
@@ -66,7 +68,7 @@ export default function Error({
 
             {/* Heading */}
             <h1 className="text-xl font-bold text-gray-900 mb-2">
-              Anmeldung fehlgeschlagen
+              {t("authError.heading")}
             </h1>
 
             {/* Error message */}
@@ -77,7 +79,7 @@ export default function Error({
             {/* Error code (subtle) */}
             {error && (
               <p className="text-xs text-gray-300 font-mono mb-6">
-                Fehlercode: {error}
+                {t("authError.errorCodePrefix")} {error}
               </p>
             )}
 
@@ -88,7 +90,7 @@ export default function Error({
               style={{ backgroundColor: "#12556F" }}
             >
               <ArrowLeft className="w-4 h-4" />
-              Zurück zur Anmeldung
+              {t("authError.backToLogin")}
             </a>
           </div>
         </div>

@@ -1,0 +1,12 @@
+{
+  "id": "zweckform-3659",
+  "name": "Avery Zweckform 3659",
+  "description": "Universal-Etiketten 97 × 42.3 mm, 12 Stück/Blatt (2 Spalten × 6 Reihen)",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 97, "height": 42.3 },
+  "grid": { "columns": 2, "rows": 6 },
+  "margins": { "top": 21.6, "left": 8, "right": 8, "bottom": 21.6 },
+  "gap": { "horizontal": 0, "vertical": 0 },
+  "labelsPerSheet": 12
+}

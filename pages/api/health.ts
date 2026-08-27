@@ -347,6 +347,16 @@ export default async function handle(
     mustBeWritable: false, // Not required to exist, just informational
   });
 
+  // Add label config directory check
+  const labelConfigDir =
+    process.env.LABEL_CONFIG_DIR ||
+    path.join(process.cwd(), "database", "custom", "labels");
+  requiredFolders.push({
+    name: "labels",
+    path: labelConfigDir,
+    mustBeWritable: true, // Templates are saved here via the editor
+  });
+
   const folderResults: Record<
     string,
     { exists: boolean; writable: boolean; fileCount?: number }
@@ -373,6 +383,24 @@ export default async function handle(
       }
     }
 
+    // Count files in labels folder (sheets + templates)
+    if (folder.name === "labels" && check.exists) {
+      try {
+        const sheetsDir = path.join(folder.path, "sheets");
+        const templatesDir = path.join(folder.path, "templates");
+        const sheetCount = fs.existsSync(sheetsDir)
+          ? fs.readdirSync(sheetsDir).filter((f) => f.endsWith(".json")).length
+          : 0;
+        const templateCount = fs.existsSync(templatesDir)
+          ? fs.readdirSync(templatesDir).filter((f) => f.endsWith(".json"))
+              .length
+          : 0;
+        result.fileCount = sheetCount + templateCount;
+      } catch {
+        // Ignore counting errors
+      }
+    }
+
     // Count files in custom folder
     if (folder.name === "custom" && check.exists) {
       try {
@@ -387,8 +415,8 @@ export default async function handle(
 
     folderResults[folder.name] = result;
 
-    // Only report issues for required folders (not custom, which is optional)
-    if (folder.name !== "custom") {
+    // Only report issues for required folders (not custom/labels, which are optional)
+    if (folder.name !== "custom" && folder.name !== "labels") {
       if (!check.exists) {
         folderIssues.push(`${folder.name}: nicht gefunden`);
       } else if (!check.writable && folder.mustBeWritable) {
@@ -441,11 +469,6 @@ export default async function handle(
 
   // 4. Check optional files using customPath resolution (database/custom/ → public/)
   const optionalFiles = [
-    {
-      name: "Logo (BOOKLABEL_LOGO)",
-      envVar: "BOOKLABEL_LOGO",
-      defaultValue: "school_logo.png",
-    },
     {
       name: "Mahnungs-Template (REMINDER_TEMPLATE_DOC)",
       envVar: "REMINDER_TEMPLATE_DOC",

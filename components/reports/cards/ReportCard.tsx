@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { useRouter } from "next/router";
 
 type ReportCardProps = {
@@ -6,6 +7,7 @@ type ReportCardProps = {
   unit: string;
   link: string;
   totalNumber: number;
+  dataCyId?: string;
 };
 
 export default function ReportCard({
@@ -14,9 +16,10 @@ export default function ReportCard({
   unit,
   link,
   totalNumber,
+  dataCyId,
 }: ReportCardProps) {
   const router = useRouter();
-  const dataCy = `report-card-${unit}`;
+  const dataCy = `report-card-${dataCyId ?? unit}`;
 
   return (
     <div
@@ -47,7 +50,7 @@ export default function ReportCard({
             className="text-3xl font-bold text-primary leading-tight"
             data-cy={`${dataCy}-count`}
           >
-            {totalNumber.toLocaleString("de-DE")}
+            {totalNumber.toLocaleString(t("formats.numberLocale"))}
           </span>
           <span className="text-sm font-medium text-disabled">{unit}</span>
         </div>
@@ -73,7 +76,7 @@ export default function ReportCard({
             transition-colors cursor-pointer
           "
         >
-          Erzeuge Tabelle
+          {t("reportCard.generateTable")}
         </button>
       </div>
     </div>

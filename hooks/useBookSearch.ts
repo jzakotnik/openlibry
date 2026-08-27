@@ -3,7 +3,10 @@ import itemsjs from "itemsjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { BookType } from "@/entities/BookType";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import { stripZerosFromSearch } from "@/lib/utils/lookups";
+import { promoteExactIdMatch } from "@/lib/utils/searchUtils";
 
 const SEARCHABLE_FIELDS = [
   "title",
@@ -15,26 +18,19 @@ const SEARCHABLE_FIELDS = [
 const DEBOUNCE_MS = 150;
 
 interface UseBookSearchOptions {
-  /**
-   * Additional fields beyond the shared defaults (e.g. "searchableTopics"
-   * on the books overview page).
-   */
   extraSearchableFields?: string[];
-  /** itemsjs sort descriptor forwarded straight to search(). */
   sort?: any;
-  /** Maximum number of results itemsjs returns (default: 100). */
   perPage?: number;
 }
 
 interface UseBookSearchResult {
   renderedBooks: BookType[];
   bookSearchInput: string;
-  /** Call from the <Input> onChange handler. */
   handleInputChange: (value: string) => void;
-  /** Call from the clear button. */
   handleClear: () => void;
-  /** Total number of matching books (useful for status lines). */
   resultCount: number;
+  /** True while the search index is still being built after first paint. */
+  indexReady: boolean;
 }
 
 export function useBookSearch(
@@ -47,49 +43,127 @@ export function useBookSearch(
   const [renderedBooks, setRenderedBooks] = useState<BookType[]>(books);
   const [resultCount, setResultCount] = useState(books.length);
 
-  // Stable ref so the books-refresh effect can read the latest query without
-  // adding bookSearchInput to its dependency array.
+  type SearchEngine = ReturnType<typeof itemsjs>;
+
+  // null = not yet built; building happens after first paint
+  const [searchEngine, setSearchEngine] = useState<SearchEngine | null>(null);
+
   const queryRef = useRef(bookSearchInput);
   queryRef.current = bookSearchInput;
 
+  // Keep the latest books available without making callbacks depend on the
+  // (unstable) array reference — SWR polling creates a new reference every
+  // tick even when nothing changed.
+  const booksRef = useRef(books);
+  booksRef.current = books;
+
   const searchableFields = useMemo(
     () => [...SEARCHABLE_FIELDS, ...extraSearchableFields],
-    // extraSearchableFields is caller-defined; serialise to avoid referential churn
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [extraSearchableFields.join(",")],
   ) as any;
 
-  const searchEngine = useMemo(
-    () => itemsjs(books, { searchableFields }),
-    [books, searchableFields],
+  // Stable fingerprint: changes when books are added/removed OR when a field
+  // relevant to rendering changes. NOTE: `updatedAt` arrives from the API with
+  // day granularity (convertDateToDayString), so it does NOT change on a
+  // second same-day mutation — rentalStatus/dueDate/userId/renewalCount must
+  // be part of the fingerprint or the index goes stale after e.g. a
+  // return-then-rent on the same day.
+  const booksFingerprint = useMemo(
+    () =>
+      books
+        .map(
+          (b) =>
+            `${b.id}:${b.rentalStatus ?? ""}:${b.dueDate ?? ""}:${
+              b.userId ?? ""
+            }:${b.renewalCount ?? ""}:${b.updatedAt ?? ""}`,
+        )
+        .join(","),
+    [books],
   );
+
+  // ── Deferred index construction ────────────────────────────────────────────
+  // Runs *after* the browser has painted the page, so the book list is visible
+  // before we spend time building the itemsjs index.
+  useEffect(() => {
+    setSearchEngine(null);
+
+    const id = setTimeout(() => {
+      const engine = itemsjs(booksRef.current, {
+        searchableFields,
+        // @ts-expect-error - removeStopWordFilter is a valid itemsjs runtime option
+        // but missing from its shipped TypeScript definitions (itemsapi/itemsjs#46)
+        removeStopWordFilter: true,
+      });
+      setSearchEngine(engine);
+    }, 0);
+
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booksFingerprint, searchableFields]);
 
   const searchBooks = useCallback(
     (query: string) => {
-      const result = searchEngine.search({
-        per_page: perPage,
-        ...(sort ? { sort } : {}),
-        query: stripZerosFromSearch(query),
-      });
-      setRenderedBooks(result.data.items as BookType[]);
-      setResultCount(result.pagination.total);
+      const currentBooks = booksRef.current;
+
+      // Index not ready yet — show all books as a passthrough
+      if (!searchEngine) {
+        setRenderedBooks(currentBooks);
+        setResultCount(currentBooks.length);
+        return;
+      }
+
+      try {
+        const result = searchEngine.search({
+          per_page: perPage,
+          ...(sort ? { sort } : {}),
+          query: stripZerosFromSearch(query),
+        });
+        const items = result.data.items as BookType[];
+        const ranked = promoteExactIdMatch(items, query);
+        setRenderedBooks(ranked);
+        setResultCount(result.pagination.total);
+      } catch (err) {
+        errorLogger.error({ err, query }, LogEvents.SEARCH_ERROR);
+        setRenderedBooks(currentBooks);
+        setResultCount(currentBooks.length);
+      }
     },
     [searchEngine, sort, perPage],
   );
 
+  const searchBooksRef = useRef(searchBooks);
+  useEffect(() => {
+    searchBooksRef.current = searchBooks;
+  });
+
+  // Re-run current query once the index finishes (re)building, so rental
+  // status changes reach the visible results while a search is active.
+  useEffect(() => {
+    if (!searchEngine) return;
+    if (queryRef.current) {
+      searchBooksRef.current(queryRef.current);
+    }
+  }, [searchEngine]);
+
+  // Created exactly once. Routing through searchBooksRef means SWR reference
+  // churn can never recreate the debouncer and silently cancel a pending
+  // search (previously: a poll tick landing inside the 150 ms window after
+  // typing dropped the search entirely).
   const debouncedSearch = useMemo(
-    () => debounce((q: string) => searchBooks(q), DEBOUNCE_MS),
-    [searchBooks],
+    () => debounce((q: string) => searchBooksRef.current(q), DEBOUNCE_MS),
+    [],
   );
 
-  // Cleanup on unmount / when debouncedSearch changes
   useEffect(() => () => debouncedSearch.clear(), [debouncedSearch]);
 
-  // Re-run search when the underlying books array refreshes (e.g. SWR mutate)
-  // without reacting to every keystroke.
+  // Sync rendered list when books refresh and no query is active
   useEffect(() => {
-    searchBooks(queryRef.current);
-  }, [books, searchBooks]);
+    if (!queryRef.current) {
+      setRenderedBooks(books);
+      setResultCount(books.length);
+    }
+  }, [books]);
 
   const handleInputChange = useCallback(
     (value: string) => {
@@ -100,9 +174,10 @@ export function useBookSearch(
   );
 
   const handleClear = useCallback(() => {
+    debouncedSearch.clear();
     setBookSearchInput("");
-    searchBooks("");
-  }, [searchBooks]);
+    searchBooksRef.current("");
+  }, [debouncedSearch]);
 
   return {
     renderedBooks,
@@ -110,5 +185,6 @@ export function useBookSearch(
     handleInputChange,
     handleClear,
     resultCount,
+    indexReady: searchEngine !== null,
   };
 }

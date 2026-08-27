@@ -1,5 +1,6 @@
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import { t } from "@/lib/i18n";
 import { uploadCoverBlob } from "@/lib/utils/coverutils";
 import { convertStringToDay } from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
@@ -149,13 +150,13 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
 
   const handleAutoFill = useCallback(async (isbn: string) => {
     if (!isbn) {
-      toast.info("Bitte geben Sie eine ISBN ein.");
+      toast.info(t("bookEditForm.toastEnterIsbn"));
       return;
     }
 
     const cleanedIsbn = isbn.replace(/[^0-9X]/gi, "");
     if (!cleanedIsbn) {
-      toast.info("Die ISBN ist ungültig (keine Zahlen gefunden).");
+      toast.info(t("bookEditForm.toastIsbnInvalid"));
       return;
     }
 
@@ -167,32 +168,43 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
         fetchCoverFromApi(cleanedIsbn),
       ]);
 
-      // Handle book data
+      // Always read the body — needed for error details even on non-OK responses
+      const data = await bookResponse.json();
+
       if (bookResponse.ok) {
-        const data = await bookResponse.json();
         setBookData((prev) => ({ ...prev, ...data, isbn: cleanedIsbn }));
 
         if (coverResult.exists && coverResult.blob) {
           setCoverPreview(coverResult.blob);
-          toast.success("Stammdaten und Cover wurden erfolgreich geladen.");
+          toast.success(t("bookEditForm.toastDataAndCoverLoaded"));
         } else {
-          toast.success("Stammdaten wurden erfolgreich ausgefüllt.");
+          toast.success(t("bookEditForm.toastDataLoaded"));
         }
       } else {
-        // Book data not found – maybe cover still available
+        // Surface the translated error + per-service diagnostic from the API
+        const headline = data?.error ?? t("bookEditForm.toastIsbnNotFound");
+        const details: { service: string; status: string; reason?: string }[] =
+          data?.details ?? [];
+        const failLines = details
+          .filter((d) => d.status === "error")
+          .map((d) => `${d.service}: ${d.reason}`)
+          .join(" · ");
+        const fullMessage = failLines ? `${headline}\n${failLines}` : headline;
+
         if (coverResult.exists && coverResult.blob) {
+          // Cover found even though metadata lookup failed — still useful
           setCoverPreview(coverResult.blob);
-          toast.info("Stammdaten nicht gefunden, aber Cover ist verfügbar.");
+          toast.info(fullMessage);
         } else {
-          toast.error(
-            "Stammdaten wurden leider nicht gefunden mit dieser ISBN.",
-          );
+          bookResponse.status === 503
+            ? toast.error(fullMessage)
+            : toast.info(fullMessage);
         }
       }
 
       setAutofillAttempted(true);
     } catch (e: any) {
-      toast.error(e?.message || "Fehler beim Laden der Buchdaten.");
+      toast.error(e?.message || t("bookEditForm.toastDataLoadError"));
     } finally {
       setIsAutoFilling(false);
     }

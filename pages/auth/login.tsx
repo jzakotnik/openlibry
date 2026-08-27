@@ -9,11 +9,17 @@ import type {
 import { getCsrfToken } from "next-auth/react";
 import Head from "next/head";
 
+import { t } from "@/lib/i18n";
+import { resolveLoginImage } from "@/lib/loginImage";
 import loginsplash from "./loginsplashscreen.jpg";
 
 export default function Login({
   csrfToken,
+  loginImage,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  // Configurable via LOGIN_IMAGE (a file in /public); falls back to the bundled
+  // splash when unset.
+  const splashSrc = loginImage ?? loginsplash.src;
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -39,9 +45,9 @@ export default function Login({
         return;
       }
 
-      setError("Login fehlgeschlagen. Bitte Eingaben prüfen.");
+      setError(t("login.errorFailed"));
     } catch {
-      setError("Verbindungsfehler. Bitte erneut versuchen.");
+      setError(t("login.errorConnection"));
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +58,7 @@ export default function Login({
   return (
     <>
       <Head>
-        <title>Login | OpenLibry</title>
+        <title>{t("login.pageTitle")}</title>
       </Head>
 
       <div className="min-h-screen flex">
@@ -60,7 +66,7 @@ export default function Login({
         <div
           className="hidden sm:block sm:w-5/12 md:w-7/12 relative"
           style={{
-            backgroundImage: `url(${loginsplash.src})`,
+            backgroundImage: `url(${splashSrc})`,
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundPosition: "center",
@@ -81,10 +87,10 @@ export default function Login({
                 <Lock className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">
-                Login zu OpenLibry
+                {t("login.heading")}
               </h1>
               <p className="text-sm text-gray-400 mt-1">
-                Bitte melden Sie sich an
+                {t("login.subtitle")}
               </p>
             </div>
 
@@ -102,7 +108,7 @@ export default function Login({
                   htmlFor="user"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Benutzername
+                  {t("login.labelUsername")}
                 </label>
                 <input
                   id="user"
@@ -114,7 +120,7 @@ export default function Login({
                   value={user}
                   onChange={(e) => setUser(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg outline-none transition-colors focus:border-[#12556F] focus:ring-2 focus:ring-[#12556F]/20 placeholder-gray-400"
-                  placeholder="Benutzername eingeben"
+                  placeholder={t("login.placeholderUsername")}
                 />
               </div>
 
@@ -123,7 +129,7 @@ export default function Login({
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Passwort
+                  {t("login.labelPassword")}
                 </label>
                 <input
                   id="password"
@@ -134,7 +140,7 @@ export default function Login({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg outline-none transition-colors focus:border-[#12556F] focus:ring-2 focus:ring-[#12556F]/20 placeholder-gray-400"
-                  placeholder="Passwort eingeben"
+                  placeholder={t("login.placeholderPassword")}
                 />
               </div>
 
@@ -147,10 +153,10 @@ export default function Login({
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Wird angemeldet…
+                    {t("login.submitting")}
                   </>
                 ) : (
-                  "Einloggen"
+                  t("login.submit")
                 )}
               </button>
             </form>
@@ -162,9 +168,12 @@ export default function Login({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const loginImage = resolveLoginImage();
+
   return {
     props: {
-      csrfToken: await getCsrfToken(context),
+      csrfToken: (await getCsrfToken(context)) ?? null,
+      loginImage,
     },
   };
 }

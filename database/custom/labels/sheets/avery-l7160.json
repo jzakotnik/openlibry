@@ -1,0 +1,12 @@
+{
+  "id": "avery-l7160",
+  "name": "Avery L7160",
+  "description": "Universal-Etiketten 63.5 × 38.1 mm, 21 Stück/Blatt (3 Spalten × 7 Reihen)",
+  "pageSize": { "width": 210, "height": 297 },
+  "unit": "mm",
+  "label": { "width": 63.5, "height": 38.1 },
+  "grid": { "columns": 3, "rows": 7 },
+  "margins": { "top": 15.15, "left": 7.25, "right": 7.25, "bottom": 15.15 },
+  "gap": { "horizontal": 2.5, "vertical": 0 },
+  "labelsPerSheet": 21
+}
