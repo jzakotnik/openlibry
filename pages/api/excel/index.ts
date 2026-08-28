@@ -15,9 +15,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb", // bump as needed
+    },
+  },
+};
+
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   switch (req.method) {
     case "GET":
@@ -68,7 +76,7 @@ export default async function handle(
             userCount: users.length,
             fileName,
           },
-          "Excel export completed"
+          "Excel export completed",
         );
 
         res.writeHead(200, {
@@ -87,7 +95,7 @@ export default async function handle(
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
           },
-          "Failed to export Excel file"
+          "Failed to export Excel file",
         );
         res.status(400).json({ data: "ERROR: " + error });
       }
@@ -113,7 +121,7 @@ export default async function handle(
             bookCount: bookData.length,
             userCount: userData.length,
           },
-          "Excel import started"
+          "Excel import started",
         );
 
         // Validation
@@ -123,7 +131,7 @@ export default async function handle(
               event: LogEvents.IMPORT_EXCEL_FAILED,
               reason: "No import option selected",
             },
-            "Excel import rejected - no import options"
+            "Excel import rejected - no import options",
           );
           return res.status(400).json({
             data: t("excelApi.errNoOptionSelected"),
@@ -137,7 +145,7 @@ export default async function handle(
               event: LogEvents.IMPORT_EXCEL_FAILED,
               reason: "Books import enabled but no book data",
             },
-            "Excel import rejected - missing book data"
+            "Excel import rejected - missing book data",
           );
           return res.status(400).json({
             data: t("excelApi.errNoBookData"),
@@ -151,7 +159,7 @@ export default async function handle(
               event: LogEvents.IMPORT_EXCEL_FAILED,
               reason: "Users import enabled but no user data",
             },
-            "Excel import rejected - missing user data"
+            "Excel import rejected - missing user data",
           );
           return res.status(400).json({
             data: t("excelApi.errNoUserData"),
@@ -164,13 +172,13 @@ export default async function handle(
             importBooks: String(importBooks),
             importUsers: String(importUsers),
             dropBeforeImport: String(dropBeforeImport),
-          })
+          }),
         );
         importLog.push(
           t("excelApi.logHeaderRowsRemoved", {
             bookCount: bookData.length,
             userCount: userData.length,
-          })
+          }),
         );
 
         businessLogger.debug(
@@ -179,7 +187,7 @@ export default async function handle(
             sampleBooks: bookData.slice(0, 2),
             sampleUsers: userData.slice(0, 2),
           },
-          "Excel import data sample"
+          "Excel import data sample",
         );
 
         const transaction = [];
@@ -203,7 +211,7 @@ export default async function handle(
               dropBooks: importBooks,
               dropUsers: importUsers,
             },
-            "Excel import will delete existing data before import"
+            "Excel import will delete existing data before import",
           );
         }
 
@@ -220,12 +228,12 @@ export default async function handle(
                   schoolTeacherName: u["Lehrkraft"],
                   active: u["Freigeschaltet"],
                 },
-              })
+              }),
             );
             userImportedCount++;
           });
           importLog.push(
-            t("excelApi.logUsersImporting", { count: userImportedCount })
+            t("excelApi.logUsersImporting", { count: userImportedCount }),
           );
         } else if (!importUsers) {
           importLog.push(t("excelApi.logUsersSkipped"));
@@ -244,7 +252,7 @@ export default async function handle(
                   renewalCount: b["Anzahl Verlängerungen"],
                   title: b["Titel"],
                   subtitle: b["Untertitel"],
-                  author: b["Autor"],
+                  author: b["Autor"] || "n/a",
                   topics: b["Schlagworte"] || "",
                   imageLink: b["Bild"],
                   isbn: b["ISBN"]?.toString() || "",
@@ -265,12 +273,12 @@ export default async function handle(
                   externalLinks: b["Links"],
                   userId: b["Ausgeliehen von"],
                 },
-              })
+              }),
             );
             bookImportedCount++;
           });
           importLog.push(
-            t("excelApi.logBooksImporting", { count: bookImportedCount })
+            t("excelApi.logBooksImporting", { count: bookImportedCount }),
           );
         } else if (!importBooks) {
           importLog.push(t("excelApi.logBooksSkipped"));
@@ -292,7 +300,7 @@ export default async function handle(
             booksImported: bookImportedCount,
             dropBeforeImport,
           },
-          "Excel import completed successfully"
+          "Excel import completed successfully",
         );
 
         res.status(200).json({
@@ -312,11 +320,11 @@ export default async function handle(
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
           },
-          "Excel import failed"
+          "Excel import failed",
         );
 
         importLog.push(
-          t("excelApi.logImportFailed", { error: (error as Error).toString() })
+          t("excelApi.logImportFailed", { error: (error as Error).toString() }),
         );
         res.status(400).json({ data: "ERROR: " + error, logs: importLog });
       }
@@ -330,7 +338,7 @@ export default async function handle(
           method: req.method,
           reason: "Method not allowed",
         },
-        "Unsupported HTTP method for Excel endpoint"
+        "Unsupported HTTP method for Excel endpoint",
       );
       res.status(405).end(`${req.method} Not Allowed`);
       break;
