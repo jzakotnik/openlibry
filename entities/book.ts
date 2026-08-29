@@ -245,21 +245,37 @@ export function toListBook(
   book: Prisma.BookGetPayload<{ select: typeof listBookSelect }>,
   copyCountsByIsbn: Map<string, number> = new Map(),
 ): ListBookType {
-  const isbn = book.isbn?.trim();
+  const trimmedIsbn = book.isbn?.trim();
+  const {
+    subtitle,
+    topics,
+    isbn,
+    userId,
+    ...rest
+  } = book;
 
-  return {
-    ...book,
+  const listBook: ListBookType = {
+    ...rest,
     createdAt: convertDateToDayString(book.createdAt) as any,
     updatedAt: convertDateToDayString(book.updatedAt) as any,
     rentedDate: book.rentedDate ? convertDateToDayString(book.rentedDate) : "",
     dueDate: book.dueDate ? convertDateToDayString(book.dueDate) : "",
-    subtitle: book.subtitle ?? undefined,
-    topics: book.topics ?? undefined,
-    isbn: book.isbn ?? undefined,
-    userId: book.userId ?? undefined,
-    copyCount: isbn ? copyCountsByIsbn.get(isbn) : undefined,
-    searchableTopics: book.topics ? book.topics.split(";") : [],
+    searchableTopics: topics ? topics.split(";") : [],
   };
+
+  // Optional fields are left out entirely rather than set to undefined. Both
+  // look the same once the API route serialises them to JSON, but
+  // getServerSideProps validates its props and rejects an explicit undefined,
+  // which made /book fail to render as soon as one book had no subtitle.
+  if (subtitle !== null) listBook.subtitle = subtitle;
+  if (topics !== null) listBook.topics = topics;
+  if (isbn !== null) listBook.isbn = isbn;
+  if (userId !== null) listBook.userId = userId;
+
+  const copyCount = trimmedIsbn ? copyCountsByIsbn.get(trimmedIsbn) : undefined;
+  if (copyCount !== undefined) listBook.copyCount = copyCount;
+
+  return listBook;
 }
 
 export async function getPagedBooks(
