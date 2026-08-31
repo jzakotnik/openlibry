@@ -3,6 +3,10 @@ import { PublicBookType } from "@/entities/PublicBookType";
 import { PrismaClient } from "@prisma/client";
 
 const RELATED_LIMIT = 5;
+// A ceiling on the rows a single detail view will pull in. A topic like
+// "Roman" can otherwise match most of the library, all of it read into memory
+// to fill five slots on a public page.
+const RELATED_CANDIDATE_LIMIT = 500;
 
 function parseTopics(raw: string | null | undefined): string[] {
   if (!raw) return [];
@@ -63,13 +67,28 @@ export async function getPublicBookDetail(
         topics: true,
         rentalStatus: true,
       },
+      take: RELATED_CANDIDATE_LIMIT,
     });
+
+    // `contains` above matches anywhere in the semicolon-joined string, so
+    // "Kunst" also pulls in everything tagged "Kunstgeschichte". Those score
+    // zero shared topics, and used to be shown anyway whenever there were
+    // fewer than five genuine matches.
+    const isbn = book.isbn?.trim();
+    const titleAuthor = `${book.title ?? ""}|${book.author ?? ""}`.toLowerCase();
+
+    // Another copy of the same book is not a related book.
+    const isSameBook = (b: (typeof candidates)[number]) =>
+      isbn
+        ? b.isbn?.trim() === isbn
+        : `${b.title ?? ""}|${b.author ?? ""}`.toLowerCase() === titleAuthor;
 
     relatedBooks = candidates
       .map((b) => ({
         book: b,
         shared: parseTopics(b.topics).filter((t) => topics.includes(t)).length,
       }))
+      .filter(({ book: b, shared }) => shared > 0 && !isSameBook(b))
       .sort((a, b) => b.shared - a.shared)
       .slice(0, RELATED_LIMIT)
       .map(({ book: b }) => ({
