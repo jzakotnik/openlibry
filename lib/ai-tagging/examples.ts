@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { cleanIsbn } from "@/lib/utils/isbn";
 import { sanitizeTopicList } from "./prompt";
 import type { BookTagInput, SourcedTag, TagExample } from "./types";
+import { collapseCopies } from "./copies";
 
 /**
  * Retrieval-augmented few-shot examples. A flat vocabulary list tells the model
@@ -31,7 +32,9 @@ export async function loadTaggedCorpus(
     select: { title: true, author: true, isbn: true, topics: true },
   });
   const corpus: CorpusBook[] = [];
-  for (const r of rows) {
+  // Copies of one title are one worked example and one data point for the
+  // style profile, not several — see collapseCopies.
+  for (const r of collapseCopies(rows)) {
     const tags = sanitizeTopicList(r.topics);
     if (!r.title || tags.length === 0) continue;
     corpus.push({ title: r.title, author: r.author, isbn: r.isbn, tags });

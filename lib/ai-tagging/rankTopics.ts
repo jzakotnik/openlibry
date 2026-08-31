@@ -1,4 +1,5 @@
 import { getAllTopics } from "@/entities/book";
+import { collapseCopies } from "./copies";
 import type { PrismaClient } from "@prisma/client";
 import type { RankedTag } from "./types";
 
@@ -38,7 +39,8 @@ export async function rankTopics(
 ): Promise<RankedTag[]> {
   const rows = await getAllTopics(client);
   if (!rows) return [];
-  return aggregateTopicCounts(rows)
+  // One vote per title, not per copy — see collapseCopies.
+  return aggregateTopicCounts(collapseCopies(rows))
     .map((v) => ({ tag: v.canonical, count: v.count }))
     .slice(0, limit);
 }

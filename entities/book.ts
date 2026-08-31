@@ -31,8 +31,14 @@ export async function getBook(client: PrismaClient, id: number) {
 export async function getAllTopics(client: PrismaClient) {
   try {
     return await client.book.findMany({
+      // The identifying fields ride along so callers that must not count the
+      // same title once per physical copy can collapse them (see
+      // lib/ai-tagging/copies.ts). Callers that only read topics ignore them.
       select: {
         topics: true,
+        isbn: true,
+        title: true,
+        author: true,
       },
     });
   } catch (e) {
