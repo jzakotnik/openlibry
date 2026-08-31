@@ -37,6 +37,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
+import { MAX_BOOKS_PER_REQUEST } from "@/lib/ai-tagging/types";
 
 export default function BatchScan() {
   const router = useRouter();
@@ -433,36 +434,67 @@ export default function BatchScan() {
 
     setIsTagging(true);
     try {
-      const res = await fetch("/api/book/suggestTags", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          books: taggable.map((e) => ({
-            ref: e.id,
-            isbn: e.isbn,
-            title: e.bookData.title,
-            subtitle: e.bookData.subtitle,
-            author: e.bookData.author,
-            summary: e.bookData.summary,
-            topics: e.bookData.topics,
-            publisherName: e.bookData.publisherName,
-            publisherDate: e.bookData.publisherDate,
-            minAge: e.bookData.minAge,
-            maxAge: e.bookData.maxAge,
-          })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.enabled === false) {
+      // The endpoint takes a bounded number of books per request. A scanning
+      // session easily runs past that, and sending everything in one request
+      // used to come back as a 400 that showed up as "no suggestions" — the
+      // whole batch quietly untagged. Long sessions go in successive
+      // requests instead, one after another because each is already several
+      // model calls on the server.
+      const batches: (typeof taggable)[] = [];
+      for (let i = 0; i < taggable.length; i += MAX_BOOKS_PER_REQUEST) {
+        batches.push(taggable.slice(i, i + MAX_BOOKS_PER_REQUEST));
+      }
+
+      const byRef = new Map<string, { tag: string; isNew: boolean }[]>();
+      const failedRefs = new Set<string>();
+      let featureOff = false;
+
+      for (const batch of batches) {
+        const res = await fetch("/api/book/suggestTags", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            books: batch.map((e) => ({
+              ref: e.id,
+              isbn: e.isbn,
+              title: e.bookData.title,
+              subtitle: e.bookData.subtitle,
+              author: e.bookData.author,
+              summary: e.bookData.summary,
+              topics: e.bookData.topics,
+              publisherName: e.bookData.publisherName,
+              publisherDate: e.bookData.publisherDate,
+              minAge: e.bookData.minAge,
+              maxAge: e.bookData.maxAge,
+            })),
+          }),
+        });
+        const data = await res.json();
+
+        // No provider configured: the feature is off, not failing.
+        if (data?.enabled === false) {
+          featureOff = true;
+          break;
+        }
+        if (!res.ok) {
+          for (const e of batch) failedRefs.add(e.id);
+          continue;
+        }
+        for (const r of data.results ?? []) {
+          byRef.set(r.ref, r.suggestions ?? []);
+        }
+        // Books the server could not get through the model. Without this they
+        // are indistinguishable from books the model had nothing to say about.
+        for (const ref of data.failedRefs ?? []) failedRefs.add(ref);
+      }
+
+      if (featureOff) {
         toast.warning(t("aiTagging.toastNoSuggestions"));
         return;
       }
 
       // Merge suggested tags into each entry's editable topics field. Nothing is
       // persisted until Import, so this is "propose" — staff review/edit first.
-      const byRef = new Map<string, { tag: string; isNew: boolean }[]>(
-        (data.results ?? []).map((r: any) => [r.ref, r.suggestions ?? []]),
-      );
       let taggedCount = 0;
       let newTagCount = 0;
 
@@ -492,7 +524,18 @@ export default function BatchScan() {
         }),
       );
 
-      if (taggedCount === 0) {
+      if (failedRefs.size > 0 && taggedCount === 0) {
+        toast.error(
+          t("aiTagging.batchTagFailed", { count: failedRefs.size }),
+        );
+      } else if (failedRefs.size > 0) {
+        toast.warning(
+          t("aiTagging.batchTaggedPartial", {
+            count: taggedCount,
+            failed: failedRefs.size,
+          }),
+        );
+      } else if (taggedCount === 0) {
         toast.info(t("aiTagging.toastNoNewTags"));
       } else {
         toast.success(

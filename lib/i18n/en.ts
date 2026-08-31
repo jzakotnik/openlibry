@@ -271,6 +271,8 @@ export const en: Dictionary = {
     batchNoTaggable: "No entries with a title to tag",
     batchTaggedSummary: "{count} entries tagged",
     batchTaggedSummaryNew: "{count} entries tagged ({newCount} new tags)",
+    batchTaggedPartial: "{count} entries tagged, {failed} did not work out",
+    batchTagFailed: "Could not get suggestions for {count} entries",
   },
   bookSelect: {
     renewalNone: "Not renewed",

@@ -10,6 +10,7 @@ import {
   reconcileTags,
   renderStyleProfile,
   selectExamples,
+  MAX_BOOKS_PER_REQUEST,
   type BookTagInput,
   type BookTagSuggestions,
   type SourcedTag,
@@ -22,11 +23,21 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 type SuggestTagsResponse =
   | { enabled: false }
-  | { enabled: true; results: BookTagSuggestions[] }
+  | {
+      enabled: true;
+      results: BookTagSuggestions[];
+      /**
+       * Refs whose model call failed. Their entry in `results` carries no
+       * suggestions, which on its own is indistinguishable from the model
+       * having found nothing worth proposing — so the failure is named here
+       * and the caller can say so instead of reporting a quiet success.
+       */
+      failedRefs?: string[];
+    }
   | { result: string };
 
 /** Max books accepted per request — keeps the batched model call bounded. */
-const MAX_BOOKS = 50;
+const MAX_BOOKS = MAX_BOOKS_PER_REQUEST;
 
 /**
  * Books whose candidates are gathered concurrently. Each book fans out to
@@ -137,6 +148,7 @@ export default async function handler(
       chunks.push(books.slice(i, i + MODEL_CHUNK_SIZE));
     }
     const chunkErrors: unknown[] = [];
+    const failedRefs: string[] = [];
     const chunkResults = await mapLimit(
       chunks,
       SUGGEST_CONCURRENCY,
@@ -152,6 +164,7 @@ export default async function handler(
           );
         } catch (e) {
           chunkErrors.push(e);
+          for (const b of chunk) failedRefs.push(b.ref);
           return {} as Record<string, string[]>;
         }
       },
@@ -197,7 +210,13 @@ export default async function handler(
     );
 
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ enabled: true, results });
+    return res
+      .status(200)
+      .json({
+        enabled: true,
+        results,
+        ...(failedRefs.length > 0 ? { failedRefs } : {}),
+      });
   } catch (error) {
     errorLogger.error(
       {

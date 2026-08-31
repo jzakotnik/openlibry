@@ -103,3 +103,10 @@ export interface AiTaggingService {
     styleProfile?: string,
   ): Promise<Record<string, string[]>>;
 }
+
+/**
+ * Books accepted per POST to /api/book/suggestTags. Shared with the client so
+ * a caller with more books splits them into requests instead of running into
+ * a 400 it cannot tell apart from "the model had nothing to say".
+ */
+export const MAX_BOOKS_PER_REQUEST = 50;

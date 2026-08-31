@@ -279,6 +279,10 @@ export const de = {
     batchNoTaggable: "Keine Einträge mit Titel zum Taggen",
     batchTaggedSummary: "{count} Einträge getaggt",
     batchTaggedSummaryNew: "{count} Einträge getaggt ({newCount} neue Schlagwörter)",
+    batchTaggedPartial:
+      "{count} Einträge getaggt, für {failed} hat es nicht geklappt",
+    batchTagFailed:
+      "Für {count} Einträge konnten keine Vorschläge geholt werden",
   },
   bookSelect: {
     renewalNone: "Nicht verlängert",
