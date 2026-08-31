@@ -1,4 +1,4 @@
-import { LOCALE } from "@/lib/i18n";
+import { LOCALE, type Locale } from "@/lib/i18n";
 import { FACET_ORDER } from "./config";
 import type { BookTagInput, RankedTag, SourcedTag, TagExample } from "./types";
 
@@ -9,12 +9,18 @@ import type { BookTagInput, RankedTag, SourcedTag, TagExample } from "./types";
  * the providers stay comparable and a prompt change lands in one place.
  */
 
-/** Human language name for the deployment locale — the tag output language. */
-const TARGET_LANGUAGE: Record<string, string> = {
+/**
+ * Human language name for the deployment locale — the tag output language.
+ * Typed against Locale so adding a locale cannot silently fall back to German
+ * here; it stops the build until the language is named.
+ */
+const TARGET_LANGUAGE: Record<Locale, string> = {
   de: "Deutsch",
   en: "English",
-  es: "Español",
 };
+
+/** The language tags must come out in, for this deployment. */
+const OUTPUT_LANGUAGE = TARGET_LANGUAGE[LOCALE];
 
 export const SYSTEM_PROMPT = [
   "Du bist die Assistenz einer Schulbibliothek und vergibst Schlagwörter (Tags)",
@@ -25,7 +31,7 @@ export const SYSTEM_PROMPT = [
   "Du erhältst pro Buch: bibliografische Daten, die bereits in der Bibliothek",
   "verwendeten Schlagwörter sowie KANDIDATEN aus Bibliothekskatalogen (Deutsche",
   "Nationalbibliothek, Open Library, Wikidata) und von anderen Büchern desselben",
-  "Autors. Englische Kandidaten ins Deutsche übersetzen.",
+  `Autors. Fremdsprachige Kandidaten nach ${OUTPUT_LANGUAGE} übersetzen.`,
   "",
   "Regeln:",
   "- Die angegebene Anzahl ist eine OBERGRENZE, kein Ziel. Lieber wenige",
@@ -58,7 +64,7 @@ export const SYSTEM_PROMPT = [
   "  zum Stil der Bibliothek passt (gleiche Körnung und Sprache). Vergib keinen",
   "  bloßen Eigennamen aus Titel oder Autor als neues Schlagwort (etwa den",
   "  Künstler- oder Personennamen), außer solche Namen sind hier üblich.",
-  `- Gib ALLE Schlagwörter in dieser Sprache aus: ${TARGET_LANGUAGE[LOCALE] ?? "Deutsch"}.`,
+  `- Gib ALLE Schlagwörter in dieser Sprache aus: ${OUTPUT_LANGUAGE}.`,
   "  Übersetze fremdsprachige Kandidaten entsprechend.",
   "- Schlagwörter sind kurze Substantive oder Nominalphrasen, kein Satz.",
   "- Verwende niemals ein Semikolon in einem Schlagwort.",
