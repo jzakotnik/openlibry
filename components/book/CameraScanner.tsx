@@ -16,6 +16,13 @@ export default function CameraScanner({
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const cancelledRef = useRef(false);
+  // Marks which start attempt is the live one. Two starts in quick succession
+  // (a double tap on the camera switch, or on "Erneut versuchen") both sit in
+  // the await below; the second used to overwrite the first one's controls,
+  // and nothing could ever stop that stream again — the camera light stayed on
+  // until the tab was closed. stopScanner() cannot cover this on its own,
+  // because at that point controlsRef is still null for the pending attempt.
+  const startTokenRef = useRef(0);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +38,7 @@ export default function CameraScanner({
     async (deviceId?: string) => {
       if (!videoRef.current) return;
       cancelledRef.current = false;
+      const token = ++startTokenRef.current;
       stopScanner();
       setError(null);
 
@@ -46,6 +54,9 @@ export default function CameraScanner({
           videoRef.current,
           (result, err) => {
             if (detected) return;
+            // A superseded attempt must not report a scan or touch the state
+            // that now belongs to the newer one.
+            if (token !== startTokenRef.current) return;
             if (result) {
               const text = result.getText();
               if (isIsbnLike(text)) {
@@ -61,15 +72,17 @@ export default function CameraScanner({
             }
           },
         );
-        // If detection fired before controls was returned, or the component
-        // was closed/unmounted while awaiting, stop the stream now — otherwise
-        // controlsRef would hold a stream nobody stops (camera stays on).
-        if (detected || cancelledRef.current) {
+        // If detection fired before controls was returned, the component was
+        // closed/unmounted while awaiting, or a newer start has since taken
+        // over, stop the stream now — otherwise it is a stream nobody holds a
+        // handle to any more (camera stays on).
+        if (detected || cancelledRef.current || token !== startTokenRef.current) {
           controls.stop();
         } else {
           controlsRef.current = controls;
         }
       } catch (e: any) {
+        if (token !== startTokenRef.current) return;
         setScanning(false);
         if (e?.name === "NotAllowedError") {
           setError("Kamerazugriff verweigert. Bitte Berechtigung erteilen.");
