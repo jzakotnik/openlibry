@@ -27,7 +27,15 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { Dispatch, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 type TagSuggestion = {
@@ -38,18 +46,19 @@ type TagSuggestion = {
 };
 
 /** Per-source icon + tooltip for tag provenance (shown next to a chip). */
-const SOURCE_META: Record<TagSource, { Icon: typeof Landmark; label: string }> = {
-  dnb: { Icon: Landmark, label: t("aiTagging.sourceDnb") },
-  openlibrary: { Icon: BookOpen, label: t("aiTagging.sourceOpenlibrary") },
-  wikidata: { Icon: Globe, label: t("aiTagging.sourceWikidata") },
-  library: { Icon: BookMarked, label: t("aiTagging.sourceLibrary") },
-  ai: { Icon: Sparkles, label: t("aiTagging.sourceAi") },
-};
+const SOURCE_META: Record<TagSource, { Icon: typeof Landmark; label: string }> =
+  {
+    dnb: { Icon: Landmark, label: t("aiTagging.sourceDnb") },
+    openlibrary: { Icon: BookOpen, label: t("aiTagging.sourceOpenlibrary") },
+    wikidata: { Icon: Globe, label: t("aiTagging.sourceWikidata") },
+    library: { Icon: BookMarked, label: t("aiTagging.sourceLibrary") },
+    ai: { Icon: Sparkles, label: t("aiTagging.sourceAi") },
+  };
 
 type BookTopicsChipsProps = {
   fieldType: string;
   editable: boolean;
-  setBookData: Dispatch<BookType>;
+  setBookData: Dispatch<SetStateAction<BookType>>;
   book: BookType;
   topics: string[] | string | undefined | null;
   /** When true, render the AI "suggest tags" button (provider key configured). */
@@ -222,7 +231,21 @@ export default function BookTopicsChips({
         }
         setTagSources((prev) => ({ ...prev, ...sourceUpdate }));
         setOffStyleTags((prev) => ({ ...prev, ...offStyleUpdate }));
-        setBookData({ ...book, [fieldType]: serializeTopics(merged) });
+        // Merge into whatever the form holds now, not into the snapshot taken
+        // when the request went out. The call takes seconds, and spreading the
+        // old book put back every field edited in the meantime: a title typed
+        // while tags were being fetched simply reverted when they arrived.
+        setBookData((current) => {
+          const existing = parseTopics(
+            (current as unknown as Record<string, unknown>)[fieldType] as
+              string | string[] | null,
+          );
+          const combined = [...existing];
+          for (const s of found) {
+            if (!combined.includes(s.tag)) combined.push(s.tag);
+          }
+          return { ...current, [fieldType]: serializeTopics(combined) };
+        });
         toast.success(
           added === 1
             ? t("aiTagging.toastTagAddedOne", { count: added })
@@ -280,7 +303,8 @@ export default function BookTopicsChips({
         {currentBookTopics.map((topic) => {
           const isNew = !knownTopics.has(topic.toLowerCase());
           const isOffStyle = isNew && offStyleTags[topic.toLowerCase()];
-          const meta = SOURCE_META[tagSources[topic.toLowerCase()] as TagSource];
+          const meta =
+            SOURCE_META[tagSources[topic.toLowerCase()] as TagSource];
           return (
             <Badge
               key={topic}

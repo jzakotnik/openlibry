@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import { Dispatch, SetStateAction } from "react";
 import { AlertTriangle, Edit, Image, RefreshCw, Trash2 } from "lucide-react";
 
 import BookTopicsChips from "@/components/book/edit/BookTopicsChips";
@@ -62,8 +63,16 @@ export function BatchScanEntryCard({
   // bibliographic + topics fields (all present on the partial) and writes back
   // via setBookData, which we funnel to the card's per-field update.
   const bookData = entry.bookData as BookType;
-  const setTopics = (updated: BookType) =>
-    onUpdateBookData(entry.id, "topics", updated.topics ?? "");
+  // Accepts the functional form too, so a slow tag suggestion merges into the
+  // entry as it stands when the answer arrives rather than into the snapshot
+  // taken when it was asked for.
+  const setTopics: Dispatch<SetStateAction<BookType>> = (update) => {
+    const next =
+      typeof update === "function"
+        ? (update as (prev: BookType) => BookType)(bookData)
+        : update;
+    onUpdateBookData(entry.id, "topics", next.topics ?? "");
+  };
 
   return (
     <Card
