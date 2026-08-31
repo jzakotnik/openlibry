@@ -60,7 +60,8 @@ describe("Excel Export", () => {
         expect(columns).to.include("Update am");
         expect(columns).to.include("Ausgeliehen am");
         expect(columns).to.include("Rückgabe am");
-        expect(columns.length).to.eq(29);
+        // 30 since the location column was added to the export.
+        expect(columns.length).to.eq(30);
       },
     );
 
