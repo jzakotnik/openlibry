@@ -1,4 +1,4 @@
-import CameraScanner from "@/components/book/CameraScanner";
+import dynamic from "next/dynamic";
 import type { ScannedEntry } from "@/components/batch-scan";
 import {
   BatchScanEntryCard,
@@ -37,6 +37,15 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+
+// The scanner pulls in the whole zxing decoder, a 469 KB chunk. Imported
+// statically it landed in the first load of every page that can edit a book,
+// and the Pages Router waits for that chunk before it will even change the
+// URL. Loading it when the camera is actually opened keeps it out of the way.
+const CameraScanner = dynamic(
+  () => import("@/components/book/CameraScanner"),
+  { ssr: false },
+);
 
 export default function BatchScan() {
   const router = useRouter();

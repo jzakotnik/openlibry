@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Dispatch, useCallback, useRef, useState } from "react";
 
@@ -10,7 +11,6 @@ import { t } from "@/lib/i18n";
 import React from "react";
 import { toast } from "sonner";
 import HoldButton from "../layout/HoldButton";
-import CameraScanner from "./CameraScanner";
 import BookAntolinDialog from "./edit/BookAntolinDialog";
 import BookBarcode from "./edit/BookBarcode";
 import BookDateField from "./edit/BookDateField";
@@ -21,6 +21,14 @@ import BookSelect, {
   rentalStatusOptions,
 } from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
+
+// The scanner pulls in the whole zxing decoder, a 469 KB chunk. Imported
+// statically it landed in the first load of every page that can edit a book,
+// and the Pages Router waits for that chunk before it will even change the
+// URL. Loading it when the camera is actually opened keeps it out of the way.
+const CameraScanner = dynamic(() => import("./CameraScanner"), {
+  ssr: false,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
