@@ -20,6 +20,14 @@ export default function LocationCombobox({
   const [allLocations, setAllLocations] = useState<LocationEntry[]>([]);
   const [open, setOpen] = useState(false);
   const [locked, setLocked] = useState(false);
+  // Typing is not choosing. Without this the sync effect below locked the
+  // field the moment the text happened to equal a known location, so anyone
+  // extending "Regal B" to "Regal B-03" was frozen at the "B" and had to
+  // unlock and start over. Locking follows an explicit pick or a value that
+  // arrived from the outside (an already stored location), never a keystroke.
+  // Holding the typed text rather than a flag keeps that true across a reset:
+  // once `value` no longer matches it, the change came from outside.
+  const typedRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -30,9 +38,9 @@ export default function LocationCombobox({
       .catch(() => {});
   }, []);
 
-  // Sync locked state whenever value or known locations change
+  // Locks a stored location once the list arrives; a typed value is left alone.
   useEffect(() => {
-    if (!allLocations.length) return;
+    if (!allLocations.length || typedRef.current === value) return;
     const isKnown =
       value.trim() !== "" &&
       allLocations.some(
@@ -55,16 +63,18 @@ export default function LocationCombobox({
     locked || value.trim() === ""
       ? null
       : exactMatch
-        ? null // locked state handles this case
+        ? `Vorhandener Standort: „${exactMatch.location}"`
         : `Neuer Standort wird erstellt: „${value.trim()}"`;
 
   const handleSelect = (loc: LocationEntry) => {
+    typedRef.current = null;
     onChange(loc.location);
     setLocked(true);
     setOpen(false);
   };
 
   const handleUnlock = () => {
+    typedRef.current = "";
     onChange("");
     setLocked(false);
     setOpen(false);
@@ -122,6 +132,7 @@ export default function LocationCombobox({
               placeholder="z. B. Regal B-03"
               className="pl-8"
               onChange={(e) => {
+                typedRef.current = e.target.value;
                 onChange(e.target.value);
                 setOpen(true);
               }}
@@ -133,7 +144,13 @@ export default function LocationCombobox({
           </div>
 
           {hint && (
-            <p className="text-xs text-warning leading-tight">{hint}</p>
+            <p
+              className={`text-xs leading-tight ${
+                exactMatch ? "text-muted-foreground" : "text-warning"
+              }`}
+            >
+              {hint}
+            </p>
           )}
 
           {open && filtered.length > 0 && (
