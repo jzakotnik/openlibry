@@ -640,7 +640,9 @@ export default function BatchScan() {
                         variant="outline"
                         size="sm"
                         onClick={handleTagAll}
-                        disabled={isTagging || isImporting || entries.length === 0}
+                        disabled={
+                          isTagging || isImporting || entries.length === 0
+                        }
                         className="text-primary border-primary/30 hover:bg-primary/10"
                       >
                         {isTagging ? (
@@ -659,7 +661,16 @@ export default function BatchScan() {
                     <Button
                       size="sm"
                       onClick={handleImport}
-                      disabled={isImporting || stats.readyToImportBooks === 0}
+                      // Also blocked while tags are being fetched: importing
+                      // mid-request wrote the untagged entries and then the
+                      // arriving tags landed only in local state, so the run
+                      // reported success over books that were saved without
+                      // them.
+                      disabled={
+                        isImporting ||
+                        isTagging ||
+                        stats.readyToImportBooks === 0
+                      }
                       data-cy="batch-scan-import-button"
                     >
                       {isImporting ? (

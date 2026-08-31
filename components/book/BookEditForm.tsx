@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { useRouter } from "next/router";
-import { Dispatch, useCallback, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 
 import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
@@ -27,7 +27,7 @@ import BookTopicsChips from "./edit/BookTopicsChips";
 
 type BookEditFormPropType = {
   book: BookType;
-  setBookData: Dispatch<BookType>;
+  setBookData: Dispatch<SetStateAction<BookType>>;
   deleteBook: () => void;
   deleteSafetySeconds: number;
   saveBook: React.MouseEventHandler<HTMLButtonElement>;
