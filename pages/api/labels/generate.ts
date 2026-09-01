@@ -90,6 +90,7 @@ async function resolveBookFilter(filter: BookFilter): Promise<BookLabelData[]> {
     subtitle: b.subtitle ?? "",
     isbn: b.isbn ?? undefined,
     topics: b.topics ?? undefined,
+    shelf: b.shelf ?? undefined,
   }));
 }
 
@@ -213,7 +214,7 @@ export default async function handle(
 
     console.log(
       `Generating labels: ${books.length} books on ${sheet.name} ` +
-        `with template "${template.name || "(inline preview)"}"`,
+      `with template "${template.name || "(inline preview)"}"`,
     );
 
     const pdfStream = await renderLabelSheet(

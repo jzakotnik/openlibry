@@ -29,4 +29,5 @@ export interface BookType {
   price?: string;
   externalLinks?: string;
   userId?: number;
+  shelf?: string;
 }

@@ -23,6 +23,7 @@ export type BookFormData = {
   otherPhysicalAttributes?: string;
   supplierComment?: string;
   physicalSize?: string;
+  shelf?: string;
 };
 
 /**
@@ -84,6 +85,7 @@ export function createEmptyBookData(): BookFormData {
     otherPhysicalAttributes: undefined,
     supplierComment: undefined,
     physicalSize: undefined,
+    shelf: undefined,
   };
 }
 

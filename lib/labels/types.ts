@@ -67,6 +67,7 @@ export type LabelFieldContent =
   | "barcode"
   | "school"
   | "topics"
+  | "shelf"
   | "none";
 
 export type TextAlign = "left" | "center" | "right";
@@ -83,6 +84,8 @@ export interface LabelFieldConfig {
   align: TextAlign;
   //sometimes titles are too long
   maxLength?: number;
+  // increase size of this field - fields below must be none
+  increasedHeight?: number;
 }
 
 export interface LabelTemplate {
@@ -124,6 +127,7 @@ export interface BookLabelData {
   subtitle?: string;
   isbn?: string;
   topics?: string;
+  shelf?: string;
 }
 
 /** Filter to select books from the database */

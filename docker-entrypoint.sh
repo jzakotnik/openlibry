@@ -6,6 +6,7 @@ MIGRATIONS_DIR="/app/prisma/migrations"
 CUSTOM_DIR="/app/database/custom"
 DEFAULTS_LABELS_DIR="/app/defaults/labels"
 CUSTOM_LABELS_DIR="$CUSTOM_DIR/labels"
+MARK_MIGRATED_FILE="$MIGRATIONS_DIR/markMigrated.txt"
 
 echo "=== OpenLibry entrypoint ==="
 echo "DATABASE_URL: $DATABASE_URL"
@@ -25,6 +26,20 @@ has_migrations() {
   [ -d "$MIGRATIONS_DIR" ] && [ -n "$(ls -A "$MIGRATIONS_DIR" 2>/dev/null)" ]
 }
 
+resolve_marked_migrations() {
+  if [ -f "$MARK_MIGRATED_FILE" ] && [ -s "$MARK_MIGRATED_FILE" ]; then
+    echo "Found $MARK_MIGRATED_FILE. Marking migrations as already applied..."
+
+    while IFS= read -r migration || [ -n "$migration" ]; do
+      # Ignore empty lines
+      [ -n "$migration" ] || continue
+
+      echo "Marking migration as applied: $migration"
+      npx prisma migrate resolve --applied $migration
+    done < "$MARK_MIGRATED_FILE"
+  fi
+}
+
 if [ ! -f "$DB_PATH" ]; then
   echo "No database found at $DB_PATH."
 
@@ -38,6 +53,9 @@ if [ ! -f "$DB_PATH" ]; then
 else
   if has_migrations; then
     echo "Database exists. Applying pending migrations..."
+    echo "Marking migrations as applied if needed..."
+    resolve_marked_migrations
+    echo "Running: prisma migrate deploy"
     npx prisma migrate deploy
   else
     echo "Database exists, no migrations. Skipping schema sync."
