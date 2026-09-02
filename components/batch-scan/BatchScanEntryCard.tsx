@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useRef } from "react";
 import { AlertTriangle, Edit, Image, RefreshCw, Trash2 } from "lucide-react";
 
 import BookTopicsChips from "@/components/book/edit/BookTopicsChips";
@@ -35,6 +35,9 @@ export interface BatchScanEntryCardProps {
   libraryTopics: string[];
   /** Whether AI tag suggestions are available (provider key configured). */
   aiTaggingEnabled: boolean;
+  /** Reports that this entry has a tag suggestion in flight, so the page can
+   *  hold Import until it lands. */
+  onSuggestingChange?: (entryId: string, suggesting: boolean) => void;
 }
 
 const borderColors = {
@@ -55,6 +58,7 @@ export function BatchScanEntryCard({
   onRetry,
   libraryTopics,
   aiTaggingEnabled,
+  onSuggestingChange,
 }: BatchScanEntryCardProps) {
   const borderColor = borderColors[entry.status];
   const isValid = !!entry.bookData.title;
@@ -65,11 +69,17 @@ export function BatchScanEntryCard({
   const bookData = entry.bookData as BookType;
   // Accepts the functional form too, so a slow tag suggestion merges into the
   // entry as it stands when the answer arrives rather than into the snapshot
-  // taken when it was asked for.
+  // taken when it was asked for. Resolved against a ref rather than the
+  // captured `bookData`: the updater runs seconds later from a closure made at
+  // request time, so reading the render's own value put that old snapshot back
+  // and undid every topic edited while the request was in flight — the very
+  // thing the functional form is for.
+  const bookDataRef = useRef(bookData);
+  bookDataRef.current = bookData;
   const setTopics: Dispatch<SetStateAction<BookType>> = (update) => {
     const next =
       typeof update === "function"
-        ? (update as (prev: BookType) => BookType)(bookData)
+        ? (update as (prev: BookType) => BookType)(bookDataRef.current)
         : update;
     onUpdateBookData(entry.id, "topics", next.topics ?? "");
   };
@@ -239,6 +249,9 @@ export function BatchScanEntryCard({
                       setBookData={setTopics}
                       topics={libraryTopics}
                       aiTaggingEnabled={aiTaggingEnabled}
+                      onSuggestingChange={(busy) =>
+                        onSuggestingChange?.(entry.id, busy)
+                      }
                     />
                   </div>
 
@@ -314,6 +327,9 @@ export function BatchScanEntryCard({
                     setBookData={setTopics}
                     topics={libraryTopics}
                     aiTaggingEnabled={aiTaggingEnabled}
+                    onSuggestingChange={(busy) =>
+                      onSuggestingChange?.(entry.id, busy)
+                    }
                   />
                 </div>
                 <EditField

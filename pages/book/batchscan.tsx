@@ -49,6 +49,12 @@ export default function BatchScan() {
   const [aiTaggingEnabled, setAiTaggingEnabled] = useState(false);
   const [isTagging, setIsTagging] = useState(false);
   const [libraryTopics, setLibraryTopics] = useState<string[]>([]);
+  // Entries whose own tag suggestion is still running. "Alle taggen" was the
+  // only tagging the importer knew about, so a suggestion started on a single
+  // card could still be in flight when Import wrote that book away without it.
+  const [suggestingEntries, setSuggestingEntries] = useState<Set<string>>(
+    new Set(),
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -425,6 +431,19 @@ export default function BatchScan() {
 
   // ── AI tagging ──────────────────────────────────────────────────────────────
 
+  const handleEntrySuggesting = useCallback(
+    (entryId: string, suggesting: boolean) => {
+      setSuggestingEntries((prev) => {
+        if (suggesting === prev.has(entryId)) return prev;
+        const next = new Set(prev);
+        if (suggesting) next.add(entryId);
+        else next.delete(entryId);
+        return next;
+      });
+    },
+    [],
+  );
+
   const handleTagAll = useCallback(async () => {
     const taggable = entries.filter((e) => e.bookData.title);
     if (taggable.length === 0) {
@@ -712,6 +731,7 @@ export default function BatchScan() {
                       disabled={
                         isImporting ||
                         isTagging ||
+                        suggestingEntries.size > 0 ||
                         stats.readyToImportBooks === 0
                       }
                       data-cy="batch-scan-import-button"
@@ -771,6 +791,7 @@ export default function BatchScan() {
                   onRetry={handleRetry}
                   libraryTopics={libraryTopics}
                   aiTaggingEnabled={aiTaggingEnabled}
+                  onSuggestingChange={handleEntrySuggesting}
                 />
               ))}
             </div>
