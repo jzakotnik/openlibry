@@ -69,6 +69,9 @@ type BookTopicsChipsProps = {
   /** Drives the auto-suggest trigger: a true→false transition means an autofill
    *  just finished. */
   isAutoFilling?: boolean;
+  /** Reports whether a suggestion request is in flight, so a host that saves
+   *  this book can wait for it. */
+  onSuggestingChange?: (suggesting: boolean) => void;
 };
 
 function parseTopics(topics: string[] | string | undefined | null): string[] {
@@ -102,12 +105,19 @@ export default function BookTopicsChips({
   book,
   topics,
   aiTaggingEnabled = false,
+  onSuggestingChange,
   autoSuggest = false,
   isAutoFilling = false,
 }: BookTopicsChipsProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isSuggesting, setIsSuggesting] = useState(false);
+
+  // Lets a host that saves this book (the batch importer) know a suggestion is
+  // still in flight, so it does not write the book away without its tags.
+  useEffect(() => {
+    onSuggestingChange?.(isSuggesting);
+  }, [isSuggesting, onSuggestingChange]);
   // Provenance of suggested tags, keyed by lowercased tag. Ephemeral (most
   // useful right after suggesting) — not persisted, since topics is a flat string.
   const [tagSources, setTagSources] = useState<Record<string, TagSource>>({});
@@ -179,11 +189,24 @@ export default function BookTopicsChips({
 
   // ── AI suggestions ─────────────────────────────────────────────────────────
 
+  // Which book the form is showing, as of this render. A suggestion takes
+  // seconds; navigating from one book to the next, or autofilling a second
+  // ISBN, keeps this component mounted and only swaps its props. The answer
+  // would then be merged into whichever book had arrived meanwhile, quietly
+  // tagging it with the previous one's subjects. The request carries the
+  // identity it was asked for and drops its answer if that no longer matches.
+  const bookIdentity = `${(book as { id?: number }).id ?? ""}|${
+    book.isbn ?? ""
+  }|${book.title ?? ""}`;
+  const bookIdentityRef = useRef(bookIdentity);
+  bookIdentityRef.current = bookIdentity;
+
   // Suggestions land directly in the field as chips (new ones render blue);
   // staff removes any that don't fit. The review-before-save IS the confirm
   // step. `silent` suppresses the "nothing found" toasts for auto-triggered runs.
   const handleSuggest = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
+      const requestedFor = bookIdentityRef.current;
       setIsSuggesting(true);
       try {
         const res = await fetch("/api/book/suggestTags", {
@@ -208,6 +231,9 @@ export default function BookTopicsChips({
           }),
         });
         const data = await res.json();
+        // The form has moved to another book since this went out; these
+        // suggestions describe a book nobody is editing any more.
+        if (bookIdentityRef.current !== requestedFor) return;
         if (!res.ok || data.enabled === false) {
           if (!silent) toast.warning(t("aiTagging.toastNoSuggestions"));
           return;
@@ -236,6 +262,7 @@ export default function BookTopicsChips({
         // old book put back every field edited in the meantime: a title typed
         // while tags were being fetched simply reverted when they arrived.
         setBookData((current) => {
+          if (bookIdentityRef.current !== requestedFor) return current;
           const existing = parseTopics(
             (current as unknown as Record<string, unknown>)[fieldType] as
               string | string[] | null,
