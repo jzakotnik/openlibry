@@ -24,6 +24,8 @@ const testBook = {
   additionalMaterial: "Beiliegende CD",
   externalLinks: "https://example.com/buch",
   supplierComment: "Direkt vom Verlag bezogen",
+  mediaType: "magazine",
+  systematics: "AB 123",
 };
 
 const allStatuses: string[] = [
@@ -120,6 +122,11 @@ describe("Book fields — fill all and verify persistence", () => {
       .clear()
       .type(testBook.supplierComment);
 
+    selectOption("book-mediaType-select", testBook.mediaType);
+    cy.get("[data-cy=book-systematics-field]")
+      .clear()
+      .type(testBook.systematics);
+
     cy.get("[data-cy=save-book-button]").click();
 
     cy.wait("@saveBook", { timeout: 10000 }).then((interception) => {
@@ -205,6 +212,16 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.get("[data-cy=book-supplierComment-field]").should(
       "have.value",
       testBook.supplierComment,
+    );
+
+    cy.get("#book-mediaType-select").should(
+      "have.attr",
+      "data-value",
+      testBook.mediaType,
+    );
+    cy.get("[data-cy=book-systematics-field]").should(
+      "have.value",
+      testBook.systematics,
     );
   });
 

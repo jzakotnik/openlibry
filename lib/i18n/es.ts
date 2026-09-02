@@ -14,6 +14,10 @@ export const es: Dictionary = {
   app: {
     title: "OpenLibry Biblioteca",
   },
+  common: {
+    unsavedChangesWarning:
+      "Hay cambios sin guardar. ¿Salir de la página igualmente?",
+  },
   topbar: {
     brand: "OpenLibry",
     tagline: "Gestión de Biblioteca",
@@ -90,8 +94,10 @@ export const es: Dictionary = {
     statusOrdered: "Pedido",
     statusLost: "Perdido",
     statusRemote: "Otra biblioteca",
+    statusUnassigned: "Aún no asignado a nadie",
     statusUnknown: "Estado desconocido ({status})",
     statusBadgeAria: "Estado: {status}",
+    statusBadgeEditHint: "{status} — haz clic para editar el libro",
   },
   rentSearchParams: {
     overdue: "Vencido",
@@ -167,6 +173,7 @@ export const es: Dictionary = {
     autoIdLabel: "ID automático",
     autoIdHint: "Se asignará automáticamente el próximo número disponible",
     userIdLabel: "ID de usuario",
+    idInvalidHint: "El ID de usuario debe ser como mínimo 1.",
     cancel: "Cancelar",
     create: "Crear",
   },
@@ -198,6 +205,12 @@ export const es: Dictionary = {
     save: "Guardar",
     print: "Imprimir",
     delete: "Eliminar",
+    deleteWarningTitle:
+      "Atención: los libros prestados se marcarán como perdidos",
+    deleteWarningBodyOne:
+      "Este usuario tiene actualmente 1 libro prestado. Al eliminarlo, se marcará automáticamente como \"Perdido\" para evitar la pérdida de datos.",
+    deleteWarningBodyMany:
+      "Este usuario tiene actualmente {count} libros prestados. Al eliminarlo, se marcarán automáticamente como \"Perdido\" para evitar la pérdida de datos.",
   },
   bookEditForm: {
     save: "Guardar",
@@ -249,6 +262,15 @@ export const es: Dictionary = {
     toastCoverNotFound: "No se pudo encontrar la portada.",
     toastCoverLoadError: "Error al cargar la portada.",
   },
+  bookUserAssign: {
+    label: "Prestado a",
+    currentlyWith: "Actualmente prestado a {name}",
+    searchPlaceholder: "Buscar usuario...",
+    notFound: "No se encontró ningún usuario.",
+    placeholder: "Seleccionar usuario...",
+    toastAssigned: "¡Libro asignado, genial!",
+    toastAssignFailed: "Error al asignar el usuario",
+  },
   bookSelect: {
     renewalNone: "No renovado",
     renewalCountFormat: "{n}x renovado",
@@ -256,8 +278,11 @@ export const es: Dictionary = {
   userPage: {
     toastUserCreateFailed:
       "No se pudo crear el nuevo usuario. ¿El ID de usuario ya existe?",
+    toastUserIdExists:
+      "Este ID de usuario ya está en uso. Por favor, elige otro ID.",
+    toastUserIdInvalid: "El ID de usuario debe ser como mínimo 1.",
     toastGradeIncreased: "Curso aumentado para los alumnos",
-    toastUsersDeleted: "Alumnos eliminados correctamente",
+    toastUsersDeleted: "Usuarios eliminados correctamente",
   },
   userDetailPage: {
     idNotFound: "ID no encontrado",
@@ -518,6 +543,16 @@ export const es: Dictionary = {
         title: "Configuración escolar",
         description: "Nombre, logotipo, plazos de préstamo y etiquetas",
         fields: {
+          USAGE_CONTEXT: {
+            label: "Contexto de uso",
+            description:
+              "Determina si la interfaz está configurada para un colegio (con curso/docente) o un club/organización (sin esos campos).",
+            hint: "El cambio requiere reiniciar la aplicación.",
+            options: {
+              school: "Colegio",
+              club: "Club / Organización",
+            },
+          },
           SCHOOL_NAME: {
             label: "Nombre del colegio",
             description:
@@ -715,6 +750,11 @@ export const es: Dictionary = {
     description:
       "Asignar campos, ajustar tamaños de fuente, configurar el ancho del lomo. Vista previa directa en el navegador.",
     button: "Editar plantilla",
+  },
+  fieldAssigner: {
+    contentOptions: {
+      school: "Nombre del colegio",
+    },
   },
 
   // ─── Phase 7b1: report table pages ───────────────────────────────────

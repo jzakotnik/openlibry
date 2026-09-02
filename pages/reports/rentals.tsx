@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
@@ -147,8 +148,12 @@ const pdfStyles = StyleSheet.create({
   tableRowAlt: {
     backgroundColor: "#fafafa",
   },
+  // colGrade's 7% is redistributed into colTitle in club mode (resolved
+  // once, same as USAGE_CONTEXT itself — no runtime switching).
   colId: { width: "7%" },
-  colTitle: { width: "25%", paddingRight: 4 },
+  colTitle: showsSchoolFields()
+    ? { width: "25%", paddingRight: 4 }
+    : { width: "32%", paddingRight: 4 },
   colName: { width: "16%", paddingRight: 4 },
   colGrade: { width: "7%" },
   colDue: { width: "11%" },
@@ -211,9 +216,11 @@ const RentalsPdfDocument = ({
       <Text style={[pdfStyles.colName, pdfStyles.headerText]}>
         {t("pdfRentals.colName")}
       </Text>
-      <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
-        {getColumnHeader("schoolGrade")}
-      </Text>
+      {showsSchoolFields() && (
+        <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
+          {getColumnHeader("schoolGrade")}
+        </Text>
+      )}
       <Text style={[pdfStyles.colDue, pdfStyles.headerText]}>
         {getColumnHeader("dueDate")}
       </Text>
@@ -256,7 +263,9 @@ const RentalsPdfDocument = ({
       <Text style={pdfStyles.colName}>
         {`${row.lastName || ""}, ${row.firstName || ""}`.substring(0, 18)}
       </Text>
-      <Text style={pdfStyles.colGrade}>{row.schoolGrade || ""}</Text>
+      {showsSchoolFields() && (
+        <Text style={pdfStyles.colGrade}>{row.schoolGrade || ""}</Text>
+      )}
       <Text style={pdfStyles.colDue}>{row.dueDate}</Text>
       <Text
         style={
@@ -462,7 +471,9 @@ export default function Rentals({ rentals, error }: RentalsPropsType) {
     if (rentals.length > 0) {
       try {
         const colTitles = rentals[0];
-        const fields = Object.keys(colTitles);
+        const fields = Object.keys(colTitles).filter(
+          (f) => showsSchoolFields() || f !== "schoolGrade",
+        );
 
         const cols = fields.map((f: string) => {
           const rentalTranslations = translations?.rentals;

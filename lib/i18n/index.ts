@@ -32,8 +32,11 @@
  * accepted as a fallback.
  */
 
+import { USAGE_CONTEXT } from "@/lib/config/usageContext";
+
 import { de } from "./de";
 import { en } from "./en";
+import { clubOverrides } from "./overrides.club";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -66,6 +69,24 @@ const dictionaries = { de, en } as const;
 
 const active = dictionaries[LOCALE];
 const fallback = dictionaries[DEFAULT_LOCALE];
+
+// Club-mode terminology overrides (see overrides.club.ts). `undefined` in
+// school mode so the extra lookup in t() is skipped entirely.
+const activeOverride =
+  USAGE_CONTEXT === "club" ? clubOverrides[LOCALE] : undefined;
+const fallbackOverride =
+  USAGE_CONTEXT === "club" ? clubOverrides[DEFAULT_LOCALE] : undefined;
+
+if (process.env.NODE_ENV !== "production" && activeOverride) {
+  for (const overrideKey of Object.keys(activeOverride)) {
+    if (lookup(active, overrideKey) === undefined) {
+      // eslint-disable-next-line no-console -- dev-only guard against typo'd override paths
+      console.warn(
+        `[i18n] club override key "${overrideKey}" has no matching base dictionary key`,
+      );
+    }
+  }
+}
 
 /**
  * Walk a dot-separated path into a dictionary. Returns the string at the
@@ -110,8 +131,10 @@ function interpolate(
 export type TranslationKey = string;
 
 /**
- * Translate a key. Falls back to German if the key is missing in the
- * active locale, and to the raw key if missing everywhere.
+ * Translate a key. In club usage context, a matching club-terminology
+ * override (see overrides.club.ts) takes precedence over the base
+ * dictionaries. Falls back to German if the key is missing in the active
+ * locale, and to the raw key if missing everywhere.
  *
  * @param key   Dot-separated path into the dictionary (e.g. "topbar.logout")
  * @param vars  Optional `{name}` placeholder values
@@ -120,7 +143,12 @@ export function t(
   key: TranslationKey,
   vars?: Record<string, string | number>,
 ): string {
-  const str = lookup(active, key) ?? lookup(fallback, key) ?? key;
+  const str =
+    activeOverride?.[key] ??
+    lookup(active, key) ??
+    fallbackOverride?.[key] ??
+    lookup(fallback, key) ??
+    key;
   return vars ? interpolate(str, vars) : str;
 }
 

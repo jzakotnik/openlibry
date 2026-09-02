@@ -1,13 +1,16 @@
 import { prisma } from "@/entities/db";
 import { addUser, getAllUsers } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { t } from "@/lib/i18n";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { replaceUserDateString } from "@/lib/utils/dateutils";
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
   result: string;
+  code?: string;
 };
 
 export default async function handler(
@@ -41,6 +44,23 @@ export default async function handler(
 
         res.status(200).json(result as any);
       } catch (error) {
+        if (error instanceof Error && error.message === "INVALID_USER_ID") {
+          res
+            .status(400)
+            .json({ result: t("userPage.toastUserIdInvalid"), code: "USER_ID_INVALID" });
+          break;
+        }
+
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          res
+            .status(409)
+            .json({ result: t("userPage.toastUserIdExists"), code: "USER_ID_EXISTS" });
+          break;
+        }
+
         errorLogger.error(
           {
             event: LogEvents.API_ERROR,

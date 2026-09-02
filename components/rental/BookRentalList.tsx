@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 
 import React, { useCallback } from "react";
 
@@ -58,6 +59,10 @@ function getStatusLabel(status: string): string {
       return t("rental.statusLost");
     case "remote":
       return t("rental.statusRemote");
+    // rentalStatus "rented" without a userId - can happen when the status
+    // was set manually in the book edit form before assigning a borrower.
+    case "rented":
+      return t("rental.statusUnassigned");
     default:
       return t("rental.statusUnknown", { status });
   }
@@ -83,6 +88,7 @@ const BookList = React.memo(function BookList({
   handleReturnBookButton: (bookid: number, userid: number) => void;
   handleRentBookButton: (id: number, userid: number) => void;
 }) {
+  const router = useRouter();
   const totalCount = renderedBooks.length;
   const visibleBooks =
     renderLimit !== undefined
@@ -97,7 +103,11 @@ const BookList = React.memo(function BookList({
       >
         {visibleBooks.map((b: BookType) => {
           const isAvailable = b.rentalStatus === "available";
-          const isRented = b.rentalStatus === "rented";
+          // Require a userId too: the book edit form can set rentalStatus
+          // to "rented" before a borrower is assigned (see BookUserAssign),
+          // and this list's return/extend actions and borrower-name lookup
+          // below all need a real userId to work.
+          const isRented = b.rentalStatus === "rented" && !!b.userId;
           // Anything that's neither available nor actively rented (lost,
           // damaged, etc.) has no valid rental to extend or return.
           const isUnavailableOther = !isAvailable && !isRented;
@@ -141,8 +151,9 @@ const BookList = React.memo(function BookList({
                         <span>
                           <Badge
                             variant="destructive"
-                            className="flex items-center gap-1"
+                            className="flex items-center gap-1 cursor-pointer"
                             data-cy={`book_status_badge_${b.id}`}
+                            onClick={() => router.push(`/book/${b.id}`)}
                             aria-label={t("rental.statusBadgeAria", {
                               status: getStatusLabel(b.rentalStatus),
                             })}
@@ -153,7 +164,9 @@ const BookList = React.memo(function BookList({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {getStatusLabel(b.rentalStatus)}
+                        {t("rental.statusBadgeEditHint", {
+                          status: getStatusLabel(b.rentalStatus),
+                        })}
                       </TooltipContent>
                     </Tooltip>
                   )}

@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -223,17 +224,19 @@ export default function UserAdminList({
                           </Tooltip>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-1.5">
-                        <GraduationCap
-                          size={13}
-                          className="text-muted-foreground/50"
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {t("userAdminList.gradePrefix")} {user.schoolGrade}
-                          {user.schoolTeacherName &&
-                            ` · ${user.schoolTeacherName}`}
-                        </span>
-                      </div>
+                      {showsSchoolFields() && (
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <GraduationCap
+                            size={13}
+                            className="text-muted-foreground/50"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {t("userAdminList.gradePrefix")} {user.schoolGrade}
+                            {user.schoolTeacherName &&
+                              ` · ${user.schoolTeacherName}`}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Quick Info Badge */}

@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
+import { UserPickerOption } from "@/entities/UserType";
 import { useBookEditor } from "@/hooks/useBookEditor";
 import { replaceBookDateString } from "@/lib/utils/dateutils";
 import {
@@ -15,12 +16,14 @@ import { GetServerSidePropsContext } from "next/types";
 interface BookDetailProps {
   book: BookType;
   topics: string[];
+  users: UserPickerOption[];
   deleteSafetySeconds: number;
 }
 
 export default function BookDetail({
   book,
   topics,
+  users,
   deleteSafetySeconds,
 }: BookDetailProps) {
   const router = useRouter();
@@ -45,6 +48,8 @@ export default function BookDetail({
         deleteSafetySeconds={deleteSafetySeconds}
         saveBook={editor.handleSave}
         topics={topics}
+        users={users}
+        assignUser={editor.handleAssignUser}
         antolinResults={editor.antolinResults}
         isSaving={editor.isSaving}
       />
@@ -67,5 +72,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const topics = await getUniqueTopics(prisma);
 
-  return { props: { book, topics, deleteSafetySeconds } };
+  // Only id/name are needed for the book-edit user picker - skip the full
+  // row + date-string conversion getAllUsers() does, since this page loads
+  // on every single book view regardless of whether the picker is shown.
+  const users = await prisma.user.findMany({
+    select: { id: true, firstName: true, lastName: true },
+    orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+  });
+
+  return { props: { book, topics, users, deleteSafetySeconds } };
 }

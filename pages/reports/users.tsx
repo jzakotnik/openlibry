@@ -3,6 +3,7 @@ import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { getAllUsers } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { convertDateToDayString } from "@/lib/utils/dateutils";
 import {
@@ -119,12 +120,21 @@ const pdfStyles = StyleSheet.create({
     paddingHorizontal: 8,
     backgroundColor: "#f5f5f5",
   },
+  // Grade/teacher columns are hidden in club mode; their 28% width is
+  // redistributed across the remaining columns (resolved once, same as
+  // USAGE_CONTEXT itself — no runtime switching).
   colId: { width: "8%" },
-  colLastName: { width: "18%", paddingRight: 4 },
-  colFirstName: { width: "18%", paddingRight: 4 },
+  colLastName: showsSchoolFields()
+    ? { width: "18%", paddingRight: 4 }
+    : { width: "24%", paddingRight: 4 },
+  colFirstName: showsSchoolFields()
+    ? { width: "18%", paddingRight: 4 }
+    : { width: "24%", paddingRight: 4 },
   colGrade: { width: "10%" },
   colTeacher: { width: "18%", paddingRight: 4 },
-  colEmail: { width: "28%", paddingRight: 4 },
+  colEmail: showsSchoolFields()
+    ? { width: "28%", paddingRight: 4 }
+    : { width: "44%", paddingRight: 4 },
   headerText: { color: "#fff", fontWeight: "bold" },
   inactiveText: { color: "#9e9e9e" },
   footer: {
@@ -181,12 +191,16 @@ const UsersPdfDocument = ({
       <Text style={[pdfStyles.colFirstName, pdfStyles.headerText]}>
         {getColumnHeader("firstName")}
       </Text>
-      <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
-        {getColumnHeader("schoolGrade")}
-      </Text>
-      <Text style={[pdfStyles.colTeacher, pdfStyles.headerText]}>
-        {getColumnHeader("schoolTeacherName")}
-      </Text>
+      {showsSchoolFields() && (
+        <>
+          <Text style={[pdfStyles.colGrade, pdfStyles.headerText]}>
+            {getColumnHeader("schoolGrade")}
+          </Text>
+          <Text style={[pdfStyles.colTeacher, pdfStyles.headerText]}>
+            {getColumnHeader("schoolTeacherName")}
+          </Text>
+        </>
+      )}
       <Text style={[pdfStyles.colEmail, pdfStyles.headerText]}>
         {getColumnHeader("eMail")}
       </Text>
@@ -228,24 +242,28 @@ const UsersPdfDocument = ({
       >
         {String(row.firstName || "").substring(0, 20)}
       </Text>
-      <Text
-        style={
-          isInactive
-            ? [pdfStyles.colGrade, pdfStyles.inactiveText]
-            : pdfStyles.colGrade
-        }
-      >
-        {row.schoolGrade || ""}
-      </Text>
-      <Text
-        style={
-          isInactive
-            ? [pdfStyles.colTeacher, pdfStyles.inactiveText]
-            : pdfStyles.colTeacher
-        }
-      >
-        {String(row.schoolTeacherName || "").substring(0, 20)}
-      </Text>
+      {showsSchoolFields() && (
+        <>
+          <Text
+            style={
+              isInactive
+                ? [pdfStyles.colGrade, pdfStyles.inactiveText]
+                : pdfStyles.colGrade
+            }
+          >
+            {row.schoolGrade || ""}
+          </Text>
+          <Text
+            style={
+              isInactive
+                ? [pdfStyles.colTeacher, pdfStyles.inactiveText]
+                : pdfStyles.colTeacher
+            }
+          >
+            {String(row.schoolTeacherName || "").substring(0, 20)}
+          </Text>
+        </>
+      )}
       <Text
         style={
           isInactive
@@ -436,7 +454,11 @@ export default function Users({ users }: UsersPropsType) {
     setReportDataAvailable(users.length > 0);
     if (users && users.length > 0) {
       const colTitles = users[0];
-      const fields = Object.keys(colTitles);
+      const fields = Object.keys(colTitles).filter(
+        (f) =>
+          showsSchoolFields() ||
+          (f !== "schoolGrade" && f !== "schoolTeacherName"),
+      );
       const cols = fields.map((f) => {
         const fieldTranslation = (translations as any)["users"][f];
         return {

@@ -6,6 +6,9 @@ import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import { UserPickerOption } from "@/entities/UserType";
+import { translations } from "@/entities/fieldTranslations";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import React from "react";
 import { toast } from "sonner";
@@ -16,10 +19,12 @@ import BookDateField from "./edit/BookDateField";
 import BookField from "./edit/BookField";
 import BookImageUploadButton from "./edit/BookImageUploadButton";
 import BookSelect, {
+  mediaTypeOptions,
   renewalCountOptions,
   rentalStatusOptions,
 } from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
+import BookUserAssign from "./edit/BookUserAssign";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -40,6 +45,8 @@ type BookEditFormPropType = {
   autofillAttempted?: boolean;
   onAutoFill?: (isbn: string) => Promise<void>;
   isAutoFilling?: boolean;
+  users?: UserPickerOption[];
+  assignUser?: (userid: number) => void;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -126,6 +133,8 @@ export default function BookEditForm({
   autofillAttempted = false,
   onAutoFill,
   isAutoFilling: externalIsAutoFilling,
+  users,
+  assignUser,
 }: BookEditFormPropType) {
   const [editable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1);
@@ -330,11 +339,13 @@ export default function BookEditForm({
       className="mt-8 bg-card rounded-2xl shadow-sm border border-border px-4 sm:px-6 lg:px-8 py-6"
       data-cy="book-edit-form"
     >
-      <BookAntolinDialog
-        open={antolinDetailsDialog}
-        setOpen={setAntolinDetailsDialog}
-        antolinBooks={antolinResults}
-      />
+      {showsSchoolFields() && (
+        <BookAntolinDialog
+          open={antolinDetailsDialog}
+          setOpen={setAntolinDetailsDialog}
+          antolinBooks={antolinResults}
+        />
+      )}
 
       {/* ── Action Buttons ─────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start pb-2">
@@ -437,6 +448,16 @@ export default function BookEditForm({
               />
             </div>
             <div>
+              <BookSelect
+                fieldType="mediaType"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+                label={translations.books.mediaType}
+                options={mediaTypeOptions}
+              />
+            </div>
+            <div>
               <BookField
                 fieldType="author"
                 editable={editable}
@@ -460,7 +481,7 @@ export default function BookEditForm({
                 book={book}
                 topics={topics}
               />
-              <AntolinResult />
+              {showsSchoolFields() && <AntolinResult />}
             </div>
             <div className="sm:col-span-2">
               <BookField
@@ -570,6 +591,20 @@ export default function BookEditForm({
             </div>
           </div>
 
+          {!isNewBook &&
+            book.id &&
+            book.rentalStatus === "rented" &&
+            users &&
+            assignUser && (
+              <div className="mt-3">
+                <BookUserAssign
+                  users={users}
+                  currentUserId={book.userId}
+                  onAssign={assignUser}
+                />
+              </div>
+            )}
+
           <SectionDivider>{t("bookEditForm.sectionMore")}</SectionDivider>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
@@ -600,6 +635,14 @@ export default function BookEditForm({
             <div>
               <BookField
                 fieldType="physicalSize"
+                editable={editable}
+                setBookData={setBookData}
+                book={book}
+              />
+            </div>
+            <div>
+              <BookField
+                fieldType="systematics"
                 editable={editable}
                 setBookData={setBookData}
                 book={book}

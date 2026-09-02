@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
@@ -196,15 +197,19 @@ export default function UserSearchBar({
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuItem
-                    onClick={onIncreaseGrade}
-                    className="gap-3 text-primary"
-                  >
-                    <GraduationCap size={16} />
-                    {t("userSearchBar.increaseGrade")}
-                  </DropdownMenuItem>
+                  {showsSchoolFields() && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={onIncreaseGrade}
+                        className="gap-3 text-primary"
+                      >
+                        <GraduationCap size={16} />
+                        {t("userSearchBar.increaseGrade")}
+                      </DropdownMenuItem>
 
-                  <DropdownMenuSeparator />
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
 
                   <DropdownMenuItem
                     onSelect={(e) => {

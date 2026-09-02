@@ -20,6 +20,7 @@ import { Dispatch, useMemo, useState } from "react";
 import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
+import { showsSchoolFields } from "@/lib/config/usageContext";
 import { t } from "@/lib/i18n";
 import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
 import { booksForUser, filterUsers } from "@/lib/utils/searchUtils";
@@ -273,8 +274,12 @@ export default function UserRentalList({
                         className="text-xs text-foreground whitespace-nowrap"
                         data-cy={`user_meta_${u.id}`}
                       >
-                        {t("rental.userMetaPrefix")} {u.id},{" "}
-                        {t("rental.userMetaGrade")} {u.schoolGrade}
+                        {t("rental.userMetaPrefix")} {u.id}
+                        {showsSchoolFields() && (
+                          <>
+                            , {t("rental.userMetaGrade")} {u.schoolGrade}
+                          </>
+                        )}
                       </span>
 
                       <OverdueIcon rentalsUser={rentalsUser} />

@@ -18,6 +18,7 @@ const SAMPLE_BOOK = {
   author: "Antoine de Saint-Exupéry",
   subtitle: "Eine Erzählung",
   topics: "Abenteuer; Freundschaft; Philosophie; Kinderbuch",
+  systematics: "Kj Sain",
 };
 
 interface LabelPreviewProps {

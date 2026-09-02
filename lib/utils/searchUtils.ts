@@ -99,7 +99,7 @@ export function filterUsers(
 
     const foundClass =
       !foundKlasse ||
-      u.schoolGrade!.toLowerCase().startsWith(searchPattern.klasse);
+      (u.schoolGrade ?? "").toLowerCase().startsWith(searchPattern.klasse);
 
     if (!foundClass) continue;
 

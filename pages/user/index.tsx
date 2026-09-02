@@ -75,9 +75,10 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
       })
-        .then((res) => {
-          if (!res.ok) throw new Error(`Server error: ${res.status}`);
-          return res.json();
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) throw data;
+          return data;
         })
         .then((data) => {
           setIsCreatingUser(false);
@@ -86,7 +87,11 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
         .catch((error) => {
           console.error("Error creating user:", error);
           setIsCreatingUser(false);
-          toast.error(t("userPage.toastUserCreateFailed"));
+          toast.error(
+            error?.code === "USER_ID_EXISTS" || error?.code === "USER_ID_INVALID"
+              ? error.result
+              : t("userPage.toastUserCreateFailed"),
+          );
         });
     },
     [router],

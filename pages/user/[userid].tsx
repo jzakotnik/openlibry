@@ -5,6 +5,7 @@ import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { getUser } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { t } from "@/lib/i18n";
 import {
@@ -34,11 +35,23 @@ export default function UserDetail({
 }: UserDetailPropsType) {
   const router = useRouter();
 
-  const [userData, setUserData] = useState(user);
+  const [userData, setUserDataState] = useState(user);
   const [userBooks, setUserBooks] = useState(books);
+  const [dirty, setDirty] = useState(false);
+
+  // Every edit made through this setter (passed to UserEditForm) counts as
+  // an unsaved change; the SSR prop sync below uses setUserDataState
+  // directly since that reflects already-persisted data, not a pending edit.
+  const setUserData = (value: UserType) => {
+    setUserDataState(value);
+    setDirty(true);
+  };
+
+  const { allowNextNavigation } = useUnsavedChangesWarning(dirty);
 
   useEffect(() => {
-    setUserData(user);
+    setUserDataState(user);
+    setDirty(false);
   }, [user]);
 
   if (!router.query.userid) {
@@ -75,6 +88,8 @@ export default function UserDetail({
             lastName: userData.lastName ?? "",
           }),
         );
+        setDirty(false);
+        allowNextNavigation();
         router.push("/user");
       });
   };
@@ -135,6 +150,7 @@ export default function UserDetail({
       .then((data) => {
         console.log("Delete operation performed on ", userid, data);
         toast.success(t("userDetailPage.toastUserDeleted"));
+        allowNextNavigation();
         router.push("/user");
       });
   };
