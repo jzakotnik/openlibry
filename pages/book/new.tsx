@@ -2,6 +2,7 @@ import BookEditForm from "@/components/book/BookEditForm";
 import Layout from "@/components/layout/Layout";
 import { prisma } from "@/entities/db";
 import { useBookEditor } from "@/hooks/useBookEditor";
+import { isAiTaggingEnabled } from "@/lib/ai-tagging/config";
 import {
   getDeleteSafetySeconds,
   getUniqueTopics,
@@ -12,12 +13,14 @@ interface NewBookProps {
   topics: string[];
   deleteSafetySeconds: number;
   initialIsbn?: string;
+  aiTaggingEnabled: boolean;
 }
 
 export default function NewBook({
   topics,
   deleteSafetySeconds,
   initialIsbn,
+  aiTaggingEnabled,
 }: NewBookProps) {
   const editor = useBookEditor({ kind: "new", initialIsbn });
 
@@ -38,6 +41,7 @@ export default function NewBook({
         autofillAttempted={editor.autofillAttempted}
         onAutoFill={editor.handleAutoFill}
         isAutoFilling={editor.isAutoFilling}
+        aiTaggingEnabled={aiTaggingEnabled}
       />
     </Layout>
   );
@@ -49,6 +53,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const topics = await getUniqueTopics(prisma);
 
   return {
-    props: { topics, deleteSafetySeconds, initialIsbn },
+    props: {
+      topics,
+      deleteSafetySeconds,
+      initialIsbn,
+      aiTaggingEnabled: isAiTaggingEnabled(),
+    },
   };
 }

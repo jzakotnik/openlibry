@@ -23,6 +23,7 @@ import {
   PlusCircle,
   Save,
   ScanBarcode,
+  Sparkles,
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -35,6 +36,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { t } from "@/lib/i18n";
+import { MAX_BOOKS_PER_REQUEST } from "@/lib/ai-tagging/types";
 
 export default function BatchScan() {
   const router = useRouter();
@@ -43,10 +46,37 @@ export default function BatchScan() {
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [aiTaggingEnabled, setAiTaggingEnabled] = useState(false);
+  const [isTagging, setIsTagging] = useState(false);
+  const [libraryTopics, setLibraryTopics] = useState<string[]>([]);
+  // Entries whose own tag suggestion is still running. "Alle taggen" was the
+  // only tagging the importer knew about, so a suggestion started on a single
+  // card could still be in flight when Import wrote that book away without it.
+  const [suggestingEntries, setSuggestingEntries] = useState<Set<string>>(
+    new Set(),
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // Discover whether AI tagging is configured (provider key present). No key →
+  // the "Tag all" button never renders and this page behaves exactly as before.
+  useEffect(() => {
+    fetch("/api/book/aiTaggingStatus")
+      .then((r) => r.json())
+      .then((d) => setAiTaggingEnabled(!!d.enabled))
+      .catch(() => {});
+  }, []);
+
+  // Load the library's topic vocabulary so the shared tag editor can color tags
+  // green (already in the library) vs blue (new). Failure is silent.
+  useEffect(() => {
+    fetch("/api/book/topics")
+      .then((r) => r.json())
+      .then((d) => setLibraryTopics(d.topics ?? []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -399,6 +429,150 @@ export default function BatchScan() {
     }
   }, [entries]);
 
+  // ── AI tagging ──────────────────────────────────────────────────────────────
+
+  const handleEntrySuggesting = useCallback(
+    (entryId: string, suggesting: boolean) => {
+      setSuggestingEntries((prev) => {
+        if (suggesting === prev.has(entryId)) return prev;
+        const next = new Set(prev);
+        if (suggesting) next.add(entryId);
+        else next.delete(entryId);
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleTagAll = useCallback(async () => {
+    const taggable = entries.filter((e) => e.bookData.title);
+    if (taggable.length === 0) {
+      toast.warning(t("aiTagging.batchNoTaggable"));
+      return;
+    }
+
+    setIsTagging(true);
+    try {
+      // The endpoint takes a bounded number of books per request. A scanning
+      // session easily runs past that, and sending everything in one request
+      // used to come back as a 400 that showed up as "no suggestions" — the
+      // whole batch quietly untagged. Long sessions go in successive
+      // requests instead, one after another because each is already several
+      // model calls on the server.
+      const batches: (typeof taggable)[] = [];
+      for (let i = 0; i < taggable.length; i += MAX_BOOKS_PER_REQUEST) {
+        batches.push(taggable.slice(i, i + MAX_BOOKS_PER_REQUEST));
+      }
+
+      const byRef = new Map<string, { tag: string; isNew: boolean }[]>();
+      const failedRefs = new Set<string>();
+      let featureOff = false;
+
+      for (const batch of batches) {
+        const res = await fetch("/api/book/suggestTags", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            books: batch.map((e) => ({
+              ref: e.id,
+              isbn: e.isbn,
+              title: e.bookData.title,
+              subtitle: e.bookData.subtitle,
+              author: e.bookData.author,
+              summary: e.bookData.summary,
+              topics: e.bookData.topics,
+              publisherName: e.bookData.publisherName,
+              publisherDate: e.bookData.publisherDate,
+              minAge: e.bookData.minAge,
+              maxAge: e.bookData.maxAge,
+            })),
+          }),
+        });
+        const data = await res.json();
+
+        // No provider configured: the feature is off, not failing.
+        if (data?.enabled === false) {
+          featureOff = true;
+          break;
+        }
+        if (!res.ok) {
+          for (const e of batch) failedRefs.add(e.id);
+          continue;
+        }
+        for (const r of data.results ?? []) {
+          byRef.set(r.ref, r.suggestions ?? []);
+        }
+        // Books the server could not get through the model. Without this they
+        // are indistinguishable from books the model had nothing to say about.
+        for (const ref of data.failedRefs ?? []) failedRefs.add(ref);
+      }
+
+      if (featureOff) {
+        toast.warning(t("aiTagging.toastNoSuggestions"));
+        return;
+      }
+
+      // Merge suggested tags into each entry's editable topics field. Nothing is
+      // persisted until Import, so this is "propose" — staff review/edit first.
+      let taggedCount = 0;
+      let newTagCount = 0;
+
+      setEntries((prev) =>
+        prev.map((entry) => {
+          const sugg = byRef.get(entry.id);
+          if (!sugg || sugg.length === 0) return entry;
+
+          const existing = (entry.bookData.topics ?? "")
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const merged = [...existing];
+          for (const s of sugg) {
+            if (!merged.includes(s.tag)) {
+              merged.push(s.tag);
+              if (s.isNew) newTagCount++;
+            }
+          }
+          if (merged.length === existing.length) return entry;
+          taggedCount++;
+          return {
+            ...entry,
+            bookData: { ...entry.bookData, topics: merged.join(";") },
+            status: "edited",
+          };
+        }),
+      );
+
+      if (failedRefs.size > 0 && taggedCount === 0) {
+        toast.error(
+          t("aiTagging.batchTagFailed", { count: failedRefs.size }),
+        );
+      } else if (failedRefs.size > 0) {
+        toast.warning(
+          t("aiTagging.batchTaggedPartial", {
+            count: taggedCount,
+            failed: failedRefs.size,
+          }),
+        );
+      } else if (taggedCount === 0) {
+        toast.info(t("aiTagging.toastNoNewTags"));
+      } else {
+        toast.success(
+          newTagCount > 0
+            ? t("aiTagging.batchTaggedSummaryNew", {
+                count: taggedCount,
+                newCount: newTagCount,
+              })
+            : t("aiTagging.batchTaggedSummary", { count: taggedCount }),
+        );
+      }
+    } catch {
+      toast.error(t("aiTagging.toastSuggestError"));
+    } finally {
+      setIsTagging(false);
+    }
+  }, [entries]);
+
   // ── Stats ─────────────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
@@ -523,10 +697,43 @@ export default function BatchScan() {
                     >
                       Alle löschen
                     </Button>
+                    {aiTaggingEnabled && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTagAll}
+                        disabled={
+                          isTagging || isImporting || entries.length === 0
+                        }
+                        className="text-primary border-primary/30 hover:bg-primary/10"
+                      >
+                        {isTagging ? (
+                          <>
+                            <Loader2 className="animate-spin" />
+                            {t("aiTagging.batchTagging")}
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles />
+                            {t("aiTagging.batchTagAll")}
+                          </>
+                        )}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       onClick={handleImport}
-                      disabled={isImporting || stats.readyToImportBooks === 0}
+                      // Also blocked while tags are being fetched: importing
+                      // mid-request wrote the untagged entries and then the
+                      // arriving tags landed only in local state, so the run
+                      // reported success over books that were saved without
+                      // them.
+                      disabled={
+                        isImporting ||
+                        isTagging ||
+                        suggestingEntries.size > 0 ||
+                        stats.readyToImportBooks === 0
+                      }
                       data-cy="batch-scan-import-button"
                     >
                       {isImporting ? (
@@ -582,6 +789,9 @@ export default function BatchScan() {
                   onUpdateQuantity={handleUpdateQuantity}
                   onSetQuantity={handleSetQuantity}
                   onRetry={handleRetry}
+                  libraryTopics={libraryTopics}
+                  aiTaggingEnabled={aiTaggingEnabled}
+                  onSuggestingChange={handleEntrySuggesting}
                 />
               ))}
             </div>
