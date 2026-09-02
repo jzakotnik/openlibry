@@ -3,6 +3,31 @@ import { PublicBookType } from "@/entities/PublicBookType";
 import { PrismaClient } from "@prisma/client";
 
 const RELATED_LIMIT = 5;
+
+/**
+ * Matches one whole topic inside the ";"-separated topics column.
+ *
+ * A plain `contains` matches anywhere in the joined string, so "Kunst" also
+ * hits everything tagged "Kunstgeschichte". Those carry no shared topic and
+ * were dropped afterwards, but they were fetched first, and with the row cap
+ * below they could crowd genuine matches out of the query entirely. Anchoring
+ * on the separators means the rows that come back are the ones that count.
+ * Both separator spellings are listed because counting trims each entry, so
+ * "Abenteuer; Freundschaft" advertises Freundschaft.
+ */
+function topicMatch(topic: string) {
+  const separators = [";", "; "];
+  const variants: Array<Record<string, unknown>> = [{ topics: topic }];
+  for (const sep of separators) {
+    variants.push(
+      { topics: { startsWith: `${topic};` } },
+      { topics: { endsWith: `${sep}${topic}` } },
+      { topics: { contains: `${sep}${topic};` } },
+      { topics: { contains: `${sep}${topic}; ` } },
+    );
+  }
+  return { OR: variants };
+}
 // A ceiling on the rows a single detail view will pull in. A topic like
 // "Roman" can otherwise match most of the library, all of it read into memory
 // to fill five slots on a public page.
@@ -57,7 +82,7 @@ export async function getPublicBookDetail(
     const candidates = await client.book.findMany({
       where: {
         id: { not: id },
-        OR: topics.map((topic) => ({ topics: { contains: topic } })),
+        OR: topics.map(topicMatch),
       },
       select: {
         id: true,
@@ -70,10 +95,6 @@ export async function getPublicBookDetail(
       take: RELATED_CANDIDATE_LIMIT,
     });
 
-    // `contains` above matches anywhere in the semicolon-joined string, so
-    // "Kunst" also pulls in everything tagged "Kunstgeschichte". Those score
-    // zero shared topics, and used to be shown anyway whenever there were
-    // fewer than five genuine matches.
     const isbn = book.isbn?.trim();
     const titleAuthor = `${book.title ?? ""}|${book.author ?? ""}`.toLowerCase();
 
@@ -83,12 +104,31 @@ export async function getPublicBookDetail(
         ? b.isbn?.trim() === isbn
         : `${b.title ?? ""}|${b.author ?? ""}`.toLowerCase() === titleAuthor;
 
-    relatedBooks = candidates
-      .map((b) => ({
-        book: b,
-        shared: parseTopics(b.topics).filter((t) => topics.includes(t)).length,
-      }))
-      .filter(({ book: b, shared }) => shared > 0 && !isSameBook(b))
+    // One entry per title. Copies of another book share its ISBN and all its
+    // topics, so five copies of one title could take all five slots and the
+    // list read as a single recommendation repeated.
+    const bestPerTitle = new Map<
+      string,
+      { book: (typeof candidates)[number]; shared: number }
+    >();
+    for (const b of candidates) {
+      if (isSameBook(b)) continue;
+      const shared = parseTopics(b.topics).filter((t) =>
+        topics.includes(t),
+      ).length;
+      if (shared === 0) continue;
+      const key = b.isbn?.trim()
+        ? `i:${b.isbn.trim()}`
+        : `t:${(b.title ?? "").trim().toLowerCase()}|${(b.author ?? "")
+            .trim()
+            .toLowerCase()}`;
+      const existing = bestPerTitle.get(key);
+      if (!existing || shared > existing.shared) {
+        bestPerTitle.set(key, { book: b, shared });
+      }
+    }
+
+    relatedBooks = [...bestPerTitle.values()]
       .sort((a, b) => b.shared - a.shared)
       .slice(0, RELATED_LIMIT)
       .map(({ book: b }) => ({
