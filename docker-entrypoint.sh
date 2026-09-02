@@ -2,65 +2,30 @@
 set -e
 
 DB_PATH="/app/database/dev.db"
-MIGRATIONS_DIR="/app/prisma/migrations"
 CUSTOM_DIR="/app/database/custom"
 DEFAULTS_LABELS_DIR="/app/defaults/labels"
 CUSTOM_LABELS_DIR="$CUSTOM_DIR/labels"
-MARK_MIGRATED_FILE="$MIGRATIONS_DIR/markMigrated.txt"
 
 echo "=== OpenLibry entrypoint ==="
 echo "DATABASE_URL: $DATABASE_URL"
 
 # ---------------------------------------------------------------------------
 # Database initialisation
-# On a fresh install there is no dev.db yet — create the schema.
-# On subsequent starts apply any migrations that were added since last run.
+# Both fresh installs and schema updates go through `prisma db push`, which
+# diffs the live database against prisma/schema.prisma and applies whatever
+# is needed to match it. There is no migration history to track.
 # ---------------------------------------------------------------------------
-
 # Safety net: ensure the mount point exists and is writable before we try
-# to create/migrate the database. The Dockerfile already creates this dir
+# to create/sync the database. The Dockerfile already creates this dir
 # as the node user, but explicit is better than implicit.
 mkdir -p /app/database
 
-has_migrations() {
-  [ -d "$MIGRATIONS_DIR" ] && [ -n "$(ls -A "$MIGRATIONS_DIR" 2>/dev/null)" ]
-}
-
-resolve_marked_migrations() {
-  if [ -f "$MARK_MIGRATED_FILE" ] && [ -s "$MARK_MIGRATED_FILE" ]; then
-    echo "Found $MARK_MIGRATED_FILE. Marking migrations as already applied..."
-
-    while IFS= read -r migration || [ -n "$migration" ]; do
-      # Ignore empty lines
-      [ -n "$migration" ] || continue
-
-      echo "Marking migration as applied: $migration"
-      npx prisma migrate resolve --applied $migration
-    done < "$MARK_MIGRATED_FILE"
-  fi
-}
-
 if [ ! -f "$DB_PATH" ]; then
-  echo "No database found at $DB_PATH."
-
-  if has_migrations; then
-    echo "Migrations detected. Running: prisma migrate deploy"
-    npx prisma migrate deploy
-  else
-    echo "No migrations found. Running: prisma db push"
-    npx prisma db push
-  fi
+  echo "No database found at $DB_PATH. Running: prisma db push"
 else
-  if has_migrations; then
-    echo "Database exists. Applying pending migrations..."
-    echo "Marking migrations as applied if needed..."
-    resolve_marked_migrations
-    echo "Running: prisma migrate deploy"
-    npx prisma migrate deploy
-  else
-    echo "Database exists, no migrations. Skipping schema sync."
-  fi
+  echo "Database exists. Syncing schema. Running: prisma db push"
 fi
+npx prisma db push
 
 # ---------------------------------------------------------------------------
 # Ensure the custom templates directory exists.
