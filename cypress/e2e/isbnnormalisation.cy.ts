@@ -65,3 +65,5 @@ describe("Canonical ISBN storage", () => {
     });
   });
 });
+
+export {};
