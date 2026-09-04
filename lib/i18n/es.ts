@@ -275,6 +275,8 @@ export const es: Dictionary = {
     errorNoCamera: "No se encontró ninguna cámara.",
     errorStartFailed: "No se pudo iniciar la cámara.",
     errorUnavailable: "No es posible acceder a la cámara.",
+    errorInsecureContext:
+      "El escáner de cámara requiere una conexión HTTPS. Introduce el ISBN manualmente.",
   },
   batchScan: {
     toastIsbnRequired: "Introduce un ISBN válido",

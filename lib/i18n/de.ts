@@ -275,10 +275,13 @@ export const de = {
     close: "Schließen",
     hint: "Barcode in den Rahmen halten",
     retry: "Erneut versuchen",
-    errorPermissionDenied: "Kamerazugriff verweigert. Bitte Berechtigung erteilen.",
+    errorPermissionDenied:
+      "Kamerazugriff verweigert. Bitte Berechtigung erteilen.",
     errorNoCamera: "Keine Kamera gefunden.",
     errorStartFailed: "Kamera konnte nicht gestartet werden.",
     errorUnavailable: "Kamerazugriff nicht möglich.",
+    errorInsecureContext:
+      "Der Kamera-Scanner benötigt eine HTTPS-Verbindung. Bitte die ISBN manuell eingeben.",
   },
   batchScan: {
     toastIsbnRequired: "Bitte eine gültige ISBN eingeben",

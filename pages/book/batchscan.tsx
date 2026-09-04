@@ -495,6 +495,7 @@ export default function BatchScan() {
                     <button
                       type="button"
                       onClick={() => setCameraOpen(true)}
+                      data-cy="batch-scan-camera-button"
                       aria-label={t("cameraScanner.open")}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2
                                  text-muted-foreground hover:text-primary transition-colors"

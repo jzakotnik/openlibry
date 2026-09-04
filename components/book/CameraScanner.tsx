@@ -25,9 +25,14 @@ export default function CameraScanner({
   // because at that point controlsRef is still null for the pending attempt.
   const startTokenRef = useRef(0);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(
+    undefined,
+  );
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  // Set when the browser can never provide a camera here, so the retry button
+  // is pointless and gets hidden.
+  const [unsupported, setUnsupported] = useState(false);
 
   const stopScanner = useCallback(() => {
     controlsRef.current?.stop();
@@ -77,7 +82,11 @@ export default function CameraScanner({
         // closed/unmounted while awaiting, or a newer start has since taken
         // over, stop the stream now — otherwise it is a stream nobody holds a
         // handle to any more (camera stays on).
-        if (detected || cancelledRef.current || token !== startTokenRef.current) {
+        if (
+          detected ||
+          cancelledRef.current ||
+          token !== startTokenRef.current
+        ) {
           controls.stop();
         } else {
           controlsRef.current = controls;
@@ -98,6 +107,17 @@ export default function CameraScanner({
   );
 
   useEffect(() => {
+    // getUserMedia is only exposed in a secure context. OpenLibry is commonly
+    // served over plain HTTP on a school LAN, where navigator.mediaDevices is
+    // undefined and listVideoInputDevices() throws a TypeError that would
+    // otherwise surface as the generic "camera unavailable" message, leaving
+    // staff with no idea why the scanner does nothing. Name the real cause.
+    if (!window.isSecureContext || !navigator.mediaDevices) {
+      setUnsupported(true);
+      setError(t("cameraScanner.errorInsecureContext"));
+      return;
+    }
+
     BrowserMultiFormatReader.listVideoInputDevices()
       .then((d) => {
         setDevices(d);
@@ -124,7 +144,10 @@ export default function CameraScanner({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div
+      data-cy="camera-scanner-overlay"
+      className="fixed inset-0 z-50 flex flex-col bg-black"
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-black/80">
         <span className="text-white text-sm font-medium">
@@ -141,7 +164,10 @@ export default function CameraScanner({
             </button>
           )}
           <button
-            onClick={() => { stopScanner(); onClose(); }}
+            onClick={() => {
+              stopScanner();
+              onClose();
+            }}
             className="p-2 rounded-full text-white hover:bg-white/10 transition-colors"
             aria-label={t("cameraScanner.close")}
           >
@@ -152,7 +178,12 @@ export default function CameraScanner({
 
       {/* Viewfinder */}
       <div className="relative flex-1 flex items-center justify-center overflow-hidden">
-        <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+        <video
+          ref={videoRef}
+          className="h-full w-full object-cover"
+          muted
+          playsInline
+        />
 
         {scanning && !error && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -183,13 +214,15 @@ export default function CameraScanner({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70">
             <CameraOff className="h-12 w-12 text-white/50" />
             <p className="text-white text-sm text-center px-8">{error}</p>
-            <button
-              onClick={() => startScanner(selectedDeviceId)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm"
-            >
-              <Camera className="h-4 w-4" />
-              {t("cameraScanner.retry")}
-            </button>
+            {!unsupported && (
+              <button
+                onClick={() => startScanner(selectedDeviceId)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm"
+              >
+                <Camera className="h-4 w-4" />
+                {t("cameraScanner.retry")}
+              </button>
+            )}
           </div>
         )}
       </div>

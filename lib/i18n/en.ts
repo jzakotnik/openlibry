@@ -271,6 +271,8 @@ export const en: Dictionary = {
     errorNoCamera: "No camera found.",
     errorStartFailed: "The camera could not be started.",
     errorUnavailable: "Camera access is not possible.",
+    errorInsecureContext:
+      "The camera scanner requires an HTTPS connection. Please enter the ISBN manually.",
   },
   batchScan: {
     toastIsbnRequired: "Please enter a valid ISBN",
