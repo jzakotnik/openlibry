@@ -41,43 +41,46 @@ describe("Excel Export", () => {
       timeout: 15000,
     }).should("exist");
 
-    cy.task("validateExcelStructure", `${downloadsFolder}/${expectedFilename}`).then(
-      (result: any) => {
-        expect(result.worksheetCount).to.eq(2);
-        expect(result.worksheetNames).to.include("Bücherliste");
-        expect(result.worksheetNames).to.include("Userliste");
-      },
-    );
+    cy.task(
+      "validateExcelStructure",
+      `${downloadsFolder}/${expectedFilename}`,
+    ).then((result: any) => {
+      expect(result.worksheetCount).to.eq(2);
+      expect(result.worksheetNames).to.include("Bücherliste");
+      expect(result.worksheetNames).to.include("Userliste");
+    });
 
-    cy.task("validateBookColumns", `${downloadsFolder}/${expectedFilename}`).then(
-      (columns: any) => {
-        expect(columns).to.include("Mediennummer");
-        expect(columns).to.include("Titel");
-        expect(columns).to.include("Autor");
-        expect(columns).to.include("Ausleihstatus");
-        expect(columns).to.include("ISBN");
-        expect(columns).to.include("Erzeugt am");
-        expect(columns).to.include("Update am");
-        expect(columns).to.include("Ausgeliehen am");
-        expect(columns).to.include("Rückgabe am");
-        expect(columns.length).to.eq(29);
-      },
-    );
+    cy.task(
+      "validateBookColumns",
+      `${downloadsFolder}/${expectedFilename}`,
+    ).then((columns: any) => {
+      expect(columns).to.include("Mediennummer");
+      expect(columns).to.include("Titel");
+      expect(columns).to.include("Autor");
+      expect(columns).to.include("Ausleihstatus");
+      expect(columns).to.include("ISBN");
+      expect(columns).to.include("Erzeugt am");
+      expect(columns).to.include("Update am");
+      expect(columns).to.include("Ausgeliehen am");
+      expect(columns).to.include("Rückgabe am");
+      expect(columns.length).to.eq(30);
+    });
 
-    cy.task("validateUserColumns", `${downloadsFolder}/${expectedFilename}`).then(
-      (columns: any) => {
-        expect(columns).to.include("Nummer");
-        expect(columns).to.include("Vorname");
-        expect(columns).to.include("Nachname");
-        expect(columns).to.include("Klasse");
-        expect(columns).to.include("Freigeschaltet");
-        expect(columns).to.include("Erzeugt am");
-        expect(columns).to.include("Update am");
-        expect(columns).to.include("Lehrkraft");
-        expect(columns).to.include("eMail");
-        expect(columns.length).to.eq(9);
-      },
-    );
+    cy.task(
+      "validateUserColumns",
+      `${downloadsFolder}/${expectedFilename}`,
+    ).then((columns: any) => {
+      expect(columns).to.include("Nummer");
+      expect(columns).to.include("Vorname");
+      expect(columns).to.include("Nachname");
+      expect(columns).to.include("Klasse");
+      expect(columns).to.include("Freigeschaltet");
+      expect(columns).to.include("Erzeugt am");
+      expect(columns).to.include("Update am");
+      expect(columns).to.include("Lehrkraft");
+      expect(columns).to.include("eMail");
+      expect(columns.length).to.eq(9);
+    });
 
     cy.task("validateExcelData", `${downloadsFolder}/${expectedFilename}`).then(
       (result: any) => {
