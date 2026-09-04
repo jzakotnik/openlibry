@@ -28,6 +28,13 @@ Die Stapelerfassung erreichen Sie über die Bücherverwaltung:
 !!! tip "Tipp"
     Der Barcode-Scanner sollte so konfiguriert sein, dass er nach dem Scan automatisch Enter sendet. Dies beschleunigt den Erfassungsprozess erheblich.
 
+#### Barcode mit der Kamera erfassen
+
+Wenn kein Handscanner zur Verfügung steht, können Sie den Barcode auch mit der Kamera des Geräts aufnehmen. Das Kamerasymbol rechts im ISBN-Eingabefeld öffnet den Scanner. Halten Sie den Barcode in den Rahmen, die erkannte ISBN wird automatisch in das Feld übernommen. Sind mehrere Kameras vorhanden, etwa Vorder- und Rückkamera eines Tablets, wechseln Sie mit dem Symbol oben rechts zwischen ihnen. Dasselbe Kamerasymbol finden Sie im ISBN-Feld der Buchbearbeitung.
+
+!!! warning "HTTPS erforderlich"
+    Browser geben die Kamera nur in einem sicheren Kontext frei, also über HTTPS oder beim Aufruf über localhost. Wenn Sie OpenLibry im Schulnetz über eine einfache HTTP-Adresse erreichen, zum Beispiel über `http://192.168.1.50:3000`, bleibt die Kamera gesperrt und der Scanner weist darauf hin, dass eine HTTPS-Verbindung nötig ist. Die Eingabe von Hand und der angeschlossene Handscanner arbeiten unabhängig davon weiter. Wie Sie HTTPS einrichten, steht unter [Installation mit nginx und SSL](../installation/nginx-ssl.md).
+
 ### Schritt 2: Buchdaten abrufen
 
 Nachdem Sie alle ISBNs gescannt haben:
@@ -79,6 +86,10 @@ Die Suche erfolgt automatisch nacheinander, bis Daten gefunden werden. Die Reihe
 - Überprüfen Sie, ob die ISBN korrekt gescannt wurde
 - Prüfen Sie die ISBN auf Tippfehler
 - Manche älteren Bücher haben nur 10-stellige ISBNs - diese werden automatisch umgewandelt
+
+### Kamera-Scanner lässt sich nicht öffnen
+
+Prüfen Sie zuerst die Adresse in der Browserzeile. Ohne HTTPS gibt der Browser keine Kamera frei, siehe den Hinweis in Schritt 1. Besteht bereits eine HTTPS-Verbindung und der Scanner meldet trotzdem einen verweigerten Zugriff, wurde die Kameraberechtigung für diese Seite abgelehnt. Sie lässt sich in den Website-Einstellungen des Browsers wieder erteilen. Auf Geräten ohne Kamera meldet der Scanner, dass keine Kamera gefunden wurde.
 
 ### Keine Buchdaten gefunden
 
