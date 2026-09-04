@@ -28,6 +28,7 @@ Datenbank-Schema von OpenLibry.
 | rentedDate | DateTime? | Ausleihdatum |
 | dueDate | DateTime? | Rückgabedatum |
 | renewalCount | Int | Anzahl Verlängerungen |
+| shelf | String? | Standort des Buchs |
 | userId | Int? | Ausgeliehen von (FK) |
 
 ## Nutzer (User)

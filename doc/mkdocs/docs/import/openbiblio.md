@@ -130,8 +130,7 @@ Falls du eine frische Installation möchtest:
 ```bash
 cd openlibry
 rm database/dev.db
-rm -rf prisma/migrations
-npx prisma migrate dev --name init
+npx prisma db push
 npm run dev
 ```
 

@@ -103,6 +103,7 @@ Jedes Etikett hat vier Felder in einer L-Form:
 | Schulname | Wert von `SCHOOL_NAME` aus der `.env`-Datei |
 | Themen (max. 3) | Die ersten drei Themen des Buchs, kommagetrennt |
 | Barcode | Code128-Barcode der Buchnummer |
+| Regal | Standort des Buchs |
 | Leer | Feld bleibt frei |
 
 ## Vorlagen bearbeiten
