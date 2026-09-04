@@ -16,6 +16,33 @@ http://localhost:3000/api
 GET /api/book
 ```
 
+Ohne Parameter liefert der Endpunkt weiterhin die vollständige Liste als Array, damit bestehende Aufrufe unverändert funktionieren.
+
+### Bücher seitenweise abrufen
+
+```http
+GET /api/book?pageSize=20&page=2&q=Ende
+```
+
+Sobald `pageSize` gesetzt ist, wird serverseitig geblättert und gesucht. `page` beginnt bei 1 und ist optional, `q` durchsucht Titel, Untertitel, Autor, ISBN und Schlagwörter. Die Antwort ist dann kein Array mehr, sondern ein Objekt:
+
+```json
+{
+  "books": [],
+  "total": 1234,
+  "page": 2,
+  "pageSize": 20
+}
+```
+
+`total` zählt alle Treffer im Bestand, nicht nur die zurückgelieferte Seite. Damit kann der Client die Seitenzahl berechnen, ohne den gesamten Katalog zu laden.
+
+Der öffentliche Katalog versteht dieselben Parameter:
+
+```http
+GET /api/public/books?pageSize=20&page=2&q=Ende
+```
+
 ### Einzelnes Buch
 
 ```http
