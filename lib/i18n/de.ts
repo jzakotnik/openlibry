@@ -186,6 +186,7 @@ export const de = {
     fieldTeacher: "Lehrkraft",
     fieldEmail: "eMail",
     fieldCreatedAt: "Erzeugt am",
+    emailWarning: "Sieht nicht wie eine gültige eMail-Adresse aus",
     fieldLastUpdated: "Letztes Update",
     createdAtValue: "User erstellt am {date} mit Ausweisnummer {id}",
     activeLabel: "Aktiv",

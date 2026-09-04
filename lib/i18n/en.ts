@@ -179,6 +179,7 @@ export const en: Dictionary = {
     fieldGrade: "Grade",
     fieldTeacher: "Teacher",
     fieldEmail: "eMail",
+    emailWarning: "Doesn't look like a valid email address",
     fieldCreatedAt: "Created on",
     fieldLastUpdated: "Last update",
     createdAtValue: "User created on {date} with user ID {id}",

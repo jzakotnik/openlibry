@@ -182,6 +182,7 @@ export const es: Dictionary = {
     fieldGrade: "Curso",
     fieldTeacher: "Docente",
     fieldEmail: "eMail",
+    emailWarning: "No parece una dirección de correo válida",
     fieldCreatedAt: "Creado el",
     fieldLastUpdated: "Última actualización",
     createdAtValue: "Usuario creado el {date} con número de carnet {id}",

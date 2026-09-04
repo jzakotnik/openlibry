@@ -64,6 +64,15 @@ function getOverdueLevel(dueDate: string | Date | undefined): OverdueLevel {
   return "ok";
 }
 
+// Loose format check only — flags obviously malformed input (missing "@",
+// no domain part, stray spaces) without rejecting internal/non-standard
+// domains (e.g. "user@intranet"). Empty values are considered valid since
+// the field is optional.
+function isLikelyValidEmail(email: string): boolean {
+  if (!email.trim()) return true;
+  return /^\S+@\S+\.\S+$/.test(email.trim());
+}
+
 function overdueClasses(level: OverdueLevel) {
   switch (level) {
     case "overdue":
@@ -100,6 +109,7 @@ function FormField({
   onChange,
   tabIndex,
   type = "text",
+  warning,
 }: {
   id: string;
   label: string;
@@ -109,6 +119,7 @@ function FormField({
   onChange?: (v: string) => void;
   tabIndex?: number;
   type?: string;
+  warning?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -127,8 +138,15 @@ function FormField({
         className={cn(
           "transition-colors disabled:opacity-60",
           !disabled && "border-primary/40 focus-visible:border-primary",
+          warning && "border-amber-500/60 focus-visible:border-amber-500",
         )}
       />
+      {warning && (
+        <p className="flex items-center gap-1 text-xs text-amber-600">
+          <AlertTriangle size={12} className="shrink-0" />
+          {warning}
+        </p>
+      )}
     </div>
   );
 }
@@ -381,6 +399,11 @@ export default function UserEditForm({
               type="email"
               tabIndex={5}
               onChange={(v) => setUserData({ ...user, eMail: v })}
+              warning={
+                isLikelyValidEmail(user.eMail ?? "")
+                  ? undefined
+                  : t("userEditForm.emailWarning")
+              }
             />
             <FormField
               id="createdAt"
