@@ -286,6 +286,8 @@ export const es: Dictionary = {
   bookPage: {
     toastCreateNewBook:
       "Crear nuevo libro — introduce los datos o escanea el ISBN",
+    toastBookDataCopied:
+      "Datos copiados del libro original — revísalos y guarda",
     toastBookReturned: "Libro devuelto",
     toastReturnError: "Error al devolver el libro",
     loadMore: "Más libros...",

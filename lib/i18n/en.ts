@@ -281,6 +281,7 @@ export const en: Dictionary = {
   },
   bookPage: {
     toastCreateNewBook: "Create new book - please enter data or scan an ISBN",
+    toastBookDataCopied: "Data copied from the original book — check it, then save",
     toastBookReturned: "Book returned",
     toastReturnError: "Error returning the book",
     loadMore: "More books...",

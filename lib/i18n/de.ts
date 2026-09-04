@@ -290,6 +290,8 @@ export const de = {
   bookPage: {
     toastCreateNewBook:
       "Neues Buch erstellen - bitte Daten eingeben oder ISBN scannen",
+    toastBookDataCopied:
+      "Daten vom Originalbuch übernommen — bitte prüfen und speichern",
     toastBookReturned: "Buch zurückgegeben",
     toastReturnError: "Fehler beim Zurückgeben des Buches",
     loadMore: "Weitere Bücher...",
