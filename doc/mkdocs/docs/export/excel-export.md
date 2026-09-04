@@ -40,6 +40,7 @@ Alle Bücher mit folgenden Spalten:
 | Min Alter / Max Alter | Altersempfehlung |
 | Preis | Kaufpreis |
 | Ausgeliehen von | Nutzer-ID (falls ausgeliehen) |
+| Regal| Standort des Buchs |
 
 ### Blatt 2: Userliste
 

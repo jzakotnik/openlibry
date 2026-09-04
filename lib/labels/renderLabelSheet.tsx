@@ -221,6 +221,9 @@ function getFieldText(
     case "subtitle":
       text = book.subtitle || "";
       break;
+    case "shelf":
+      text = book.shelf || "";
+      break;
     case "author":
       text = book.author || "";
       break;
@@ -249,6 +252,7 @@ function getFieldText(
     case "none":
     default:
       text = "";
+
   }
   return truncate(text, maxLength);
 }
@@ -360,7 +364,7 @@ function LabelContent({
                 book={book}
                 fieldConfig={fieldConfig}
                 widthMm={contentWidth - padding}
-                heightMm={rowHeight}
+                heightMm={rowHeight * (fieldConfig.increasedHeight ? fieldConfig.increasedHeight : 1)}
                 barcodeUri={barcodeUri}
               />
             );
@@ -380,6 +384,8 @@ interface HorizontalFieldProps {
   heightMm: number;
   barcodeUri: string | null;
 }
+
+
 
 function HorizontalField({
   book,

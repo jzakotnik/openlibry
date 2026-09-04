@@ -116,22 +116,22 @@ export default function BatchScan() {
       prev.map((entry) =>
         entry.id === newEntry.id
           ? {
-              ...entry,
-              status: bookData ? "found" : "not_found",
-              bookData: bookData
-                ? { ...bookData, isbn: cleanedIsbn }
-                : {
-                    isbn: cleanedIsbn,
-                    title: "",
-                    author: "",
-                    rentalStatus: "available",
-                    renewalCount: 0,
-                  },
-              coverUrl,
-              hasCover: coverResult.exists,
-              coverBlob: coverResult.blob,
-              coverSource: coverResult.source,
-            }
+            ...entry,
+            status: bookData ? "found" : "not_found",
+            bookData: bookData
+              ? { ...bookData, isbn: cleanedIsbn }
+              : {
+                isbn: cleanedIsbn,
+                title: "",
+                author: "",
+                rentalStatus: "available",
+                renewalCount: 0,
+              },
+            coverUrl,
+            hasCover: coverResult.exists,
+            coverBlob: coverResult.blob,
+            coverSource: coverResult.source,
+          }
           : entry,
       ),
     );
@@ -188,10 +188,10 @@ export default function BatchScan() {
         prev.map((entry) =>
           entry.id === id
             ? {
-                ...entry,
-                bookData: { ...entry.bookData, [field]: value },
-                status: "edited",
-              }
+              ...entry,
+              bookData: { ...entry.bookData, [field]: value },
+              status: "edited",
+            }
             : entry,
         ),
       );
@@ -244,16 +244,16 @@ export default function BatchScan() {
         prev.map((entry) =>
           entry.id === id
             ? {
-                ...entry,
-                status: bookData ? "found" : "not_found",
-                bookData: bookData
-                  ? { ...bookData, isbn }
-                  : { ...entry.bookData },
-                coverUrl,
-                hasCover: coverResult.exists,
-                coverBlob: coverResult.blob,
-                coverSource: coverResult.source,
-              }
+              ...entry,
+              status: bookData ? "found" : "not_found",
+              bookData: bookData
+                ? { ...bookData, isbn }
+                : { ...entry.bookData },
+              coverUrl,
+              hasCover: coverResult.exists,
+              coverBlob: coverResult.blob,
+              coverSource: coverResult.source,
+            }
             : entry,
         ),
       );
@@ -322,6 +322,7 @@ export default function BatchScan() {
           price: entry.bookData.price,
           externalLinks: entry.bookData.externalLinks,
           physicalSize: entry.bookData.physicalSize,
+          shelf: entry.bookData.shelf,
           otherPhysicalAttributes: entry.bookData.otherPhysicalAttributes,
           editionDescription: entry.bookData.editionDescription,
         };

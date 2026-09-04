@@ -225,11 +225,11 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
   const handleSave = useCallback(async () => {
     // Validate required fields (applies to both modes now)
     if (!bookData.title?.trim()) {
-      toast.info("Bitte geben Sie einen Titel ein.");
+      toast.info(t("bookEditForm.toastTitleRequired"));
       return;
     }
     if (!bookData.author?.trim()) {
-      toast.info("Bitte geben Sie einen Autor ein.");
+      toast.info(t("bookEditForm.toastAuthorRequired"));
       return;
     }
 
@@ -258,27 +258,33 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
-            `Fehler beim Erstellen: ${res.status} ${res.statusText}`,
+            t("bookEditForm.toastCreateError", {
+              status: res.status,
+              statusText: res.statusText,
+            }),
         );
       }
 
       const data = await res.json();
-      if (!data.id) throw new Error("Keine Buch-ID in der Antwort erhalten");
+      if (!data.id) throw new Error(t("bookEditForm.toastNoBookIdInResponse"));
 
       // Upload cover if available
       let coverUploaded = false;
       if (coverData?.blob) {
         coverUploaded = await uploadCoverBlob(data.id, coverData.blob);
         if (!coverUploaded) {
-          toast.info(
-            "Buch erstellt, aber Cover konnte nicht hochgeladen werden.",
-          );
+          toast.info(t("bookEditForm.toastCoverUploadFailed"));
         }
       }
 
-      const coverInfo = coverUploaded ? " (mit Cover)" : "";
+      const coverInfo = coverUploaded
+        ? t("bookEditForm.toastWithCoverSuffix")
+        : "";
       toast.success(
-        `Buch "${bookData.title}" erfolgreich erstellt${coverInfo}!`,
+        t("bookEditForm.toastBookCreated", {
+          title: bookData.title,
+          coverInfo,
+        }),
       );
       router.push("/book");
     }
@@ -297,12 +303,14 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         console.error("ERROR while saving book", res.statusText, errorData);
-        toast.error(errorData.message || "Fehler beim Speichern des Buches");
+        toast.error(errorData.message || t("bookEditForm.toastSaveError"));
         return;
       }
 
       await res.json();
-      toast.success(`Buch "${bookData.title}" gespeichert, gut gemacht!`);
+      toast.success(
+        t("bookEditForm.toastBookSaved", { title: bookData.title }),
+      );
       router.push("/book");
     }
   }, [bookData, bookId, isNew, coverData, router]);
@@ -318,11 +326,11 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
         headers: { "Content-Type": "application/json" },
       });
       await res.json();
-      toast.success("Buch gelöscht");
+      toast.success(t("bookEditForm.toastBookDeleted"));
       router.push("/book");
     } catch (error) {
       console.error("Failed to delete book:", error);
-      toast.error("Fehler beim Löschen des Buches");
+      toast.error(t("bookEditForm.toastDeleteError"));
     }
   }, [bookId, router]);
 
@@ -338,10 +346,10 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
           headers: { "Content-Type": "application/json" },
         });
         await res.json();
-        toast.success("Buch zurückgegeben, super!");
+        toast.success(t("bookEditForm.toastBookReturned"));
       } catch (error) {
         console.error("Failed to return book:", error);
-        toast.error("Fehler beim Zurückgeben des Buches", {});
+        toast.error(t("bookEditForm.toastReturnError"), {});
       }
     },
     [bookId],

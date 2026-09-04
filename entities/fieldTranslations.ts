@@ -65,6 +65,7 @@ const fieldTranslationsDe = {
     additionalMaterial: "Material",
     price: "Preis",
     externalLinks: "Externe Links",
+    shelf: "Regal",
   },
   rentals: {
     id: "id",
@@ -144,6 +145,7 @@ const fieldTranslationsEn: typeof fieldTranslationsDe = {
     additionalMaterial: "Accompanying material",
     price: "Price",
     externalLinks: "External links",
+    shelf: "Shelf",
   },
   rentals: {
     id: "id",

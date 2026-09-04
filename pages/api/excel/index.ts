@@ -271,6 +271,7 @@ export default async function handle(
                   additionalMaterial: b["Material"],
                   price: b["Preis"],
                   externalLinks: b["Links"],
+                  shelf: b["Regal"],
                   userId: b["Ausgeliehen von"],
                 },
               }),
