@@ -99,6 +99,7 @@ function FormField({
   required,
   onChange,
   tabIndex,
+  type = "text",
 }: {
   id: string;
   label: string;
@@ -107,6 +108,7 @@ function FormField({
   required?: boolean;
   onChange?: (v: string) => void;
   tabIndex?: number;
+  type?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -117,6 +119,7 @@ function FormField({
       <Input
         id={id}
         name={id}
+        type={type}
         defaultValue={value}
         disabled={disabled}
         tabIndex={tabIndex}
@@ -371,6 +374,15 @@ export default function UserEditForm({
               onChange={(v) => setUserData({ ...user, schoolTeacherName: v })}
             />
             <FormField
+              id="eMail"
+              label={t("userEditForm.fieldEmail")}
+              value={user.eMail ?? ""}
+              disabled={!editable}
+              type="email"
+              tabIndex={5}
+              onChange={(v) => setUserData({ ...user, eMail: v })}
+            />
+            <FormField
               id="createdAt"
               label={t("userEditForm.fieldCreatedAt")}
               value={t("userEditForm.createdAtValue", {
@@ -397,7 +409,7 @@ export default function UserEditForm({
               user.active ? "border-primary" : "border-border",
               !editable && "pointer-events-none opacity-60",
             )}
-            tabIndex={5}
+            tabIndex={6}
           >
             <Checkbox
               id="user-active"
@@ -472,7 +484,7 @@ export default function UserEditForm({
             <Button
               variant={editable ? "outline" : "default"}
               size="sm"
-              tabIndex={6}
+              tabIndex={7}
               onClick={toggleEdit}
               className="gap-2 rounded-lg font-medium"
             >
@@ -484,7 +496,7 @@ export default function UserEditForm({
               <>
                 <Button
                   size="sm"
-                  tabIndex={7}
+                  tabIndex={8}
                   onClick={() => {
                     saveUser();
                     toggleEdit();
@@ -498,7 +510,7 @@ export default function UserEditForm({
                 <Button
                   variant="outline"
                   size="sm"
-                  tabIndex={8}
+                  tabIndex={9}
                   onClick={() =>
                     window.open(
                       `/api/report/userlabels?id=${user.id}`,

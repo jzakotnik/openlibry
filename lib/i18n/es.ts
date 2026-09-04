@@ -181,6 +181,7 @@ export const es: Dictionary = {
     fieldLastName: "Apellido",
     fieldGrade: "Curso",
     fieldTeacher: "Docente",
+    fieldEmail: "eMail",
     fieldCreatedAt: "Creado el",
     fieldLastUpdated: "Última actualización",
     createdAtValue: "Usuario creado el {date} con número de carnet {id}",

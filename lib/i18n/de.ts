@@ -184,6 +184,7 @@ export const de = {
     fieldLastName: "Nachname",
     fieldGrade: "Klasse",
     fieldTeacher: "Lehrkraft",
+    fieldEmail: "eMail",
     fieldCreatedAt: "Erzeugt am",
     fieldLastUpdated: "Letztes Update",
     createdAtValue: "User erstellt am {date} mit Ausweisnummer {id}",
