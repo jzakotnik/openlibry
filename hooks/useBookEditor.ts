@@ -17,7 +17,14 @@ interface CoverData {
 }
 
 type BookEditorMode =
-  | { kind: "new"; initialIsbn?: string }
+  | {
+      kind: "new";
+      initialIsbn?: string;
+      /** Copyable fields from a source book, used to prefill the form when duplicating an entry. */
+      initialBookData?: Partial<BookType>;
+      /** If set, the existing cover image for this book id is fetched and staged for upload. */
+      copyCoverFromId?: number;
+    }
   | { kind: "edit"; book: BookType };
 
 /**
@@ -83,6 +90,9 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       rentedDate: new Date().toISOString(),
       dueDate: new Date().toISOString(),
       isbn: mode.initialIsbn || "",
+      // Copied fields (title, author, isbn, ...) win over the defaults
+      // above, but rental state stays fresh for the new physical copy.
+      ...mode.initialBookData,
     };
   });
 
@@ -145,6 +155,33 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       }
     };
   }, []);
+
+  // --- Copy cover from source book (new-book copy mode) -------------------
+
+  useEffect(() => {
+    if (mode.kind !== "new" || !mode.copyCoverFromId) return;
+
+    const controller = new AbortController();
+    const sourceId = mode.copyCoverFromId;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/images/${sourceId}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return; // source book has no cover — nothing to copy
+        const blob = await res.blob();
+        setCoverPreview(blob);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Failed to copy cover from source book", err);
+        }
+      }
+    })();
+
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode.kind === "new" ? mode.copyCoverFromId : undefined]);
 
   // --- Autofill (new-book mode) -------------------------------------------
 

@@ -158,9 +158,9 @@ export default function Books({
   }, [router]);
 
   const handleCopyBook = useCallback(
-    (_book: BookType) => {
-      router.push("/book/new");
-      toast.info(t("bookPage.toastCreateNewBook"));
+    (book: BookType) => {
+      if (!book.id) return;
+      router.push(`/book/new?copyFrom=${book.id}`);
     },
     [router],
   );
