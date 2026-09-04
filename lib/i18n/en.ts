@@ -178,6 +178,8 @@ export const en: Dictionary = {
     fieldLastName: "Last name",
     fieldGrade: "Grade",
     fieldTeacher: "Teacher",
+    fieldEmail: "eMail",
+    emailWarning: "Doesn't look like a valid email address",
     fieldCreatedAt: "Created on",
     fieldLastUpdated: "Last update",
     createdAtValue: "User created on {date} with user ID {id}",
@@ -281,7 +283,8 @@ export const en: Dictionary = {
   },
   bookPage: {
     toastCreateNewBook: "Create new book - please enter data or scan an ISBN",
-    toastBookDataCopied: "Data copied from the original book — check it, then save",
+    toastBookDataCopied:
+      "Data copied from the original book — check it, then save",
     toastBookReturned: "Book returned",
     toastReturnError: "Error returning the book",
     loadMore: "More books...",

@@ -64,6 +64,15 @@ function getOverdueLevel(dueDate: string | Date | undefined): OverdueLevel {
   return "ok";
 }
 
+// Loose format check only — flags obviously malformed input (missing "@",
+// no domain part, stray spaces) without rejecting internal/non-standard
+// domains (e.g. "user@intranet"). Empty values are considered valid since
+// the field is optional.
+function isLikelyValidEmail(email: string): boolean {
+  if (!email.trim()) return true;
+  return /^\S+@\S+\.\S+$/.test(email.trim());
+}
+
 function overdueClasses(level: OverdueLevel) {
   switch (level) {
     case "overdue":
@@ -99,6 +108,8 @@ function FormField({
   required,
   onChange,
   tabIndex,
+  type = "text",
+  warning,
 }: {
   id: string;
   label: string;
@@ -107,6 +118,8 @@ function FormField({
   required?: boolean;
   onChange?: (v: string) => void;
   tabIndex?: number;
+  type?: string;
+  warning?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -117,6 +130,7 @@ function FormField({
       <Input
         id={id}
         name={id}
+        type={type}
         defaultValue={value}
         disabled={disabled}
         tabIndex={tabIndex}
@@ -124,8 +138,15 @@ function FormField({
         className={cn(
           "transition-colors disabled:opacity-60",
           !disabled && "border-primary/40 focus-visible:border-primary",
+          warning && "border-amber-500/60 focus-visible:border-amber-500",
         )}
       />
+      {warning && (
+        <p className="flex items-center gap-1 text-xs text-amber-600">
+          <AlertTriangle size={12} className="shrink-0" />
+          {warning}
+        </p>
+      )}
     </div>
   );
 }
@@ -371,6 +392,20 @@ export default function UserEditForm({
               onChange={(v) => setUserData({ ...user, schoolTeacherName: v })}
             />
             <FormField
+              id="eMail"
+              label={t("userEditForm.fieldEmail")}
+              value={user.eMail ?? ""}
+              disabled={!editable}
+              type="email"
+              tabIndex={5}
+              onChange={(v) => setUserData({ ...user, eMail: v })}
+              warning={
+                isLikelyValidEmail(user.eMail ?? "")
+                  ? undefined
+                  : t("userEditForm.emailWarning")
+              }
+            />
+            <FormField
               id="createdAt"
               label={t("userEditForm.fieldCreatedAt")}
               value={t("userEditForm.createdAtValue", {
@@ -397,7 +432,7 @@ export default function UserEditForm({
               user.active ? "border-primary" : "border-border",
               !editable && "pointer-events-none opacity-60",
             )}
-            tabIndex={5}
+            tabIndex={6}
           >
             <Checkbox
               id="user-active"
@@ -472,7 +507,7 @@ export default function UserEditForm({
             <Button
               variant={editable ? "outline" : "default"}
               size="sm"
-              tabIndex={6}
+              tabIndex={7}
               onClick={toggleEdit}
               className="gap-2 rounded-lg font-medium"
             >
@@ -484,7 +519,7 @@ export default function UserEditForm({
               <>
                 <Button
                   size="sm"
-                  tabIndex={7}
+                  tabIndex={8}
                   onClick={() => {
                     saveUser();
                     toggleEdit();
@@ -498,7 +533,7 @@ export default function UserEditForm({
                 <Button
                   variant="outline"
                   size="sm"
-                  tabIndex={8}
+                  tabIndex={9}
                   onClick={() =>
                     window.open(
                       `/api/report/userlabels?id=${user.id}`,
