@@ -92,3 +92,5 @@ describe("Server-side book pagination", () => {
     cy.contains("Herr der Diebe").should("be.visible");
   });
 });
+
+export {};
