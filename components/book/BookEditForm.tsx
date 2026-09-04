@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { Dispatch, useCallback, useState } from "react";
+import { Dispatch, useCallback, useRef, useState } from "react";
 
 import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
@@ -20,6 +21,14 @@ import BookSelect, {
   rentalStatusOptions,
 } from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
+
+// The scanner pulls in the whole zxing decoder, a 469 KB chunk. Imported
+// statically it landed in the first load of every page that can edit a book,
+// and the Pages Router waits for that chunk before it will even change the
+// URL. Loading it when the camera is actually opened keeps it out of the way.
+const CameraScanner = dynamic(() => import("./CameraScanner"), {
+  ssr: false,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -132,6 +141,9 @@ export default function BookEditForm({
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const [fetchingCover, setFetchingCover] = useState(false);
   const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const bookRef = useRef(book);
+  bookRef.current = book;
   const router = useRouter();
 
   const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
@@ -228,6 +240,14 @@ export default function BookEditForm({
   }, [book.isbn, book.id]);
 
   const handleAntolinClick = () => setAntolinDetailsDialog(true);
+
+  const handleCameraDetected = useCallback(
+    (isbn: string) => {
+      setCameraOpen(false);
+      setBookData({ ...bookRef.current, isbn });
+    },
+    [setBookData],
+  );
 
   // ── Sub-components ────────────────────────────────────────────────────────
 
@@ -330,6 +350,13 @@ export default function BookEditForm({
       className="mt-8 bg-card rounded-2xl shadow-sm border border-border px-4 sm:px-6 lg:px-8 py-6"
       data-cy="book-edit-form"
     >
+      {cameraOpen && (
+        <CameraScanner
+          onDetected={handleCameraDetected}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
+
       <BookAntolinDialog
         open={antolinDetailsDialog}
         setOpen={setAntolinDetailsDialog}
@@ -387,6 +414,7 @@ export default function BookEditForm({
             setBookData={setBookData}
             book={book}
             autoFocus={isNewBook}
+            onCameraClick={() => setCameraOpen(true)}
           />
         </div>
 

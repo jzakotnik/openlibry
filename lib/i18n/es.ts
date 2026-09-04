@@ -264,6 +264,23 @@ export const es: Dictionary = {
     toastBookReturned: "¡Libro devuelto, genial!",
     toastReturnError: "Error al devolver el libro",
   },
+  cameraScanner: {
+    open: "Abrir escáner de cámara",
+    title: "Escanear ISBN",
+    switchCamera: "Cambiar de cámara",
+    close: "Cerrar",
+    hint: "Coloca el código de barras dentro del marco",
+    retry: "Intentar de nuevo",
+    errorPermissionDenied: "Acceso a la cámara denegado. Concede el permiso.",
+    errorNoCamera: "No se encontró ninguna cámara.",
+    errorStartFailed: "No se pudo iniciar la cámara.",
+    errorUnavailable: "No es posible acceder a la cámara.",
+    errorInsecureContext:
+      "El escáner de cámara requiere una conexión HTTPS. Introduce el ISBN manualmente.",
+  },
+  batchScan: {
+    toastIsbnRequired: "Introduce un ISBN válido",
+  },
   bookSelect: {
     renewalNone: "No renovado",
     renewalCountFormat: "{n}x renovado",

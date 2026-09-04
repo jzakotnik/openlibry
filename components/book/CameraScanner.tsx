@@ -1,0 +1,231 @@
+import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
+import { NotFoundException } from "@zxing/library";
+import { t } from "@/lib/i18n";
+import { isIsbnLike, normalizeIsbn } from "@/lib/isbn-services/types";
+import { Camera, CameraOff, RefreshCw, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+interface CameraScannerProps {
+  onDetected: (isbn: string) => void;
+  onClose: () => void;
+}
+
+export default function CameraScanner({
+  onDetected,
+  onClose,
+}: CameraScannerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
+  const cancelledRef = useRef(false);
+  // Marks which start attempt is the live one. Two starts in quick succession
+  // (a double tap on the camera switch, or on the retry button) both sit in
+  // the await below; the second used to overwrite the first one's controls,
+  // and nothing could ever stop that stream again — the camera light stayed on
+  // until the tab was closed. stopScanner() cannot cover this on its own,
+  // because at that point controlsRef is still null for the pending attempt.
+  const startTokenRef = useRef(0);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(
+    undefined,
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+  // Set when the browser can never provide a camera here, so the retry button
+  // is pointless and gets hidden.
+  const [unsupported, setUnsupported] = useState(false);
+
+  const stopScanner = useCallback(() => {
+    controlsRef.current?.stop();
+    controlsRef.current = null;
+    setScanning(false);
+  }, []);
+
+  const startScanner = useCallback(
+    async (deviceId?: string) => {
+      if (!videoRef.current) return;
+      cancelledRef.current = false;
+      const token = ++startTokenRef.current;
+      stopScanner();
+      setError(null);
+
+      const reader = new BrowserMultiFormatReader();
+
+      try {
+        setScanning(true);
+        // Local flag prevents duplicate detections if the callback fires
+        // before the outer await resolves (controlsRef not yet assigned).
+        let detected = false;
+        const controls = await reader.decodeFromVideoDevice(
+          deviceId,
+          videoRef.current,
+          (result, err) => {
+            if (detected) return;
+            // A superseded attempt must not report a scan or touch the state
+            // that now belongs to the newer one.
+            if (token !== startTokenRef.current) return;
+            if (result) {
+              const text = result.getText();
+              if (isIsbnLike(text)) {
+                detected = true;
+                controlsRef.current?.stop();
+                controlsRef.current = null;
+                setScanning(false);
+                onDetected(normalizeIsbn(text));
+              }
+            }
+            if (err && !(err instanceof NotFoundException)) {
+              console.warn("Scanner:", err);
+            }
+          },
+        );
+        // If detection fired before controls was returned, the component was
+        // closed/unmounted while awaiting, or a newer start has since taken
+        // over, stop the stream now — otherwise it is a stream nobody holds a
+        // handle to any more (camera stays on).
+        if (
+          detected ||
+          cancelledRef.current ||
+          token !== startTokenRef.current
+        ) {
+          controls.stop();
+        } else {
+          controlsRef.current = controls;
+        }
+      } catch (e: any) {
+        if (token !== startTokenRef.current) return;
+        setScanning(false);
+        if (e?.name === "NotAllowedError") {
+          setError(t("cameraScanner.errorPermissionDenied"));
+        } else if (e?.name === "NotFoundError") {
+          setError(t("cameraScanner.errorNoCamera"));
+        } else {
+          setError(t("cameraScanner.errorStartFailed"));
+        }
+      }
+    },
+    [stopScanner, onDetected],
+  );
+
+  useEffect(() => {
+    // getUserMedia is only exposed in a secure context. OpenLibry is commonly
+    // served over plain HTTP on a school LAN, where navigator.mediaDevices is
+    // undefined and listVideoInputDevices() throws a TypeError that would
+    // otherwise surface as the generic "camera unavailable" message, leaving
+    // staff with no idea why the scanner does nothing. Name the real cause.
+    if (!window.isSecureContext || !navigator.mediaDevices) {
+      setUnsupported(true);
+      setError(t("cameraScanner.errorInsecureContext"));
+      return;
+    }
+
+    BrowserMultiFormatReader.listVideoInputDevices()
+      .then((d) => {
+        setDevices(d);
+        const back = d.find((dev) => /back|rear|environment/i.test(dev.label));
+        const initial = back?.deviceId ?? d[0]?.deviceId;
+        setSelectedDeviceId(initial);
+        startScanner(initial);
+      })
+      .catch(() => setError(t("cameraScanner.errorUnavailable")));
+
+    return () => {
+      cancelledRef.current = true;
+      stopScanner();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSwitchCamera = () => {
+    if (devices.length < 2) return;
+    const idx = devices.findIndex((d) => d.deviceId === selectedDeviceId);
+    const next = devices[(idx + 1) % devices.length];
+    setSelectedDeviceId(next.deviceId);
+    startScanner(next.deviceId);
+  };
+
+  return (
+    <div
+      data-cy="camera-scanner-overlay"
+      className="fixed inset-0 z-50 flex flex-col bg-black"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-black/80">
+        <span className="text-white text-sm font-medium">
+          {t("cameraScanner.title")}
+        </span>
+        <div className="flex items-center gap-2">
+          {devices.length > 1 && (
+            <button
+              onClick={handleSwitchCamera}
+              className="p-2 rounded-full text-white hover:bg-white/10 transition-colors"
+              aria-label={t("cameraScanner.switchCamera")}
+            >
+              <RefreshCw className="h-5 w-5" />
+            </button>
+          )}
+          <button
+            onClick={() => {
+              stopScanner();
+              onClose();
+            }}
+            className="p-2 rounded-full text-white hover:bg-white/10 transition-colors"
+            aria-label={t("cameraScanner.close")}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Viewfinder */}
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden">
+        <video
+          ref={videoRef}
+          className="h-full w-full object-cover"
+          muted
+          playsInline
+        />
+
+        {scanning && !error && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="relative w-72 h-40">
+              {(["tl", "tr", "bl", "br"] as const).map((corner) => (
+                <span
+                  key={corner}
+                  className={`absolute w-8 h-8 border-white border-4
+                    ${corner === "tl" ? "top-0 left-0 border-r-0 border-b-0 rounded-tl-md" : ""}
+                    ${corner === "tr" ? "top-0 right-0 border-l-0 border-b-0 rounded-tr-md" : ""}
+                    ${corner === "bl" ? "bottom-0 left-0 border-r-0 border-t-0 rounded-bl-md" : ""}
+                    ${corner === "br" ? "bottom-0 right-0 border-l-0 border-t-0 rounded-br-md" : ""}
+                  `}
+                />
+              ))}
+              <div
+                className="absolute left-1 right-1 h-0.5 bg-primary animate-[scan_2s_ease-in-out_infinite]"
+                style={{ top: "50%" }}
+              />
+            </div>
+            <p className="absolute bottom-8 text-white/80 text-sm text-center px-4">
+              {t("cameraScanner.hint")}
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70">
+            <CameraOff className="h-12 w-12 text-white/50" />
+            <p className="text-white text-sm text-center px-8">{error}</p>
+            {!unsupported && (
+              <button
+                onClick={() => startScanner(selectedDeviceId)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm"
+              >
+                <Camera className="h-4 w-4" />
+                {t("cameraScanner.retry")}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

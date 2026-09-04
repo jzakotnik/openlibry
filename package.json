@@ -4,6 +4,7 @@
   "private": false,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:https": "next dev --turbopack --experimental-https --hostname 0.0.0.0",
     "build": "next build",
     "analyze": "ANALYZE=true next experimental-analyze",
     "start": "next start",
@@ -24,6 +25,8 @@
     "@types/formidable": "^3.4.5",
     "@types/itemsjs": "^2.1.8",
     "@types/react-tagcloud": "^2.3.2",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
     "angular-expressions": "^1.5.1",
     "bwip-js": "^4.9.0",
     "cheerio": "^1.1.2",
