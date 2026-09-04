@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import { t } from "@/lib/i18n";
 import { playSound } from "@/lib/utils/audioutils";
 import { currentTime } from "@/lib/utils/dateutils";
 import { generateId } from "@/lib/utils/id";
@@ -163,7 +164,7 @@ export default function BatchScan() {
     // Warn (and keep the input) when nothing usable was entered, instead of
     // silently clearing — processIsbn strips non-digits and returns quietly.
     if (!isbnInput.trim().replace(/\D/g, "")) {
-      toast.warning("Bitte eine gültige ISBN eingeben");
+      toast.warning(t("batchScan.toastIsbnRequired"));
       return;
     }
     setIsbnInput("");
@@ -494,7 +495,7 @@ export default function BatchScan() {
                     <button
                       type="button"
                       onClick={() => setCameraOpen(true)}
-                      aria-label="Kamera-Scanner öffnen"
+                      aria-label={t("cameraScanner.open")}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2
                                  text-muted-foreground hover:text-primary transition-colors"
                     >

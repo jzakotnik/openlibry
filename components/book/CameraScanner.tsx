@@ -1,5 +1,6 @@
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 import { NotFoundException } from "@zxing/library";
+import { t } from "@/lib/i18n";
 import { isIsbnLike, normalizeIsbn } from "@/lib/isbn-services/types";
 import { Camera, CameraOff, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,7 +18,7 @@ export default function CameraScanner({
   const controlsRef = useRef<IScannerControls | null>(null);
   const cancelledRef = useRef(false);
   // Marks which start attempt is the live one. Two starts in quick succession
-  // (a double tap on the camera switch, or on "Erneut versuchen") both sit in
+  // (a double tap on the camera switch, or on the retry button) both sit in
   // the await below; the second used to overwrite the first one's controls,
   // and nothing could ever stop that stream again — the camera light stayed on
   // until the tab was closed. stopScanner() cannot cover this on its own,
@@ -85,11 +86,11 @@ export default function CameraScanner({
         if (token !== startTokenRef.current) return;
         setScanning(false);
         if (e?.name === "NotAllowedError") {
-          setError("Kamerazugriff verweigert. Bitte Berechtigung erteilen.");
+          setError(t("cameraScanner.errorPermissionDenied"));
         } else if (e?.name === "NotFoundError") {
-          setError("Keine Kamera gefunden.");
+          setError(t("cameraScanner.errorNoCamera"));
         } else {
-          setError("Kamera konnte nicht gestartet werden.");
+          setError(t("cameraScanner.errorStartFailed"));
         }
       }
     },
@@ -105,7 +106,7 @@ export default function CameraScanner({
         setSelectedDeviceId(initial);
         startScanner(initial);
       })
-      .catch(() => setError("Kamerazugriff nicht möglich."));
+      .catch(() => setError(t("cameraScanner.errorUnavailable")));
 
     return () => {
       cancelledRef.current = true;
@@ -126,13 +127,15 @@ export default function CameraScanner({
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-black/80">
-        <span className="text-white text-sm font-medium">ISBN scannen</span>
+        <span className="text-white text-sm font-medium">
+          {t("cameraScanner.title")}
+        </span>
         <div className="flex items-center gap-2">
           {devices.length > 1 && (
             <button
               onClick={handleSwitchCamera}
               className="p-2 rounded-full text-white hover:bg-white/10 transition-colors"
-              aria-label="Kamera wechseln"
+              aria-label={t("cameraScanner.switchCamera")}
             >
               <RefreshCw className="h-5 w-5" />
             </button>
@@ -140,7 +143,7 @@ export default function CameraScanner({
           <button
             onClick={() => { stopScanner(); onClose(); }}
             className="p-2 rounded-full text-white hover:bg-white/10 transition-colors"
-            aria-label="Schließen"
+            aria-label={t("cameraScanner.close")}
           >
             <X className="h-5 w-5" />
           </button>
@@ -171,7 +174,7 @@ export default function CameraScanner({
               />
             </div>
             <p className="absolute bottom-8 text-white/80 text-sm text-center px-4">
-              Barcode in den Rahmen halten
+              {t("cameraScanner.hint")}
             </p>
           </div>
         )}
@@ -185,7 +188,7 @@ export default function CameraScanner({
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm"
             >
               <Camera className="h-4 w-4" />
-              Erneut versuchen
+              {t("cameraScanner.retry")}
             </button>
           </div>
         )}

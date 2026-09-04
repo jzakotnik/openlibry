@@ -267,7 +267,21 @@ export const de = {
     toastDeleteError: "Fehler beim Löschen des Buches",
     toastBookReturned: "Buch zurückgegeben, super!",
     toastReturnError: "Fehler beim Zurückgeben des Buches",
-    openCameraScanner: "Kamera-Scanner öffnen",
+  },
+  cameraScanner: {
+    open: "Kamera-Scanner öffnen",
+    title: "ISBN scannen",
+    switchCamera: "Kamera wechseln",
+    close: "Schließen",
+    hint: "Barcode in den Rahmen halten",
+    retry: "Erneut versuchen",
+    errorPermissionDenied: "Kamerazugriff verweigert. Bitte Berechtigung erteilen.",
+    errorNoCamera: "Keine Kamera gefunden.",
+    errorStartFailed: "Kamera konnte nicht gestartet werden.",
+    errorUnavailable: "Kamerazugriff nicht möglich.",
+  },
+  batchScan: {
+    toastIsbnRequired: "Bitte eine gültige ISBN eingeben",
   },
   bookSelect: {
     renewalNone: "Nicht verlängert",

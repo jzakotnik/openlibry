@@ -75,7 +75,7 @@ const BookField = ({
             type="button"
             onClick={onCameraClick}
             disabled={!editable}
-            aria-label={t("bookEditForm.openCameraScanner")}
+            aria-label={t("cameraScanner.open")}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Camera className="size-4" />
