@@ -1185,6 +1185,8 @@ export const es: Dictionary = {
     fieldYear: "Año",
     fieldPages: "Páginas",
     fieldAge: "Edad recomendada",
+    ageFrom: "a partir de {min}",
+    ageUpTo: "hasta {max}",
     fieldIsbn: "ISBN",
     notFound: "Libro no encontrado.",
   },

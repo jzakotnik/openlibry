@@ -1,8 +1,9 @@
 import { BookType } from "@/entities/BookType";
-import { addBook, getAllBooks } from "@/entities/book";
+import { addBook, getAllBooks, getPagedBooks, PagedBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import { getPositiveInt, getSingleQueryValue } from "@/lib/utils/queryParams";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
@@ -11,7 +12,7 @@ type Data = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | BookType | Array<BookType>>
+  res: NextApiResponse<Data | BookType | Array<BookType> | PagedBooks>,
 ) {
   switch (req.method) {
     case "POST": {
@@ -47,6 +48,19 @@ export default async function handler(
 
     case "GET": {
       try {
+        const pageSize = getPositiveInt(req.query.pageSize);
+        const page = getPositiveInt(req.query.page) ?? 1;
+        const q = getSingleQueryValue(req.query.q);
+
+        if (pageSize) {
+          const result = await getPagedBooks(prisma, {
+            page,
+            pageSize,
+            query: q,
+          });
+          return res.status(200).json(result);
+        }
+
         const books = (await getAllBooks(prisma)) as Array<BookType>;
         if (!books) {
           return res.status(400).json({ result: "ERROR: Book not found" });
