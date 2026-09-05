@@ -83,7 +83,8 @@ export const es: Dictionary = {
 
     toastAlreadyRented: "El libro {bookId} ya está prestado",
     toastBookNotFound: "Libro {bookId} no encontrado",
-    toastUserInactive: "El usuario está desactivado y no puede tomar libros en préstamo",
+    toastUserInactive:
+      "El usuario está desactivado y no puede tomar libros en préstamo",
     showingFirst: "Más resultados disponibles",
 
     inactiveUserBadge: "Inactivo",
@@ -128,9 +129,9 @@ export const es: Dictionary = {
     ariaLabel: "search users",
     searchSettings: "Configuración de búsqueda",
     cancelSelection: "Cancelar selección",
-    selectAll: "Seleccionar todos",
+    selectAll: "Seleccionar los {total} usuarios de la base de datos",
     newUser: "Crear nuevo usuario",
-    selected: "seleccionado",
+    selected: "de {total} usuarios seleccionados (toda la base de datos)",
     deselect: "Deseleccionar",
     actions: "Acciones",
     increaseGrade: "Subir de curso",

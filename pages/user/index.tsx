@@ -179,6 +179,7 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
               onSelectAll={handleSelectAll}
               onCreateUser={() => setShowNewUserDialog(true)}
               checked={checked}
+              totalUsers={users.length}
               onIncreaseGrade={handleIncreaseGrade}
               onDeleteUsers={handleDeleteUsers}
               confirmDelete={confirmDelete}

@@ -90,6 +90,7 @@ interface UserSearchBarProps {
   onSelectAll: () => void;
   onCreateUser: () => void;
   checked: Record<string, boolean>;
+  totalUsers: number;
   onIncreaseGrade: () => void;
   onDeleteUsers: () => void;
   confirmDelete: boolean;
@@ -104,6 +105,7 @@ export default function UserSearchBar({
   onSelectAll,
   onCreateUser,
   checked,
+  totalUsers,
   onIncreaseGrade,
   onDeleteUsers,
   confirmDelete,
@@ -148,7 +150,7 @@ export default function UserSearchBar({
             tooltip={
               hasSelection
                 ? t("userSearchBar.cancelSelection")
-                : t("userSearchBar.selectAll")
+                : t("userSearchBar.selectAll", { total: totalUsers })
             }
             onClick={onSelectAll}
             badgeCount={hasSelection ? selectedCount : undefined}
@@ -168,7 +170,7 @@ export default function UserSearchBar({
               <div className="flex items-center gap-2">
                 <Badge className="rounded-full">{selectedCount}</Badge>
                 <span className="text-sm font-medium text-muted-foreground">
-                  {t("userSearchBar.selected")}
+                  {t("userSearchBar.selected", { total: totalUsers })}
                 </span>
                 <Button
                   variant="ghost"
