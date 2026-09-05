@@ -321,8 +321,9 @@ export default function UserEditForm({
                   {user.firstName} {user.lastName}
                 </h2>
                 <p className="text-sm text-white/60">
-                  {t("userEditForm.metaPrefix")} {user.id} ·{" "}
-                  {t("userEditForm.gradePrefix")} {user.schoolGrade}
+                  {t("userEditForm.metaPrefix")} {user.id}
+                  {user.schoolGrade &&
+                    ` · ${t("userEditForm.gradePrefix")} ${user.schoolGrade}`}
                   {user.schoolTeacherName && ` · ${user.schoolTeacherName}`}
                 </p>
               </div>
@@ -379,7 +380,6 @@ export default function UserEditForm({
               label={t("userEditForm.fieldGrade")}
               value={user.schoolGrade ?? ""}
               disabled={!editable}
-              required
               tabIndex={3}
               onChange={(v) => setUserData({ ...user, schoolGrade: v })}
             />
