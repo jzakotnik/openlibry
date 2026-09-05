@@ -86,6 +86,34 @@ describe("Server-side book pagination", () => {
     });
   });
 
+  it("should return only that book when the search term is its number", () => {
+    // The Mediennummer off a barcode scanner is the common case. Before this
+    // was pinned, the digits also matched as a substring of every ISBN
+    // containing them, so scanning a number returned a handful of books.
+    cy.request(`${API}?pageSize=50`).then((list) => {
+      const books = Array.isArray(list.body) ? list.body : list.body.books;
+      const target = books[0];
+      cy.request(`${API}?pageSize=50&q=${target.id}`).then((res) => {
+        expect(res.body.total).to.eq(1);
+        expect(res.body.books[0].id).to.eq(target.id);
+      });
+    });
+  });
+
+  it("should fall back to a text search when no book carries that number", () => {
+    // Digits that are not a book number are meant as text: a year, or a number
+    // inside a title. Those must still search the ordinary fields.
+    cy.request(`${API}?pageSize=50`).then((list) => {
+      const books = Array.isArray(list.body) ? list.body : list.body.books;
+      const freeId = Math.max(...books.map((b: { id: number }) => b.id)) + 1000;
+      cy.request(`${API}?pageSize=50&q=${freeId}`).then((res) => {
+        // No book has this id, so the query is treated as text and simply
+        // finds nothing here rather than returning the whole catalogue.
+        expect(res.body.total).to.eq(0);
+      });
+    });
+  });
+
   it("should render the book list page and its search field", () => {
     cy.visit("http://localhost:3000/book");
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");

@@ -150,12 +150,16 @@ function buildBookWhere(
     ),
   }));
 
-  const numericId = parseInt(q.replace(/^0+/, "") || q, 10);
-  if (/^\d+$/.test(q) && Number.isFinite(numericId)) {
-    return { OR: [{ id: numericId }, { AND: perTerm }] };
-  }
-
   return { AND: perTerm };
+}
+
+/** The book id a purely numeric query denotes, or null if it isn't one. */
+function queryAsBookId(query: string): number | null {
+  const q = query.trim();
+  if (!/^\d+$/.test(q)) return null;
+  // A scanner may pad the number with leading zeros.
+  const id = parseInt(q.replace(/^0+/, "") || q, 10);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
 export function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
@@ -166,6 +170,30 @@ export function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
     "isbn",
     "topics",
   ]);
+}
+
+/**
+ * Search predicate for a paged query.
+ *
+ * A purely numeric query is nearly always a Mediennummer off a barcode
+ * scanner, so when a book carries that id it is the only sensible result and
+ * anything else is noise. When no book has it the digits are meant as text
+ * (a year, a number in a title) and the ordinary field search applies. The id
+ * lookup is a primary-key hit, so this costs nothing measurable.
+ */
+async function resolveWhere(
+  client: PrismaClient,
+  query: string,
+  textWhere: Prisma.BookWhereInput | undefined,
+): Promise<Prisma.BookWhereInput | undefined> {
+  const id = queryAsBookId(query);
+  if (id === null) return textWhere;
+
+  const exists = await client.book.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  return exists ? { id } : textWhere;
 }
 
 export function getPublicBookWhere(
@@ -258,13 +286,7 @@ export function toListBook(
   copyCountsByIsbn: Map<string, number> = new Map(),
 ): ListBookType {
   const trimmedIsbn = book.isbn?.trim();
-  const {
-    subtitle,
-    topics,
-    isbn,
-    userId,
-    ...rest
-  } = book;
+  const { subtitle, topics, isbn, userId, ...rest } = book;
 
   const listBook: ListBookType = {
     ...rest,
@@ -298,7 +320,7 @@ export async function getPagedBooks(
     query = "",
   }: { page: number; pageSize: number; query?: string },
 ): Promise<PagedBooks> {
-  const where = getBookWhere(query);
+  const where = await resolveWhere(client, query, getBookWhere(query));
 
   try {
     const [rawBooks, total] = await Promise.all([
@@ -429,7 +451,7 @@ export async function getPagedPublicBooks(
     query = "",
   }: { page: number; pageSize: number; query?: string },
 ): Promise<PagedPublicBooks> {
-  const where = getPublicBookWhere(query);
+  const where = await resolveWhere(client, query, getPublicBookWhere(query));
 
   try {
     const [rawBooks, total] = await Promise.all([
