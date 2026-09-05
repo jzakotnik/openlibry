@@ -9,7 +9,7 @@
 //   2. API — POST /api/book/:id/user/:userid is rejected with 403 even if
 //      called directly, so the UI guard can't be bypassed.
 
-const SWR_TIMEOUT = 10000;
+const INACTIVE_USER_SWR_TIMEOUT = 10000;
 
 describe("Inactive users cannot rent books", () => {
   before(() => {
