@@ -67,6 +67,7 @@ const BookList = React.memo(function BookList({
   renderedBooks,
   users,
   userExpanded,
+  selectedUserInactive,
   maxExtensions,
   renderLimit,
   handleExtendBookButton,
@@ -76,6 +77,7 @@ const BookList = React.memo(function BookList({
   renderedBooks: Array<BookType>;
   users: Array<UserType>;
   userExpanded: number | false;
+  selectedUserInactive: boolean;
   extensionDurationDays: number;
   maxExtensions: number;
   renderLimit?: number;
@@ -204,21 +206,28 @@ const BookList = React.memo(function BookList({
                   {userExpanded && isAvailable && (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            handleRentBookButton(b.id!, userExpanded)
-                          }
-                          aria-label={t("rental.rentAria")}
-                          data-cy={`book_rent_button_${b.id}`}
-                          className="h-8 w-8 text-primary hover:bg-primary/10"
-                        >
-                          <ListPlus className="h-4 w-4" />
-                        </Button>
+                        <span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={selectedUserInactive}
+                            onClick={() =>
+                              handleRentBookButton(b.id!, userExpanded)
+                            }
+                            aria-label={t("rental.rentAria")}
+                            data-cy={`book_rent_button_${b.id}`}
+                            className="h-8 w-8 text-primary hover:bg-primary/10"
+                          >
+                            <ListPlus className="h-4 w-4" />
+                          </Button>
+                        </span>
                       </TooltipTrigger>
-                      <TooltipContent>{t("rental.rent")}</TooltipContent>
+                      <TooltipContent>
+                        {selectedUserInactive
+                          ? t("rental.rentDisabledInactiveUser")
+                          : t("rental.rent")}
+                      </TooltipContent>
                     </Tooltip>
                   )}
                 </div>
@@ -309,6 +318,10 @@ export default function BookRentalList({
   const { renderedBooks, bookSearchInput, handleInputChange, handleClear } =
     useBookSearch(books, { sort: sortBy, perPage: renderLimit ?? 100 });
 
+  const selectedUser =
+    userExpanded !== false ? users.find((u) => u.id === userExpanded) : null;
+  const selectedUserInactive = selectedUser ? !selectedUser.active : false;
+
   const handleInputChangeEvent = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
       handleInputChange(e.target.value),
@@ -338,7 +351,9 @@ export default function BookRentalList({
         const bookId = parseInt(bookSearchInput.trim(), 10);
         const book = books.find((b) => b.id === bookId);
 
-        if (book && book.rentalStatus === "available") {
+        if (selectedUserInactive) {
+          toast.warning(t("rental.toastUserInactive"));
+        } else if (book && book.rentalStatus === "available") {
           handleRentBookButton(book.id!, userExpanded);
           handleClear();
         } else if (book) {
@@ -355,6 +370,7 @@ export default function BookRentalList({
       userExpanded,
       books,
       handleRentBookButton,
+      selectedUserInactive,
     ],
   );
 
@@ -400,6 +416,7 @@ export default function BookRentalList({
           renderedBooks={renderedBooks}
           users={users}
           userExpanded={userExpanded}
+          selectedUserInactive={selectedUserInactive}
           extensionDurationDays={extensionDurationDays}
           maxExtensions={maxExtensions}
           renderLimit={renderLimit}

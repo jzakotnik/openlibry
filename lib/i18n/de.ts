@@ -82,7 +82,12 @@ export const de = {
 
     toastAlreadyRented: "Buch {bookId} ist bereits ausgeliehen",
     toastBookNotFound: "Buch {bookId} nicht gefunden",
+    toastUserInactive: "Nutzer ist deaktiviert und kann keine Bücher ausleihen",
     showingFirst: "Mehr Ergebnisse vorhanden",
+
+    inactiveUserBadge: "Inaktiv",
+    rentDisabledInactiveUser:
+      "Nutzer ist deaktiviert und kann keine Bücher ausleihen",
 
     // Status badge shown in the rental list for books that are neither
     // "available" nor "rented" (no valid rental to extend/return).
