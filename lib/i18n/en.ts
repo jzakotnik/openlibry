@@ -81,7 +81,11 @@ export const en: Dictionary = {
 
     toastAlreadyRented: "Book {bookId} is already lent out",
     toastBookNotFound: "Book {bookId} not found",
+    toastUserInactive: "User is inactive and cannot borrow books",
     showingFirst: "More results available",
+
+    inactiveUserBadge: "Inactive",
+    rentDisabledInactiveUser: "User is inactive and cannot borrow books",
 
     statusBroken: "Damaged",
     statusPresentation: "Display copy",

@@ -591,6 +591,19 @@ export async function rentBook(
       );
       return "ERROR, book is rented";
     }
+
+    if (user?.active === false) {
+      businessLogger.warn(
+        {
+          event: LogEvents.BOOK_RENTAL_REJECTED,
+          bookId: bookid,
+          userId: userid,
+          reason: "User is inactive",
+        },
+        "Attempted to rent a book to an inactive user",
+      );
+      return "ERROR, user is inactive";
+    }
   } catch (e) {
     if (
       e instanceof Prisma.PrismaClientKnownRequestError ||

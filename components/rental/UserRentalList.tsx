@@ -181,13 +181,19 @@ export default function UserRentalList({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
-                  variant="secondary"
+                  variant={
+                    getUserFromID(userExpanded).active
+                      ? "secondary"
+                      : "destructive"
+                  }
                   data-cy="user_selected_display"
                   onClick={handleSelectedUserClick}
                   className="cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   {getUserFromID(userExpanded).firstName}{" "}
                   {getUserFromID(userExpanded).lastName}
+                  {!getUserFromID(userExpanded).active &&
+                    ` (${t("rental.inactiveUserBadge")})`}
                   <X className="ml-1 h-3 w-3" />
                 </Badge>
               </TooltipTrigger>
@@ -250,8 +256,12 @@ export default function UserRentalList({
                   <AccordionItem
                     key={u.id}
                     value={String(u.id)}
-                    className="rounded-lg border border-border bg-card min-w-[275px] px-3"
+                    className={
+                      "rounded-lg border border-border bg-card min-w-[275px] px-3" +
+                      (u.active ? "" : " opacity-60")
+                    }
                     data-cy={`user_accordion_${u.id}`}
+                    data-user-active={u.active}
                   >
                     <AccordionTrigger
                       data-cy={`user_accordion_summary_${u.id}`}
@@ -267,6 +277,16 @@ export default function UserRentalList({
                           ? `, ${rentalsUser.length} ${rentalsUser.length > 1 ? t("rental.bookPlural") : t("rental.bookSingular")}`
                           : ""}
                       </span>
+
+                      {!u.active && (
+                        <Badge
+                          variant="destructive"
+                          data-cy={`user_inactive_badge_${u.id}`}
+                          className="shrink-0"
+                        >
+                          {t("rental.inactiveUserBadge")}
+                        </Badge>
+                      )}
 
                       {/* Meta info */}
                       <span

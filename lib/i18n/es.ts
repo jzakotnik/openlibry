@@ -83,7 +83,12 @@ export const es: Dictionary = {
 
     toastAlreadyRented: "El libro {bookId} ya está prestado",
     toastBookNotFound: "Libro {bookId} no encontrado",
+    toastUserInactive: "El usuario está desactivado y no puede tomar libros en préstamo",
     showingFirst: "Más resultados disponibles",
+
+    inactiveUserBadge: "Inactivo",
+    rentDisabledInactiveUser:
+      "El usuario está desactivado y no puede tomar libros en préstamo",
 
     statusBroken: "Dañado",
     statusPresentation: "Ejemplar de muestra",

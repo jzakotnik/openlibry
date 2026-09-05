@@ -58,6 +58,19 @@ export default async function handler(
         return res.status(409).json({ result: rental });
       }
 
+      if (rental === "ERROR, user is inactive") {
+        businessLogger.warn(
+          {
+            event: LogEvents.BOOK_RENTAL_REJECTED,
+            bookId,
+            userId,
+            reason: "User is inactive",
+          },
+          "Rental rejected - user is inactive",
+        );
+        return res.status(403).json({ result: rental });
+      }
+
       businessLogger.info(
         {
           event: LogEvents.BOOK_RENTED,
