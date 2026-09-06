@@ -111,6 +111,30 @@ describe("Server-side book pagination", () => {
     });
   });
 
+  it("should not treat a bare number as a book id in the public catalogue", () => {
+    // Nobody scans a barcode into the public catalogue, so digits there are
+    // text. 14 is a book id, but it also sits inside the ISBN 3-7653-1814-0,
+    // and that is the book a visitor typing 14 should get.
+    cy.request(`${PUBLIC_API}?pageSize=50&q=14`).then((res) => {
+      expect(res.body.total).to.eq(1);
+      expect(res.body.books[0].isbn).to.contain("1814");
+    });
+  });
+
+  it("should still allow an explicit book number in the public catalogue", () => {
+    cy.request(`${PUBLIC_API}?pageSize=50&q=%2314`).then((res) => {
+      expect(res.body.total).to.eq(1);
+      expect(res.body.books[0].id).to.eq(14);
+    });
+  });
+
+  it("should accept an explicit book number in the staff list too", () => {
+    cy.request(`${API}?pageSize=50&q=%2314`).then((res) => {
+      expect(res.body.total).to.eq(1);
+      expect(res.body.books[0].id).to.eq(14);
+    });
+  });
+
   it("should render the book list page and its search field", () => {
     cy.visit("http://localhost:3000/book");
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
