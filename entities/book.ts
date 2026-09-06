@@ -141,13 +141,22 @@ function buildBookWhere(
   return { AND: perTerm };
 }
 
-/** The book id a purely numeric query denotes, or null if it isn't one. */
-function queryAsBookId(query: string): number | null {
+/**
+ * The book id a query denotes, and whether the user said so explicitly.
+ *
+ * "15" is a bare number, "#15" names the id outright. Both resolve to 15; only
+ * the caller decides whether a bare number counts (see resolveWhere).
+ */
+function queryAsBookId(
+  query: string,
+): { id: number; explicit: boolean } | null {
   const q = query.trim();
-  if (!/^\d+$/.test(q)) return null;
+  const explicit = q.startsWith("#");
+  const digits = explicit ? q.slice(1).trim() : q;
+  if (!/^\d+$/.test(digits)) return null;
   // A scanner may pad the number with leading zeros.
-  const id = parseInt(q.replace(/^0+/, "") || q, 10);
-  return Number.isSafeInteger(id) && id > 0 ? id : null;
+  const id = parseInt(digits.replace(/^0+/, "") || digits, 10);
+  return Number.isSafeInteger(id) && id > 0 ? { id, explicit } : null;
 }
 
 export function getBookWhere(query: string): Prisma.BookWhereInput | undefined {
@@ -173,15 +182,25 @@ async function resolveWhere(
   client: PrismaClient,
   query: string,
   textWhere: Prisma.BookWhereInput | undefined,
+  { bareNumberIsId }: { bareNumberIsId: boolean },
 ): Promise<Prisma.BookWhereInput | undefined> {
-  const id = queryAsBookId(query);
-  if (id === null) return textWhere;
+  const parsed = queryAsBookId(query);
+  if (parsed === null) return textWhere;
+
+  // "#15" always means the book number. A bare "15" only means it where a
+  // barcode scanner is the normal way to reach the field, which is the staff
+  // book list and not the public catalogue, where someone typing 1984 is
+  // far more likely after the novel than after book number 1984.
+  if (!parsed.explicit && !bareNumberIsId) return textWhere;
 
   const exists = await client.book.findUnique({
-    where: { id },
+    where: { id: parsed.id },
     select: { id: true },
   });
-  return exists ? { id } : textWhere;
+  // An explicit "#15" that matches nothing returns nothing rather than
+  // silently searching for the literal text.
+  if (!exists) return parsed.explicit ? { id: parsed.id } : textWhere;
+  return { id: parsed.id };
 }
 
 export function getPublicBookWhere(
@@ -308,7 +327,9 @@ export async function getPagedBooks(
     query = "",
   }: { page: number; pageSize: number; query?: string },
 ): Promise<PagedBooks> {
-  const where = await resolveWhere(client, query, getBookWhere(query));
+  const where = await resolveWhere(client, query, getBookWhere(query), {
+    bareNumberIsId: true,
+  });
 
   try {
     const [rawBooks, total] = await Promise.all([
@@ -439,7 +460,9 @@ export async function getPagedPublicBooks(
     query = "",
   }: { page: number; pageSize: number; query?: string },
 ): Promise<PagedPublicBooks> {
-  const where = await resolveWhere(client, query, getPublicBookWhere(query));
+  const where = await resolveWhere(client, query, getPublicBookWhere(query), {
+    bareNumberIsId: false,
+  });
 
   try {
     const [rawBooks, total] = await Promise.all([
