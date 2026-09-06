@@ -101,16 +101,13 @@ describe("Server-side book pagination", () => {
   });
 
   it("should fall back to a text search when no book carries that number", () => {
-    // Digits that are not a book number are meant as text: a year, or a number
-    // inside a title. Those must still search the ordinary fields.
-    cy.request(`${API}?pageSize=50`).then((list) => {
-      const books = Array.isArray(list.body) ? list.body : list.body.books;
-      const freeId = Math.max(...books.map((b: { id: number }) => b.id)) + 1000;
-      cy.request(`${API}?pageSize=50&q=${freeId}`).then((res) => {
-        // No book has this id, so the query is treated as text and simply
-        // finds nothing here rather than returning the whole catalogue.
-        expect(res.body.total).to.eq(0);
-      });
+    // 1814 is no book id, but it sits inside the ISBN 3-7653-1814-0. The
+    // fallback has to find that book. Asserting an empty result here would
+    // also pass if a numeric miss simply returned nothing, which is exactly
+    // what must not happen.
+    cy.request(`${API}?pageSize=50&q=1814`).then((res) => {
+      expect(res.body.total).to.eq(1);
+      expect(res.body.books[0].isbn).to.contain("1814");
     });
   });
 
