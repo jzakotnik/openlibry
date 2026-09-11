@@ -39,8 +39,12 @@ export default async function handler(
     }
 
     //const rentalDays = parseInt(process.env.RENTAL_DURATION_DAYS || "21", 10);
-    const rentalDays = getRentalConfig().rentalDays;
-    console.log("Rental config", getRentalConfig());
+    const rentalConfig = getRentalConfig();
+    const rentalDays = rentalConfig.rentalDays;
+    businessLogger.info(
+      { endpoint: "/api/book/[id]/user/[userid]", rentalConfig },
+      "Rental config",
+    );
 
     try {
       const rental = await rentBook(prisma, userId, bookId, rentalDays);

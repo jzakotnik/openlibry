@@ -5,6 +5,8 @@ import { BookType } from "@/entities/BookType";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 
 type Data = {
   id: number;
@@ -22,7 +24,7 @@ async function fetchCover(url: string, results: any) {
     },
   }).then((response) =>
     response.json().then((x) => {
-      console.log("Result of the search", x);
+      businessLogger.info({ result: x }, "Result of the cover search");
       results.push(x);
       return x;
     })
@@ -42,7 +44,10 @@ export default async function handler(
       if (Array.isArray(start) || Array.isArray(stop))
         return res.status(400).json({ data: "ERROR query " });
       const books = books_all.slice(parseInt(start!), parseInt(stop!));
-      console.log("Searching books", books, req.query);
+      businessLogger.info(
+        { count: books.length, query: req.query },
+        "Searching books for covers",
+      );
 
       //http://localhost:2000/bookcover?book_title=Die%20Schule%20der%20magischen%20Tiere%20ermittelt&author_name=Margit%20Auer
 
@@ -56,12 +61,11 @@ export default async function handler(
               sanitizedTitle +
               "&search_type=books&search[field]=on"
           );
-          console.log("Searching url", url);
+          businessLogger.info({ url }, "Searching Goodreads for book cover");
           const { updatedAt, createdAt, dueDate, ...newBook } = b as any;
 
           await fetch(url).then((response) =>
             response.text().then((x) => {
-              console.log("Result of the search", x);
               const regex = /\/book\/show[^\s]+/g; // regex to match "/book/show" substring
               const matches = x.match(regex); // search for matches in the string
 
@@ -71,15 +75,24 @@ export default async function handler(
             })
           );
           const updated = await updateBook(prisma, b.id, newBook);
-          console.log("Updated", updated);
-          console.log("Book URLs", result);
+          businessLogger.info(
+            { bookId: b.id, updated, bookURLs: result },
+            "Updated book with cover URLs",
+          );
           return { id: b.id, title: b.title, bookURLs: result };
         })
       );
-      console.log("x", result);
+      businessLogger.info({ result }, "Book cover search complete");
       res.status(200).json({ data: result });
     } catch (error) {
-      console.log(error);
+      errorLogger.error(
+        {
+          event: LogEvents.API_ERROR,
+          endpoint: "/api/openbiblioimport/getBookCovers",
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Error searching for book covers",
+      );
       res.status(400).json({ data: "ERROR: " + error });
     }
   }

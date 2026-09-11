@@ -6,6 +6,8 @@
  */
 
 import { getSheetConfig, listSheetConfigs } from "@/lib/labels/labelConfig";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default function handle(req: NextApiRequest, res: NextApiResponse) {
@@ -30,7 +32,15 @@ export default function handle(req: NextApiRequest, res: NextApiResponse) {
     const sheets = listSheetConfigs();
     return res.status(200).json(sheets);
   } catch (error) {
-    console.error("Error loading sheet configs:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/labels/sheets",
+        method: req.method,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error loading sheet configs",
+    );
     return res
       .status(500)
       .json({ error: "Failed to load sheet configurations" });

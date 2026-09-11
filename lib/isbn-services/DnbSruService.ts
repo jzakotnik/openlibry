@@ -11,6 +11,8 @@
 
 import * as cheerio from "cheerio";
 import fetch from "node-fetch";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import {
   BookFormData,
   IsbnLookupService,
@@ -133,7 +135,14 @@ function parseMarcXml(xmlText: string, searchIsbn: string): BookFormData | null 
       topics: topics.length > 0 ? topics.join(", ") : undefined,
     };
   } catch (err) {
-    console.error(`[${SERVICE_NAME}] Error parsing MARC XML:`, err);
+    errorLogger.error(
+      {
+        event: LogEvents.ISBN_LOOKUP_FAILED,
+        service: SERVICE_NAME,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      "Error parsing DNB SRU MARC XML"
+    );
     return null;
   }
 }
@@ -148,14 +157,24 @@ async function fetchFromDnbSru(isbn: string): Promise<BookFormData | null> {
   try {
     const response = await fetch(sruUrl);
     if (!response.ok) {
-      console.error(`[${SERVICE_NAME}] HTTP ${response.status}`);
+      errorLogger.error(
+        { event: LogEvents.ISBN_LOOKUP_FAILED, service: SERVICE_NAME, status: response.status },
+        "DNB SRU API returned an error status"
+      );
       return null;
     }
 
     const xmlText = await response.text();
     return parseMarcXml(xmlText, isbn);
   } catch (err) {
-    console.error(`[${SERVICE_NAME}] Fetch error:`, err);
+    errorLogger.error(
+      {
+        event: LogEvents.ISBN_LOOKUP_FAILED,
+        service: SERVICE_NAME,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      "DNB SRU API fetch error"
+    );
     return null;
   }
 }

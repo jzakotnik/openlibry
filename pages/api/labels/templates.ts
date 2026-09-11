@@ -9,6 +9,8 @@ import {
   listTemplates,
   saveTemplate,
 } from "@/lib/labels/labelConfig";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import type { LabelTemplate } from "@/lib/labels/types";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -88,7 +90,15 @@ export default function handle(req: NextApiRequest, res: NextApiResponse) {
         return res.status(405).end(`${req.method} Not Allowed`);
     }
   } catch (error) {
-    console.error("Error in templates API:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/labels/templates",
+        method: req.method,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error in templates API",
+    );
     return res.status(500).json({ error: "Internal server error" });
   }
 }

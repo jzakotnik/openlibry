@@ -5,6 +5,8 @@ import { BookType } from "@/entities/BookType";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 
 type Data = {
   id: number;
@@ -25,7 +27,7 @@ async function fetchCover(url: string, id: string) {
     }
   ).then((response) =>
     response.json().then((x) => {
-      console.log("Result of the search", x);
+      businessLogger.info({ result: x }, "Result of the cover save request");
       return x;
     })
   );
@@ -58,15 +60,21 @@ export default async function handler(
           //console.log("Booklink", book[0]);
           if (Array.isArray(book)) {
             const simpleURL = "https://goodreads.com/" + book[0].split("?")[0];
-            console.log("Booklink", simpleURL);
+            businessLogger.info({ bookId: b.id, simpleURL }, "Book link");
             const result = fetchCover(simpleURL, b.id.toString());
           }
         }
       });
-      //console.log(userlist);
       res.status(200).json({ data: JSON.stringify(result) });
     } catch (error) {
-      console.log(error);
+      errorLogger.error(
+        {
+          event: LogEvents.API_ERROR,
+          endpoint: "/api/openbiblioimport/saveBookCovers",
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Error saving book covers",
+      );
       res.status(400).json({ data: "ERROR: " + error });
     }
   }

@@ -112,7 +112,6 @@ export function extractPageNumber(
     const n = parseInt(num, 10);
     return n > max ? n : max;
   }, 0);
-  console.log("Extracted page number", largest);
   return largest > 0 ? largest : undefined;
 }
 

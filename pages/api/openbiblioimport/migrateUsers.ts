@@ -3,6 +3,8 @@ import { UserType } from "@/entities/UserType";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 
 type Data = {
   data: string;
@@ -31,12 +33,22 @@ export default async function handler(
         addUser(prisma, user);
         return user;
       });
-      console.log(migratedUsers);
+      businessLogger.info(
+        { event: LogEvents.IMPORT_OPENBIBLIO_COMPLETED, count: migratedUsers?.length },
+        "Migrated users from OpenBiblio",
+      );
       res
         .status(200)
         .json({ data: "User " + JSON.stringify(migratedUsers) + " created" });
     } catch (error) {
-      console.log(error);
+      errorLogger.error(
+        {
+          event: LogEvents.API_ERROR,
+          endpoint: "/api/openbiblioimport/migrateUsers",
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Error migrating users from OpenBiblio",
+      );
       res.status(400).json({ data: "ERROR: " + error });
     }
   }

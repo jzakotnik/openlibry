@@ -2,6 +2,9 @@ import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
+
 // Extract database path from DATABASE_URL
 function getDatabasePath(): string {
   const dbUrl = process.env.DATABASE_URL || "file:./database/dev.db";
@@ -58,20 +61,39 @@ export default async function handle(
     res.setHeader("Content-Length", stats.size);
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 
+    businessLogger.info(
+      { endpoint: "/api/db/download", filename, size: stats.size },
+      "Database file downloaded",
+    );
+
     // Stream the file
     const fileStream = fs.createReadStream(dbPath);
     fileStream.pipe(res);
 
     // Handle stream errors
     fileStream.on("error", (error) => {
-      console.error("Error streaming database file:", error);
+      errorLogger.error(
+        {
+          event: LogEvents.DB_ERROR,
+          endpoint: "/api/db/download",
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Error streaming database file",
+      );
       // Only send error if headers haven't been sent
       if (!res.headersSent) {
         res.status(500).json({ error: "Fehler beim Lesen der Datenbankdatei" });
       }
     });
   } catch (error) {
-    console.error("Database download error:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.DB_ERROR,
+        endpoint: "/api/db/download",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Database download error",
+    );
     return res.status(500).json({
       error: "Fehler beim Herunterladen der Datenbank",
       details: error instanceof Error ? error.message : String(error),

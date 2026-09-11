@@ -9,6 +9,8 @@
  */
 
 import fetch from "node-fetch";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import {
   BookFormData,
   IsbnLookupService,
@@ -49,15 +51,19 @@ interface GoogleBooksResponse {
 async function fetchFromGoogleBooks(isbn: string): Promise<BookFormData | null> {
   const cleanIsbn = normalizeIsbn(isbn);
   const url = `${API_BASE_URL}?q=isbn:${cleanIsbn}&key=${process.env.GOOGLE_BOOKS_API_KEY || ""}`;
-    console.log("Fetching from Google Books API:", url);
+  businessLogger.info(
+    { event: LogEvents.COVER_FETCH_ATTEMPT, service: SERVICE_NAME, isbn: cleanIsbn },
+    "Fetching from Google Books API"
+  );
 
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error(`[${SERVICE_NAME}] HTTP ${response.status}`);
+      errorLogger.error(
+        { event: LogEvents.ISBN_LOOKUP_FAILED, service: SERVICE_NAME, status: response.status },
+        "Google Books API returned an error status"
+      );
       return null;
-    } else {
-      console.log(`[${SERVICE_NAME}] Received response from Google Books API` + `(status: ${response.statusText})`);
     }
 
     const data = (await response.json()) as GoogleBooksResponse;
@@ -99,7 +105,14 @@ async function fetchFromGoogleBooks(isbn: string): Promise<BookFormData | null> 
       topics: info.categories?.join(", "),
     };
   } catch (err) {
-    console.error(`[${SERVICE_NAME}] Fetch error:`, err);
+    errorLogger.error(
+      {
+        event: LogEvents.ISBN_LOOKUP_FAILED,
+        service: SERVICE_NAME,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      "Google Books API fetch error"
+    );
     return null;
   }
 }

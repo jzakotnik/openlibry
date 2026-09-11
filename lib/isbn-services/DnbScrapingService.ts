@@ -12,6 +12,8 @@
 import * as cheerio from "cheerio";
 import { Parser } from "n3";
 import fetch from "node-fetch";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import {
   BookFormData,
   IsbnLookupService,
@@ -205,7 +207,14 @@ async function fetchFromDnbPortal(isbn: string): Promise<BookFormData | null> {
       physicalSize: getFirstMatching(triples, P.physicalSize),
     };
   } catch (err) {
-    console.error(`[${SERVICE_NAME}] Scraping error:`, err);
+    errorLogger.error(
+      {
+        event: LogEvents.ISBN_LOOKUP_FAILED,
+        service: SERVICE_NAME,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      "DNB Portal scraping error"
+    );
     return null;
   }
 }

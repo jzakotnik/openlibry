@@ -1,6 +1,8 @@
 import { BookType } from "@/entities/BookType";
 import { getBook } from "@/entities/book";
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { apiLogger, errorLogger } from "@/lib/logger";
 import { createAntolinSearchEngine } from "@/lib/utils/antolinIndex";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -45,7 +47,14 @@ export default async function handle(
         //console.log("Antolin search with duplicates", searchResult);
         const cleanedResult = removeDuplicates(searchResult);
 
-        console.log("Antolin items API", cleanedResult, cleanedResult.length);
+        apiLogger.info(
+          {
+            endpoint: "/api/antolin/[bookid]",
+            bookId: bookid,
+            foundNumber: cleanedResult.length,
+          },
+          "Antolin items retrieved"
+        );
 
         res.setHeader("Content-Type", "application/json");
         res.status(200).send({
@@ -53,7 +62,15 @@ export default async function handle(
           items: cleanedResult,
         });
       } catch (error) {
-        console.log(error);
+        errorLogger.error(
+          {
+            event: LogEvents.API_ERROR,
+            endpoint: "/api/antolin/[bookid]",
+            method: "GET",
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Error fetching Antolin data"
+        );
       }
       break;
 

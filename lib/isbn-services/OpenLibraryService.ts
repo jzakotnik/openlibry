@@ -9,6 +9,8 @@
  */
 
 import fetch from "node-fetch";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import {
   BookFormData,
   IsbnLookupService,
@@ -51,7 +53,10 @@ async function fetchFromOpenLibrary(isbn: string): Promise<BookFormData | null> 
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error(`[${SERVICE_NAME}] HTTP ${response.status}`);
+      errorLogger.error(
+        { event: LogEvents.ISBN_LOOKUP_FAILED, service: SERVICE_NAME, status: response.status },
+        "Open Library API returned an error status"
+      );
       return null;
     }
 
@@ -84,7 +89,14 @@ async function fetchFromOpenLibrary(isbn: string): Promise<BookFormData | null> 
       topics: book.subjects?.map((s) => s.name).join(", "),
     };
   } catch (err) {
-    console.error(`[${SERVICE_NAME}] Fetch error:`, err);
+    errorLogger.error(
+      {
+        event: LogEvents.ISBN_LOOKUP_FAILED,
+        service: SERVICE_NAME,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      "Open Library API fetch error"
+    );
     return null;
   }
 }

@@ -10,6 +10,8 @@
 
 import * as cheerio from "cheerio";
 import fetch from "node-fetch";
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import {
   BookFormData,
   IsbnLookupService,
@@ -58,7 +60,10 @@ async function fetchFromIsbnSearch(isbn: string): Promise<BookFormData | null> {
     });
 
     if (!response.ok) {
-      console.error(`[${SERVICE_NAME}] HTTP ${response.status}`);
+      errorLogger.error(
+        { event: LogEvents.ISBN_LOOKUP_FAILED, service: SERVICE_NAME, status: response.status },
+        "ISBNSearch.org returned an error status"
+      );
       return null;
     }
 
@@ -111,7 +116,14 @@ async function fetchFromIsbnSearch(isbn: string): Promise<BookFormData | null> {
       externalLinks: url,
     };
   } catch (err) {
-    console.error(`[${SERVICE_NAME}] Fetch error:`, err);
+    errorLogger.error(
+      {
+        event: LogEvents.ISBN_LOOKUP_FAILED,
+        service: SERVICE_NAME,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      "ISBNSearch.org fetch error"
+    );
     return null;
   }
 }

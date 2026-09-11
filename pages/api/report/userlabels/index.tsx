@@ -8,6 +8,8 @@ import {
   getUsersInIdRangeForSchoolgrade,
 } from "@/entities/user";
 import { t } from "@/lib/i18n";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { chunkArray } from "@/lib/utils/chunkArray";
 import { resolveCustomPath } from "@/lib/utils/customPath";
 import ReactPDF, {
@@ -63,13 +65,19 @@ try {
   base64Image = fs.readFileSync(resolvedImagePath, { encoding: "base64" });
   const ext = resolvedImagePath.split(".").pop()?.toLowerCase();
   labelImageMimeType = ext === "png" ? "image/png" : "image/jpeg";
-  console.log(
-    `User label background loaded: ${resolvedImagePath} (${labelImageMimeType})`,
+  businessLogger.info(
+    { resolvedImagePath, labelImageMimeType },
+    "User label background loaded",
   );
 } catch (error) {
-  console.warn(
-    `Warning: Could not load user label image "${labelImagePath}" ` +
-      `in database/custom/ or public/. Please ensure the file exists or set USERID_LABEL_IMAGE in your .env file.`,
+  errorLogger.warn(
+    {
+      event: LogEvents.CONFIG_ERROR,
+      labelImagePath,
+      error: error instanceof Error ? error.message : String(error),
+    },
+    "Could not load user label image in database/custom/ or public/. " +
+      "Please ensure the file exists or set USERID_LABEL_IMAGE in your .env file.",
   );
 }
 
@@ -166,7 +174,14 @@ const replacePlaceholder = (text: string, user: UserType): string => {
     }
     return result;
   } catch (error) {
-    console.error("Error replacing placeholder in user label:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/report/userlabels",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error replacing placeholder in user label",
+    );
     return t("userLabelsApi.placeholderError");
   }
 };
@@ -257,7 +272,15 @@ const generateBarcode = async (id: string) => {
       />
     );
   } catch (error) {
-    console.error(`Error generating barcode for ID ${id}:`, error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/report/userlabels",
+        userId: id,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error generating barcode for user label",
+    );
     return null;
   }
 };
@@ -319,7 +342,7 @@ const generateLabels = async (users: Array<UserType>) => {
  */
 async function createUserPDF(users: Array<UserType>) {
   const barcodes = await generateLabels(users);
-  console.log("Labels per page:", labelsPerPage);
+  businessLogger.info({ labelsPerPage }, "Labels per page");
   const barcodesSections = chunkArray(barcodes, labelsPerPage);
 
   const pdfstream = await ReactPDF.renderToStream(
@@ -354,7 +377,10 @@ export default async function handle(
 ) {
   switch (req.method) {
     case "GET":
-      console.log("Printing user labels via API");
+      businessLogger.info(
+        { event: LogEvents.REPORT_ID_CARDS_PRINTED },
+        "Printing user labels via API",
+      );
       try {
         // Four different ways to call:
         // - start & end: for last created users ordered by ID (with optional schoolGrade filter)
@@ -381,9 +407,9 @@ export default async function handle(
           } else {
             printableUsers = users;
           }
-          console.log(
-            "Printing labels for users (by grade/slice), count:",
-            printableUsers?.length,
+          businessLogger.info(
+            { count: printableUsers?.length },
+            "Printing labels for users (by grade/slice)",
           );
         } else if ("startId" in req.query || "endId" in req.query) {
           // Filter by user ID range (with optional schoolGrade)
@@ -398,7 +424,10 @@ export default async function handle(
 
           // Swap if user mixed up start and end
           if (startId > endId) {
-            console.log("Swapping startId and endId (were reversed)");
+            businessLogger.warn(
+              { startId, endId },
+              "Swapping startId and endId (were reversed)",
+            );
             const temp = endId;
             endId = startId;
             startId = temp;
@@ -414,13 +443,9 @@ export default async function handle(
                 )) as any)
               : await getUsersInIdRange(prisma, startId, endId);
 
-          console.log(
-            "Printing labels for users (by ID range):",
-            startId,
-            "to",
-            endId,
-            "count:",
-            printableUsers?.length,
+          businessLogger.info(
+            { startId, endId, count: printableUsers?.length },
+            "Printing labels for users (by ID range)",
           );
         } else if ("id" in req.query) {
           // Single user by ID
@@ -429,13 +454,16 @@ export default async function handle(
           if (user) {
             printableUsers.push(user);
           }
-          console.log("Printing label for single user ID:", req.query.id);
+          businessLogger.info(
+            { userId: req.query.id },
+            "Printing label for single user ID",
+          );
         } else {
           // Default: print all users
           printableUsers = await getAllUsersOrderById(prisma);
-          console.log(
-            "Printing labels for all users, count:",
-            printableUsers?.length,
+          businessLogger.info(
+            { count: printableUsers?.length },
+            "Printing labels for all users",
           );
         }
 
@@ -457,7 +485,15 @@ export default async function handle(
         });
         labels.pipe(res);
       } catch (error) {
-        console.error("Error generating user labels:", error);
+        errorLogger.error(
+          {
+            event: LogEvents.API_ERROR,
+            endpoint: "/api/report/userlabels",
+            method: "GET",
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Error generating user labels",
+        );
         res.status(400).json({ data: "ERROR: " + error });
       }
       break;

@@ -12,6 +12,8 @@ dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
 import { prisma } from "@/entities/db";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
 
@@ -143,7 +145,10 @@ const fieldMapping = (openbibliofieldname: string) => {
       return "maxAge";
       break;
     default:
-      console.log("ERROR Field not found ", openbibliofieldname);
+      errorLogger.warn(
+        { event: LogEvents.API_ERROR, openbibliofieldname },
+        "Field not found during OpenBiblio migration",
+      );
       return "fieldNotFound";
   }
 };
@@ -177,7 +182,10 @@ const transformRentalStatus = (openbibliorental: string) => {
     case "crt":
       return "available";
     default:
-      console.log("ERROR, rental status not found");
+      errorLogger.warn(
+        { event: LogEvents.API_ERROR, openbibliorental },
+        "Rental status not found during OpenBiblio migration",
+      );
       return "ERROR. not found";
   }
 };
@@ -189,7 +197,7 @@ function createBookIDMapping(bookCopy: any) {
     mapping[b.bibid] = parseInt(b.barcode_nmbr);
     count++;
   });
-  console.log("Mapped books:", count);
+  businessLogger.info({ count }, "Mapped books");
   return mapping;
 }
 
@@ -208,7 +216,10 @@ function filterForBarcode(data: any, mapping: any) {
       //console.log("Book has no barcode", d);
     }
   });
-  console.log("Filtered for barcode: ", updatedData.length, data.length, count);
+  businessLogger.info(
+    { filtered: updatedData.length, total: data.length, matched: count },
+    "Filtered for barcode",
+  );
   return updatedData;
 }
 
@@ -224,30 +235,34 @@ export default async function handler(
 
     //do not import books without a barcode!
     try {
+      businessLogger.info(
+        { event: LogEvents.IMPORT_OPENBIBLIO_STARTED },
+        "Starting OpenBiblio book migration",
+      );
       const booklist = req.body as any;
-      //console.log("Booklist", booklist);
       const bookCopy = booklist.biblio_copy[2].data;
       //bibid to barcode id, which is used in openlibry since it's printed in the books already!
       const bookIDMapping = createBookIDMapping(bookCopy);
       //filter out the books that have no barcode..
       const books = filterForBarcode(booklist.biblio[2].data, bookIDMapping);
-      console.log("Filtered books", books.length);
+      businessLogger.info({ count: books.length }, "Filtered books");
       const bookStatus = filterForBarcode(
         booklist.biblio_hist[2].data,
         bookIDMapping
       );
-      console.log("Filtered book status", bookStatus.length);
+      businessLogger.info({ count: bookStatus.length }, "Filtered book status");
 
       const bookExtraFields = filterForBarcode(
         booklist.fields[2].data,
         bookIDMapping
       );
-      console.log("Filtered book fields", bookExtraFields.length);
+      businessLogger.info(
+        { count: bookExtraFields.length },
+        "Filtered book fields",
+      );
       const users = booklist.users[2].data;
-      //console.log(users);
       const existingUsers = new Set();
       users.map((u: any) => {
-        //console.log(u);
         existingUsers.add(parseInt(u.mbrid));
       });
 
@@ -257,7 +272,7 @@ export default async function handler(
 
         const barcodeID = bookIDMapping[b.bibid];
         if (isNaN(barcodeID)) {
-          console.log("Barcode not found", b.bibid);
+          errorLogger.warn({ bibid: b.bibid }, "Barcode not found for book");
           return;
         }
 
@@ -282,14 +297,11 @@ export default async function handler(
             (b.topic5 ??= " "),
           imageLink: "",
         } as BookType;
-        //console.log("Adding book", book);
-        //transaction.push(addBook(prisma, book));
-        //addBook(prisma, book);
         transaction.push(prisma.book.create({ data: { ...book } }));
         importedBooksCount++;
         return book;
       });
-      console.log("Created books", importedBooksCount);
+      businessLogger.info({ importedBooksCount }, "Created books");
 
       //Now all the books from the biblio table are imported with their values and rental status. But they are not connected to the users yet if renter
       //Attach rental status from history table in OpenBiblio
@@ -310,11 +322,11 @@ export default async function handler(
           ? dayjs(b.due_back_dt, "YYYY-MM-DD", true).toDate()
           : undefined;
 
-        console.log("Timestamps: ", rentedTime, dueDate);
+        businessLogger.debug({ rentedTime, dueDate }, "Timestamps");
 
         //connect the book to the user, if it still exists
 
-        console.log("Connecting user ", b.mbrid);
+        businessLogger.debug({ userId: b.mbrid }, "Connecting user");
         if (existingUsers.has(parseInt(b.mbrid)) && b.status_cd == "out") {
           rentalStatusCount++;
           transaction.push(
@@ -353,14 +365,13 @@ export default async function handler(
 
       //Attach additional fields from the fields table in OpenBiblio
       let additionalFieldsCount = 0;
-      console.log(bookExtraFields);
+      businessLogger.debug({ bookExtraFields }, "Book extra fields");
       bookExtraFields.map((f: any) => {
         const barcodeID = bookIDMapping[f.bibid];
         if (isNaN(barcodeID)) {
-          console.log("Barcode not found", f.bibid);
+          errorLogger.warn({ bibid: f.bibid }, "Barcode not found for field");
           return;
         }
-        //console.log(f);
         //wow this is dirty
         const combinedTag = f.tag + f.subfield_cd;
         const fieldUpdate = {} as any;
@@ -368,14 +379,12 @@ export default async function handler(
         let fieldData;
 
         if (fieldTag == "pages") {
-          //console.log(f.bibid, f.field_data);
           //skip Seiten string
           const removedText = f.field_data.replace("Seiten", "");
           fieldData = parseInt(removedText) || 0;
         } else fieldData = f.field_data;
 
         fieldUpdate[fieldTag] = fieldData;
-        //console.log("Updating field", fieldUpdate);
         transaction.push(
           prisma.book.update({
             where: {
@@ -391,11 +400,28 @@ export default async function handler(
       //execute all queries in sequential order
       prisma.$transaction(transaction);
 
+      businessLogger.info(
+        {
+          event: LogEvents.IMPORT_OPENBIBLIO_COMPLETED,
+          importedBooksCount,
+          rentalStatusCount,
+          additionalFieldsCount,
+        },
+        "OpenBiblio book migration completed",
+      );
+
       res.status(200).json({
         data: `${importedBooksCount} Books created with ${rentalStatusCount} rental status and ${additionalFieldsCount} fields`,
       });
     } catch (error) {
-      console.log(error);
+      errorLogger.error(
+        {
+          event: LogEvents.API_ERROR,
+          endpoint: "/api/openbiblioimport/migrateBooks",
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Error migrating books from OpenBiblio",
+      );
       res.status(400).json({ data: "ERROR: " + error });
     }
   }

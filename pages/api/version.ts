@@ -1,4 +1,6 @@
 // pages/api/version.ts
+import { LogEvents } from "@/lib/logEvents";
+import { errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 interface VersionResponse {
@@ -36,7 +38,15 @@ export default function handler(
       name: packageJson.name || "openlibry",
     });
   } catch (error) {
-    console.error("Error reading package.json:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/version",
+        method: req.method,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error reading package.json",
+    );
     return res
       .status(500)
       .json({ error: "Failed to retrieve version information" });

@@ -25,6 +25,8 @@ import { prisma } from "@/entities/db";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSheetConfig, getTemplate } from "@/lib/labels/labelConfig";
+import { LogEvents } from "@/lib/logEvents";
+import { businessLogger, errorLogger } from "@/lib/logger";
 import { renderLabelSheet } from "@/lib/labels/renderLabelSheet";
 import type {
   BookFilter,
@@ -212,9 +214,14 @@ export default async function handle(
 
     // ── Render PDF ────────────────────────────────────────────────
 
-    console.log(
-      `Generating labels: ${books.length} books on ${sheet.name} ` +
-      `with template "${template.name || "(inline preview)"}"`,
+    businessLogger.info(
+      {
+        event: LogEvents.REPORT_BOOK_LABELS_GENERATED,
+        bookCount: books.length,
+        sheet: sheet.name,
+        template: template.name || "(inline preview)",
+      },
+      "Generating book labels",
     );
 
     const pdfStream = await renderLabelSheet(
@@ -238,7 +245,15 @@ export default async function handle(
 
     pdfStream.pipe(res);
   } catch (error) {
-    console.error("Error generating label PDF:", error);
+    errorLogger.error(
+      {
+        event: LogEvents.API_ERROR,
+        endpoint: "/api/labels/generate",
+        method: req.method,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Error generating label PDF",
+    );
     return res.status(500).json({ error: "Failed to generate PDF" });
   }
 }
