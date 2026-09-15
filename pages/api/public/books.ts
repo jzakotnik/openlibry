@@ -1,8 +1,9 @@
-import { getPublicBooks } from "@/entities/book";
+import { getPagedPublicBooks, getPublicBooks, PagedPublicBooks } from "@/entities/book";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { PublicBookType } from "@/entities/PublicBookType";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import { getPositiveInt, getSingleQueryValue } from "@/lib/utils/queryParams";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type ErrorData = {
@@ -20,7 +21,7 @@ type ErrorData = {
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Array<PublicBookType> | ErrorData>,
+  res: NextApiResponse<Array<PublicBookType> | PagedPublicBooks | ErrorData>,
 ) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -36,6 +37,31 @@ export default async function handler(
   res.setHeader("Cache-Control", "public, max-age=60, s-maxage=300");
 
   try {
+    const pageSize = getPositiveInt(req.query.pageSize);
+    const page = getPositiveInt(req.query.page) ?? 1;
+    const q = getSingleQueryValue(req.query.q);
+
+    if (pageSize) {
+      const result = await getPagedPublicBooks(prisma, {
+        page,
+        pageSize,
+        query: q,
+      });
+
+      businessLogger.info(
+        {
+          event: LogEvents.BOOK_LIST_FETCHED,
+          count: result.books.length,
+          total: result.total,
+          endpoint: "/api/public/books",
+          paged: true,
+        },
+        "Public book catalog fetched",
+      );
+
+      return res.status(200).json(result);
+    }
+
     const books = await getPublicBooks(prisma);
 
     businessLogger.info(
