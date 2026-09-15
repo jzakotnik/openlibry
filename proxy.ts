@@ -1,4 +1,5 @@
 import { resolveLoginImage } from "@/lib/loginImage";
+import { getConfiguredRootRoute, isPublicRoutePath } from "@/lib/rootRoute";
 import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -45,13 +46,12 @@ export default withAuth(
         // The configured login background lives in /public and must load on the
         // (unauthenticated) login page, so allow exactly that one file.
         const loginImage = resolveLoginImage();
+        const isPublicRootRedirect =
+          pathname === "/" && isPublicRoutePath(getConfiguredRootRoute());
         const isPublicRoute =
+          isPublicRootRedirect ||
           pathname === "/publicbookview" ||
-          pathname === "/catalog" ||
-          pathname.startsWith("/catalog/") ||
-          pathname.startsWith("/api/images") ||
-          pathname === "/api/version" ||
-          pathname.startsWith("/api/public/") ||
+          isPublicRoutePath(pathname) ||
           (loginImage !== null && pathname === loginImage);
 
         if (isPublicRoute) return true;
