@@ -63,15 +63,9 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     const newTitle = "Geänderter Buchtitel - Cypress Test";
 
-    cy.get("[data-cy=index_book_button]").click();
-    cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
-
-    cy.get("[data-cy=rental_input_searchbook]").clear().type(bookId.toString());
-    cy.wait(1000);
-
-    cy.get("[data-cy=book_title]").should("be.visible");
-    cy.get("[data-cy=book_card_editbutton]").should("be.visible").click();
-    cy.get("[data-cy=book-edit-form]").should("be.visible");
+    // Scope the click to this book's own card. The test knows the id, so it
+    // should not depend on the search returning exactly one result.
+    cy.navigateToBookEdit(bookId.toString());
 
     cy.get("[data-cy=book-title-field]").clear().type(newTitle);
     cy.get("[data-cy=book-title-field]").should("have.value", newTitle);
