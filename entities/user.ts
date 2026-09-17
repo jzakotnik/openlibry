@@ -234,6 +234,12 @@ export async function countUser(client: PrismaClient) {
 }
 
 export async function addUser(client: PrismaClient, user: UserType) {
+  if (user.id !== undefined && (!Number.isInteger(user.id) || user.id <= 0)) {
+    throw new Error(
+      `Die Nutzer-ID ${user.id} ist ungültig. Sie muss eine positive Zahl größer als 0 sein.`
+    );
+  }
+
   try {
     await addAudit(
       client,
@@ -262,6 +268,16 @@ export async function addUser(client: PrismaClient, user: UserType) {
         "Error in adding User"
       );
     }
+
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      throw new Error(
+        `Die Nutzer-ID ${user.id} ist bereits vergeben. Bitte eine andere ID wählen.`
+      );
+    }
+
     throw e;
   }
 }
