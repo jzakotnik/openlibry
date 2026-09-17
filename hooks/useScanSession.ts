@@ -1,4 +1,5 @@
 import { BookType } from "@/entities/BookType";
+import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import { t } from "@/lib/i18n";
 import { playSound } from "@/lib/utils/audioutils";
@@ -28,7 +29,7 @@ export interface ScanLogEntry {
  * same session logic could back more than one surface if needed later.
  */
 export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState<number | false>(false);
   const [log, setLog] = useState<ScanLogEntry[]>([]);
 
   const { data, mutate } = useSWR("/api/rental", fetcher, {
@@ -39,7 +40,8 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
   const users: UserType[] = (data?.users ?? []).filter(
     (u: UserType) => u.active,
   );
-  const userId = selectedUserId ? parseInt(selectedUserId, 10) : null;
+  const rentals: RentalsUserType[] = data?.rentals ?? [];
+  const userId = selectedUserId === false ? null : selectedUserId;
   const selectedUser = users.find((u) => u.id === userId);
 
   const pushLog = useCallback((entry: Omit<ScanLogEntry, "id">) => {
@@ -189,6 +191,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
   return {
     books,
     users,
+    rentals,
     selectedUserId,
     setSelectedUserId,
     log,
