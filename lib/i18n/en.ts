@@ -82,6 +82,9 @@ export const en: Dictionary = {
     toastAlreadyRented: "Book {bookId} is already lent out",
     toastBookNotFound: "Book {bookId} not found",
     toastUserInactive: "User is inactive and cannot borrow books",
+    toastSelectUserFirst: "Please select a user first",
+    toastBookUnavailableStatus:
+      '"{title}" has status {status} and cannot be lent out',
     showingFirst: "More results available",
 
     inactiveUserBadge: "Inactive",
@@ -1200,5 +1203,25 @@ export const en: Dictionary = {
       networkError: "Network error",
       unknown: "Unknown error",
     },
+  },
+
+  // ── Central scan drawer (issue #480) ──────────────────────────────────
+  scan: {
+    openAria: "Open scan mode",
+    title: "Scan",
+    userLabel: "Lending to",
+    userPlaceholder: "Select user",
+    inputPlaceholder: "Scan ISBN or lending ID",
+    inputAria: "scan input",
+    logEmpty: "No scans yet this session",
+    logRented: '"{title}" lent to {name}',
+    logReturned: '"{title}" returned',
+    logUnavailable: '"{title}" has status {status}, no action possible',
+    logNeedsUser: "Please select a user first",
+    logUnknownId: "Lending ID {id} not found",
+    logActionFailed: "Action failed, please try again",
+    toastUnknownIsbnRedirect: "Unknown ISBN — create new book",
+    undo: "Undo",
+    undone: "Undone",
   },
 };

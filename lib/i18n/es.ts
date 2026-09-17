@@ -85,6 +85,9 @@ export const es: Dictionary = {
     toastBookNotFound: "Libro {bookId} no encontrado",
     toastUserInactive:
       "El usuario está desactivado y no puede tomar libros en préstamo",
+    toastSelectUserFirst: "Por favor, selecciona primero un usuario",
+    toastBookUnavailableStatus:
+      '"{title}" tiene el estado {status} y no se puede prestar',
     showingFirst: "Más resultados disponibles",
 
     inactiveUserBadge: "Inactivo",
@@ -1227,5 +1230,25 @@ export const es: Dictionary = {
       networkError: "Error de red",
       unknown: "Error desconocido",
     },
+  },
+
+  // ── Central scan drawer (issue #480) ──────────────────────────────────
+  scan: {
+    openAria: "Abrir modo de escaneo",
+    title: "Escanear",
+    userLabel: "Préstamo para",
+    userPlaceholder: "Selecciona un usuario",
+    inputPlaceholder: "Escanea ISBN o ID de préstamo",
+    inputAria: "scan input",
+    logEmpty: "Todavía no hay escaneos en esta sesión",
+    logRented: '"{title}" prestado a {name}',
+    logReturned: '"{title}" devuelto',
+    logUnavailable: '"{title}" tiene el estado {status}, sin acción posible',
+    logNeedsUser: "Por favor, selecciona primero un usuario",
+    logUnknownId: "ID de préstamo {id} no encontrado",
+    logActionFailed: "La acción falló, inténtalo de nuevo",
+    toastUnknownIsbnRedirect: "ISBN desconocido — crear nuevo libro",
+    undo: "Deshacer",
+    undone: "Deshecho",
   },
 };

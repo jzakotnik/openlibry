@@ -83,6 +83,9 @@ export const de = {
     toastAlreadyRented: "Buch {bookId} ist bereits ausgeliehen",
     toastBookNotFound: "Buch {bookId} nicht gefunden",
     toastUserInactive: "Nutzer ist deaktiviert und kann keine Bücher ausleihen",
+    toastSelectUserFirst: "Bitte zuerst eine Nutzer:in auswählen",
+    toastBookUnavailableStatus:
+      "„{title}“ hat den Status {status} und kann nicht ausgeliehen werden",
     showingFirst: "Mehr Ergebnisse vorhanden",
 
     inactiveUserBadge: "Inaktiv",
@@ -1297,6 +1300,26 @@ export const de = {
       networkError: "Netzwerkfehler",
       unknown: "Unbekannter Fehler",
     },
+  },
+
+  // ── Central scan drawer (issue #480) ──────────────────────────────────
+  scan: {
+    openAria: "Scan-Modus öffnen",
+    title: "Scannen",
+    userLabel: "Ausleihe für",
+    userPlaceholder: "Nutzer:in auswählen",
+    inputPlaceholder: "ISBN oder Ausleih-ID scannen",
+    inputAria: "scan input",
+    logEmpty: "Noch keine Scans in dieser Sitzung",
+    logRented: "„{title}“ an {name} ausgeliehen",
+    logReturned: "„{title}“ zurückgegeben",
+    logUnavailable: "„{title}“ hat Status {status}, keine Aktion möglich",
+    logNeedsUser: "Bitte zuerst eine Nutzer:in auswählen",
+    logUnknownId: "Ausleih-ID {id} nicht gefunden",
+    logActionFailed: "Aktion fehlgeschlagen, bitte erneut versuchen",
+    toastUnknownIsbnRedirect: "Unbekannte ISBN — neues Buch anlegen",
+    undo: "Rückgängig",
+    undone: "Rückgängig gemacht",
   },
 };
 
