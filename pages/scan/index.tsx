@@ -57,6 +57,7 @@ export default function ScanPage() {
     rentals,
     selectedUserId,
     setSelectedUserId,
+    selectUser: selectSessionUser,
     log,
     clearLog,
     handleScan,
@@ -90,7 +91,7 @@ export default function ScanPage() {
   const visibleUsers = filteredUsers.slice(0, USER_RESULTS_LIMIT);
 
   const selectUser = (id: number) => {
-    setSelectedUserId(id);
+    selectSessionUser(id);
     setUserSearchInput("");
     inputRef.current?.focus();
   };

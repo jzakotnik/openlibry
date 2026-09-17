@@ -17,6 +17,8 @@ export interface ScanLogEntry {
   text: string;
   undo?: () => Promise<void>;
   undone?: boolean;
+  /** Tags the "please select a user" entry so it can be cleared once one is picked. */
+  kind?: "needs-user";
 }
 
 /**
@@ -170,7 +172,11 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     ),
     onNeedsUser: useCallback(() => {
       playSound("warning");
-      pushLog({ tone: "info", text: t("scan.logNeedsUser") });
+      pushLog({
+        tone: "info",
+        text: t("scan.logNeedsUser"),
+        kind: "needs-user",
+      });
     }, [pushLog]),
     onUnknownIsbn: useCallback(
       (isbn: string) => {
@@ -190,12 +196,21 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
 
   const clearLog = useCallback(() => setLog([]), []);
 
+  // Picking a user resolves the "please select a user first" warning, if
+  // one is showing — it shouldn't linger in the log once it no longer
+  // applies.
+  const selectUser = useCallback((id: number) => {
+    setSelectedUserId(id);
+    setLog((prev) => prev.filter((entry) => entry.kind !== "needs-user"));
+  }, []);
+
   return {
     books,
     users,
     rentals,
     selectedUserId,
     setSelectedUserId,
+    selectUser,
     log,
     clearLog,
     handleScan,
