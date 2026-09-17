@@ -30,6 +30,10 @@ export const de = {
       title: "Leihe",
       subtitle: "Entleihe und Rückgabe",
     },
+    scan: {
+      title: "Scannen",
+      subtitle: "Ausleihe und Rückgabe per Scan",
+    },
     user: {
       title: "Nutzer",
       subtitle: "Verwaltung der User",
@@ -1306,8 +1310,12 @@ export const de = {
   scan: {
     openAria: "Scan-Modus öffnen",
     title: "Scannen",
+    pageSubtitle:
+      "Alternative zur Leihe-Seite: scanne einen Code, die passende Aktion (Ausleihe/Rückgabe/Neuanlage) wird automatisch ausgeführt.",
     userLabel: "Ausleihe für",
     userPlaceholder: "Nutzer:in auswählen",
+    userHintReturnWorksWithoutUser:
+      "Für eine Rückgabe muss keine Nutzer:in ausgewählt sein.",
     inputPlaceholder: "ISBN oder Ausleih-ID scannen",
     inputAria: "scan input",
     logEmpty: "Noch keine Scans in dieser Sitzung",

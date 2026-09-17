@@ -31,6 +31,10 @@ export const es: Dictionary = {
       title: "Préstamos",
       subtitle: "Préstamo y devolución",
     },
+    scan: {
+      title: "Escanear",
+      subtitle: "Prestar y devolver escaneando",
+    },
     user: {
       title: "Usuarios",
       subtitle: "Gestión de usuarios",
@@ -1236,8 +1240,12 @@ export const es: Dictionary = {
   scan: {
     openAria: "Abrir modo de escaneo",
     title: "Escanear",
+    pageSubtitle:
+      "Una alternativa a la página de préstamos: escanea un código y la acción correcta (prestar/devolver/crear) ocurre automáticamente.",
     userLabel: "Préstamo para",
     userPlaceholder: "Selecciona un usuario",
+    userHintReturnWorksWithoutUser:
+      "No es necesario seleccionar un usuario para devolver un libro.",
     inputPlaceholder: "Escanea ISBN o ID de préstamo",
     inputAria: "scan input",
     logEmpty: "Todavía no hay escaneos en esta sesión",

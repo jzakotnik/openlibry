@@ -17,7 +17,6 @@ import { useEffect, useState } from "react";
 
 import { t } from "@/lib/i18n";
 
-import ScanDrawer from "@/components/scan/ScanDrawer";
 import { publicNavItems } from "./NavigationItems";
 
 interface TopBarProps {
@@ -138,8 +137,6 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
                 );
               })}
             </div>
-
-            <ScanDrawer />
 
             {/* Admin Button */}
             {showAdminButton && (

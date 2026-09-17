@@ -29,6 +29,10 @@ export const en: Dictionary = {
       title: "Lending",
       subtitle: "Loans and returns",
     },
+    scan: {
+      title: "Scan",
+      subtitle: "Lend and return by scanning",
+    },
     user: {
       title: "Users",
       subtitle: "User management",
@@ -1209,8 +1213,11 @@ export const en: Dictionary = {
   scan: {
     openAria: "Open scan mode",
     title: "Scan",
+    pageSubtitle:
+      "An alternative to the lending page: scan a code and the right action (lend/return/create) happens automatically.",
     userLabel: "Lending to",
     userPlaceholder: "Select user",
+    userHintReturnWorksWithoutUser: "No user needs to be selected to return a book.",
     inputPlaceholder: "Scan ISBN or lending ID",
     inputAria: "scan input",
     logEmpty: "No scans yet this session",
