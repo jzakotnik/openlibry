@@ -30,7 +30,7 @@ export const en: Dictionary = {
       subtitle: "Loans and returns",
     },
     scan: {
-      title: "Scan",
+      title: "Express Lending",
       subtitle: "Lend and return by scanning",
     },
     user: {
@@ -1212,14 +1212,14 @@ export const en: Dictionary = {
   // ── Central scan drawer (issue #480) ──────────────────────────────────
   scan: {
     openAria: "Open scan mode",
-    title: "Scan",
-    pageSubtitle:
-      "An alternative to the lending page: scan a code and the right action (lend/return/create) happens automatically.",
+    title: "Express Lending",
     userLabel: "Lending to",
     userPlaceholder: "Select user",
     userHintReturnWorksWithoutUser: "No user needs to be selected to return a book.",
     inputPlaceholder: "Scan ISBN or lending ID",
     inputAria: "scan input",
+    resetButton: "Reset",
+    resetAria: "Reset for the next person",
     logEmpty: "No scans yet this session",
     logRented: '"{title}" lent to {name}',
     logReturned: '"{title}" returned',

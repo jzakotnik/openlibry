@@ -7,6 +7,7 @@ import { filterUsers } from "@/lib/utils/searchUtils";
 import {
   CheckCircle2,
   Info,
+  RotateCcw,
   ScanBarcode,
   TriangleAlert,
   Undo2,
@@ -51,8 +52,15 @@ export default function ScanPage() {
     [router],
   );
 
-  const { users, rentals, selectedUserId, setSelectedUserId, log, handleScan } =
-    useScanSession(handleUnknownIsbn);
+  const {
+    users,
+    rentals,
+    selectedUserId,
+    setSelectedUserId,
+    log,
+    clearLog,
+    handleScan,
+  } = useScanSession(handleUnknownIsbn);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -100,14 +108,32 @@ export default function ScanPage() {
     userSearchRef.current?.focus();
   };
 
+  // For when the next person steps up to the desk: clear the selected
+  // user, any in-progress search, and the scan log, without touching the
+  // book data itself.
+  const handleReset = () => {
+    setSelectedUserId(false);
+    setUserSearchInput("");
+    setScanValue("");
+    clearLog();
+    userSearchRef.current?.focus();
+  };
+
   return (
     <Layout>
       <div className="max-w-xl mx-auto my-4 flex flex-col gap-4">
-        <div>
+        <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">{t("scan.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t("scan.pageSubtitle")}
-          </p>
+          <button
+            type="button"
+            onClick={handleReset}
+            aria-label={t("scan.resetAria")}
+            data-cy="scan_reset_button"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            {t("scan.resetButton")}
+          </button>
         </div>
 
         <div className="flex flex-col gap-1">

@@ -31,7 +31,7 @@ export const de = {
       subtitle: "Entleihe und Rückgabe",
     },
     scan: {
-      title: "Scannen",
+      title: "Express Leihe",
       subtitle: "Ausleihe und Rückgabe per Scan",
     },
     user: {
@@ -1309,15 +1309,15 @@ export const de = {
   // ── Central scan drawer (issue #480) ──────────────────────────────────
   scan: {
     openAria: "Scan-Modus öffnen",
-    title: "Scannen",
-    pageSubtitle:
-      "Alternative zur Leihe-Seite: scanne einen Code, die passende Aktion (Ausleihe/Rückgabe/Neuanlage) wird automatisch ausgeführt.",
+    title: "Express Leihe",
     userLabel: "Ausleihe für",
     userPlaceholder: "Nutzer:in auswählen",
     userHintReturnWorksWithoutUser:
       "Für eine Rückgabe muss keine Nutzer:in ausgewählt sein.",
     inputPlaceholder: "ISBN oder Ausleih-ID scannen",
     inputAria: "scan input",
+    resetButton: "Zurücksetzen",
+    resetAria: "Für die nächste Person zurücksetzen",
     logEmpty: "Noch keine Scans in dieser Sitzung",
     logRented: "„{title}“ an {name} ausgeliehen",
     logReturned: "„{title}“ zurückgegeben",

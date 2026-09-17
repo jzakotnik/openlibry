@@ -188,6 +188,8 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     ),
   });
 
+  const clearLog = useCallback(() => setLog([]), []);
+
   return {
     books,
     users,
@@ -195,6 +197,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     selectedUserId,
     setSelectedUserId,
     log,
+    clearLog,
     handleScan,
   };
 }

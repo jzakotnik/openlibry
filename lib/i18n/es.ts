@@ -32,7 +32,7 @@ export const es: Dictionary = {
       subtitle: "Préstamo y devolución",
     },
     scan: {
-      title: "Escanear",
+      title: "Préstamo Express",
       subtitle: "Prestar y devolver escaneando",
     },
     user: {
@@ -1239,15 +1239,15 @@ export const es: Dictionary = {
   // ── Central scan drawer (issue #480) ──────────────────────────────────
   scan: {
     openAria: "Abrir modo de escaneo",
-    title: "Escanear",
-    pageSubtitle:
-      "Una alternativa a la página de préstamos: escanea un código y la acción correcta (prestar/devolver/crear) ocurre automáticamente.",
+    title: "Préstamo Express",
     userLabel: "Préstamo para",
     userPlaceholder: "Selecciona un usuario",
     userHintReturnWorksWithoutUser:
       "No es necesario seleccionar un usuario para devolver un libro.",
     inputPlaceholder: "Escanea ISBN o ID de préstamo",
     inputAria: "scan input",
+    resetButton: "Restablecer",
+    resetAria: "Restablecer para la siguiente persona",
     logEmpty: "Todavía no hay escaneos en esta sesión",
     logRented: '"{title}" prestado a {name}',
     logReturned: '"{title}" devuelto',
