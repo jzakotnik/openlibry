@@ -170,6 +170,7 @@ export const en: Dictionary = {
     userIdLabel: "User ID",
     cancel: "Cancel",
     create: "Create",
+    invalidId: "The user ID must be a positive number greater than 0",
   },
   userEditForm: {
     bookSingular: "book",

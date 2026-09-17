@@ -177,6 +177,7 @@ export const de = {
     userIdLabel: "Nutzer-ID",
     cancel: "Abbrechen",
     create: "Erstellen",
+    invalidId: "Die Nutzer-ID muss eine positive Zahl größer als 0 sein",
   },
   userEditForm: {
     bookSingular: "Buch",

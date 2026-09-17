@@ -175,6 +175,7 @@ export const es: Dictionary = {
     userIdLabel: "ID de usuario",
     cancel: "Cancelar",
     create: "Crear",
+    invalidId: "El ID de usuario debe ser un número positivo mayor que 0",
   },
   userEditForm: {
     bookSingular: "libro",

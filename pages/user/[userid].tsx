@@ -178,7 +178,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const user = replaceUserDateString(dbuser);
 
-  if (!("id" in user) || !user.id) return;
+  if (!("id" in user) || typeof user.id !== "number") return { notFound: true };
 
   const allBooks = (await getRentedBooksForUser(prisma, user.id)) as any;
 
