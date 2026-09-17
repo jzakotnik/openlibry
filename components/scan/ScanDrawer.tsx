@@ -75,9 +75,15 @@ export default function ScanDrawer() {
   const selectedUser = users.find((u) => u.id === userId);
 
   const pushLog = useCallback((entry: Omit<ScanLogEntry, "id">) => {
-    setLog((prev) =>
-      [{ ...entry, id: crypto.randomUUID() }, ...prev].slice(0, 20),
-    );
+    setLog((prev) => {
+      // A repeat scan (or a scanner re-firing Enter) hitting the same
+      // no-op case shouldn't pile up identical entries — leave the
+      // existing one in place instead of stacking duplicates.
+      if (prev[0] && !prev[0].undo && prev[0].tone === entry.tone && prev[0].text === entry.text) {
+        return prev;
+      }
+      return [{ ...entry, id: crypto.randomUUID() }, ...prev].slice(0, 20);
+    });
   }, []);
 
   const markUndone = useCallback((id: string) => {

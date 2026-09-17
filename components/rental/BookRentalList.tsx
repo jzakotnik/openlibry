@@ -331,7 +331,9 @@ export default function BookRentalList({
     onRent: useCallback(
       (book: BookType) => {
         if (selectedUserInactive) {
-          toast.warning(t("rental.toastUserInactive"));
+          toast.warning(t("rental.toastUserInactive"), {
+            id: "scan-user-inactive",
+          });
           return;
         }
         handleRentBookButton(book.id!, userExpanded as number);
@@ -352,10 +354,13 @@ export default function BookRentalList({
           title: book.title ?? "",
           status: getStatusLabel(book.rentalStatus),
         }),
+        { id: "scan-book-unavailable" },
       );
     }, []),
     onNeedsUser: useCallback(() => {
-      toast.info(t("rental.toastSelectUserFirst"));
+      // Stable id so a barcode scanner re-firing Enter (or a stray repeat
+      // keypress) updates this one toast instead of stacking duplicates.
+      toast.info(t("rental.toastSelectUserFirst"), { id: "scan-needs-user" });
     }, []),
     onUnknownIsbn: useCallback(
       (isbn: string) => {
@@ -365,7 +370,9 @@ export default function BookRentalList({
       [handleClear, router],
     ),
     onUnknownId: useCallback((id: number) => {
-      toast.warning(t("rental.toastBookNotFound", { bookId: id }));
+      toast.warning(t("rental.toastBookNotFound", { bookId: id }), {
+        id: "scan-unknown-id",
+      });
     }, []),
   });
 
