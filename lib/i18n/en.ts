@@ -201,6 +201,10 @@ export const en: Dictionary = {
     save: "Save",
     print: "Print",
     delete: "Delete",
+    deleteWarningOne:
+      "This user still has 1 book on loan. Deleting the user will mark that book as lost.",
+    deleteWarningMany:
+      "This user still has {count} books on loan. Deleting the user will mark those books as lost.",
   },
   bookEditForm: {
     save: "Save",
