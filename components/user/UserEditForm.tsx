@@ -503,6 +503,22 @@ export default function UserEditForm({
         <div className="px-6 pb-6 pt-5">
           <Separator className="mb-5" />
 
+          {editable && books.length > 0 && (
+            <div
+              className="mb-4 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+              data-cy="delete-user-book-warning"
+            >
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              <span>
+                {books.length === 1
+                  ? t("userEditForm.deleteWarningOne")
+                  : t("userEditForm.deleteWarningMany", {
+                      count: books.length,
+                    })}
+              </span>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant={editable ? "outline" : "default"}

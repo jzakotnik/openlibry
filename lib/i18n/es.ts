@@ -206,6 +206,10 @@ export const es: Dictionary = {
     save: "Guardar",
     print: "Imprimir",
     delete: "Eliminar",
+    deleteWarningOne:
+      "Este usuario todavía tiene 1 libro prestado. Al eliminar el usuario, ese libro se marcará como perdido.",
+    deleteWarningMany:
+      "Este usuario todavía tiene {count} libros prestados. Al eliminar el usuario, esos libros se marcarán como perdidos.",
   },
   bookEditForm: {
     save: "Guardar",

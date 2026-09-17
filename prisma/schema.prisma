@@ -77,6 +77,6 @@ model Book {
   externalLinks           String?
   shelf                   String?
 
-  user   User? @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user   User? @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: SetNull)
   userId Int?
 }

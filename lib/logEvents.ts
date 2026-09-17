@@ -12,6 +12,7 @@ export const LogEvents = {
   BOOK_EXTENDED: "book.extended",
   BOOK_RENTAL_CHECKED: "book.rental.checked",
   BOOK_RENTAL_REJECTED: "book.rental.rejected",
+  BOOK_MARKED_LOST: "book.marked_lost",
 
   // User operations
   USER_CREATED: "user.created",

@@ -79,9 +79,9 @@ describe("Inactive users cannot rent books", () => {
       .first()
       .should("have.attr", "data-user-active", "false");
 
-    cy.get("[data-cy^=user_inactive_badge_]", { timeout: SWR_TIMEOUT }).should(
-      "be.visible",
-    );
+    cy.get("[data-cy^=user_inactive_badge_]", {
+      timeout: INACTIVE_USER_SWR_TIMEOUT,
+    }).should("be.visible");
   });
 
   it("disables the rent button once an inactive user is selected", () => {
@@ -97,7 +97,9 @@ describe("Inactive users cannot rent books", () => {
 
       // Any rent button rendered for the selected (inactive) user must be
       // disabled, since userExpanded is now the inactive user's id.
-      cy.get("[data-cy^=book_rent_button_]", { timeout: SWR_TIMEOUT })
+      cy.get("[data-cy^=book_rent_button_]", {
+        timeout: INACTIVE_USER_SWR_TIMEOUT,
+      })
         .first()
         .should("be.disabled")
         .invoke("attr", "data-cy")

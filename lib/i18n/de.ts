@@ -208,6 +208,10 @@ export const de = {
     save: "Speichern",
     print: "Drucken",
     delete: "Löschen",
+    deleteWarningOne:
+      "Dieser Nutzer hat noch 1 Buch ausgeliehen. Beim Löschen des Nutzers wird dieses Buch als verloren markiert.",
+    deleteWarningMany:
+      "Dieser Nutzer hat noch {count} Bücher ausgeliehen. Beim Löschen des Nutzers werden diese Bücher als verloren markiert.",
   },
   bookEditForm: {
     save: "Speichern",
