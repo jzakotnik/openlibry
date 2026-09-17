@@ -1318,6 +1318,11 @@ export const de = {
     inputAria: "scan input",
     resetButton: "Zurücksetzen",
     resetAria: "Für die nächste Person zurücksetzen",
+    cameraLabel: "Kamera-Scan",
+    cameraStart: "Kamera an",
+    cameraStop: "Kamera aus",
+    cameraError:
+      "Kamera konnte nicht gestartet werden. Bitte Berechtigung prüfen.",
     logEmpty: "Noch keine Scans in dieser Sitzung",
     logRented: "„{title}“ an {name} ausgeliehen",
     logReturned: "„{title}“ zurückgegeben",

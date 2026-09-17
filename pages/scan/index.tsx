@@ -15,9 +15,15 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+
+// Touches camera/video-element APIs that don't exist during SSR.
+const CameraScanner = dynamic(() => import("@/components/scan/CameraScanner"), {
+  ssr: false,
+});
 
 const TONE_ICON: Record<string, React.ReactNode> = {
   success: <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />,
@@ -78,6 +84,11 @@ export default function ScanPage() {
     [scanValue, handleScan],
   );
 
+  const handleCameraDetected = useCallback(
+    (text: string) => handleScan(text.trim()),
+    [handleScan],
+  );
+
   const selectedUser =
     selectedUserId !== false ? users.find((u) => u.id === selectedUserId) : null;
 
@@ -136,6 +147,8 @@ export default function ScanPage() {
             {t("scan.resetButton")}
           </button>
         </div>
+
+        <CameraScanner onDetected={handleCameraDetected} />
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">
