@@ -141,6 +141,7 @@ export default function UserSearchBar({
             tooltip={t("userSearchBar.searchSettings")}
             onClick={onToggleSettings}
             active={showSettings}
+            data-cy="user_search_settings_toggle"
           />
 
           <Separator orientation="vertical" className="mx-0.5 h-6" />
@@ -160,6 +161,7 @@ export default function UserSearchBar({
             icon={<UserPlus size={18} />}
             tooltip={t("userSearchBar.newUser")}
             onClick={onCreateUser}
+            data-cy="user_search_new_user_button"
           />
         </div>
 
@@ -234,7 +236,7 @@ export default function UserSearchBar({
         </Collapsible>
 
         {/* ── Settings panel ── */}
-        <Collapsible open={showSettings}>
+        <Collapsible open={showSettings} data-cy="user_search_settings_panel">
           <CollapsibleContent>
             <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
               {settingsContent}

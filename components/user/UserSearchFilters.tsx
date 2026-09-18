@@ -89,6 +89,7 @@ export default function UserSearchFilters({
                   size="sm"
                   onClick={handleReset}
                   className="h-6 gap-1.5 px-2 text-xs text-muted-foreground"
+                  data-cy="user-filter-reset-button"
                 >
                   <RotateCcw size={12} />
                   {t("userSearchFilters.reset")}
@@ -116,6 +117,7 @@ export default function UserSearchFilters({
                 "data-[state=off]:bg-transparent data-[state=off]:border-primary/20 data-[state=off]:text-muted-foreground",
                 "data-[state=on]:bg-warning/10 data-[state=on]:border-warning data-[state=on]:text-warning",
               )}
+              data-cy="user-filter-overdue-toggle"
             >
               <AlertTriangle size={16} />
               {t("userSearchFilters.onlyOverdue")}
@@ -138,6 +140,7 @@ export default function UserSearchFilters({
                     ? "border-primary bg-primary/5"
                     : "border-primary/20",
                 )}
+                data-cy="user-filter-grade-select"
               >
                 <div className="flex items-center gap-2">
                   <GraduationCap
@@ -160,7 +163,11 @@ export default function UserSearchFilters({
                   </span>
                 </SelectItem>
                 {sortedGrades.map((grade) => (
-                  <SelectItem key={grade} value={grade}>
+                  <SelectItem
+                    key={grade}
+                    value={grade}
+                    data-cy={`user-filter-grade-option-${grade}`}
+                  >
                     {t("userSearchFilters.gradeChipPrefix")} {grade}
                   </SelectItem>
                 ))}
