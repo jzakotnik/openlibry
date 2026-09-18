@@ -1237,5 +1237,7 @@ export const en: Dictionary = {
     toastUnknownIsbnRedirect: "Unknown ISBN — create new book",
     undo: "Undo",
     undone: "Undone",
+    lastScannedLabel: "Last scanned",
+    lastScannedEmpty: "No cover yet",
   },
 };

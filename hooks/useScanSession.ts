@@ -33,6 +33,10 @@ export interface ScanLogEntry {
 export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
   const [selectedUserId, setSelectedUserId] = useState<number | false>(false);
   const [log, setLog] = useState<ScanLogEntry[]>([]);
+  // Last book a scan resolved to (rent, return, or "unavailable"), shown as
+  // a cover preview so staff can visually confirm the scanner read the
+  // right barcode — separate from the log, which is text-only.
+  const [lastScannedBook, setLastScannedBook] = useState<BookType | null>(null);
   // Rent/return calls hit the network, so "the field is clear again" is not
   // by itself proof anything happened — a slow or dropped request must
   // still show as pending until the server actually confirms it. Anything
@@ -133,6 +137,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     onRent: useCallback(
       async (book: BookType) => {
         if (!userId || !selectedUser) return;
+        setLastScannedBook(book);
         const borrowerName = `${selectedUser.firstName} ${selectedUser.lastName}`;
         const entryId = crypto.randomUUID();
         // Show "in progress" the instant the scan is accepted — a slow
@@ -185,6 +190,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     ),
     onReturn: useCallback(
       async (book: BookType) => {
+        setLastScannedBook(book);
         const originalUserId = book.userId!;
         const entryId = crypto.randomUUID();
         setLog((prev) =>
@@ -228,6 +234,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     ),
     onUnavailable: useCallback(
       (book: BookType) => {
+        setLastScannedBook(book);
         playSound("warning");
         pushLog({
           tone: "warning",
@@ -263,7 +270,10 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     ),
   });
 
-  const clearLog = useCallback(() => setLog([]), []);
+  const clearLog = useCallback(() => {
+    setLog([]);
+    setLastScannedBook(null);
+  }, []);
 
   // Picking a user resolves the "please select a user first" warning, if
   // one is showing — it shouldn't linger in the log once it no longer
@@ -284,5 +294,6 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     clearLog,
     handleScan,
     isBusy: pendingCount > 0,
+    lastScannedBook,
   };
 }
