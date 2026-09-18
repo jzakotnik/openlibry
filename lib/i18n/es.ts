@@ -33,7 +33,7 @@ export const es: Dictionary = {
     },
     scan: {
       title: "Préstamo Express",
-      subtitle: "Prestar y devolver escaneando",
+      subtitle: "Prestar escaneando",
     },
     user: {
       title: "Usuarios",

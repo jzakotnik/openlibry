@@ -32,7 +32,7 @@ export const de = {
     },
     scan: {
       title: "Express Leihe",
-      subtitle: "Ausleihe und Rückgabe per Scan",
+      subtitle: "Ausleihe per Scan",
     },
     user: {
       title: "Nutzer",

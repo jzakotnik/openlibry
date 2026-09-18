@@ -31,7 +31,7 @@ export const en: Dictionary = {
     },
     scan: {
       title: "Express Lending",
-      subtitle: "Lend and return by scanning",
+      subtitle: "Lend by scanning",
     },
     user: {
       title: "Users",
@@ -1215,7 +1215,8 @@ export const en: Dictionary = {
     title: "Express Lending",
     userLabel: "Lending to",
     userPlaceholder: "Select user",
-    userHintReturnWorksWithoutUser: "No user needs to be selected to return a book.",
+    userHintReturnWorksWithoutUser:
+      "No user needs to be selected to return a book.",
     inputPlaceholder: "Scan ISBN or lending ID",
     inputAria: "scan input",
     resetButton: "Reset",
