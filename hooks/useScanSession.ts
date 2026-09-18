@@ -9,6 +9,18 @@ import { useSmartScan } from "./useSmartScan";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+/**
+ * crypto.randomUUID() only exists in secure contexts (HTTPS or localhost),
+ * so it throws when the app is opened over plain HTTP via a LAN IP.
+ * These IDs are only ever used as local React keys, so any unique string works.
+ */
+function makeId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export type ScanLogTone = "pending" | "success" | "info" | "warning" | "error";
 
 export interface ScanLogEntry {
@@ -68,7 +80,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
       ) {
         return prev;
       }
-      return [{ ...entry, id: crypto.randomUUID() }, ...prev].slice(0, 30);
+      return [{ ...entry, id: makeId() }, ...prev].slice(0, 30);
     });
   }, []);
 
@@ -139,7 +151,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
         if (!userId || !selectedUser) return;
         setLastScannedBook(book);
         const borrowerName = `${selectedUser.firstName} ${selectedUser.lastName}`;
-        const entryId = crypto.randomUUID();
+        const entryId = makeId();
         // Show "in progress" the instant the scan is accepted — a slow
         // network shouldn't look identical to a completed rental just
         // because the input is clear again.
@@ -192,7 +204,7 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
       async (book: BookType) => {
         setLastScannedBook(book);
         const originalUserId = book.userId!;
-        const entryId = crypto.randomUUID();
+        const entryId = makeId();
         setLog((prev) =>
           [
             {
