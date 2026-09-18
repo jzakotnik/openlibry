@@ -9,7 +9,7 @@ import { useSmartScan } from "./useSmartScan";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export type ScanLogTone = "success" | "info" | "warning" | "error";
+export type ScanLogTone = "pending" | "success" | "info" | "warning" | "error";
 
 export interface ScanLogEntry {
   id: string;
@@ -33,6 +33,11 @@ export interface ScanLogEntry {
 export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
   const [selectedUserId, setSelectedUserId] = useState<number | false>(false);
   const [log, setLog] = useState<ScanLogEntry[]>([]);
+  // Rent/return calls hit the network, so "the field is clear again" is not
+  // by itself proof anything happened — a slow or dropped request must
+  // still show as pending until the server actually confirms it. Anything
+  // >0 means at least one such request is still in flight.
+  const [pendingCount, setPendingCount] = useState(0);
 
   const { data, mutate } = useSWR("/api/rental", fetcher, {
     refreshInterval: 1000,
@@ -71,26 +76,53 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     );
   }, []);
 
+  const updateLog = useCallback(
+    (id: string, patch: Partial<Omit<ScanLogEntry, "id">>) => {
+      setLog((prev) =>
+        prev.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)),
+      );
+    },
+    [],
+  );
+
+  // Both wrap the `fetch` call itself in try/catch — a dropped connection
+  // or offline browser throws rather than resolving with a non-ok
+  // response, and that must still resolve to "failed" instead of leaving
+  // the caller's pending state hanging forever. A revalidation (`mutate`)
+  // failure afterwards is a separate concern and shouldn't be reported as
+  // the rent/return itself having failed.
   const rentBookApi = useCallback(
     async (bookId: number, uid: number) => {
-      const res = await fetch(`/api/book/${bookId}/user/${uid}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      await mutate();
-      return res.ok;
+      let ok: boolean;
+      try {
+        const res = await fetch(`/api/book/${bookId}/user/${uid}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        ok = res.ok;
+      } catch {
+        return false;
+      }
+      await mutate().catch(() => {});
+      return ok;
     },
     [mutate],
   );
 
   const returnBookApi = useCallback(
     async (bookId: number, uid: number) => {
-      const res = await fetch(`/api/book/${bookId}/user/${uid}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
-      await mutate();
-      return res.ok;
+      let ok: boolean;
+      try {
+        const res = await fetch(`/api/book/${bookId}/user/${uid}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        });
+        ok = res.ok;
+      } catch {
+        return false;
+      }
+      await mutate().catch(() => {});
+      return ok;
     },
     [mutate],
   );
@@ -101,61 +133,98 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     onRent: useCallback(
       async (book: BookType) => {
         if (!userId || !selectedUser) return;
-        const ok = await rentBookApi(book.id!, userId);
+        const borrowerName = `${selectedUser.firstName} ${selectedUser.lastName}`;
+        const entryId = crypto.randomUUID();
+        // Show "in progress" the instant the scan is accepted — a slow
+        // network shouldn't look identical to a completed rental just
+        // because the input is clear again.
+        setLog((prev) =>
+          [
+            {
+              id: entryId,
+              tone: "pending" as const,
+              text: t("scan.logPendingRent", {
+                title: book.title ?? "",
+                name: borrowerName,
+              }),
+            },
+            ...prev,
+          ].slice(0, 30),
+        );
+        setPendingCount((c) => c + 1);
+
+        let ok: boolean;
+        try {
+          ok = await rentBookApi(book.id!, userId);
+        } finally {
+          setPendingCount((c) => c - 1);
+        }
+
         if (ok) {
           playSound("success");
-          const entryId = crypto.randomUUID();
-          setLog((prev) =>
-            [
-              {
-                id: entryId,
-                tone: "success" as const,
-                text: t("scan.logRented", {
-                  title: book.title ?? "",
-                  name: `${selectedUser.firstName} ${selectedUser.lastName}`,
-                }),
-                undo: async () => {
-                  await returnBookApi(book.id!, userId);
-                  markUndone(entryId);
-                },
-              },
-              ...prev,
-            ].slice(0, 30),
-          );
+          updateLog(entryId, {
+            tone: "success",
+            text: t("scan.logRented", {
+              title: book.title ?? "",
+              name: borrowerName,
+            }),
+            undo: async () => {
+              await returnBookApi(book.id!, userId);
+              markUndone(entryId);
+            },
+          });
         } else {
           playSound("error");
-          pushLog({ tone: "error", text: t("scan.logActionFailed") });
+          updateLog(entryId, {
+            tone: "error",
+            text: t("scan.logActionFailed"),
+          });
         }
       },
-      [userId, selectedUser, rentBookApi, returnBookApi, markUndone, pushLog],
+      [userId, selectedUser, rentBookApi, returnBookApi, markUndone, updateLog],
     ),
     onReturn: useCallback(
       async (book: BookType) => {
         const originalUserId = book.userId!;
-        const ok = await returnBookApi(book.id!, originalUserId);
+        const entryId = crypto.randomUUID();
+        setLog((prev) =>
+          [
+            {
+              id: entryId,
+              tone: "pending" as const,
+              text: t("scan.logPendingReturn", { title: book.title ?? "" }),
+            },
+            ...prev,
+          ].slice(0, 30),
+        );
+        setPendingCount((c) => c + 1);
+
+        let ok: boolean;
+        try {
+          ok = await returnBookApi(book.id!, originalUserId);
+        } finally {
+          setPendingCount((c) => c - 1);
+        }
+
         if (ok) {
           playSound("success");
-          const entryId = crypto.randomUUID();
-          setLog((prev) =>
-            [
-              {
-                id: entryId,
-                tone: "success" as const,
-                text: t("scan.logReturned", { title: book.title ?? "" }),
-                undo: async () => {
-                  await rentBookApi(book.id!, originalUserId);
-                  markUndone(entryId);
-                },
-              },
-              ...prev,
-            ].slice(0, 30),
-          );
+          updateLog(entryId, {
+            tone: "success",
+            text: t("scan.logReturned", { title: book.title ?? "" }),
+            undo: async () => {
+              await rentBookApi(book.id!, originalUserId);
+              markUndone(entryId);
+            },
+          });
         } else {
           playSound("error");
-          pushLog({ tone: "error", text: t("scan.logActionFailed") });
+          updateLog(entryId, {
+            tone: "error",
+            text: t("scan.logActionFailed"),
+          });
         }
       },
-      [returnBookApi, rentBookApi, markUndone, pushLog],
+      [returnBookApi, rentBookApi, markUndone, updateLog],
     ),
     onUnavailable: useCallback(
       (book: BookType) => {
@@ -214,5 +283,6 @@ export function useScanSession(onUnknownIsbn: (isbn: string) => void) {
     log,
     clearLog,
     handleScan,
+    isBusy: pendingCount > 0,
   };
 }

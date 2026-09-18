@@ -1324,6 +1324,8 @@ export const de = {
     cameraError:
       "Kamera konnte nicht gestartet werden. Bitte Berechtigung prüfen.",
     logEmpty: "Noch keine Scans in dieser Sitzung",
+    logPendingRent: "Ausleihe von „{title}“ an {name} wird verarbeitet …",
+    logPendingReturn: "Rückgabe von „{title}“ wird verarbeitet …",
     logRented: "„{title}“ an {name} ausgeliehen",
     logReturned: "„{title}“ zurückgegeben",
     logUnavailable: "„{title}“ hat Status {status}, keine Aktion möglich",
