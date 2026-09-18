@@ -40,7 +40,10 @@ export default function NewUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+      <DialogContent
+        className="gap-0 overflow-hidden p-0 sm:max-w-md"
+        data-cy="new-user-dialog"
+      >
         {/* ── Gradient header ── */}
         <div className="relative bg-gradient-to-br from-primary to-primary/80 px-6 pb-8 pt-6">
           {/* Decorative circles */}
@@ -94,6 +97,7 @@ export default function NewUserDialog({
               id="id-auto"
               checked={idAuto}
               onCheckedChange={(v) => setIdAuto(v === true)}
+              data-cy="new-user-id-auto-checkbox"
             />
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
@@ -151,6 +155,7 @@ export default function NewUserDialog({
                   !idAuto && !isIdValid && "border-destructive",
                 )}
                 aria-invalid={!idAuto && !isIdValid}
+                data-cy="new-user-id-input"
               />
             </div>
             {!idAuto && !isIdValid && (
@@ -169,6 +174,7 @@ export default function NewUserDialog({
             variant="ghost"
             onClick={() => setOpen(false)}
             className="text-sm text-muted-foreground"
+            data-cy="new-user-cancel-button"
           >
             {t("newUserDialog.cancel")}
           </Button>
@@ -176,6 +182,7 @@ export default function NewUserDialog({
             onClick={() => onCreate(idValue, idAuto)}
             disabled={!isIdValid}
             className="gap-2 rounded-lg px-5 text-sm font-semibold shadow-sm"
+            data-cy="new-user-create-button"
           >
             <UserPlus size={16} />
             {t("newUserDialog.create")}
