@@ -71,6 +71,28 @@ Im Nutzerbereich siehst du bei jedem Nutzer:
 - Wie viele Bücher ausgeliehen sind
 - Welche überfällig sind
 
+## Express Leihe (Alternative: /scan)
+
+Für Stoßzeiten gibt es eine zweite, noch schnellere Ausleih-Seite unter **/scan** ("Express Leihe"). Sie ist bewusst eine eigenständige Seite statt eines Overlays auf der normalen Leihe-Seite – beide Wege erledigen dieselbe Aufgabe, das Team kann frei wählen, was besser passt.
+
+Der Unterschied: Es gibt nur **ein** Scan-Feld. Was beim Scannen passiert, entscheidet OpenLibry automatisch:
+
+- **Verfügbares Buch gescannt** → wird sofort an den ausgewählten Nutzer ausgeliehen
+- **Ausgeliehenes Buch gescannt** → wird sofort zurückgegeben (dafür muss **kein** Nutzer ausgewählt sein)
+- **Unbekannte ISBN gescannt** → OpenLibry leitet direkt zum Formular "Neues Buch anlegen" weiter, mit der ISBN vorausgefüllt
+- **Buch mit anderem Status** (z. B. beschädigt, bestellt) → Warnhinweis im Log, keine automatische Aktion
+
+1. Nutzer über das Suchfeld auswählen (Name, Nummer oder Klasse – wie auf der normalen Leihe-Seite)
+2. Barcode ins Scan-Feld scannen oder eintippen und ++enter++
+3. Das Ergebnis erscheint sofort im Aktivitäts-Log, inklusive Cover des zuletzt gescannten Buchs zur visuellen Kontrolle
+4. Jede Aktion lässt sich direkt im Log über **Rückgängig** wieder aufheben
+
+!!! tip "Kamera statt Scanner"
+    Ohne Barcode-Scanner funktioniert Express Leihe auch mit der Gerätekamera (Smartphone, Tablet oder Laptop-Webcam). Der Browser fragt beim ersten Einsatz nach Kamera-Zugriff – das Feld muss dafür nicht angeklickt werden.
+
+!!! info "Wann normale Leihe, wann Express Leihe?"
+    Die normale Leihe-Seite zeigt zusätzlich alle ausgeliehenen Bücher eines Nutzers, erlaubt Verlängerungen und ist besser geeignet, wenn mehrere Bücher pro Kind bearbeitet werden. Express Leihe ist auf reines Scannen im Hochbetrieb optimiert (z. B. Pausenausleihe mit langer Schlange).
+
 ## Tastatursteuerung
 
 | Aktion | Taste |

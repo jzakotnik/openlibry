@@ -12,7 +12,7 @@ OpenLibry hat vier Hauptbereiche, die du über die Navigation erreichst:
 
     ---
 
-    Der wichtigste Bereich: Hier leihst du Bücher aus und nimmst sie zurück.
+    Der wichtigste Bereich: Hier leihst du Bücher aus und nimmst sie zurück. Für Stoßzeiten gibt es zusätzlich die schlanke [Express Leihe](lending.md#express-leihe-alternative-scan) unter `/scan`.
 
 -   :material-book-open-variant:{ .lg .middle } **[Bücher](book-management.md)**
 
