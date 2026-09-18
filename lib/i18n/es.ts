@@ -1253,6 +1253,8 @@ export const es: Dictionary = {
     cameraStop: "Cámara apagada",
     cameraError: "No se pudo iniciar la cámara. Comprueba los permisos.",
     logEmpty: "Todavía no hay escaneos en esta sesión",
+    logPendingRent: 'Prestando "{title}" a {name} …',
+    logPendingReturn: 'Devolviendo "{title}" …',
     logRented: '"{title}" prestado a {name}',
     logReturned: '"{title}" devuelto',
     logUnavailable: '"{title}" tiene el estado {status}, sin acción posible',

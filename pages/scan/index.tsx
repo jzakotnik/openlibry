@@ -7,6 +7,7 @@ import { filterUsers } from "@/lib/utils/searchUtils";
 import {
   CheckCircle2,
   Info,
+  Loader2,
   RotateCcw,
   ScanBarcode,
   TriangleAlert,
@@ -26,6 +27,9 @@ const CameraScanner = dynamic(() => import("@/components/scan/CameraScanner"), {
 });
 
 const TONE_ICON: Record<string, React.ReactNode> = {
+  pending: (
+    <Loader2 className="h-5 w-5 text-muted-foreground shrink-0 animate-spin" />
+  ),
   success: <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />,
   info: <Info className="h-5 w-5 text-muted-foreground shrink-0" />,
   warning: <TriangleAlert className="h-5 w-5 text-amber-500 shrink-0" />,
@@ -67,6 +71,7 @@ export default function ScanPage() {
     log,
     clearLog,
     handleScan,
+    isBusy,
   } = useScanSession(handleUnknownIsbn);
 
   useEffect(() => {
@@ -220,7 +225,14 @@ export default function ScanPage() {
         </div>
 
         <div className="relative flex items-center">
-          <ScanBarcode className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+          {isBusy ? (
+            <Loader2
+              className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none animate-spin"
+              data-cy="scan_input_busy"
+            />
+          ) : (
+            <ScanBarcode className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+          )}
           <Input
             ref={inputRef}
             autoFocus

@@ -1225,6 +1225,8 @@ export const en: Dictionary = {
     cameraStop: "Camera off",
     cameraError: "Couldn't start the camera. Please check permissions.",
     logEmpty: "No scans yet this session",
+    logPendingRent: 'Lending "{title}" to {name} …',
+    logPendingReturn: 'Returning "{title}" …',
     logRented: '"{title}" lent to {name}',
     logReturned: '"{title}" returned',
     logUnavailable: '"{title}" has status {status}, no action possible',
