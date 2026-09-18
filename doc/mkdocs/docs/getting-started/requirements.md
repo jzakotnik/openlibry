@@ -105,6 +105,8 @@ Die meisten Scanner funktionieren out-of-the-box. Ideal ist:
 
 Kein Problem! Du kannst auch alles über die Tastatur eingeben. Die Suche funktioniert auch mit Teilen des Titels oder Namens.
 
+Alternativ scannt die [Express Leihe](../user-guide/lending.md#express-leihe-alternative-scan) Barcodes über die Gerätekamera (Smartphone, Tablet, Webcam) – ganz ohne separaten Scanner.
+
 ## Kenntnisse
 
 ### Für die Installation

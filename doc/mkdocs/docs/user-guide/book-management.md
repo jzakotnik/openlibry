@@ -64,6 +64,7 @@ Wenn du eine ISBN hast:
 | **Schlagworte** | Für Filter, mit Semikolon getrennt |
 | **Zusammenfassung** | Kurzbeschreibung |
 | **Min/Max Alter** | Altersempfehlung |
+| **Standort/Regal** | Wo das Buch physisch steht, z. B. `Regal 3B` |
 
 ### Cover-Bild hinzufügen
 
