@@ -5,8 +5,12 @@
 [![GitHub](https://img.shields.io/github/stars/jzakotnik/openlibry?style=social)](https://github.com/jzakotnik/openlibry)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/docker/pulls/jzakotnik/openlibry)](https://hub.docker.com/r/jzakotnik/openlibry)
+[![Discord](https://img.shields.io/badge/Discord-Community%20beitreten-5865F2?logo=discord&logoColor=white)](https://discord.gg/xTHhsTMNf)
 
 OpenLibry ist eine moderne, benutzerfreundliche Open-Source-Lösung für kleine Bibliotheken, insbesondere in Schulen. Die Software wurde speziell für den hektischen Alltag entwickelt, in dem Kinder Bücher ausleihen, zurückgeben und verwalten.
+
+> 💬 **Community & Support:** Tritt unserem [Discord-Server](https://discord.gg/xTHhsTMNf) bei, um Fragen zu stellen, dich mit anderen Nutzenden auszutauschen und Neuigkeiten zu OpenLibry zu erfahren.
+
 
 [![Intro Video](https://img.youtube.com/vi/2UIFdA6Lqaw/maxresdefault.jpg)](https://youtu.be/2UIFdA6Lqaw?si=5YP4eNZX5wCBMmBJ)
 
@@ -83,6 +87,7 @@ OpenLibry entstand aus dem Bedarf einer Grundschule und wird ehrenamtlich weiter
 
 - 🐛 [Issues melden](https://github.com/jzakotnik/openlibry/issues) – Bugs oder Feature-Wünsche
 - 💻 [Pull Requests](https://github.com/jzakotnik/openlibry/pulls) – Code beitragen
+- 💬 [Discord](https://discord.gg/xTHhsTMNf) – Austausch mit der Community, Hilfe & Neuigkeiten
 - 📧 [info@openlibry.de](mailto:info@openlibry.de) – Fragen & Hosting-Unterstützung
 - ☕ [Ko-Fi](https://ko-fi.com/jzakotnik) – Projekt finanziell unterstützen
 
