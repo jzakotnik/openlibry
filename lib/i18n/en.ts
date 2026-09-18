@@ -29,6 +29,10 @@ export const en: Dictionary = {
       title: "Lending",
       subtitle: "Loans and returns",
     },
+    scan: {
+      title: "Express Lending",
+      subtitle: "Lend and return by scanning",
+    },
     user: {
       title: "Users",
       subtitle: "User management",
@@ -82,6 +86,9 @@ export const en: Dictionary = {
     toastAlreadyRented: "Book {bookId} is already lent out",
     toastBookNotFound: "Book {bookId} not found",
     toastUserInactive: "User is inactive and cannot borrow books",
+    toastSelectUserFirst: "Please select a user first",
+    toastBookUnavailableStatus:
+      '"{title}" has status {status} and cannot be lent out',
     showingFirst: "More results available",
 
     inactiveUserBadge: "Inactive",
@@ -1200,5 +1207,34 @@ export const en: Dictionary = {
       networkError: "Network error",
       unknown: "Unknown error",
     },
+  },
+
+  // ── Central scan drawer (issue #480) ──────────────────────────────────
+  scan: {
+    openAria: "Open scan mode",
+    title: "Express Lending",
+    userLabel: "Lending to",
+    userPlaceholder: "Select user",
+    userHintReturnWorksWithoutUser: "No user needs to be selected to return a book.",
+    inputPlaceholder: "Scan ISBN or lending ID",
+    inputAria: "scan input",
+    resetButton: "Reset",
+    resetAria: "Reset for the next person",
+    cameraLabel: "Camera scan",
+    cameraStart: "Camera on",
+    cameraStop: "Camera off",
+    cameraError: "Couldn't start the camera. Please check permissions.",
+    logEmpty: "No scans yet this session",
+    logPendingRent: 'Lending "{title}" to {name} …',
+    logPendingReturn: 'Returning "{title}" …',
+    logRented: '"{title}" lent to {name}',
+    logReturned: '"{title}" returned',
+    logUnavailable: '"{title}" has status {status}, no action possible',
+    logNeedsUser: "Please select a user first",
+    logUnknownId: "Lending ID {id} not found",
+    logActionFailed: "Action failed, please try again",
+    toastUnknownIsbnRedirect: "Unknown ISBN — create new book",
+    undo: "Undo",
+    undone: "Undone",
   },
 };

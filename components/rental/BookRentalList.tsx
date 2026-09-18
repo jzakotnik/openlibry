@@ -18,11 +18,13 @@ import {
 
 import dayjs from "dayjs";
 
+import { useRouter } from "next/router";
 import React, { useCallback } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { useSmartScan } from "@/hooks/useSmartScan";
 import { t } from "@/lib/i18n";
 import userNameforBook from "@/lib/utils/lookups";
 import { canExtendBook } from "@/lib/utils/rentalUtils";
@@ -315,12 +317,64 @@ export default function BookRentalList({
   sortBy,
   renderLimit,
 }: BookPropsType) {
+  const router = useRouter();
   const { renderedBooks, bookSearchInput, handleInputChange, handleClear } =
     useBookSearch(books, { sort: sortBy, perPage: renderLimit ?? 100 });
 
   const selectedUser =
     userExpanded !== false ? users.find((u) => u.id === userExpanded) : null;
   const selectedUserInactive = selectedUser ? !selectedUser.active : false;
+
+  const { handleScan } = useSmartScan({
+    books,
+    hasUser: userExpanded !== false,
+    onRent: useCallback(
+      (book: BookType) => {
+        if (selectedUserInactive) {
+          toast.warning(t("rental.toastUserInactive"), {
+            id: "scan-user-inactive",
+          });
+          return;
+        }
+        handleRentBookButton(book.id!, userExpanded as number);
+        handleClear();
+      },
+      [selectedUserInactive, handleRentBookButton, userExpanded, handleClear],
+    ),
+    onReturn: useCallback(
+      (book: BookType) => {
+        handleReturnBookButton(book.id!, book.userId!);
+        handleClear();
+      },
+      [handleReturnBookButton, handleClear],
+    ),
+    onUnavailable: useCallback((book: BookType) => {
+      toast.warning(
+        t("rental.toastBookUnavailableStatus", {
+          title: book.title ?? "",
+          status: getStatusLabel(book.rentalStatus),
+        }),
+        { id: "scan-book-unavailable" },
+      );
+    }, []),
+    onNeedsUser: useCallback(() => {
+      // Stable id so a barcode scanner re-firing Enter (or a stray repeat
+      // keypress) updates this one toast instead of stacking duplicates.
+      toast.info(t("rental.toastSelectUserFirst"), { id: "scan-needs-user" });
+    }, []),
+    onUnknownIsbn: useCallback(
+      (isbn: string) => {
+        handleClear();
+        router.push(`/book/new?isbn=${isbn}`);
+      },
+      [handleClear, router],
+    ),
+    onUnknownId: useCallback((id: number) => {
+      toast.warning(t("rental.toastBookNotFound", { bookId: id }), {
+        id: "scan-unknown-id",
+      });
+    }, []),
+  });
 
   const handleInputChangeEvent = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -346,32 +400,15 @@ export default function BookRentalList({
         }
       }
 
-      if (e.key === "Enter" && userExpanded) {
-        // Bypass debounce for barcode scan + Enter — feels instant.
-        const bookId = parseInt(bookSearchInput.trim(), 10);
-        const book = books.find((b) => b.id === bookId);
-
-        if (selectedUserInactive) {
-          toast.warning(t("rental.toastUserInactive"));
-        } else if (book && book.rentalStatus === "available") {
-          handleRentBookButton(book.id!, userExpanded);
-          handleClear();
-        } else if (book) {
-          toast.warning(t("rental.toastAlreadyRented", { bookId }));
-        } else {
-          toast.warning(t("rental.toastBookNotFound", { bookId }));
-        }
+      if (e.key === "Enter") {
+        // Bypass debounce for barcode scan + Enter — feels instant. The
+        // scanned code decides the action itself (rent/return/create new),
+        // so this works whether or not a user is currently expanded.
+        const raw = bookSearchInput.trim();
+        if (raw) handleScan(raw);
       }
     },
-    [
-      bookSearchInput,
-      handleUserSearchSetFocus,
-      handleClear,
-      userExpanded,
-      books,
-      handleRentBookButton,
-      selectedUserInactive,
-    ],
+    [bookSearchInput, handleUserSearchSetFocus, handleClear, handleScan],
   );
 
   return (

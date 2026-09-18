@@ -4,6 +4,7 @@ import {
   ReaderIcon,
   ShuffleIcon,
 } from "@radix-ui/react-icons";
+import { ScanBarcode } from "lucide-react";
 import { ReactNode } from "react";
 
 import { t } from "@/lib/i18n";
@@ -21,6 +22,12 @@ export const publicNavItems: NavItem[] = [
     subtitle: t("nav.rental.subtitle"),
     slug: "/rental",
     icon: <ShuffleIcon width={24} height={24} />,
+  },
+  {
+    title: t("nav.scan.title"),
+    subtitle: t("nav.scan.subtitle"),
+    slug: "/scan",
+    icon: <ScanBarcode width={24} height={24} />,
   },
   {
     title: t("nav.user.title"),

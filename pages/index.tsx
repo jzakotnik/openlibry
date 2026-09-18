@@ -30,13 +30,14 @@ export default function Home({ showAdminButton }: HomeProps) {
         <Layout showAdminButton={showAdminButton}>
           <div className="max-w-5xl mx-auto px-4 ">
             <div className="flex flex-col items-center gap-15 pt-40 md:pt-48 pb-8 md:pb-16">
-              {/* Navigation Tiles */}
-              <div
-                className="
-                grid gap-4 mt-4 w-fit mx-auto
-                grid-cols-1 sm:grid-cols-2 md:grid-cols-4 
-              "
-              >
+              {/* Navigation Tiles — a self-sizing grid rather than a fixed
+                  column count: it fits as many 160–220px tiles per row as
+                  actually have room, wrapping to fewer (down to one) on
+                  narrower screens, so an item count that doesn't divide
+                  evenly into a hardcoded breakpoint scheme (e.g. 5) never
+                  leaves a lone tile stranded on its own row when there's
+                  still width to spare. */}
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,175px))] justify-center gap-3 mt-4 w-full">
                 {publicNavItems.map((item) => (
                   <NavTile
                     key={item.slug}
