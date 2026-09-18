@@ -1335,6 +1335,8 @@ export const de = {
     toastUnknownIsbnRedirect: "Unbekannte ISBN — neues Buch anlegen",
     undo: "Rückgängig",
     undone: "Rückgängig gemacht",
+    lastScannedLabel: "Zuletzt gescannt",
+    lastScannedEmpty: "Noch kein Cover",
   },
 };
 

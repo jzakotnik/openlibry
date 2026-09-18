@@ -72,6 +72,7 @@ export default function ScanPage() {
     clearLog,
     handleScan,
     isBusy,
+    lastScannedBook,
   } = useScanSession(handleUnknownIsbn);
 
   useEffect(() => {
@@ -95,7 +96,9 @@ export default function ScanPage() {
   );
 
   const selectedUser =
-    selectedUserId !== false ? users.find((u) => u.id === selectedUserId) : null;
+    selectedUserId !== false
+      ? users.find((u) => u.id === selectedUserId)
+      : null;
 
   // Same fuzzy/name/id/grade search used on the rental page's user list —
   // matters here just as much, since a school can have hundreds of users
@@ -138,144 +141,172 @@ export default function ScanPage() {
 
   return (
     <Layout>
-      <div className="max-w-xl mx-auto my-4 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold">{t("scan.title")}</h1>
-          <button
-            type="button"
-            onClick={handleReset}
-            aria-label={t("scan.resetAria")}
-            data-cy="scan_reset_button"
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            {t("scan.resetButton")}
-          </button>
-        </div>
-
-        <CameraScanner onDetected={handleCameraDetected} />
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">
-            {t("scan.userLabel")}
-          </label>
-
-          {selectedUser ? (
-            <Badge
-              variant="secondary"
-              onClick={clearSelectedUser}
-              data-cy="scan_user_selected"
-              className="w-fit cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+      <div className="max-w-4xl mx-auto my-4 flex flex-col md:flex-row gap-6 md:items-start">
+        <div className="w-full md:max-w-xl flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold">{t("scan.title")}</h1>
+            <button
+              type="button"
+              onClick={handleReset}
+              aria-label={t("scan.resetAria")}
+              data-cy="scan_reset_button"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
             >
-              {selectedUser.firstName} {selectedUser.lastName}
-              <X className="ml-1 h-3 w-3" />
-            </Badge>
-          ) : (
-            <>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  ref={userSearchRef}
-                  value={userSearchInput}
-                  onChange={(e) => setUserSearchInput(e.target.value)}
-                  onKeyUp={handleUserSearchKeyUp}
-                  placeholder={t("scan.userPlaceholder")}
-                  aria-label={t("rental.searchUsersAria")}
-                  data-cy="scan_user_search_input"
-                  className="pl-9"
-                />
-              </div>
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t("scan.resetButton")}
+            </button>
+          </div>
 
-              {userSearchInput && (
-                <div
-                  className="rounded-md border border-border divide-y divide-border overflow-hidden"
-                  data-cy="scan_user_results"
-                >
-                  {visibleUsers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-2.5">
-                      {t("rental.noUsersFound")}
-                    </p>
-                  ) : (
-                    visibleUsers.map((u) => (
-                      <button
-                        type="button"
-                        key={u.id}
-                        onClick={() => selectUser(u.id!)}
-                        data-cy={`scan_user_result_${u.id}`}
-                        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-muted/50"
-                      >
-                        <span className="truncate">
-                          {u.firstName} {u.lastName}
-                        </span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {t("rental.userMetaPrefix")} {u.id},{" "}
-                          {t("rental.userMetaGrade")} {u.schoolGrade}
-                        </span>
-                      </button>
-                    ))
-                  )}
+          <CameraScanner onDetected={handleCameraDetected} />
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">
+              {t("scan.userLabel")}
+            </label>
+
+            {selectedUser ? (
+              <Badge
+                variant="secondary"
+                onClick={clearSelectedUser}
+                data-cy="scan_user_selected"
+                className="w-fit cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+              >
+                {selectedUser.firstName} {selectedUser.lastName}
+                <X className="ml-1 h-3 w-3" />
+              </Badge>
+            ) : (
+              <>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    ref={userSearchRef}
+                    value={userSearchInput}
+                    onChange={(e) => setUserSearchInput(e.target.value)}
+                    onKeyUp={handleUserSearchKeyUp}
+                    placeholder={t("scan.userPlaceholder")}
+                    aria-label={t("rental.searchUsersAria")}
+                    data-cy="scan_user_search_input"
+                    className="pl-9"
+                  />
                 </div>
-              )}
-            </>
-          )}
 
-          <p className="text-xs text-muted-foreground">
-            {t("scan.userHintReturnWorksWithoutUser")}
-          </p>
-        </div>
+                {userSearchInput && (
+                  <div
+                    className="rounded-md border border-border divide-y divide-border overflow-hidden"
+                    data-cy="scan_user_results"
+                  >
+                    {visibleUsers.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-2.5">
+                        {t("rental.noUsersFound")}
+                      </p>
+                    ) : (
+                      visibleUsers.map((u) => (
+                        <button
+                          type="button"
+                          key={u.id}
+                          onClick={() => selectUser(u.id!)}
+                          data-cy={`scan_user_result_${u.id}`}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-muted/50"
+                        >
+                          <span className="truncate">
+                            {u.firstName} {u.lastName}
+                          </span>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {t("rental.userMetaPrefix")} {u.id},{" "}
+                            {t("rental.userMetaGrade")} {u.schoolGrade}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </>
+            )}
 
-        <div className="relative flex items-center">
-          {isBusy ? (
-            <Loader2
-              className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none animate-spin"
-              data-cy="scan_input_busy"
-            />
-          ) : (
-            <ScanBarcode className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none" />
-          )}
-          <Input
-            ref={inputRef}
-            autoFocus
-            value={scanValue}
-            onChange={(e) => setScanValue(e.target.value)}
-            onKeyDown={handleSubmit}
-            placeholder={t("scan.inputPlaceholder")}
-            aria-label={t("scan.inputAria")}
-            data-cy="scan_input"
-            className="pl-10 h-12 text-base"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2" data-cy="scan_log">
-          {log.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              {t("scan.logEmpty")}
+            <p className="text-xs text-muted-foreground">
+              {t("scan.userHintReturnWorksWithoutUser")}
             </p>
-          )}
-          {log.map((entry) => (
-            <div
-              key={entry.id}
-              className="flex items-start gap-2 rounded-md border border-border bg-card px-3 py-2.5 text-sm"
-            >
-              {TONE_ICON[entry.tone]}
-              <span className="flex-1 min-w-0">{entry.text}</span>
-              {entry.undo && !entry.undone && (
-                <button
-                  type="button"
-                  onClick={entry.undo}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground shrink-0"
-                >
-                  <Undo2 className="h-3.5 w-3.5" />
-                  {t("scan.undo")}
-                </button>
-              )}
-              {entry.undone && (
-                <span className="text-xs text-muted-foreground shrink-0">
-                  {t("scan.undone")}
-                </span>
-              )}
+          </div>
+
+          <div className="relative flex items-center">
+            {isBusy ? (
+              <Loader2
+                className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none animate-spin"
+                data-cy="scan_input_busy"
+              />
+            ) : (
+              <ScanBarcode className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+            )}
+            <Input
+              ref={inputRef}
+              autoFocus
+              value={scanValue}
+              onChange={(e) => setScanValue(e.target.value)}
+              onKeyDown={handleSubmit}
+              placeholder={t("scan.inputPlaceholder")}
+              aria-label={t("scan.inputAria")}
+              data-cy="scan_input"
+              className="pl-10 h-12 text-base"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2" data-cy="scan_log">
+            {log.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                {t("scan.logEmpty")}
+              </p>
+            )}
+            {log.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-start gap-2 rounded-md border border-border bg-card px-3 py-2.5 text-sm"
+              >
+                {TONE_ICON[entry.tone]}
+                <span className="flex-1 min-w-0">{entry.text}</span>
+                {entry.undo && !entry.undone && (
+                  <button
+                    type="button"
+                    onClick={entry.undo}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                    {t("scan.undo")}
+                  </button>
+                )}
+                {entry.undone && (
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {t("scan.undone")}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden md:flex flex-col items-center gap-2 w-48 shrink-0 md:sticky md:top-4">
+          <span className="text-xs text-muted-foreground">
+            {t("scan.lastScannedLabel")}
+          </span>
+          {lastScannedBook ? (
+            <>
+              <img
+                src={`/api/images/${lastScannedBook.id}`}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/coverimages/default.jpg";
+                }}
+                alt={lastScannedBook.title ?? ""}
+                className="w-40 h-auto rounded-md border object-cover shadow-sm"
+              />
+              <span className="text-xs text-center text-muted-foreground line-clamp-2">
+                {lastScannedBook.title}
+              </span>
+            </>
+          ) : (
+            <div className="w-40 aspect-[2/3] rounded-md border border-dashed flex items-center justify-center text-xs text-muted-foreground text-center px-2">
+              {t("scan.lastScannedEmpty")}
             </div>
-          ))}
+          )}
         </div>
       </div>
     </Layout>
