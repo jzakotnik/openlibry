@@ -11,13 +11,11 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 /**
  * crypto.randomUUID() only exists in secure contexts (HTTPS or localhost),
- * so it throws when the app is opened over plain HTTP via a LAN IP.
- * These IDs are only ever used as local React keys, so any unique string works.
+ * so it throws when the app is opened over plain HTTP via a LAN IP. These
+ * IDs are only ever used as local React keys, so a plain random string
+ * works just as well and avoids that restriction entirely.
  */
 function makeId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
