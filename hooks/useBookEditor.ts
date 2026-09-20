@@ -2,7 +2,7 @@ import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
 import { t } from "@/lib/i18n";
 import { uploadCoverBlob } from "@/lib/utils/coverutils";
-import { convertStringToDay } from "@/lib/utils/dateutils";
+import { convertDateOnlyToUtcIsoString } from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -327,8 +327,10 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
     }
 
     async function saveExistingBook() {
-      const rentedDate = convertStringToDay(bookData.rentedDate as string);
-      const dueDate = convertStringToDay(bookData.dueDate as string);
+      const rentedDate = convertDateOnlyToUtcIsoString(
+        bookData.rentedDate as string,
+      );
+      const dueDate = convertDateOnlyToUtcIsoString(bookData.dueDate as string);
       const { updatedAt, createdAt, ...savingBook } = bookData;
 
       const res = await fetch(`/api/book/${bookId}`, {

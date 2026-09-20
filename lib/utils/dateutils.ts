@@ -34,6 +34,17 @@ export function convertStringToDay(d: string | Date | undefined): Dayjs {
   return d ? dayjs(d, "YYYY-MM-DD") : dayjs("YYYY-MM-DD");
 }
 
+/**
+ * Convert a date-only string ("YYYY-MM-DD") or a full ISO-8601 datetime
+ * string into a full ISO-8601 datetime anchored to UTC midnight. Unlike
+ * `convertStringToDay`, this doesn't depend on the runtime's local
+ * timezone, so the calendar date survives a round-trip through
+ * JSON serialization regardless of where the code runs.
+ */
+export function convertDateOnlyToUtcIsoString(d: string): string {
+  return dayjs.utc(d).toISOString();
+}
+
 export function extendWeeks(d: Date, weeks: number): Dayjs {
   //console.log("Converting string to dayjs", d, dayjs(d));
   const newDate = dayjs(d).add(weeks, "week");

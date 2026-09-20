@@ -2,12 +2,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
-import { convertStringToDay } from "@/lib/utils/dateutils";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
+import {
+  convertDateOnlyToUtcIsoString,
+  convertStringToDay,
+} from "@/lib/utils/dateutils";
 import { Dispatch } from "react";
-
-dayjs.extend(utc);
 
 type BookDateFieldProps = {
   fieldType: string;
@@ -39,7 +38,7 @@ const toInputDate = (value: string | null | undefined): string => {
 const fromInputDate = (htmlValue: string): string => {
   if (!htmlValue) return "";
   try {
-    return dayjs.utc(htmlValue).toISOString();
+    return convertDateOnlyToUtcIsoString(htmlValue);
   } catch {
     return htmlValue;
   }
