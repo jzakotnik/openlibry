@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import {
-  convertDateToDayString,
+  convertDayToISOString,
   convertStringToDay,
 } from "@/lib/utils/dateutils";
 import { Dispatch } from "react";
@@ -35,7 +35,7 @@ const toInputDate = (value: string | null | undefined): string => {
 const fromInputDate = (htmlValue: string): string => {
   if (!htmlValue) return "";
   try {
-    return convertDateToDayString(new Date(htmlValue));
+    return convertDayToISOString(htmlValue);
   } catch {
     return htmlValue;
   }
