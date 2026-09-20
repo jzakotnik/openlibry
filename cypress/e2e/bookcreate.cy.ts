@@ -155,6 +155,7 @@ describe("Book creation and validation", () => {
     cy.url().should("include", "/book");
     cy.url().should("not.include", "/book/new");
 
+    cy.visit("http://localhost:3000/");
     cy.get("@newDatedBookId").then((bookId) => {
       cy.navigateToBookEdit(String(bookId));
 
