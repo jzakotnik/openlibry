@@ -246,6 +246,19 @@ describe("Book fields — fill all and verify persistence", () => {
       expect(book.additionalMaterial).to.equal(testBook.additionalMaterial);
       expect(book.externalLinks).to.equal(testBook.externalLinks);
       expect(book.supplierComment).to.equal(testBook.supplierComment);
+
+      // Regression test: editing an existing book's rentedDate/dueDate via
+      // the date picker must persist the exact calendar date the user
+      // typed, unaffected by the server's local timezone. A previous
+      // fix stored these as ISO strings anchored to local midnight
+      // instead of UTC midnight, which silently shifted the date by one
+      // day in timezones ahead of UTC.
+      expect(new Date(book.rentedDate).toISOString().slice(0, 10)).to.equal(
+        testBook.rentedDate,
+      );
+      expect(new Date(book.dueDate).toISOString().slice(0, 10)).to.equal(
+        testBook.dueDate,
+      );
     });
   });
 });
