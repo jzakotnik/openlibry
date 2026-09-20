@@ -106,6 +106,77 @@ describe("Book creation and validation", () => {
     cy.get("[data-cy=book-pages-field]").should("have.value", testBook.pages);
   });
 
+  it("should create a new book with custom rented/due dates without a validation error", () => {
+    // Regression test: editing the rentedDate/dueDate pickers before
+    // saving a *new* book used to send Prisma a date-only string
+    // ("YYYY-MM-DD") instead of a full ISO-8601 datetime, which
+    // book.create() rejected ("Invalid value for argument `dueDate`:
+    // premature end of input. Expected ISO-8601 DateTime."). A later fix
+    // anchored the conversion to local midnight, which shifted the
+    // stored calendar date by one day in timezones ahead of UTC. Both
+    // regressions are covered here: the save must succeed, and the
+    // dates must read back unchanged.
+    const customRentedDate = "2025-01-15";
+    const customDueDate = "2025-02-05";
+
+    cy.get("[data-cy=index_book_button]").click();
+    cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
+
+    cy.get("[data-cy=create_book_button]").click();
+    cy.url().should("include", "/book/new");
+    cy.get("[data-cy=book-edit-form]").should("be.visible");
+
+    cy.get("[data-cy=book-title-field]")
+      .clear()
+      .type("Cypress Book With Custom Dates");
+    cy.get("[data-cy=book-author-field]").clear().type("Jure");
+
+    cy.get("[data-cy=book_rentedDate_datepicker]")
+      .find("input[type=date]")
+      .clear()
+      .type(customRentedDate);
+    cy.get("[data-cy=book_dueDate_datepicker]")
+      .find("input[type=date]")
+      .clear()
+      .type(customDueDate);
+
+    cy.intercept("POST", "/api/book").as("createBookWithDates");
+    cy.get("[data-cy=save-book-button]").should("be.visible").click();
+
+    cy.wait("@createBookWithDates", { timeout: 10000 }).then(
+      (interception) => {
+        expect(interception.response!.statusCode).to.eq(200);
+        const bookId = interception.response!.body.id;
+        expect(bookId).to.exist;
+        cy.wrap(bookId).as("newDatedBookId");
+      },
+    );
+
+    cy.url().should("include", "/book");
+    cy.url().should("not.include", "/book/new");
+
+    cy.get("@newDatedBookId").then((bookId) => {
+      cy.navigateToBookEdit(String(bookId));
+
+      cy.get("[data-cy=book_rentedDate_datepicker]")
+        .find("input[type=date]")
+        .should("have.value", customRentedDate);
+      cy.get("[data-cy=book_dueDate_datepicker]")
+        .find("input[type=date]")
+        .should("have.value", customDueDate);
+
+      cy.task("verifyBook", bookId).then((book: any) => {
+        expect(book).to.not.be.null;
+        expect(new Date(book.rentedDate).toISOString().slice(0, 10)).to.equal(
+          customRentedDate,
+        );
+        expect(new Date(book.dueDate).toISOString().slice(0, 10)).to.equal(
+          customDueDate,
+        );
+      });
+    });
+  });
+
   it("should cancel book creation and return to book list", () => {
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
