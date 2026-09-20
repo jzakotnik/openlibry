@@ -21,7 +21,8 @@ import { BookType } from "@/entities/BookType";
 import { RentalsUserType } from "@/entities/RentalsUserType";
 import { UserType } from "@/entities/UserType";
 import { t } from "@/lib/i18n";
-import { calcExtensionDueDate, canExtendBook } from "@/lib/utils/rentalUtils";
+import { formatCalendarDayString } from "@/lib/utils/dateutils";
+import { canExtendBook } from "@/lib/utils/rentalUtils";
 import { booksForUser, filterUsers } from "@/lib/utils/searchUtils";
 import dayjs from "dayjs";
 
@@ -130,8 +131,6 @@ export default function UserRentalList({
         unique.push(user.schoolGrade);
       return unique;
     }, []);
-
-  const extensionDueDate = calcExtensionDueDate(extensionDurationDays);
 
   // shadcn Accordion value is a string; map user ids to strings
   const accordionValue = userExpanded !== false ? String(userExpanded) : "";
@@ -370,12 +369,12 @@ export default function UserRentalList({
                                     data-cy={`rental_book_details_${r.id}`}
                                     data-due-date={
                                       r.dueDate
-                                        ? dayjs(r.dueDate).format("YYYY-MM-DD")
+                                        ? formatCalendarDayString(r.dueDate)
                                         : ""
                                     }
                                   >
                                     {t("rental.rentalUntilPrefix")}{" "}
-                                    {dayjs(r.dueDate).format("DD.MM.YYYY")},{" "}
+                                    {dayjs.utc(r.dueDate).format("DD.MM.YYYY")},{" "}
                                     {r.renewalCount}
                                     {t("rental.renewalCountSuffix")}
                                   </p>

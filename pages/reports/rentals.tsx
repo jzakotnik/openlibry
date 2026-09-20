@@ -3,7 +3,11 @@ import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { t } from "@/lib/i18n";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import {
+  calendarDaysDiff,
+  formatCalendarDayString,
+  todayDateString,
+} from "@/lib/utils/dateutils";
 import {
   Document,
   Page,
@@ -764,10 +768,12 @@ export async function getServerSideProps() {
       };
     }
 
+    const today = todayDateString();
     const rentals = allRentals.map((r) => {
-      const due = r.dueDate ? dayjs(r.dueDate) : dayjs();
-      const today = dayjs();
-      const diff = due.diff(today, "days");
+      // Positive = days remaining until due; negative = overdue (see the
+      // remainingDays sign-convention note in lib/utils/rentalUtils.ts —
+      // this file's convention is the inverse of most other pages').
+      const diff = r.dueDate ? calendarDaysDiff(r.dueDate, today) : 0;
 
       return {
         id: r.id,
@@ -775,7 +781,7 @@ export async function getServerSideProps() {
         lastName: r.user?.lastName || "Unbekannt",
         firstName: r.user?.firstName || "Unbekannt",
         remainingDays: diff,
-        dueDate: convertDateToDayString(due.toDate()),
+        dueDate: r.dueDate ? formatCalendarDayString(r.dueDate) : today,
         renewalCount: r.renewalCount ?? 0,
         userid: r.user?.id,
         schoolGrade: r.user?.schoolGrade || "0",

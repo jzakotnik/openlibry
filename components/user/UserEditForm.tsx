@@ -1,6 +1,10 @@
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { t } from "@/lib/i18n";
+import {
+  calendarDaysDiff,
+  localCalendarDateAsUtcIsoString,
+} from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 
 import {
@@ -58,7 +62,9 @@ type OverdueLevel = "overdue" | "warning" | "ok";
 
 function getOverdueLevel(dueDate: string | Date | undefined): OverdueLevel {
   if (!dueDate) return "ok";
-  const days = dayjs().diff(dueDate, "days");
+  // Calendar-day-only comparison — a book due "today" isn't overdue yet
+  // regardless of the time of day.
+  const days = calendarDaysDiff(localCalendarDateAsUtcIsoString(), dueDate);
   if (days > 13) return "overdue";
   if (days > 0) return "warning";
   return "ok";
@@ -168,7 +174,7 @@ function BookRow({
 }) {
   const level = getOverdueLevel(book.dueDate);
   const cls = overdueClasses(level);
-  const dueDateStr = dayjs(book.dueDate).format("DD.MM.YYYY");
+  const dueDateStr = dayjs.utc(book.dueDate).format("DD.MM.YYYY");
 
   return (
     <div
@@ -256,7 +262,7 @@ function BookRow({
         )}
         data-cy={`book_due_date_${book.id}`}
         data-due-date={
-          book.dueDate ? dayjs(book.dueDate).format("YYYY-MM-DD") : ""
+          book.dueDate ? dayjs.utc(book.dueDate).format("YYYY-MM-DD") : ""
         }
       >
         {dueDateStr}

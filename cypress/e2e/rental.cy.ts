@@ -1,4 +1,17 @@
 /// <reference types="cypress" />
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Matches lib/utils/dateutils.ts's getAppTimezone() default — the server
+// always computes "today" in this timezone regardless of the CI
+// container's own ambient timezone, so date-math assertions below use the
+// same zone rather than the test runner's local `new Date()`, which would
+// otherwise disagree with the server for part of each day.
+const APP_TZ = Cypress.env("APP_TIMEZONE") || "Europe/Berlin";
 
 // SWR polls /api/rental every second. After a rent/return the API call
 // succeeds immediately but the UI only updates once mutate() + SWR re-fetch
@@ -257,9 +270,11 @@ describe("Rental of books", () => {
             timeout: SWR_TIMEOUT,
           }).should("have.attr", "data-rental-status", "rented");
 
-          const expectedDue = new Date();
-          expectedDue.setDate(expectedDue.getDate() + RENTAL_DURATION_DAYS);
-          const expectedISO = expectedDue.toISOString().slice(0, 10);
+          const todayInAppTz = dayjs().tz(APP_TZ).format("YYYY-MM-DD");
+          const expectedISO = dayjs
+            .utc(todayInAppTz)
+            .add(RENTAL_DURATION_DAYS, "day")
+            .format("YYYY-MM-DD");
 
           cy.task("verifyBook", bookId).then((book: any) => {
             expect(book.rentalStatus).to.equal("rented");

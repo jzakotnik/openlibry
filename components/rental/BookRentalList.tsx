@@ -26,6 +26,7 @@ import { UserType } from "@/entities/UserType";
 import { useBookSearch } from "@/hooks/useBookSearch";
 import { useSmartScan } from "@/hooks/useSmartScan";
 import { t } from "@/lib/i18n";
+import { formatCalendarDayString } from "@/lib/utils/dateutils";
 import userNameforBook from "@/lib/utils/lookups";
 import { canExtendBook } from "@/lib/utils/rentalUtils";
 import { toast } from "sonner";
@@ -256,7 +257,7 @@ const BookList = React.memo(function BookList({
                   className="text-xs text-muted-foreground"
                   data-cy={`book_info_${b.id}`}
                   data-due-date={
-                    b.dueDate ? dayjs(b.dueDate).format("YYYY-MM-DD") : ""
+                    b.dueDate ? formatCalendarDayString(b.dueDate) : ""
                   }
                 >
                   {t("rental.bookNumberPrefix")} {b.id}
@@ -264,7 +265,7 @@ const BookList = React.memo(function BookList({
                     <span data-cy={`book_rented_status_${b.id}`}>
                       {" "}
                       — {t("rental.bookRentedUntil")}{" "}
-                      {dayjs(b.dueDate).format("DD.MM.YYYY")}{" "}
+                      {dayjs.utc(b.dueDate).format("DD.MM.YYYY")}{" "}
                       {t("rental.bookRentedTo")}{" "}
                       {userNameforBook(users, b.userId!)}
                     </span>
