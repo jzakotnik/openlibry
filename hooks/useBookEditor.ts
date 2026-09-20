@@ -2,7 +2,10 @@ import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
 import { t } from "@/lib/i18n";
 import { uploadCoverBlob } from "@/lib/utils/coverutils";
-import { convertDateOnlyToUtcIsoString } from "@/lib/utils/dateutils";
+import {
+  convertDateOnlyToUtcIsoString,
+  localCalendarDateAsUtcIsoString,
+} from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -87,8 +90,8 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       renewalCount: 0,
       rentalStatus: "available",
       topics: "",
-      rentedDate: new Date().toISOString(),
-      dueDate: new Date().toISOString(),
+      rentedDate: localCalendarDateAsUtcIsoString(),
+      dueDate: localCalendarDateAsUtcIsoString(),
       isbn: mode.initialIsbn || "",
       // Copied fields (title, author, isbn, ...) win over the defaults
       // above, but rental state stays fresh for the new physical copy.

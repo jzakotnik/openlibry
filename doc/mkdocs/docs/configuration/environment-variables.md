@@ -35,17 +35,21 @@ Verwende einen langen, zufälligen String. Ändere ihn nicht nachträglich, sons
 
 ## Ausleihzeiten
 
-| Variable                  | Beschreibung            | Standard |
-| ------------------------- | ----------------------- | -------- |
-| `RENTAL_DURATION_DAYS`    | Leihfrist in Tagen      | `21`     |
-| `EXTENSION_DURATION_DAYS` | Verlängerung in Tagen   | `14`     |
-| `MAX_EXTENSIONS`          | Maximale Verlängerungen | `2`      |
+| Variable                  | Beschreibung            | Standard          |
+| ------------------------- | ------------------------ | ----------------- |
+| `RENTAL_DURATION_DAYS`    | Leihfrist in Tagen       | `21`               |
+| `EXTENSION_DURATION_DAYS` | Verlängerung in Tagen    | `14`               |
+| `MAX_EXTENSIONS`          | Maximale Verlängerungen  | `2`                |
+| `APP_TIMEZONE`            | Zeitzone der Schule (IANA-Name, z. B. `Europe/Berlin`) | `Europe/Berlin` |
 
 ```env
 RENTAL_DURATION_DAYS=21
 EXTENSION_DURATION_DAYS=14
 MAX_EXTENSIONS=2
+APP_TIMEZONE=Europe/Berlin
 ```
+
+`APP_TIMEZONE` bestimmt, was als "heute" gilt, wenn Ausleihen, Verlängerungen, Rückgaben und Mahnungen berechnet werden — unabhängig davon, in welcher Zeitzone der Server selbst läuft. Bei einer Bibliothek außerhalb Deutschlands entsprechend anpassen (z. B. `America/New_York`).
 
 ## Benutzerausweise
 

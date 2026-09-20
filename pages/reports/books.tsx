@@ -4,7 +4,10 @@ import { getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { translations } from "@/entities/fieldTranslations";
 import { t } from "@/lib/i18n";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import {
+  formatCalendarDayString,
+  formatInstantDayString,
+} from "@/lib/utils/dateutils";
 import {
   Document,
   Page,
@@ -667,12 +670,12 @@ export async function getServerSideProps() {
   const allBooks = await getAllBooks(prisma);
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any;
-    newBook.createdAt = convertDateToDayString(b.createdAt);
-    newBook.updatedAt = convertDateToDayString(b.updatedAt);
+    newBook.createdAt = formatInstantDayString(b.createdAt);
+    newBook.updatedAt = formatInstantDayString(b.updatedAt);
     newBook.rentedDate = b.rentedDate
-      ? convertDateToDayString(b.rentedDate)
+      ? formatCalendarDayString(b.rentedDate)
       : "";
-    newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+    newBook.dueDate = b.dueDate ? formatCalendarDayString(b.dueDate) : "";
     return newBook;
   });
   return { props: { books } };

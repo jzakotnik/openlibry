@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
 import { playSound } from "@/lib/utils/audioutils";
-import { currentTime } from "@/lib/utils/dateutils";
+import { localCalendarDateAsUtcIsoString } from "@/lib/utils/dateutils";
 import { generateId } from "@/lib/utils/id";
 import {
   AlertTriangle,
@@ -309,8 +309,8 @@ export default function BatchScan() {
           renewalCount: 0,
           rentalStatus: "available",
           topics: entry.bookData.topics || ";",
-          rentedDate: currentTime(),
-          dueDate: currentTime(),
+          rentedDate: localCalendarDateAsUtcIsoString(),
+          dueDate: localCalendarDateAsUtcIsoString(),
           isbn: entry.bookData.isbn,
           publisherName: entry.bookData.publisherName,
           publisherLocation: entry.bookData.publisherLocation,

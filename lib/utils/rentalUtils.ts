@@ -1,7 +1,4 @@
 // lib/utils/rentalUtils.ts
-import dayjs from "dayjs";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
-dayjs.extend(isSameOrAfter);
 
 /**
  * Minimal shape required to check whether a book can be extended.
@@ -13,17 +10,12 @@ interface ExtendableBook {
 }
 
 /**
- * Returns a dayjs date representing today + extensionDays.
- * Used client-side for canExtendBook() checks (button disabled state).
- */
-export function calcExtensionDueDate(extensionDays: number): dayjs.Dayjs {
-  return dayjs().add(extensionDays, "day");
-}
-
-/**
- * Returns true if the book can be extended:
- *   - renewalCount < maxExtensions  (count guard)
- *   - extensionDueDate is strictly after current dueDate  (date guard)
+ * Returns true if the book can still be extended, i.e. renewalCount <
+ * maxExtensions. Extending always sets the new due date to
+ * today + EXTENSION_DURATION_DAYS (see entities/book.ts extendBook) — a
+ * deliberate choice, not a bug: the librarian is granting a fresh
+ * extension from the moment they act, not stacking onto the previous due
+ * date, so there is no separate "date guard" beyond the renewal count.
  *
  * Accepts any object with renewalCount + dueDate — works for both
  * BookType (book column) and RentalsUserType (user column).
