@@ -155,6 +155,23 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       loadServerEnv(config);
 
+      // rootroute-public.cy.ts asserts that / serves the public catalog, which
+      // only holds when the server was started with OPENLIBRY_ROOT_ROUTE
+      // pointing there. That is read server-side and cannot be flipped from a
+      // spec, so in a normal run the spec cannot pass and its failure says
+      // nothing about the code. `npm run test:e2e:publicroot` starts such a
+      // server, and only there does the spec take part.
+      if (process.env.OPENLIBRY_ROOT_ROUTE !== "/catalog") {
+        config.excludeSpecPattern = [
+          ...(Array.isArray(config.excludeSpecPattern)
+            ? config.excludeSpecPattern
+            : config.excludeSpecPattern
+              ? [config.excludeSpecPattern]
+              : []),
+          "**/rootroute-public.cy.ts",
+        ];
+      }
+
       // Load fixtures once at startup so they're available inside every task
       // without re-reading from disk on each call.
       const loginUserFixtures = loadFixtures<FixtureLoginUser>(

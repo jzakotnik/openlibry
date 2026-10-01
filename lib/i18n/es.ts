@@ -1208,6 +1208,7 @@ export const es: Dictionary = {
     copyright: "Copyright",
     imprint: "Aviso legal",
     privacy: "Privacidad",
+    manage: "Gestionar",
   },
 
   // ─── ISBN lookup API error messages ──────────────────────────────────

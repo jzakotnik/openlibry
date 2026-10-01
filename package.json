@@ -9,10 +9,12 @@
     "start": "next start",
     "lint": "next lint",
     "dev:test": "next dev",
+    "dev:test:publicroot": "OPENLIBRY_ROOT_ROUTE=/catalog next dev",
     "cypress": "cypress open",
     "cypress:headless": "cypress run",
     "test:e2e": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:3000 cypress:headless",
-    "test:e2e:ui": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test dev http-get://localhost:3000 cypress"
+    "test:e2e:ui": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test dev http-get://localhost:3000 cypress",
+    "test:e2e:publicroot": "NODE_ENV=test OPENLIBRY_ROOT_ROUTE=/catalog dotenv -e .env.test.local start-server-and-test 'dev:test:publicroot' http-get://localhost:3000 'cypress run --spec cypress/e2e/rootroute-public.cy.ts'"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

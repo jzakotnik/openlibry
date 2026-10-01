@@ -1279,6 +1279,9 @@ export const de = {
     //   Datenschutz → "Privacy"
     imprint: "Impressum",
     privacy: "Datenschutz",
+    // Shown instead of publicCatalog on public pages: entry point to the
+    // internal area.
+    manage: "Verwalten",
   },
 
   // ─── ISBN lookup API error messages ──────────────────────────────────

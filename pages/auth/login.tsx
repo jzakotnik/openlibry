@@ -35,13 +35,13 @@ export default function Login({
         user,
         password,
         hiddenFieldName: csrfToken,
-        callbackUrl: "/",
+        callbackUrl: "/manage",
         redirect: false,
       });
 
       if (res?.ok) {
         // Successful — redirect manually so we can handle errors first
-        window.location.href = res.url ?? "/";
+        window.location.href = res.url ?? "/manage";
         return;
       }
 

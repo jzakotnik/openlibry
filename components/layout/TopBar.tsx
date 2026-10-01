@@ -70,7 +70,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
             {/* Logo & Brand - Desktop */}
             <div
               className="hidden md:flex items-center gap-3 cursor-pointer mr-8 group"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/manage")}
             >
               <div className="flex items-center justify-center w-[42px] h-[42px] rounded-lg text-white bg-white/15 border border-white/20 transition-transform duration-300 group-hover:-rotate-[10deg] group-hover:scale-110">
                 <ReaderIcon
@@ -100,7 +100,7 @@ export default function TopBar({ showAdminButton = true }: TopBarProps) {
             {/* Logo & Brand - Mobile */}
             <div
               className="flex md:hidden items-center gap-2 flex-grow cursor-pointer text-white"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/manage")}
             >
               <ReaderIcon width={24} height={24} data-cy="topbar_logo_mobile" />
               <span
