@@ -28,7 +28,7 @@ export default async function handle(
           },
           "Error updating user grades"
         );
-        res.status(400).json({ data: "ERROR DELETE: " + error });
+        res.status(400).json({ data: "ERROR UPDATE: could not update grades" });
       }
       break;
 

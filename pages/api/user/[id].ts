@@ -52,7 +52,7 @@ export default async function handle(
           },
           "Failed to delete user"
         );
-        res.status(400).json({ data: "ERROR DELETE: " + error });
+        res.status(400).json({ data: "ERROR DELETE: could not delete user" });
       }
       break;
 
@@ -109,7 +109,7 @@ export default async function handle(
           },
           "Failed to update user"
         );
-        res.status(400).json({ data: "ERROR UPDATE: " + error });
+        res.status(400).json({ data: "ERROR UPDATE: could not update user" });
       }
       break;
 
@@ -154,7 +154,7 @@ export default async function handle(
           },
           "Failed to retrieve user"
         );
-        res.status(400).json({ data: "ERROR: " + error });
+        res.status(400).json({ data: "ERROR: could not load user" });
       }
       break;
 

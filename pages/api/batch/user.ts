@@ -28,7 +28,7 @@ export default async function handle(
           },
           "Error deleting multiple users"
         );
-        res.status(400).json({ data: "ERROR DELETE: " + error });
+        res.status(400).json({ data: "ERROR DELETE: could not delete users" });
       }
       break;
 

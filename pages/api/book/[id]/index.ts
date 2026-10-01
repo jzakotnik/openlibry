@@ -51,7 +51,7 @@ export default async function handle(
           },
           "Failed to delete book"
         );
-        res.status(400).json({ data: "ERROR DELETE: " + error });
+        res.status(400).json({ data: "ERROR DELETE: could not delete book" });
       }
       break;
 
@@ -111,7 +111,7 @@ export default async function handle(
         );
         res
           .status(400)
-          .json({ message: "Fehler beim Speichern / Update: " + error });
+          .json({ message: "Fehler beim Speichern / Update" });
       }
       break;
 
@@ -151,7 +151,7 @@ export default async function handle(
           },
           "Failed to retrieve book"
         );
-        res.status(400).json({ data: "ERROR: " + error });
+        res.status(400).json({ data: "ERROR: could not load book" });
       }
       break;
 

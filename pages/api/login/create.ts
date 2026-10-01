@@ -63,7 +63,9 @@ async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
           },
           "Failed to create login user - duplicate"
         );
-        return res.status(400).json({ message: e.message });
+        return res
+          .status(400)
+          .json({ message: "Username already exists" });
       }
       errorLogger.error(
         {
@@ -75,7 +77,7 @@ async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
         },
         "Prisma error creating login user"
       );
-      return res.status(400).json({ message: e.message });
+      return res.status(400).json({ message: "Could not create login user" });
     }
 
     errorLogger.error(

@@ -42,6 +42,6 @@ export default async function handler(
       },
       "Error fetching public book detail",
     );
-    return res.status(500).json({ result: "ERROR: " + error });
+    return res.status(500).json({ result: "ERROR: could not load book" });
   }
 }

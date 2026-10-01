@@ -26,7 +26,7 @@ export default async function handle(
           },
           "Error getting last audit entry"
         );
-        res.status(400).json({ data: "ERROR: " + error });
+        res.status(400).json({ data: "ERROR: could not load audit log" });
       }
       break;
 

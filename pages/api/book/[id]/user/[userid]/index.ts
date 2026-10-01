@@ -95,7 +95,7 @@ export default async function handler(
         },
         "Failed to rent book",
       );
-      res.status(500).json({ result: "ERROR: " + error });
+      res.status(500).json({ result: "ERROR: could not rent book" });
     }
     return;
   }
@@ -162,7 +162,7 @@ export default async function handler(
         },
         "Failed to return book",
       );
-      res.status(500).json({ result: "ERROR: " + error });
+      res.status(500).json({ result: "ERROR: could not return book" });
     }
     return;
   }

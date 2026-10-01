@@ -3,6 +3,7 @@ import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { cleanIsbn } from "@/lib/utils/isbn";
+import { pickFields } from "@/lib/utils/pickFields";
 import { Prisma, PrismaClient } from "@prisma/client";
 import dayjs from "dayjs";
 import fs from "fs/promises";
@@ -12,6 +13,44 @@ import { PublicBookType } from "./PublicBookType";
 import { getUser } from "./user";
 
 const rentalConfig = getRentalConfig();
+
+/**
+ * Columns a client may set on a book. `id` is accepted on create only (custom
+ * barcode numbers); `userId` / the `user` relation are managed exclusively by
+ * rentBook / returnBook; timestamps are maintained by Prisma.
+ */
+const BOOK_WRITABLE_FIELDS = [
+  "rentalStatus",
+  "rentedDate",
+  "dueDate",
+  "renewalCount",
+  "title",
+  "subtitle",
+  "author",
+  "topics",
+  "imageLink",
+  "isbn",
+  "editionDescription",
+  "publisherLocation",
+  "pages",
+  "summary",
+  "minPlayers",
+  "publisherName",
+  "otherPhysicalAttributes",
+  "supplierComment",
+  "publisherDate",
+  "physicalSize",
+  "minAge",
+  "maxAge",
+  "additionalMaterial",
+  "price",
+  "externalLinks",
+  "shelf",
+] as const;
+
+function bookWriteData(book: unknown) {
+  return pickFields(book, BOOK_WRITABLE_FIELDS) as Prisma.BookUncheckedUpdateInput;
+}
 
 /**
  * Store ISBNs in a single canonical form (digits + X, no hyphens/spaces) so
@@ -245,7 +284,10 @@ export async function addBook(client: PrismaClient, book: BookType) {
   try {
     addAudit(client, "Add book", book.title, book.id);
     return await client.book.create({
-      data: { ...normalizeIsbn(book) },
+      data: {
+        ...(book.id !== undefined ? { id: book.id } : {}),
+        ...bookWriteData(normalizeIsbn(book)),
+      } as Prisma.BookUncheckedCreateInput,
     });
   } catch (e) {
     if (
@@ -280,7 +322,8 @@ export async function updateBook(
     },
     "Updating book",
   );
-  const { id: _id, userId: _userId, ...bookData } = normalizeIsbn(book); //apparently in prisma 7, the id should not be included in the data itself
+  // Only allow-listed columns are written (no id/userId/timestamps/relations).
+  const bookData = bookWriteData(normalizeIsbn(book));
   try {
     await addAudit(
       client,

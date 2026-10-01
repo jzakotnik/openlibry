@@ -40,7 +40,7 @@ export default async function handler(
           },
           "Error creating book"
         );
-        res.status(400).json({ result: "ERROR: " + error });
+        res.status(400).json({ result: "ERROR: could not create book" });
       }
       break;
     }
@@ -62,7 +62,7 @@ export default async function handler(
           },
           "Error getting all books"
         );
-        res.status(400).json({ result: "ERROR: " + error });
+        res.status(400).json({ result: "ERROR: could not load books" });
       }
       break;
     }

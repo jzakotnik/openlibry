@@ -88,6 +88,6 @@ export default async function handler(
       },
       "Failed to extend book",
     );
-    return res.status(500).json({ result: "ERROR: " + error });
+    return res.status(500).json({ result: "ERROR: could not extend rental" });
   }
 }

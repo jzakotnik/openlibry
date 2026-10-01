@@ -47,7 +47,7 @@ export default async function handler(
         },
         "Failed to list cover images"
       );
-      res.status(400).json({ result: ["ERROR: " + error] });
+      res.status(400).json({ result: ["ERROR: could not list cover images"] });
     }
   } else {
     errorLogger.warn(

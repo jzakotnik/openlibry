@@ -3,7 +3,26 @@ import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 
+import { UserFacingError } from "@/lib/utils/apiErrors";
+import { pickFields } from "@/lib/utils/pickFields";
 import { addAudit } from "./audit";
+
+/**
+ * Columns a client may set on a user. Timestamps, the `books` relation and
+ * anything else on the request body are ignored.
+ */
+const USER_WRITABLE_FIELDS = [
+  "lastName",
+  "firstName",
+  "schoolGrade",
+  "schoolTeacherName",
+  "eMail",
+  "active",
+] as const;
+
+function userWriteData(user: unknown) {
+  return pickFields(user, USER_WRITABLE_FIELDS) as Prisma.UserUncheckedCreateInput;
+}
 
 export async function getUser(client: PrismaClient, id: number) {
   try {
@@ -235,7 +254,7 @@ export async function countUser(client: PrismaClient) {
 
 export async function addUser(client: PrismaClient, user: UserType) {
   if (user.id !== undefined && (!Number.isInteger(user.id) || user.id <= 0)) {
-    throw new Error(
+    throw new UserFacingError(
       `Die Nutzer-ID ${user.id} ist ungültig. Sie muss eine positive Zahl größer als 0 sein.`
     );
   }
@@ -251,7 +270,10 @@ export async function addUser(client: PrismaClient, user: UserType) {
       0
     );
     return await client.user.create({
-      data: { ...user },
+      data: {
+        ...(user.id !== undefined ? { id: user.id } : {}),
+        ...userWriteData(user),
+      },
     });
   } catch (e) {
     if (
@@ -273,7 +295,7 @@ export async function addUser(client: PrismaClient, user: UserType) {
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
     ) {
-      throw new Error(
+      throw new UserFacingError(
         `Die Nutzer-ID ${user.id} ist bereits vergeben. Bitte eine andere ID wählen.`
       );
     }
@@ -301,7 +323,7 @@ export async function updateUser(
       where: {
         id,
       },
-      data: { ...user },
+      data: userWriteData(user),
     });
   } catch (e) {
     if (

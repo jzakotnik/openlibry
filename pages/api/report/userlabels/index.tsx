@@ -458,7 +458,7 @@ export default async function handle(
         labels.pipe(res);
       } catch (error) {
         console.error("Error generating user labels:", error);
-        res.status(400).json({ data: "ERROR: " + error });
+        res.status(400).json({ data: "ERROR: could not generate labels" });
       }
       break;
 

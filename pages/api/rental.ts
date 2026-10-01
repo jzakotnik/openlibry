@@ -84,6 +84,6 @@ export default async function handler(
       },
       "Error fetching rental summary data",
     );
-    res.status(400).json({ result: "ERROR: " + error });
+    res.status(400).json({ result: "ERROR: could not load rental data" });
   }
 }
