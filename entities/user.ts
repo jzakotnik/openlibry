@@ -3,7 +3,7 @@ import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-import { UserFacingError } from "@/lib/utils/apiErrors";
+import { userFacingError } from "@/lib/utils/apiErrors";
 import { pickFields } from "@/lib/utils/pickFields";
 import { addAudit } from "./audit";
 
@@ -254,7 +254,7 @@ export async function countUser(client: PrismaClient) {
 
 export async function addUser(client: PrismaClient, user: UserType) {
   if (user.id !== undefined && (!Number.isInteger(user.id) || user.id <= 0)) {
-    throw new UserFacingError(
+    throw userFacingError(
       `Die Nutzer-ID ${user.id} ist ungültig. Sie muss eine positive Zahl größer als 0 sein.`
     );
   }
@@ -295,7 +295,7 @@ export async function addUser(client: PrismaClient, user: UserType) {
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
     ) {
-      throw new UserFacingError(
+      throw userFacingError(
         `Die Nutzer-ID ${user.id} ist bereits vergeben. Bitte eine andere ID wählen.`
       );
     }
