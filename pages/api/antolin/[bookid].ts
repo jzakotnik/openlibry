@@ -1,6 +1,7 @@
 import { BookType } from "@/entities/BookType";
 import { getBook } from "@/entities/book";
 import { prisma } from "@/entities/db";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { createAntolinSearchEngine } from "@/lib/utils/antolinIndex";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -26,12 +27,15 @@ export default async function handle(
     case "GET":
       try {
         //console.log("Getting Antolin info API Call");
-        if (!req.query.bookid)
-          return res.status(404).end(`${req.query} id not found`);
-
-        const bookid = parseInt(req.query.bookid as string);
+        const bookid = parseIdParam(req.query.bookid);
+        if (bookid === null) {
+          return res.status(400).json({ data: "ERROR: Invalid book ID" });
+        }
         //retrieve the book in our database for this ID
-        const book = (await getBook(prisma, bookid)) as BookType;
+        const book = (await getBook(prisma, bookid)) as BookType | null;
+        if (!book) {
+          return res.status(404).json({ data: "ERROR: Book not found" });
+        }
 
         await createAntolinSearchEngine();
         const searchEngine = (global as any).searchEngine;
@@ -54,6 +58,7 @@ export default async function handle(
         });
       } catch (error) {
         console.log(error);
+        res.status(500).json({ data: "ERROR: Antolin search failed" });
       }
       break;
 

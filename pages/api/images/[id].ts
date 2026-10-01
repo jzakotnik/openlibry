@@ -3,6 +3,7 @@ import { createReadStream, existsSync, statSync } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 
+import { parseIntegerParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
@@ -30,21 +31,11 @@ export default async function handle(
     return res.status(405).end(`${req.method} Not Allowed`);
   }
 
-  if (!req.query.id) {
-    errorLogger.warn(
-      {
-        event: LogEvents.API_ERROR,
-        endpoint: "/api/images/[id]",
-        method: req.method,
-        reason: "Missing image ID parameter",
-      },
-      "Image ID not provided",
-    );
-    return res.status(404).end("id not found");
-  }
-
-  const id = parseInt(req.query.id as string);
-  const fileName = `${id}.jpg`;
+  // Only plain integers map to a custom cover file. Anything else (missing,
+  // "undefined", "12abc", ...) falls through to the default cover below, as it
+  // did before, but never reaches the filesystem path.
+  const id = parseIntegerParam(req.query.id);
+  const fileName = id !== null ? `${id}.jpg` : null;
   const basePath = process.env.COVERIMAGE_FILESTORAGE_PATH;
 
   // Check if cover storage path is configured
@@ -79,11 +70,11 @@ export default async function handle(
     });
   }
 
-  const filePath = path.join(basePath, fileName);
+  const filePath = fileName ? path.join(basePath, fileName) : null;
   const defaultFilePath = path.join(basePath, "default.jpg");
 
   // Check file existence upfront
-  const customCoverExists = existsSync(filePath);
+  const customCoverExists = filePath !== null && existsSync(filePath);
   const defaultCoverExists = existsSync(defaultFilePath);
 
   if (!customCoverExists && !defaultCoverExists) {
@@ -102,7 +93,7 @@ export default async function handle(
   }
 
   const isDefault = !customCoverExists;
-  const targetPath = customCoverExists ? filePath : defaultFilePath;
+  const targetPath = customCoverExists ? filePath! : defaultFilePath;
 
   try {
     const stat = statSync(targetPath);

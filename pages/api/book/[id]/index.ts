@@ -3,6 +3,7 @@ import { deleteBook, getBook, updateBook } from "@/entities/book";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
@@ -10,20 +11,19 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (!req.query.id) {
+  const id = parseIdParam(req.query.id);
+  if (id === null) {
     errorLogger.warn(
       {
         event: LogEvents.API_ERROR,
         endpoint: "/api/book/[id]",
         method: req.method,
-        reason: "Missing book ID parameter",
+        reason: "Missing or invalid book ID parameter",
       },
-      "Book ID not provided"
+      "Book ID not provided or invalid"
     );
-    return res.status(404).end(`${req.query} id not found`);
+    return res.status(400).json({ data: "ERROR: Invalid book ID" });
   }
-
-  const id = parseInt(req.query.id as string);
 
   switch (req.method) {
     case "DELETE":

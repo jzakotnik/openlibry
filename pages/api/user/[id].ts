@@ -4,6 +4,7 @@ import { replaceUserDateString } from "@/lib/utils/dateutils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
@@ -11,20 +12,19 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (!req.query.id) {
+  const id = parseIdParam(req.query.id);
+  if (id === null) {
     errorLogger.warn(
       {
         event: LogEvents.API_ERROR,
         endpoint: "/api/user/[id]",
         method: req.method,
-        reason: "Missing user ID parameter",
+        reason: "Missing or invalid user ID parameter",
       },
-      "User ID not provided"
+      "User ID not provided or invalid"
     );
-    return res.status(404).end(`${req.query} id not found`);
+    return res.status(400).json({ data: "ERROR: Invalid user ID" });
   }
-
-  const id = parseInt(req.query.id as string);
 
   switch (req.method) {
     case "DELETE":

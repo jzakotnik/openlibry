@@ -1,6 +1,7 @@
 import { PublicBookDetailType } from "@/entities/PublicBookDetailType";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { getPublicBookDetail } from "@/entities/publicBook";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -14,8 +15,8 @@ export default async function handler(
     return res.status(405).end(`${req.method} Not Allowed`);
   }
 
-  const id = parseInt(req.query.id as string, 10);
-  if (isNaN(id)) {
+  const id = parseIdParam(req.query.id);
+  if (id === null) {
     return res.status(400).json({ result: "Invalid book ID" });
   }
 

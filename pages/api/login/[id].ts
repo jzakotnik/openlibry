@@ -4,6 +4,7 @@ import {
   getAllLoginUsers,
   updateLoginUser,
 } from "@/entities/loginuser";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { hashPassword } from "@/lib/utils/hashPassword";
@@ -13,13 +14,9 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (!req.query.id) {
-    return res.status(400).json({ message: "Missing id parameter" });
-  }
-
-  const id = parseInt(req.query.id as string, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ message: "Invalid id parameter" });
+  const id = parseIdParam(req.query.id);
+  if (id === null) {
+    return res.status(400).json({ message: "Missing or invalid id parameter" });
   }
 
   switch (req.method) {

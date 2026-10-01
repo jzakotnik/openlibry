@@ -1,5 +1,6 @@
 import { prisma } from "@/entities/db";
 import { deleteManyUsers } from "@/entities/user";
+import { parseIdList } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -11,9 +12,13 @@ export default async function handle(
   switch (req.method) {
     case "DELETE":
       try {
-        if (!req.body) return res.status(404).end("No data provided");
-        //gets a list of user IDs to update the grade
-        const userdata = req.body;
+        //gets a list of user IDs to delete
+        const userdata = parseIdList(req.body);
+        if (!userdata) {
+          return res
+            .status(400)
+            .json({ data: "ERROR: Expected an array of user IDs" });
+        }
 
         const updateResult = await deleteManyUsers(prisma, userdata);
 
