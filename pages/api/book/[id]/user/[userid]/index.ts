@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 
@@ -16,8 +17,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data | BookType | Array<BookType>>,
 ) {
-  const bookId = req.query.id ? parseInt(req.query.id as string) : null;
-  const userId = req.query.userid ? parseInt(req.query.userid as string) : null;
+  const bookId = parseIdParam(req.query.id);
+  const userId = parseIdParam(req.query.userid);
 
   // Rent a book
   if (req.method === "POST") {

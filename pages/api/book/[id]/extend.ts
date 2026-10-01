@@ -9,6 +9,7 @@
 import { extendBook, getBook } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -21,8 +22,8 @@ export default async function handler(
     return res.status(405).json({ result: `${req.method} Not Allowed` });
   }
 
-  const id = parseInt(req.query.id as string);
-  if (isNaN(id)) {
+  const id = parseIdParam(req.query.id);
+  if (id === null) {
     return res.status(400).json({ result: "Invalid book ID" });
   }
 

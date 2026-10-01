@@ -23,6 +23,7 @@ import * as bwipjs from "bwip-js/node";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@/entities/db";
+import { parseIdParam, parseIntegerParam } from "@/lib/utils/apiValidation";
 var fs = require("fs");
 
 // =============================================================================
@@ -356,6 +357,28 @@ export default async function handle(
     case "GET":
       console.log("Printing user labels via API");
       try {
+        // Reject malformed numeric params up front (NaN would otherwise reach
+        // Prisma or silently slice the wrong range).
+        const numericParams = ["start", "end", "startId", "endId"] as const;
+        for (const key of numericParams) {
+          if (key in req.query && parseIntegerParam(req.query[key]) === null) {
+            return res
+              .status(400)
+              .json({ data: `ERROR: Invalid value for "${key}"` });
+          }
+        }
+        if ("id" in req.query && parseIdParam(req.query.id) === null) {
+          return res.status(400).json({ data: 'ERROR: Invalid value for "id"' });
+        }
+        if (
+          "schoolGrade" in req.query &&
+          typeof req.query.schoolGrade !== "string"
+        ) {
+          return res
+            .status(400)
+            .json({ data: 'ERROR: Invalid value for "schoolGrade"' });
+        }
+
         // Four different ways to call:
         // - start & end: for last created users ordered by ID (with optional schoolGrade filter)
         // - startId & endId: for users in ID range (with optional schoolGrade filter)
@@ -375,8 +398,8 @@ export default async function handle(
 
           // Slice by start/end if provided
           if ("start" in req.query && "end" in req.query) {
-            const start = parseInt(req.query.start as string);
-            const end = parseInt(req.query.end as string);
+            const start = parseIntegerParam(req.query.start)!;
+            const end = parseIntegerParam(req.query.end)!;
             printableUsers = users.slice(start, end);
           } else {
             printableUsers = users;
@@ -389,11 +412,11 @@ export default async function handle(
           // Filter by user ID range (with optional schoolGrade)
           let startId =
             "startId" in req.query
-              ? parseInt(req.query.startId as string)
+              ? parseIntegerParam(req.query.startId)!
               : 0;
           let endId =
             "endId" in req.query
-              ? parseInt(req.query.endId as string)
+              ? parseIntegerParam(req.query.endId)!
               : await countUser(prisma);
 
           // Swap if user mixed up start and end
@@ -425,7 +448,7 @@ export default async function handle(
         } else if ("id" in req.query) {
           // Single user by ID
           printableUsers = new Array<any>();
-          const user = await getUser(prisma, parseInt(req.query.id as string));
+          const user = await getUser(prisma, parseIdParam(req.query.id)!);
           if (user) {
             printableUsers.push(user);
           }
