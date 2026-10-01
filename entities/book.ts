@@ -15,38 +15,16 @@ import { getUser } from "./user";
 const rentalConfig = getRentalConfig();
 
 /**
- * Columns a client may set on a book. `id` is accepted on create only (custom
- * barcode numbers); `userId` / the `user` relation are managed exclusively by
- * rentBook / returnBook; timestamps are maintained by Prisma.
+ * Columns a client may set on a book: every scalar column in the Prisma schema
+ * except the protected ones below, so new columns are picked up automatically.
+ * Relations (`user`) are not scalar fields and are therefore never writable.
+ * `id` is added back explicitly on create (custom barcode numbers); `userId` is
+ * managed exclusively by rentBook / returnBook; timestamps by Prisma.
  */
-const BOOK_WRITABLE_FIELDS = [
-  "rentalStatus",
-  "rentedDate",
-  "dueDate",
-  "renewalCount",
-  "title",
-  "subtitle",
-  "author",
-  "topics",
-  "imageLink",
-  "isbn",
-  "editionDescription",
-  "publisherLocation",
-  "pages",
-  "summary",
-  "minPlayers",
-  "publisherName",
-  "otherPhysicalAttributes",
-  "supplierComment",
-  "publisherDate",
-  "physicalSize",
-  "minAge",
-  "maxAge",
-  "additionalMaterial",
-  "price",
-  "externalLinks",
-  "shelf",
-] as const;
+const PROTECTED_BOOK_FIELDS = ["id", "createdAt", "updatedAt", "userId"];
+const BOOK_WRITABLE_FIELDS = Object.keys(Prisma.BookScalarFieldEnum).filter(
+  (f) => !PROTECTED_BOOK_FIELDS.includes(f),
+);
 
 function bookWriteData(book: unknown) {
   return pickFields(book, BOOK_WRITABLE_FIELDS) as Prisma.BookUncheckedUpdateInput;

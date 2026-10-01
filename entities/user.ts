@@ -8,17 +8,15 @@ import { pickFields } from "@/lib/utils/pickFields";
 import { addAudit } from "./audit";
 
 /**
- * Columns a client may set on a user. Timestamps, the `books` relation and
- * anything else on the request body are ignored.
+ * Columns a client may set on a user: every scalar column in the Prisma schema
+ * except the protected ones below, so new columns are picked up automatically.
+ * The `books` relation is not a scalar field and is therefore never writable.
+ * `id` is added back explicitly on create only.
  */
-const USER_WRITABLE_FIELDS = [
-  "lastName",
-  "firstName",
-  "schoolGrade",
-  "schoolTeacherName",
-  "eMail",
-  "active",
-] as const;
+const PROTECTED_USER_FIELDS = ["id", "createdAt", "updatedAt"];
+const USER_WRITABLE_FIELDS = Object.keys(Prisma.UserScalarFieldEnum).filter(
+  (f) => !PROTECTED_USER_FIELDS.includes(f),
+);
 
 function userWriteData(user: unknown) {
   return pickFields(user, USER_WRITABLE_FIELDS) as Prisma.UserUncheckedCreateInput;
