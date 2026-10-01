@@ -30,6 +30,10 @@ export const de = {
       title: "Leihe",
       subtitle: "Entleihe und Rückgabe",
     },
+    scan: {
+      title: "Express Leihe",
+      subtitle: "Ausleihe per Scan",
+    },
     user: {
       title: "Nutzer",
       subtitle: "Verwaltung der User",
@@ -82,7 +86,15 @@ export const de = {
 
     toastAlreadyRented: "Buch {bookId} ist bereits ausgeliehen",
     toastBookNotFound: "Buch {bookId} nicht gefunden",
+    toastUserInactive: "Nutzer ist deaktiviert und kann keine Bücher ausleihen",
+    toastSelectUserFirst: "Bitte zuerst eine Nutzer:in auswählen",
+    toastBookUnavailableStatus:
+      "„{title}“ hat den Status {status} und kann nicht ausgeliehen werden",
     showingFirst: "Mehr Ergebnisse vorhanden",
+
+    inactiveUserBadge: "Inaktiv",
+    rentDisabledInactiveUser:
+      "Nutzer ist deaktiviert und kann keine Bücher ausleihen",
 
     // Status badge shown in the rental list for books that are neither
     // "available" nor "rented" (no valid rental to extend/return).
@@ -126,14 +138,14 @@ export const de = {
     ariaLabel: "search users",
     searchSettings: "Sucheinstellungen",
     cancelSelection: "Auswahl aufheben",
-    selectAll: "Alle auswählen",
     newUser: "Neue Nutzerin erzeugen",
-    selected: "ausgewählt",
     deselect: "Aufheben",
     actions: "Aktionen",
     increaseGrade: "Klasse erhöhen",
     deleteUsers: "Nutzer löschen",
     confirmDelete: "Wirklich löschen?",
+    selected: "von {total} Nutzern ausgewählt (gesamte Datenbank)",
+    selectAll: "Alle {total} Nutzer der Datenbank auswählen",
   },
   userSearchFilters: {
     filter: "Filter",
@@ -172,6 +184,7 @@ export const de = {
     userIdLabel: "Nutzer-ID",
     cancel: "Abbrechen",
     create: "Erstellen",
+    invalidId: "Die Nutzer-ID muss eine positive Zahl größer als 0 sein",
   },
   userEditForm: {
     bookSingular: "Buch",
@@ -203,6 +216,10 @@ export const de = {
     save: "Speichern",
     print: "Drucken",
     delete: "Löschen",
+    deleteWarningOne:
+      "Dieser Nutzer hat noch 1 Buch ausgeliehen. Beim Löschen des Nutzers wird dieses Buch als verloren markiert.",
+    deleteWarningMany:
+      "Dieser Nutzer hat noch {count} Bücher ausgeliehen. Beim Löschen des Nutzers werden diese Bücher als verloren markiert.",
   },
   bookEditForm: {
     save: "Speichern",
@@ -1290,6 +1307,39 @@ export const de = {
       networkError: "Netzwerkfehler",
       unknown: "Unbekannter Fehler",
     },
+  },
+
+  // ── Central scan drawer (issue #480) ──────────────────────────────────
+  scan: {
+    openAria: "Scan-Modus öffnen",
+    title: "Express Leihe",
+    userLabel: "Ausleihe für",
+    userPlaceholder: "Nutzer:in auswählen",
+    userHintReturnWorksWithoutUser:
+      "Für eine Rückgabe muss keine Nutzer:in ausgewählt sein.",
+    inputPlaceholder: "ISBN oder Ausleih-ID scannen",
+    inputAria: "scan input",
+    resetButton: "Zurücksetzen",
+    resetAria: "Für die nächste Person zurücksetzen",
+    cameraLabel: "Kamera-Scan",
+    cameraStart: "Kamera an",
+    cameraStop: "Kamera aus",
+    cameraError:
+      "Kamera konnte nicht gestartet werden. Bitte Berechtigung prüfen.",
+    logEmpty: "Noch keine Scans in dieser Sitzung",
+    logPendingRent: "Ausleihe von „{title}“ an {name} wird verarbeitet …",
+    logPendingReturn: "Rückgabe von „{title}“ wird verarbeitet …",
+    logRented: "„{title}“ an {name} ausgeliehen",
+    logReturned: "„{title}“ zurückgegeben",
+    logUnavailable: "„{title}“ hat Status {status}, keine Aktion möglich",
+    logNeedsUser: "Bitte zuerst eine Nutzer:in auswählen",
+    logUnknownId: "Ausleih-ID {id} nicht gefunden",
+    logActionFailed: "Aktion fehlgeschlagen, bitte erneut versuchen",
+    toastUnknownIsbnRedirect: "Unbekannte ISBN — neues Buch anlegen",
+    undo: "Rückgängig",
+    undone: "Rückgängig gemacht",
+    lastScannedLabel: "Zuletzt gescannt",
+    lastScannedEmpty: "Noch kein Cover",
   },
 };
 

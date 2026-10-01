@@ -63,7 +63,7 @@ export default function Register({
         );
       }
 
-      router.push("/");
+      router.push("/manage");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t("register.errorUnknown"),

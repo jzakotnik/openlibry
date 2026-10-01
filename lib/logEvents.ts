@@ -4,7 +4,7 @@ export const LogEvents = {
   BOOK_UPDATED: "book.updated",
   BOOK_DELETED: "book.deleted",
   BOOK_LIST_FETCHED: "book.list.fetched",
-  SEARCH_ERROR: "book.lust.search",
+  SEARCH_ERROR: "book.list.search",
 
   // Rental operations
   BOOK_RENTED: "book.rented",
@@ -12,6 +12,7 @@ export const LogEvents = {
   BOOK_EXTENDED: "book.extended",
   BOOK_RENTAL_CHECKED: "book.rental.checked",
   BOOK_RENTAL_REJECTED: "book.rental.rejected",
+  BOOK_MARKED_LOST: "book.marked_lost",
 
   // User operations
   USER_CREATED: "user.created",

@@ -31,6 +31,10 @@ export const es: Dictionary = {
       title: "Préstamos",
       subtitle: "Préstamo y devolución",
     },
+    scan: {
+      title: "Préstamo Express",
+      subtitle: "Prestar escaneando",
+    },
     user: {
       title: "Usuarios",
       subtitle: "Gestión de usuarios",
@@ -83,7 +87,16 @@ export const es: Dictionary = {
 
     toastAlreadyRented: "El libro {bookId} ya está prestado",
     toastBookNotFound: "Libro {bookId} no encontrado",
+    toastUserInactive:
+      "El usuario está desactivado y no puede tomar libros en préstamo",
+    toastSelectUserFirst: "Por favor, selecciona primero un usuario",
+    toastBookUnavailableStatus:
+      '"{title}" tiene el estado {status} y no se puede prestar',
     showingFirst: "Más resultados disponibles",
+
+    inactiveUserBadge: "Inactivo",
+    rentDisabledInactiveUser:
+      "El usuario está desactivado y no puede tomar libros en préstamo",
 
     statusBroken: "Dañado",
     statusPresentation: "Ejemplar de muestra",
@@ -123,9 +136,9 @@ export const es: Dictionary = {
     ariaLabel: "search users",
     searchSettings: "Configuración de búsqueda",
     cancelSelection: "Cancelar selección",
-    selectAll: "Seleccionar todos",
+    selectAll: "Seleccionar los {total} usuarios de la base de datos",
     newUser: "Crear nuevo usuario",
-    selected: "seleccionado",
+    selected: "de {total} usuarios seleccionados (toda la base de datos)",
     deselect: "Deseleccionar",
     actions: "Acciones",
     increaseGrade: "Subir de curso",
@@ -169,6 +182,7 @@ export const es: Dictionary = {
     userIdLabel: "ID de usuario",
     cancel: "Cancelar",
     create: "Crear",
+    invalidId: "El ID de usuario debe ser un número positivo mayor que 0",
   },
   userEditForm: {
     bookSingular: "libro",
@@ -200,6 +214,10 @@ export const es: Dictionary = {
     save: "Guardar",
     print: "Imprimir",
     delete: "Eliminar",
+    deleteWarningOne:
+      "Este usuario todavía tiene 1 libro prestado. Al eliminar el usuario, ese libro se marcará como perdido.",
+    deleteWarningMany:
+      "Este usuario todavía tiene {count} libros prestados. Al eliminar el usuario, esos libros se marcarán como perdidos.",
   },
   bookEditForm: {
     save: "Guardar",
@@ -1217,5 +1235,37 @@ export const es: Dictionary = {
       networkError: "Error de red",
       unknown: "Error desconocido",
     },
+  },
+
+  // ── Central scan drawer (issue #480) ──────────────────────────────────
+  scan: {
+    openAria: "Abrir modo de escaneo",
+    title: "Préstamo Express",
+    userLabel: "Préstamo para",
+    userPlaceholder: "Selecciona un usuario",
+    userHintReturnWorksWithoutUser:
+      "No es necesario seleccionar un usuario para devolver un libro.",
+    inputPlaceholder: "Escanea ISBN o ID de préstamo",
+    inputAria: "scan input",
+    resetButton: "Restablecer",
+    resetAria: "Restablecer para la siguiente persona",
+    cameraLabel: "Escaneo por cámara",
+    cameraStart: "Cámara encendida",
+    cameraStop: "Cámara apagada",
+    cameraError: "No se pudo iniciar la cámara. Comprueba los permisos.",
+    logEmpty: "Todavía no hay escaneos en esta sesión",
+    logPendingRent: 'Prestando "{title}" a {name} …',
+    logPendingReturn: 'Devolviendo "{title}" …',
+    logRented: '"{title}" prestado a {name}',
+    logReturned: '"{title}" devuelto',
+    logUnavailable: '"{title}" tiene el estado {status}, sin acción posible',
+    logNeedsUser: "Por favor, selecciona primero un usuario",
+    logUnknownId: "ID de préstamo {id} no encontrado",
+    logActionFailed: "La acción falló, inténtalo de nuevo",
+    toastUnknownIsbnRedirect: "ISBN desconocido — crear nuevo libro",
+    undo: "Deshacer",
+    undone: "Deshecho",
+    lastScannedLabel: "Último escaneado",
+    lastScannedEmpty: "Aún sin portada",
   },
 };

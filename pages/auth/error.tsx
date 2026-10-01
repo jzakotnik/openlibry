@@ -85,7 +85,7 @@ export default function Error({
 
             {/* Back to login */}
             <a
-              href="/"
+              href="/auth/login"
               className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 text-sm font-medium text-white rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
               style={{ backgroundColor: "#12556F" }}
             >

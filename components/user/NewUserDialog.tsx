@@ -36,10 +36,14 @@ export default function NewUserDialog({
   }, [maxUserID]);
 
   const displayId = idAuto ? maxUserID : idValue;
+  const isIdValid = idAuto || (Number.isInteger(idValue) && idValue > 0);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+      <DialogContent
+        className="gap-0 overflow-hidden p-0 sm:max-w-md"
+        data-cy="new-user-dialog"
+      >
         {/* ── Gradient header ── */}
         <div className="relative bg-gradient-to-br from-primary to-primary/80 px-6 pb-8 pt-6">
           {/* Decorative circles */}
@@ -93,6 +97,7 @@ export default function NewUserDialog({
               id="id-auto"
               checked={idAuto}
               onCheckedChange={(v) => setIdAuto(v === true)}
+              data-cy="new-user-id-auto-checkbox"
             />
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
@@ -141,16 +146,23 @@ export default function NewUserDialog({
                 disabled={idAuto}
                 value={idValue}
                 onChange={(e) => {
-                  setIdValue(
-                    parseInt(e.target.value) ? parseInt(e.target.value) : 0,
-                  );
+                  const parsed = parseInt(e.target.value, 10);
+                  setIdValue(Number.isNaN(parsed) ? 0 : parsed);
                 }}
                 className={cn(
                   "pl-9 tabular-nums",
                   !idAuto && "border-primary/60",
+                  !idAuto && !isIdValid && "border-destructive",
                 )}
+                aria-invalid={!idAuto && !isIdValid}
+                data-cy="new-user-id-input"
               />
             </div>
+            {!idAuto && !isIdValid && (
+              <p className="text-xs text-destructive">
+                {t("newUserDialog.invalidId")}
+              </p>
+            )}
           </div>
         </div>
 
@@ -162,12 +174,15 @@ export default function NewUserDialog({
             variant="ghost"
             onClick={() => setOpen(false)}
             className="text-sm text-muted-foreground"
+            data-cy="new-user-cancel-button"
           >
             {t("newUserDialog.cancel")}
           </Button>
           <Button
             onClick={() => onCreate(idValue, idAuto)}
+            disabled={!isIdValid}
             className="gap-2 rounded-lg px-5 text-sm font-semibold shadow-sm"
+            data-cy="new-user-create-button"
           >
             <UserPlus size={16} />
             {t("newUserDialog.create")}

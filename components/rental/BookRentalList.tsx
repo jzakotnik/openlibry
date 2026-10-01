@@ -18,11 +18,13 @@ import {
 
 import dayjs from "dayjs";
 
+import { useRouter } from "next/router";
 import React, { useCallback } from "react";
 
 import { BookType } from "@/entities/BookType";
 import { UserType } from "@/entities/UserType";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { useSmartScan } from "@/hooks/useSmartScan";
 import { t } from "@/lib/i18n";
 import userNameforBook from "@/lib/utils/lookups";
 import { canExtendBook } from "@/lib/utils/rentalUtils";
@@ -67,6 +69,7 @@ const BookList = React.memo(function BookList({
   renderedBooks,
   users,
   userExpanded,
+  selectedUserInactive,
   maxExtensions,
   renderLimit,
   handleExtendBookButton,
@@ -76,6 +79,7 @@ const BookList = React.memo(function BookList({
   renderedBooks: Array<BookType>;
   users: Array<UserType>;
   userExpanded: number | false;
+  selectedUserInactive: boolean;
   extensionDurationDays: number;
   maxExtensions: number;
   renderLimit?: number;
@@ -204,21 +208,28 @@ const BookList = React.memo(function BookList({
                   {userExpanded && isAvailable && (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            handleRentBookButton(b.id!, userExpanded)
-                          }
-                          aria-label={t("rental.rentAria")}
-                          data-cy={`book_rent_button_${b.id}`}
-                          className="h-8 w-8 text-primary hover:bg-primary/10"
-                        >
-                          <ListPlus className="h-4 w-4" />
-                        </Button>
+                        <span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={selectedUserInactive}
+                            onClick={() =>
+                              handleRentBookButton(b.id!, userExpanded)
+                            }
+                            aria-label={t("rental.rentAria")}
+                            data-cy={`book_rent_button_${b.id}`}
+                            className="h-8 w-8 text-primary hover:bg-primary/10"
+                          >
+                            <ListPlus className="h-4 w-4" />
+                          </Button>
+                        </span>
                       </TooltipTrigger>
-                      <TooltipContent>{t("rental.rent")}</TooltipContent>
+                      <TooltipContent>
+                        {selectedUserInactive
+                          ? t("rental.rentDisabledInactiveUser")
+                          : t("rental.rent")}
+                      </TooltipContent>
                     </Tooltip>
                   )}
                 </div>
@@ -306,8 +317,64 @@ export default function BookRentalList({
   sortBy,
   renderLimit,
 }: BookPropsType) {
+  const router = useRouter();
   const { renderedBooks, bookSearchInput, handleInputChange, handleClear } =
     useBookSearch(books, { sort: sortBy, perPage: renderLimit ?? 100 });
+
+  const selectedUser =
+    userExpanded !== false ? users.find((u) => u.id === userExpanded) : null;
+  const selectedUserInactive = selectedUser ? !selectedUser.active : false;
+
+  const { handleScan } = useSmartScan({
+    books,
+    hasUser: userExpanded !== false,
+    onRent: useCallback(
+      (book: BookType) => {
+        if (selectedUserInactive) {
+          toast.warning(t("rental.toastUserInactive"), {
+            id: "scan-user-inactive",
+          });
+          return;
+        }
+        handleRentBookButton(book.id!, userExpanded as number);
+        handleClear();
+      },
+      [selectedUserInactive, handleRentBookButton, userExpanded, handleClear],
+    ),
+    onReturn: useCallback(
+      (book: BookType) => {
+        handleReturnBookButton(book.id!, book.userId!);
+        handleClear();
+      },
+      [handleReturnBookButton, handleClear],
+    ),
+    onUnavailable: useCallback((book: BookType) => {
+      toast.warning(
+        t("rental.toastBookUnavailableStatus", {
+          title: book.title ?? "",
+          status: getStatusLabel(book.rentalStatus),
+        }),
+        { id: "scan-book-unavailable" },
+      );
+    }, []),
+    onNeedsUser: useCallback(() => {
+      // Stable id so a barcode scanner re-firing Enter (or a stray repeat
+      // keypress) updates this one toast instead of stacking duplicates.
+      toast.info(t("rental.toastSelectUserFirst"), { id: "scan-needs-user" });
+    }, []),
+    onUnknownIsbn: useCallback(
+      (isbn: string) => {
+        handleClear();
+        router.push(`/book/new?isbn=${isbn}`);
+      },
+      [handleClear, router],
+    ),
+    onUnknownId: useCallback((id: number) => {
+      toast.warning(t("rental.toastBookNotFound", { bookId: id }), {
+        id: "scan-unknown-id",
+      });
+    }, []),
+  });
 
   const handleInputChangeEvent = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -333,29 +400,15 @@ export default function BookRentalList({
         }
       }
 
-      if (e.key === "Enter" && userExpanded) {
-        // Bypass debounce for barcode scan + Enter — feels instant.
-        const bookId = parseInt(bookSearchInput.trim(), 10);
-        const book = books.find((b) => b.id === bookId);
-
-        if (book && book.rentalStatus === "available") {
-          handleRentBookButton(book.id!, userExpanded);
-          handleClear();
-        } else if (book) {
-          toast.warning(t("rental.toastAlreadyRented", { bookId }));
-        } else {
-          toast.warning(t("rental.toastBookNotFound", { bookId }));
-        }
+      if (e.key === "Enter") {
+        // Bypass debounce for barcode scan + Enter — feels instant. The
+        // scanned code decides the action itself (rent/return/create new),
+        // so this works whether or not a user is currently expanded.
+        const raw = bookSearchInput.trim();
+        if (raw) handleScan(raw);
       }
     },
-    [
-      bookSearchInput,
-      handleUserSearchSetFocus,
-      handleClear,
-      userExpanded,
-      books,
-      handleRentBookButton,
-    ],
+    [bookSearchInput, handleUserSearchSetFocus, handleClear, handleScan],
   );
 
   return (
@@ -400,6 +453,7 @@ export default function BookRentalList({
           renderedBooks={renderedBooks}
           users={users}
           userExpanded={userExpanded}
+          selectedUserInactive={selectedUserInactive}
           extensionDurationDays={extensionDurationDays}
           maxExtensions={maxExtensions}
           renderLimit={renderLimit}

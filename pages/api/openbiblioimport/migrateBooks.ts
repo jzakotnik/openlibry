@@ -11,6 +11,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
+import { normalizeIsbn } from "@/entities/book";
 import { prisma } from "@/entities/db";
 
 const MAX_MIGRATION_SIZE = process.env.MAX_MIGRATION_SIZE || "250mb";
@@ -285,7 +286,9 @@ export default async function handler(
         //console.log("Adding book", book);
         //transaction.push(addBook(prisma, book));
         //addBook(prisma, book);
-        transaction.push(prisma.book.create({ data: { ...book } }));
+        transaction.push(
+          prisma.book.create({ data: { ...normalizeIsbn(book) } }),
+        );
         importedBooksCount++;
         return book;
       });

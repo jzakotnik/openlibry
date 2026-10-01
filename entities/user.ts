@@ -234,6 +234,12 @@ export async function countUser(client: PrismaClient) {
 }
 
 export async function addUser(client: PrismaClient, user: UserType) {
+  if (user.id !== undefined && (!Number.isInteger(user.id) || user.id <= 0)) {
+    throw new Error(
+      `Die Nutzer-ID ${user.id} ist ungültig. Sie muss eine positive Zahl größer als 0 sein.`
+    );
+  }
+
   try {
     await addAudit(
       client,
@@ -262,6 +268,16 @@ export async function addUser(client: PrismaClient, user: UserType) {
         "Error in adding User"
       );
     }
+
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      throw new Error(
+        `Die Nutzer-ID ${user.id} ist bereits vergeben. Bitte eine andere ID wählen.`
+      );
+    }
+
     throw e;
   }
 }
@@ -382,29 +398,77 @@ export async function isActive(client: PrismaClient, id: number) {
   return user?.active;
 }
 
+// Deleting a user must never delete their books: any book still rented out
+// by this user is marked "lost" (it can no longer be tracked back to a
+// borrower) and detached, instead of being cascade-deleted from the catalog.
 export async function deleteUser(client: PrismaClient, id: number) {
-  await addAudit(client, "Delete user", id.toString(), 0, id);
-  return await client.user.delete({
-    where: {
-      id,
-    },
+  const rentedBooks = await client.book.findMany({
+    where: { userId: id, rentalStatus: "rented" },
+    select: { id: true, title: true },
   });
+
+  await addAudit(client, "Delete user", id.toString(), 0, id);
+  for (const book of rentedBooks) {
+    await addAudit(
+      client,
+      "Book marked lost due to user deletion",
+      book.title,
+      book.id,
+      id
+    );
+  }
+
+  const [, , deleteResult] = await client.$transaction([
+    client.book.updateMany({
+      where: { userId: id, rentalStatus: "rented" },
+      data: { rentalStatus: "lost", dueDate: null },
+    }),
+    client.book.updateMany({
+      where: { userId: id },
+      data: { userId: null },
+    }),
+    client.user.delete({
+      where: {
+        id,
+      },
+    }),
+  ]);
+
+  if (rentedBooks.length > 0) {
+    businessLogger.info(
+      {
+        event: LogEvents.BOOK_MARKED_LOST,
+        userId: id,
+        bookIds: rentedBooks.map((b) => b.id),
+      },
+      "Books marked lost because their borrower was deleted"
+    );
+  }
+
+  return deleteResult;
 }
 
 export async function deleteManyUsers(
   client: PrismaClient,
   ids: Array<number>
 ) {
-  const transaction = [] as Array<any>;
-  ids.map((i: number) => {
-    transaction.push(
+  const transaction = [
+    client.book.updateMany({
+      where: { userId: { in: ids }, rentalStatus: "rented" },
+      data: { rentalStatus: "lost", dueDate: null },
+    }),
+    client.book.updateMany({
+      where: { userId: { in: ids } },
+      data: { userId: null },
+    }),
+    ...ids.map((i: number) =>
       client.user.delete({
         where: {
           id: i,
         },
       })
-    );
-  });
+    ),
+  ] as Array<any>;
 
   const result = await client.$transaction(transaction);
   businessLogger.info(
@@ -415,5 +479,7 @@ export async function deleteManyUsers(
     },
     "Batch delete user database operation succeeded"
   );
-  return result;
+  // Drop the two book.updateMany results at the front; callers expect the
+  // per-user delete results as before.
+  return result.slice(2);
 }

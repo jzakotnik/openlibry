@@ -50,7 +50,9 @@ export default async function handler(
           },
           "Error creating user",
         );
-        res.status(400).json({ result: "ERROR: " + error });
+        const message =
+          error instanceof Error ? error.message : "ERROR: " + error;
+        res.status(400).json({ result: message });
       }
       break;
     }

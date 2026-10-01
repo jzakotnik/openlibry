@@ -90,6 +90,7 @@ interface UserSearchBarProps {
   onSelectAll: () => void;
   onCreateUser: () => void;
   checked: Record<string, boolean>;
+  totalUsers: number;
   onIncreaseGrade: () => void;
   onDeleteUsers: () => void;
   confirmDelete: boolean;
@@ -104,6 +105,7 @@ export default function UserSearchBar({
   onSelectAll,
   onCreateUser,
   checked,
+  totalUsers,
   onIncreaseGrade,
   onDeleteUsers,
   confirmDelete,
@@ -139,6 +141,7 @@ export default function UserSearchBar({
             tooltip={t("userSearchBar.searchSettings")}
             onClick={onToggleSettings}
             active={showSettings}
+            data-cy="user_search_settings_toggle"
           />
 
           <Separator orientation="vertical" className="mx-0.5 h-6" />
@@ -148,7 +151,7 @@ export default function UserSearchBar({
             tooltip={
               hasSelection
                 ? t("userSearchBar.cancelSelection")
-                : t("userSearchBar.selectAll")
+                : t("userSearchBar.selectAll", { total: totalUsers })
             }
             onClick={onSelectAll}
             badgeCount={hasSelection ? selectedCount : undefined}
@@ -158,6 +161,7 @@ export default function UserSearchBar({
             icon={<UserPlus size={18} />}
             tooltip={t("userSearchBar.newUser")}
             onClick={onCreateUser}
+            data-cy="user_search_new_user_button"
           />
         </div>
 
@@ -168,7 +172,7 @@ export default function UserSearchBar({
               <div className="flex items-center gap-2">
                 <Badge className="rounded-full">{selectedCount}</Badge>
                 <span className="text-sm font-medium text-muted-foreground">
-                  {t("userSearchBar.selected")}
+                  {t("userSearchBar.selected", { total: totalUsers })}
                 </span>
                 <Button
                   variant="ghost"
@@ -232,7 +236,7 @@ export default function UserSearchBar({
         </Collapsible>
 
         {/* ── Settings panel ── */}
-        <Collapsible open={showSettings}>
+        <Collapsible open={showSettings} data-cy="user_search_settings_panel">
           <CollapsibleContent>
             <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
               {settingsContent}

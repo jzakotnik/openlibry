@@ -14,7 +14,9 @@ export default function RentSearchParams({
   setUserSearchInput,
 }: RentSearchParamsType) {
   const [isOverdue, setIsOverdue] = React.useState(overdue);
-  const [selectedGrade, setSelectedGrade] = React.useState<string>(grade[0]);
+  const [selectedGrade, setSelectedGrade] = React.useState<string>(
+    grade[0] ?? "",
+  );
 
   useEffect(() => {
     setUserSearchInput(

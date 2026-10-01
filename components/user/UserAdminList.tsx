@@ -223,17 +223,22 @@ export default function UserAdminList({
                           </Tooltip>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-1.5">
-                        <GraduationCap
-                          size={13}
-                          className="text-muted-foreground/50"
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {t("userAdminList.gradePrefix")} {user.schoolGrade}
-                          {user.schoolTeacherName &&
-                            ` · ${user.schoolTeacherName}`}
-                        </span>
-                      </div>
+                      {(user.schoolGrade || user.schoolTeacherName) && (
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <GraduationCap
+                            size={13}
+                            className="text-muted-foreground/50"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {user.schoolGrade &&
+                              `${t("userAdminList.gradePrefix")} ${user.schoolGrade}`}
+                            {user.schoolGrade &&
+                              user.schoolTeacherName &&
+                              " · "}
+                            {user.schoolTeacherName}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Quick Info Badge */}

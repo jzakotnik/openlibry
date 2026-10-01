@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import {
-  convertDateToDayString,
+  convertDateOnlyToUtcIsoString,
   convertStringToDay,
 } from "@/lib/utils/dateutils";
 import { Dispatch } from "react";
@@ -30,12 +30,15 @@ const toInputDate = (value: string | null | undefined): string => {
 };
 
 /**
- * Convert HTML date input value (YYYY-MM-DD) back to the app's internal format.
+ * Convert HTML date input value (YYYY-MM-DD) back to the app's internal
+ * full ISO-8601 format, anchored to UTC midnight so the calendar date
+ * survives round-tripping regardless of the browser/server's local
+ * timezone offset.
  */
 const fromInputDate = (htmlValue: string): string => {
   if (!htmlValue) return "";
   try {
-    return convertDateToDayString(new Date(htmlValue));
+    return convertDateOnlyToUtcIsoString(htmlValue);
   } catch {
     return htmlValue;
   }

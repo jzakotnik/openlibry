@@ -21,7 +21,7 @@ export default function NavTile({
       onClick={onClick}
       data-cy={`index_${slug.substring(1)}_button`}
       className="
-        group relative w-[220px] h-[180px]
+        group relative w-full min-h-[180px]
         flex flex-col items-center justify-center text-center
         p-6 rounded-2xl cursor-pointer overflow-hidden
         bg-white/85 backdrop-blur-xl

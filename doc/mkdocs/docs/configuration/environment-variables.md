@@ -21,6 +21,7 @@ DATABASE_URL=file:./database/dev.db
 | `NEXTAUTH_SECRET`  | Geheimer Seed für Session-Tokens | _(muss gesetzt werden)_ |
 | `SECURITY_HEADERS` | CSRP headers für HTTP calls      | `insecure`              |
 | `LOGIN_IMAGE`      | Hintergrundbild der Login-Seite  | _(leer, eingebautes Standardbild)_ |
+| `OPENLIBRY_ROOT_ROUTE` | Seite, die unter `/` geöffnet wird. `/catalog` macht den öffentlichen Katalog zur Startseite (der interne Bereich bleibt unter `/manage` geschützt). Ungültige Werte fallen auf `/manage` zurück. | `/manage` |
 
 ```env
 AUTH_ENABLED=true

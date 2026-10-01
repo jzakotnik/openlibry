@@ -15,7 +15,7 @@ describe("Rental cleanup on user deletion", () => {
     cy.visit("http://localhost:3000/");
   });
 
-  it("should rent a book, delete the user, and verify the book is also deleted", () => {
+  it("should rent a book, delete the user, and verify the book survives and is marked lost", () => {
     cy.get("[data-cy=index_rental_button]").click();
     cy.url().should("include", "/rental");
 
@@ -74,8 +74,12 @@ describe("Rental cleanup on user deletion", () => {
     cy.get("@rentedBookId").then((bookId) => {
       cy.get("[data-cy=rental_input_searchbook]").type(bookId as unknown as string);
       cy.wait(2000);
-      cy.get(`[data-cy=book_summary_card_${bookId}]`).should("not.exist");
-      cy.get(`[data-cy=book_summary_row_${bookId}]`).should("not.exist");
+      // The book must not be deleted along with its (now removed) borrower -
+      // it stays in the catalog, just no longer assigned to anyone, and is
+      // marked "lost" since it can no longer be traced back to a borrower.
+      cy.get(
+        `[data-cy=book_summary_card_${bookId}] [data-value=lost], [data-cy=book_summary_row_${bookId}] [data-value=lost]`,
+      ).should("exist");
     });
 
     cy.visit("http://localhost:3000/");

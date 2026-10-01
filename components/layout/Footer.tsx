@@ -27,7 +27,7 @@ export default function Footer({ publicView = false }: FooterProps) {
             {t("footer.manage")}
           </a>
         ) : (
-          <a href="./catalog" className="text-inherit hover:underline">
+          <a href="/catalog" className="text-inherit hover:underline">
             {t("footer.publicCatalog")}
           </a>
         )}

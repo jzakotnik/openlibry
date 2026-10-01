@@ -27,12 +27,9 @@ export default function Manage({ showAdminButton }: ManageProps) {
         <Layout showAdminButton={showAdminButton}>
           <div className="max-w-5xl mx-auto px-4 ">
             <div className="flex flex-col items-center gap-15 pt-40 md:pt-48 pb-8 md:pb-16">
-              <div
-                className="
-                grid gap-4 mt-4 w-fit mx-auto
-                grid-cols-1 sm:grid-cols-2 md:grid-cols-4
-              "
-              >
+              {/* Self-sizing grid: fits as many 150–175px tiles per row as have
+                  room, so an uneven item count never strands a lone tile. */}
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,175px))] justify-center gap-3 mt-4 w-full">
                 {publicNavItems.map((item) => (
                   <NavTile
                     key={item.slug}
