@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { getPublicBooks } from "@/entities/book";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { PublicBookType } from "@/entities/PublicBookType";
@@ -58,6 +59,6 @@ export default async function handler(
       },
       "Error fetching public book catalog",
     );
-    return res.status(500).json({ result: "ERROR: could not load catalog" });
+    return res.status(500).json({ result: t("apiErrors.catalogLoadFailed") });
   }
 }

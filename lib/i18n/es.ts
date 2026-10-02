@@ -968,6 +968,37 @@ export const es: Dictionary = {
     logImportUnknownError: "Error desconocido durante la importación",
     logNetworkError: "Error de red: {message}",
   },
+  // Messages returned by the CRUD API routes. Raw database errors are never
+  // sent to the client; these are the safe, translated replacements.
+  apiErrors: {
+    userIdInvalid:
+      "El ID de usuario {id} no es válido. Debe ser un número positivo mayor que 0.",
+    userIdTaken:
+      "El ID de usuario {id} ya está en uso. Por favor, elige otro ID.",
+    userCreateFailed: "No se pudo crear el usuario",
+    userUpdateFailed: "No se pudo guardar el usuario",
+    userDeleteFailed: "No se pudo eliminar el usuario",
+    userLoadFailed: "No se pudo cargar el usuario",
+    usersLoadFailed: "No se pudieron cargar los usuarios",
+    usersDeleteFailed: "No se pudieron eliminar los usuarios",
+    gradesUpdateFailed: "No se pudieron actualizar los cursos",
+    noDataProvided: "No se enviaron datos",
+    bookCreateFailed: "No se pudo crear el libro",
+    bookSaveFailed: "Error al guardar / actualizar",
+    bookDeleteFailed: "No se pudo eliminar el libro",
+    bookLoadFailed: "No se pudo cargar el libro",
+    booksLoadFailed: "No se pudieron cargar los libros",
+    bookRentFailed: "No se pudo prestar el libro",
+    bookReturnFailed: "No se pudo devolver el libro",
+    rentalExtendFailed: "No se pudo ampliar el préstamo",
+    rentalLoadFailed: "No se pudieron cargar los datos de préstamo",
+    catalogLoadFailed: "No se pudo cargar el catálogo",
+    coversListFailed: "No se pudieron listar las portadas",
+    labelsFailed: "No se pudieron generar las etiquetas",
+    auditLoadFailed: "No se pudo cargar el registro de cambios",
+    loginUsernameTaken: "Este nombre de usuario ya está en uso",
+    loginCreateFailed: "No se pudo crear el acceso",
+  },
   excelApi: {
     logTransferStarted: "Iniciando la transferencia a la base de datos",
     errNoOptionSelected:

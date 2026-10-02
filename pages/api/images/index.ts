@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -47,7 +48,7 @@ export default async function handler(
         },
         "Failed to list cover images"
       );
-      res.status(400).json({ result: ["ERROR: could not list cover images"] });
+      res.status(400).json({ result: [t("apiErrors.coversListFailed")] });
     }
   } else {
     errorLogger.warn(

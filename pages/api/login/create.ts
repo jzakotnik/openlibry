@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { prisma } from "@/entities/db";
 import { addLoginUser } from "@/entities/loginuser";
 import { LogEvents } from "@/lib/logEvents";
@@ -65,7 +66,7 @@ async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
         );
         return res
           .status(400)
-          .json({ message: "Username already exists" });
+          .json({ message: t("apiErrors.loginUsernameTaken") });
       }
       errorLogger.error(
         {
@@ -77,7 +78,7 @@ async function createUserHandler(req: NextApiRequest, res: NextApiResponse) {
         },
         "Prisma error creating login user"
       );
-      return res.status(400).json({ message: "Could not create login user" });
+      return res.status(400).json({ message: t("apiErrors.loginCreateFailed") });
     }
 
     errorLogger.error(

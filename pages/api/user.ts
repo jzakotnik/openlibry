@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { publicErrorMessage } from "@/lib/utils/apiErrors";
 import { prisma } from "@/entities/db";
 import { addUser, getAllUsers } from "@/entities/user";
@@ -53,7 +54,7 @@ export default async function handler(
         );
         const message = publicErrorMessage(
           error,
-          "ERROR: could not create user",
+          t("apiErrors.userCreateFailed"),
         );
         res.status(400).json({ result: message });
       }
@@ -79,7 +80,7 @@ export default async function handler(
           },
           "Error getting all users",
         );
-        res.status(400).json({ result: "ERROR: could not load users" });
+        res.status(400).json({ result: t("apiErrors.usersLoadFailed") });
       }
       break;
     }

@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { getLastAudit } from "@/entities/audit";
 import { prisma } from "@/entities/db";
 import { LogEvents } from "@/lib/logEvents";
@@ -26,7 +27,7 @@ export default async function handle(
           },
           "Error getting last audit entry"
         );
-        res.status(400).json({ data: "ERROR: could not load audit log" });
+        res.status(400).json({ data: t("apiErrors.auditLoadFailed") });
       }
       break;
 

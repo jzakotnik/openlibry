@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { UserType } from "@/entities/UserType";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
@@ -252,9 +253,7 @@ export async function countUser(client: PrismaClient) {
 
 export async function addUser(client: PrismaClient, user: UserType) {
   if (user.id !== undefined && (!Number.isInteger(user.id) || user.id <= 0)) {
-    throw userFacingError(
-      `Die Nutzer-ID ${user.id} ist ungültig. Sie muss eine positive Zahl größer als 0 sein.`
-    );
+    throw userFacingError(t("apiErrors.userIdInvalid", { id: user.id }));
   }
 
   try {
@@ -293,9 +292,7 @@ export async function addUser(client: PrismaClient, user: UserType) {
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
     ) {
-      throw userFacingError(
-        `Die Nutzer-ID ${user.id} ist bereits vergeben. Bitte eine andere ID wählen.`
-      );
+      throw userFacingError(t("apiErrors.userIdTaken", { id: user.id! }));
     }
 
     throw e;

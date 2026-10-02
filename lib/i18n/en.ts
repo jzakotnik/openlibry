@@ -950,6 +950,36 @@ export const en: Dictionary = {
     logImportUnknownError: "Unknown import error",
     logNetworkError: "Network error: {message}",
   },
+  // Messages returned by the CRUD API routes. Raw database errors are never
+  // sent to the client; these are the safe, translated replacements.
+  apiErrors: {
+    userIdInvalid:
+      "The user ID {id} is invalid. It must be a positive number greater than 0.",
+    userIdTaken: "The user ID {id} is already taken. Please choose another ID.",
+    userCreateFailed: "The user could not be created",
+    userUpdateFailed: "The user could not be saved",
+    userDeleteFailed: "The user could not be deleted",
+    userLoadFailed: "The user could not be loaded",
+    usersLoadFailed: "The users could not be loaded",
+    usersDeleteFailed: "The users could not be deleted",
+    gradesUpdateFailed: "The school grades could not be updated",
+    noDataProvided: "No data provided",
+    bookCreateFailed: "The book could not be created",
+    bookSaveFailed: "Error while saving / updating",
+    bookDeleteFailed: "The book could not be deleted",
+    bookLoadFailed: "The book could not be loaded",
+    booksLoadFailed: "The books could not be loaded",
+    bookRentFailed: "The book could not be rented",
+    bookReturnFailed: "The book could not be returned",
+    rentalExtendFailed: "The rental could not be extended",
+    rentalLoadFailed: "The rental data could not be loaded",
+    catalogLoadFailed: "The catalog could not be loaded",
+    coversListFailed: "The cover images could not be listed",
+    labelsFailed: "The labels could not be generated",
+    auditLoadFailed: "The audit log could not be loaded",
+    loginUsernameTaken: "This username is already taken",
+    loginCreateFailed: "The login could not be created",
+  },
   excelApi: {
     logTransferStarted: "Starting transfer to database",
     errNoOptionSelected:

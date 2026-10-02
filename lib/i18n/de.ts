@@ -1007,6 +1007,37 @@ export const de = {
     logImportUnknownError: "Unbekannter Fehler beim Import",
     logNetworkError: "Netzwerk-Fehler: {message}",
   },
+  // Messages returned by the CRUD API routes. Raw database errors are never
+  // sent to the client; these are the safe, translated replacements.
+  apiErrors: {
+    userIdInvalid:
+      "Die Nutzer-ID {id} ist ungültig. Sie muss eine positive Zahl größer als 0 sein.",
+    userIdTaken:
+      "Die Nutzer-ID {id} ist bereits vergeben. Bitte eine andere ID wählen.",
+    userCreateFailed: "Der Nutzer konnte nicht angelegt werden",
+    userUpdateFailed: "Der Nutzer konnte nicht gespeichert werden",
+    userDeleteFailed: "Der Nutzer konnte nicht gelöscht werden",
+    userLoadFailed: "Der Nutzer konnte nicht geladen werden",
+    usersLoadFailed: "Die Nutzer konnten nicht geladen werden",
+    usersDeleteFailed: "Die Nutzer konnten nicht gelöscht werden",
+    gradesUpdateFailed: "Die Klassenstufen konnten nicht aktualisiert werden",
+    noDataProvided: "Keine Daten übermittelt",
+    bookCreateFailed: "Das Buch konnte nicht angelegt werden",
+    bookSaveFailed: "Fehler beim Speichern / Update",
+    bookDeleteFailed: "Das Buch konnte nicht gelöscht werden",
+    bookLoadFailed: "Das Buch konnte nicht geladen werden",
+    booksLoadFailed: "Die Bücher konnten nicht geladen werden",
+    bookRentFailed: "Das Buch konnte nicht ausgeliehen werden",
+    bookReturnFailed: "Das Buch konnte nicht zurückgegeben werden",
+    rentalExtendFailed: "Die Ausleihe konnte nicht verlängert werden",
+    rentalLoadFailed: "Die Ausleihdaten konnten nicht geladen werden",
+    catalogLoadFailed: "Der Katalog konnte nicht geladen werden",
+    coversListFailed: "Die Cover-Bilder konnten nicht aufgelistet werden",
+    labelsFailed: "Die Etiketten konnten nicht erstellt werden",
+    auditLoadFailed: "Das Änderungsprotokoll konnte nicht geladen werden",
+    loginUsernameTaken: "Dieser Benutzername ist bereits vergeben",
+    loginCreateFailed: "Das Login konnte nicht angelegt werden",
+  },
   excelApi: {
     // Initial log seed (sent back to the wizard)
     logTransferStarted: "Starte den Transfer in die Datenbank",

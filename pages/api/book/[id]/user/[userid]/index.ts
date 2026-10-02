@@ -1,4 +1,5 @@
 // pages/api/book/[id]/user/[userid]/index.ts
+import { t } from "@/lib/i18n";
 import { BookType } from "@/entities/BookType";
 import { hasRentedBook, rentBook, returnBook } from "@/entities/book";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -95,7 +96,7 @@ export default async function handler(
         },
         "Failed to rent book",
       );
-      res.status(500).json({ result: "ERROR: could not rent book" });
+      res.status(500).json({ result: t("apiErrors.bookRentFailed") });
     }
     return;
   }
@@ -162,7 +163,7 @@ export default async function handler(
         },
         "Failed to return book",
       );
-      res.status(500).json({ result: "ERROR: could not return book" });
+      res.status(500).json({ result: t("apiErrors.bookReturnFailed") });
     }
     return;
   }

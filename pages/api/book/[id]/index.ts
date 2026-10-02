@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { BookType } from "@/entities/BookType";
 import { deleteBook, getBook, updateBook } from "@/entities/book";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -51,7 +52,7 @@ export default async function handle(
           },
           "Failed to delete book"
         );
-        res.status(400).json({ data: "ERROR DELETE: could not delete book" });
+        res.status(400).json({ data: t("apiErrors.bookDeleteFailed") });
       }
       break;
 
@@ -67,7 +68,7 @@ export default async function handle(
           },
           "Book update request missing body"
         );
-        return res.status(400).json({ message: "Keine Daten übermittelt" });
+        return res.status(400).json({ message: t("apiErrors.noDataProvided") });
       }
 
       const bookdata = req.body as BookType;
@@ -111,7 +112,7 @@ export default async function handle(
         );
         res
           .status(400)
-          .json({ message: "Fehler beim Speichern / Update" });
+          .json({ message: t("apiErrors.bookSaveFailed") });
       }
       break;
 
@@ -151,7 +152,7 @@ export default async function handle(
           },
           "Failed to retrieve book"
         );
-        res.status(400).json({ data: "ERROR: could not load book" });
+        res.status(400).json({ data: t("apiErrors.bookLoadFailed") });
       }
       break;
 

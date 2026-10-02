@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { BookType } from "@/entities/BookType";
 import { addBook, getAllBooks } from "@/entities/book";
 import { prisma } from "@/entities/db";
@@ -40,7 +41,7 @@ export default async function handler(
           },
           "Error creating book"
         );
-        res.status(400).json({ result: "ERROR: could not create book" });
+        res.status(400).json({ result: t("apiErrors.bookCreateFailed") });
       }
       break;
     }
@@ -62,7 +63,7 @@ export default async function handler(
           },
           "Error getting all books"
         );
-        res.status(400).json({ result: "ERROR: could not load books" });
+        res.status(400).json({ result: t("apiErrors.booksLoadFailed") });
       }
       break;
     }

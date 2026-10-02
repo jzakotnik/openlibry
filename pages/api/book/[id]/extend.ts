@@ -6,6 +6,7 @@
 // The date is computed server-side so the client never needs to send it.
 // Returns 409 { result: "already_extended" } if renewalCount >= MAX_EXTENSIONS.
 
+import { t } from "@/lib/i18n";
 import { extendBook, getBook } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
@@ -88,6 +89,6 @@ export default async function handler(
       },
       "Failed to extend book",
     );
-    return res.status(500).json({ result: "ERROR: could not extend rental" });
+    return res.status(500).json({ result: t("apiErrors.rentalExtendFailed") });
   }
 }

@@ -1,3 +1,4 @@
+import { t } from "@/lib/i18n";
 import { UserType } from "@/entities/UserType";
 import { deleteUser, getUser, updateUser } from "@/entities/user";
 import { replaceUserDateString } from "@/lib/utils/dateutils";
@@ -52,7 +53,7 @@ export default async function handle(
           },
           "Failed to delete user"
         );
-        res.status(400).json({ data: "ERROR DELETE: could not delete user" });
+        res.status(400).json({ data: t("apiErrors.userDeleteFailed") });
       }
       break;
 
@@ -109,7 +110,7 @@ export default async function handle(
           },
           "Failed to update user"
         );
-        res.status(400).json({ data: "ERROR UPDATE: could not update user" });
+        res.status(400).json({ data: t("apiErrors.userUpdateFailed") });
       }
       break;
 
@@ -154,7 +155,7 @@ export default async function handle(
           },
           "Failed to retrieve user"
         );
-        res.status(400).json({ data: "ERROR: could not load user" });
+        res.status(400).json({ data: t("apiErrors.userLoadFailed") });
       }
       break;
 
