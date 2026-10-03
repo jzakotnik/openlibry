@@ -13,7 +13,10 @@ import { BookType } from "@/entities/BookType";
 import { prisma, reconnectPrisma } from "@/entities/db";
 import { useBookSearch } from "@/hooks/useBookSearch";
 import { t } from "@/lib/i18n";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import {
+  formatCalendarDayString,
+  formatInstantDayString,
+} from "@/lib/utils/dateutils";
 import { toast } from "sonner";
 
 interface SearchableBookType extends BookType {
@@ -262,12 +265,12 @@ export const getServerSideProps: GetServerSideProps = async (
 
     const books = allBooks.map((b) => {
       const newBook = { ...b } as any;
-      newBook.createdAt = convertDateToDayString(b.createdAt);
-      newBook.updatedAt = convertDateToDayString(b.updatedAt);
+      newBook.createdAt = formatInstantDayString(b.createdAt);
+      newBook.updatedAt = formatInstantDayString(b.updatedAt);
       newBook.rentedDate = b.rentedDate
-        ? convertDateToDayString(b.rentedDate)
+        ? formatCalendarDayString(b.rentedDate)
         : "";
-      newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+      newBook.dueDate = b.dueDate ? formatCalendarDayString(b.dueDate) : "";
       newBook.searchableTopics = b.topics ? b.topics.split(";") : "";
       return newBook;
     });

@@ -2,9 +2,14 @@ import { BookType } from "@/entities/BookType";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
+import {
+  addCalendarDays,
+  convertDateOnlyToUtcIsoString,
+  todayAsUtcIsoString,
+  todayDateString,
+} from "@/lib/utils/dateutils";
 import { cleanIsbn } from "@/lib/utils/isbn";
 import { Prisma, PrismaClient } from "@prisma/client";
-import dayjs from "dayjs";
 import fs from "fs/promises";
 import path from "path";
 import { addAudit } from "./audit";
@@ -447,10 +452,10 @@ export async function extendBook(
     const book = await getBook(client, bookid);
     if (!book?.dueDate) return null; // you can't extend a book without a due date
 
-    //
-    // this was using the last due date instead of today
-    // const updatedDueDate = dayjs(book.dueDate).add(days, "day").toISOString();
-    const updatedDueDate = dayjs().add(days, "day").toISOString();
+    // Deliberately extends from today, not from the book's current due
+    // date — the librarian is granting `days` more from the moment they
+    // extend, not stacking onto whatever was left of the previous loan.
+    const updatedDueDate = addCalendarDays(todayDateString(), days);
     const updatedBook = await client.book.update({
       where: { id: bookid },
       data: { renewalCount: { increment: 1 }, dueDate: updatedDueDate },
@@ -504,7 +509,7 @@ export async function returnBook(client: PrismaClient, bookid: number) {
           renewalCount: 0,
           rentalStatus: "available",
           dueDate: null,
-          rentedDate: new Date().toISOString(),
+          rentedDate: todayAsUtcIsoString(),
         },
       }),
     );
@@ -666,16 +671,15 @@ export async function rentBook(
       },
     }),
   );
-  const now = dayjs();
-  const dueDate = now.add(duration, "day");
+  const today = todayDateString();
   transaction.push(
     client.book.update({
       where: { id: bookid },
       data: {
         rentalStatus: "rented",
         renewalCount: 0,
-        rentedDate: now.toISOString(),
-        dueDate: dueDate.toISOString(),
+        rentedDate: convertDateOnlyToUtcIsoString(today),
+        dueDate: addCalendarDays(today, duration),
       },
     }),
   );

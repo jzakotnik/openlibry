@@ -2,7 +2,6 @@ import Layout from "@/components/layout/Layout";
 import { getAllBooks, getRentedBooksWithUsers } from "@/entities/book";
 import { getAllUsers } from "@/entities/user";
 import { t } from "@/lib/i18n";
-import dayjs from "dayjs";
 
 import BookLabelEditorCard from "@/components/labels/BookLabelEditorCard";
 import BookLabelPrintCard from "@/components/labels/BookLabelPrintCard";
@@ -19,7 +18,12 @@ import { prisma } from "@/entities/db";
 import { UserType } from "@/entities/UserType";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger } from "@/lib/logger";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import {
+  calendarDaysDiff,
+  formatCalendarDayString,
+  formatInstantDayString,
+  todayDateString,
+} from "@/lib/utils/dateutils";
 import {
   getBookTopicCounts,
   getSchoolGradeCounts,
@@ -140,28 +144,28 @@ export async function getServerSideProps() {
   const allUsers = await getAllUsers(prisma);
   const users = allUsers.map((u) => {
     const newUser = { ...u } as any;
-    newUser.createdAt = convertDateToDayString(u.createdAt);
-    newUser.updatedAt = convertDateToDayString(u.updatedAt);
+    newUser.createdAt = formatInstantDayString(u.createdAt);
+    newUser.updatedAt = formatInstantDayString(u.updatedAt);
     return newUser;
   });
 
   const allBooks = await getAllBooks(prisma);
   const books = allBooks.map((b) => {
     const newBook = { ...b } as any;
-    newBook.createdAt = convertDateToDayString(b.createdAt);
-    newBook.updatedAt = convertDateToDayString(b.updatedAt);
+    newBook.createdAt = formatInstantDayString(b.createdAt);
+    newBook.updatedAt = formatInstantDayString(b.updatedAt);
     newBook.rentedDate = b.rentedDate
-      ? convertDateToDayString(b.rentedDate)
+      ? formatCalendarDayString(b.rentedDate)
       : "";
-    newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+    newBook.dueDate = b.dueDate ? formatCalendarDayString(b.dueDate) : "";
     return newBook;
   });
 
   const allRentals = await getRentedBooksWithUsers(prisma);
   const rentals = allRentals.map((r) => {
-    const due = dayjs(r.dueDate);
-    const today = dayjs();
-    const diff = today.diff(due, "days");
+    // Positive = overdue by that many whole calendar days (see the
+    // remainingDays sign-convention note in lib/utils/rentalUtils.ts).
+    const diff = calendarDaysDiff(todayDateString(), r.dueDate);
 
     return {
       id: r.id,
@@ -169,7 +173,7 @@ export async function getServerSideProps() {
       lastName: r.user?.lastName || "",
       firstName: r.user?.firstName || "",
       remainingDays: diff,
-      dueDate: convertDateToDayString(due.toDate()),
+      dueDate: formatCalendarDayString(r.dueDate),
       renewalCount: r.renewalCount ?? 0,
       userid: r.user?.id ?? null,
     };

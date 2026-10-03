@@ -8,7 +8,8 @@ import { UserType } from "@/entities/UserType";
 import { getRentalConfig } from "@/lib/config/rentalConfig";
 import { t } from "@/lib/i18n";
 import {
-  convertDateToDayString,
+  formatCalendarDayString,
+  formatInstantDayString,
   replaceUserDateString,
 } from "@/lib/utils/dateutils";
 import { extendBookApi } from "@/lib/utils/rentalUtils";
@@ -184,12 +185,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const books = allBooks.map((b: BookType) => {
     const newBook = { ...b } as any;
-    newBook.createdAt = convertDateToDayString(b.createdAt);
-    newBook.updatedAt = convertDateToDayString(b.updatedAt);
+    newBook.createdAt = formatInstantDayString(b.createdAt);
+    newBook.updatedAt = formatInstantDayString(b.updatedAt);
     newBook.rentedDate = b.rentedDate
-      ? convertDateToDayString(b.rentedDate)
+      ? formatCalendarDayString(b.rentedDate)
       : "";
-    newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+    newBook.dueDate = b.dueDate ? formatCalendarDayString(b.dueDate) : "";
     return newBook;
   });
 

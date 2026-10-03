@@ -7,10 +7,12 @@ import { getAllUsers } from "@/entities/user";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
 import {
-  convertDateToDayString,
+  calendarDaysDiff,
+  formatCalendarDayString,
+  formatInstantDayString,
   replaceUserDateString,
+  todayDateString,
 } from "@/lib/utils/dateutils";
-import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
@@ -43,29 +45,29 @@ export default async function handler(
     const allBooks = await getAllBooks(prisma);
     const books = allBooks.map((b) => {
       const newBook = { ...b } as any; //define a better type there with conversion of Date to string
-      newBook.createdAt = convertDateToDayString(b.createdAt);
-      newBook.updatedAt = convertDateToDayString(b.updatedAt);
+      newBook.createdAt = formatInstantDayString(b.createdAt);
+      newBook.updatedAt = formatInstantDayString(b.updatedAt);
       newBook.rentedDate = b.rentedDate
-        ? convertDateToDayString(b.rentedDate)
+        ? formatCalendarDayString(b.rentedDate)
         : "";
-      newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+      newBook.dueDate = b.dueDate ? formatCalendarDayString(b.dueDate) : "";
       return newBook;
     });
 
     //calculate the rental information
     const allRentals = await getRentedBooksWithUsers(prisma);
+    const today = todayDateString();
     const rentals = allRentals.map((r: any) => {
-      //calculate remaining days for the rental
-      const due = dayjs(r.dueDate);
-      const today = dayjs();
-      const diff = today.diff(due, "days");
+      // Positive = overdue by that many whole calendar days (see the
+      // remainingDays sign-convention note in lib/utils/rentalUtils.ts).
+      const diff = calendarDaysDiff(today, r.dueDate);
       return {
         id: r.id,
         title: r.title,
         lastName: r.user?.lastName,
         firstName: r.user?.firstName,
         remainingDays: diff,
-        dueDate: convertDateToDayString(due.toDate()),
+        dueDate: formatCalendarDayString(r.dueDate),
         renewalCount: r.renewalCount,
         userid: r.user?.id,
       };

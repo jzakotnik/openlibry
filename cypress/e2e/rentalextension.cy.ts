@@ -1,17 +1,36 @@
 /// <reference types="cypress" />
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Matches lib/utils/dateutils.ts's getAppTimezone() default. The server
+// always computes "today" in this timezone regardless of the host/CI
+// container's own timezone, so this test must use the same zone for its
+// expected-date math — otherwise it would flake for roughly the couple of
+// hours each day where the CI runner's ambient timezone and the app's
+// configured timezone disagree on the current calendar date.
+const APP_TZ = Cypress.env("APP_TIMEZONE") || "Europe/Berlin";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-const formatDE = (d: Date) =>
-  `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+// rentedDate/dueDate are always stored as UTC-midnight-anchored calendar
+// days (see formatCalendarDayString) — read them back via UTC, not this
+// process's local timezone.
+const formatDE = (d: Date | string) => {
+  const x = dayjs.utc(d);
+  return `${pad(x.date())}.${pad(x.month() + 1)}.${x.year()}`;
+};
 
-const formatISO = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const formatISO = (d: Date | string) => dayjs.utc(d).format("YYYY-MM-DD");
 
-const addDays = (days: number, base: Date = new Date()): Date => {
-  const d = new Date(base);
-  d.setDate(d.getDate() + days);
-  return d;
+const addDays = (days: number, base?: Date | string): Date => {
+  const startDateStr = base
+    ? dayjs.utc(base).format("YYYY-MM-DD")
+    : dayjs().tz(APP_TZ).format("YYYY-MM-DD");
+  return dayjs.utc(startDateStr).add(days, "day").toDate();
 };
 
 const RENTAL_DURATION_DAYS: number = Cypress.env("RENTAL_DURATION_DAYS") ?? 21;

@@ -4,6 +4,7 @@ import { t } from "@/lib/i18n";
 import { LogEvents } from "@/lib/logEvents";
 import { businessLogger, errorLogger } from "@/lib/logger";
 import { resolveCustomPath } from "@/lib/utils/customPath";
+import { calendarDaysDiff, todayDateString } from "@/lib/utils/dateutils";
 import dayjs from "dayjs";
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
@@ -525,11 +526,14 @@ function buildReminderData(records: RentalRecord[]): ReminderData[] {
       overdue_username: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
       schoolGrade: user.schoolGrade ?? "",
       reminder_min_count: REMINDER_RENEWAL_COUNT,
-      today_date: dayjs().format("DD.MM.YYYY"),
+      today_date: dayjs.utc(todayDateString()).format("DD.MM.YYYY"),
       book_list: userRecords.map((r) => ({
         title: r.title ?? "",
         author: r.author ?? "",
-        rentedDate: dayjs(r.rentedDate).format("DD.MM.YYYY"),
+        // rentedDate is a calendar-day-only value (UTC-midnight-anchored) —
+        // read it back via UTC, not the server host's local timezone, so
+        // the printed date always matches the day it was actually rented.
+        rentedDate: dayjs.utc(r.rentedDate).format("DD.MM.YYYY"),
         bookId: r.id,
       })),
     });
@@ -776,13 +780,15 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    // Map and filter overdue rentals
-    const today = dayjs();
+    // Map and filter overdue rentals. Calendar-day-only comparison (see
+    // calendarDaysDiff) — a book due "today" isn't overdue yet regardless
+    // of what time it currently is, and "today" is the school's
+    // configured timezone, not the server host's.
+    const today = todayDateString();
     const overdueRecords: RentalRecord[] = [];
 
     for (const r of allRentals) {
-      const due = dayjs(r.dueDate);
-      const daysOverdue = today.diff(due, "days");
+      const daysOverdue = calendarDaysDiff(today, r.dueDate);
 
       if (daysOverdue <= 0) continue; // Not overdue
 
@@ -891,7 +897,7 @@ function sendDocx(
   buffer: Buffer,
   filenamePrefix: string,
 ) {
-  const filename = `${filenamePrefix}-${dayjs().format("YYYY-MM-DD")}.docx`;
+  const filename = `${filenamePrefix}-${todayDateString()}.docx`;
 
   res.writeHead(200, {
     "Content-Type":
