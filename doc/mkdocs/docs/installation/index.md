@@ -1,6 +1,12 @@
 # Installation
 
-OpenLibry lässt sich flexibel installieren. Zwei Fragen helfen bei der Entscheidung:
+OpenLibry lässt sich flexibel installieren. Drei Fragen helfen bei der Entscheidung:
+
+## 0. Wo soll OpenLibry laufen?
+
+![Wo läuft OpenLibry? Vier Möglichkeiten](../assets/wo-laeuft-openlibry.webp)
+
+Zuerst die Grundsatzfrage: Auf einem einzelnen Laptop, einem Server in der Schule, bei einem Hoster oder auf einem Server, den eine Privatperson betreibt? Alle vier Varianten sind technisch gleich (z. B. mit Docker), unterscheiden sich aber darin, wo es läuft und wer sich kümmert.
 
 ## 1. Wie soll OpenLibry laufen?
 
