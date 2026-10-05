@@ -1,3 +1,4 @@
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import Layout from "@/components/layout/Layout";
 import UserEditForm from "@/components/user/UserEditForm";
 import { getRentedBooksForUser } from "@/entities/book";
@@ -167,10 +168,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!context.query.userid) return { props: {} };
 
-  const dbuser = await getUser(
-    prisma,
-    parseInt(context.query.userid as string),
-  );
+  const userId = parseIdParam(context.query.userid);
+  if (userId === null) return { notFound: true };
+
+  const dbuser = await getUser(prisma, userId);
 
   if (!dbuser) {
     return { notFound: true };

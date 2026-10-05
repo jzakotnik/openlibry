@@ -1,3 +1,4 @@
+import { parseIdParam } from "@/lib/utils/apiValidation";
 import BookEditForm from "@/components/book/BookEditForm";
 import Layout from "@/components/layout/Layout";
 import { getBook } from "@/entities/book";
@@ -55,7 +56,10 @@ export default function BookDetail({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const deleteSafetySeconds = getDeleteSafetySeconds();
 
-  const dbbook = await getBook(prisma, parseInt(context.query.bookid as any));
+  const bookId = parseIdParam(context.query.bookid);
+  if (bookId === null) return { notFound: true };
+
+  const dbbook = await getBook(prisma, bookId);
   if (!dbbook) {
     return { notFound: true };
   }
