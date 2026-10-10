@@ -6,7 +6,7 @@ import { getAllUsers } from "@/entities/user";
 import { t } from "@/lib/i18n";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import { formatInstantDayString } from "@/lib/utils/dateutils";
 import {
   Document,
   Page,
@@ -957,7 +957,7 @@ export async function getServerSideProps() {
       const borrowedBooks: BorrowedBook[] = rentEvents
         .filter((a) => a.userid === user.id)
         .map((rent) => ({
-          loanDate: convertDateToDayString(rent.createdAt),
+          loanDate: formatInstantDayString(rent.createdAt),
           rawDate: rent.createdAt.toISOString(),
           bookId: rent.bookid ?? "?",
           title: bookMap.get(rent.bookid!) ?? "Unbekanntes Buch",

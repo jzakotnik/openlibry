@@ -9,9 +9,13 @@ import { getRentedBooksWithUsers } from "@/entities/book";
 import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import { t } from "@/lib/i18n";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import {
+  calendarDaysDiff,
+  formatCalendarDayString,
+  formatInstantDayString,
+  todayDateString,
+} from "@/lib/utils/dateutils";
 import getMaxId, { increaseNumberInString } from "@/lib/utils/id";
-import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -223,21 +227,23 @@ export async function getServerSideProps() {
 
   const users = allUsers.map((u) => {
     const newUser = { ...u } as any;
-    newUser.createdAt = convertDateToDayString(u.createdAt);
-    newUser.updatedAt = convertDateToDayString(u.updatedAt);
+    newUser.createdAt = formatInstantDayString(u.createdAt);
+    newUser.updatedAt = formatInstantDayString(u.updatedAt);
     return newUser;
   });
 
+  const today = todayDateString();
   const rentals = allRentals.map((r) => {
-    const due = dayjs(r.dueDate);
-    const diff = dayjs().diff(due, "days");
+    // Positive = overdue by that many whole calendar days (see the
+    // remainingDays sign-convention note in lib/utils/rentalUtils.ts).
+    const diff = calendarDaysDiff(today, r.dueDate);
     return {
       id: r.id,
       title: r.title,
       lastName: r.user?.lastName ?? null,
       firstName: r.user?.firstName ?? null,
       remainingDays: diff,
-      dueDate: convertDateToDayString(due.toDate()),
+      dueDate: formatCalendarDayString(r.dueDate),
       renewalCount: r.renewalCount,
       userid: r.user?.id ?? null,
     };
