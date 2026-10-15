@@ -3,7 +3,7 @@ import { t } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 
 import { AuditType } from "@/entities/AuditType";
-import { getAllAudit } from "@/entities/audit";
+import { countAudit, getAllAudit } from "@/entities/audit";
 import { prisma } from "@/entities/db";
 import { convertDateToTimeString } from "@/lib/utils/dateutils";
 
@@ -334,7 +334,9 @@ export default function Audit({ audits }: AuditPropsType) {
 }
 
 export async function getServerSideProps() {
-  const allAudits = await getAllAudit(prisma);
+  // Load every audit entry so the client-side search covers the full log
+  const total = await countAudit(prisma);
+  const allAudits = await getAllAudit(prisma, Math.max(total, 1));
 
   const audits = allAudits.map((a: any) => {
     const newAudit = { ...a } as any;
