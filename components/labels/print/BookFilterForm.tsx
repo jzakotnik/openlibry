@@ -5,7 +5,7 @@
  */
 
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,14 @@ export default function BookFilterForm({
   topics,
 }: BookFilterFormProps) {
   const [topicOpen, setTopicOpen] = useState(false);
+  // Raw text of the ID input. Kept separately from filter.ids so that
+  // separators typed mid-entry ("1, ") are not stripped by re-rendering
+  // from the parsed numbers.
+  const [idsText, setIdsText] = useState(() => (filter.ids ?? []).join(", "));
+
+  useEffect(() => {
+    if (filter.type !== "ids") setIdsText("");
+  }, [filter.type]);
 
   const selectedTopics: string[] =
     filter.type === "topic" ? (filter.values ?? []) : [];
@@ -201,8 +209,9 @@ export default function BookFilterForm({
             type="text"
             className="flex-1 h-8"
             placeholder="z.B. 1, 5, 12, 42"
-            value={filter.type === "ids" ? (filter.ids ?? []).join(", ") : ""}
+            value={filter.type === "ids" ? idsText : ""}
             onChange={(e) => {
+              setIdsText(e.target.value);
               const ids = e.target.value
                 .split(",")
                 .map((s) => parseInt(s.trim()))
