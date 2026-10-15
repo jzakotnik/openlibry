@@ -98,6 +98,16 @@ describe("Label Print Page", () => {
     cy.get("[data-cy=filter-ids-input]").should("have.value", "42");
   });
 
+  // Regression test for https://github.com/jzakotnik/openlibry/issues/535
+  it("should allow entering multiple comma-separated book IDs", () => {
+    cy.get("#filter-ids").click();
+    cy.get("[data-cy=filter-ids-input]")
+      .should("not.be.disabled")
+      .click()
+      .type("{selectAll}1, 5,12");
+    cy.get("[data-cy=filter-ids-input]").should("have.value", "1, 5,12");
+  });
+
   it("should show position picker after sheet selection", () => {
     selectByTrigger("[data-cy=sheet-selector]", "Zweckform 3474");
     cy.get("[data-cy=position-picker-grid]").should("be.visible");
