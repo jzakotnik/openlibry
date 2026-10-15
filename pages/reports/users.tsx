@@ -4,7 +4,7 @@ import { translations } from "@/entities/fieldTranslations";
 import { getAllUsers } from "@/entities/user";
 import { UserType } from "@/entities/UserType";
 import { t } from "@/lib/i18n";
-import { convertDateToDayString } from "@/lib/utils/dateutils";
+import { formatInstantDayString } from "@/lib/utils/dateutils";
 import {
   Document,
   Page,
@@ -714,8 +714,8 @@ export async function getServerSideProps() {
 
   const users = allUsers.map((u) => {
     const newUser = { ...u } as any;
-    newUser.createdAt = convertDateToDayString(u.createdAt);
-    newUser.updatedAt = convertDateToDayString(u.updatedAt);
+    newUser.createdAt = formatInstantDayString(u.createdAt);
+    newUser.updatedAt = formatInstantDayString(u.updatedAt);
     return newUser;
   });
 

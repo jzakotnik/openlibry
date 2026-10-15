@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/tooltip";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import {
+  calendarDaysDiff,
+  localCalendarDateAsUtcIsoString,
+} from "@/lib/utils/dateutils";
 
 import dayjs from "dayjs";
 import {
@@ -53,7 +57,12 @@ interface UserRental {
 }
 
 function getOverdueStatus(dueDate: string | Date): OverdueStatus {
-  const daysOverdue = dayjs().diff(dueDate, "days");
+  // Calendar-day-only comparison — a book due "today" isn't overdue yet
+  // regardless of the time of day.
+  const daysOverdue = calendarDaysDiff(
+    localCalendarDateAsUtcIsoString(),
+    dueDate,
+  );
   if (daysOverdue > 13) return "overdue";
   if (daysOverdue > 0) return "warning";
   return "ok";
@@ -301,7 +310,7 @@ export default function UserAdminList({
                                   cls.text,
                                 )}
                               >
-                                {dayjs(rental.dueDate).format("DD.MM.YYYY")}
+                                {dayjs.utc(rental.dueDate).format("DD.MM.YYYY")}
                                 {status === "overdue" && " ⚠"}
                               </span>
                             </div>

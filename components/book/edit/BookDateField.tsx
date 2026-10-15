@@ -4,7 +4,7 @@ import { BookType } from "@/entities/BookType";
 import { translations } from "@/entities/fieldTranslations";
 import {
   convertDateOnlyToUtcIsoString,
-  convertStringToDay,
+  formatCalendarDayString,
 } from "@/lib/utils/dateutils";
 import { Dispatch } from "react";
 
@@ -16,14 +16,15 @@ type BookDateFieldProps = {
 };
 
 /**
- * Convert the app's internal date string to HTML date input format (YYYY-MM-DD).
- * Falls back to empty string if the value is invalid.
+ * Convert the app's internal date string to HTML date input format
+ * (YYYY-MM-DD). Reads the calendar day directly off the UTC-anchored
+ * stored value, so this is timezone-independent. Falls back to empty
+ * string if the value is missing/invalid.
  */
 const toInputDate = (value: string | null | undefined): string => {
   if (!value) return "";
   try {
-    const d = convertStringToDay(value);
-    return d.isValid() ? d.format("YYYY-MM-DD") : "";
+    return formatCalendarDayString(value);
   } catch {
     return "";
   }

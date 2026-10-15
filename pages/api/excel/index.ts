@@ -6,8 +6,9 @@ import { prisma } from "@/entities/db";
 import { getAllUsers } from "@/entities/user";
 import { t } from "@/lib/i18n";
 import {
-  convertDateToDayString,
-  convertDayToISOString,
+  formatCalendarDayString,
+  formatInstantDayString,
+  tryConvertDateOnlyToUtcIsoString,
 } from "@/lib/utils/dateutils";
 import { xlsbookcolumns, xlsusercolumns } from "@/lib/utils/xlsColumnsMapping";
 import Excel from "exceljs";
@@ -36,20 +37,20 @@ export default async function handle(
         const allUsers = await getAllUsers(prisma);
         const users = allUsers.map((u) => {
           const newUser = { ...u } as any;
-          newUser.createdAt = convertDateToDayString(u.createdAt);
-          newUser.updatedAt = convertDateToDayString(u.updatedAt);
+          newUser.createdAt = formatInstantDayString(u.createdAt);
+          newUser.updatedAt = formatInstantDayString(u.updatedAt);
           return newUser;
         });
 
         const allBooks = await getAllBooks(prisma);
         const books = allBooks.map((b) => {
           const newBook = { ...b } as any;
-          newBook.createdAt = convertDateToDayString(b.createdAt);
-          newBook.updatedAt = convertDateToDayString(b.updatedAt);
+          newBook.createdAt = formatInstantDayString(b.createdAt);
+          newBook.updatedAt = formatInstantDayString(b.updatedAt);
           newBook.rentedDate = b.rentedDate
-            ? convertDateToDayString(b.rentedDate)
+            ? formatCalendarDayString(b.rentedDate)
             : "";
-          newBook.dueDate = b.dueDate ? convertDateToDayString(b.dueDate) : "";
+          newBook.dueDate = b.dueDate ? formatCalendarDayString(b.dueDate) : "";
           return newBook;
         });
 
@@ -243,13 +244,25 @@ export default async function handle(
         // Import books after users
         if (importBooks && bookData.length > 0) {
           bookData.forEach((b: any) => {
+            // A blank "Ausgeliehen am"/"Rückgabe am" cell means the book
+            // isn't currently rented — leave rentedDate unset (Prisma's
+            // @default(now()) applies) and dueDate explicitly null,
+            // rather than stamping the import time onto every available
+            // book (dayjs(undefined) would otherwise resolve to "now").
+            const rentedDateValue = tryConvertDateOnlyToUtcIsoString(
+              b["Ausgeliehen am"],
+            );
+            const dueDateValue = tryConvertDateOnlyToUtcIsoString(
+              b["Rückgabe am"],
+            );
+
             transaction.push(
               prisma.book.create({
                 data: {
                   id: b["Mediennummer"],
                   rentalStatus: b["Ausleihstatus"],
-                  rentedDate: convertDayToISOString(b["Ausgeliehen am"]),
-                  dueDate: convertDayToISOString(b["Rückgabe am"]),
+                  ...(rentedDateValue ? { rentedDate: rentedDateValue } : {}),
+                  dueDate: dueDateValue,
                   renewalCount: b["Anzahl Verlängerungen"],
                   title: b["Titel"],
                   subtitle: b["Untertitel"],
