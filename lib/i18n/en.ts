@@ -1007,6 +1007,9 @@ export const en: Dictionary = {
   adminPage: {
     pageTitle: "Administration | OpenLibry",
     quickActionsHeading: "Quick actions",
+    groupData: "Data",
+    groupSystem: "System",
+    groupAccess: "Access & users",
     statisticsHeading: "Statistics",
     systemInfoHeading: "System info",
     excelBackupTitle: "Excel backup",
@@ -1015,6 +1018,8 @@ export const en: Dictionary = {
     systemHealthDescription: "Detailed system diagnostics",
     settingsTitle: "Settings",
     settingsDescription: "View configuration",
+    accountsTitle: "Admin accounts",
+    accountsDescription: "Manage login accounts",
     statusOk: "Everything is fine",
     statusWarning: "Warnings present",
     statusError: "Errors detected",

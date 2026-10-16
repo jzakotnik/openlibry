@@ -1086,6 +1086,9 @@ export const de = {
     pageTitle: "Administration | OpenLibry",
     // Section headers
     quickActionsHeading: "Schnellaktionen",
+    groupData: "Daten",
+    groupSystem: "System",
+    groupAccess: "Zugang & Benutzer",
     statisticsHeading: "Statistiken",
     systemInfoHeading: "Systeminfo",
     // Action cards
@@ -1095,6 +1098,8 @@ export const de = {
     systemHealthDescription: "Detaillierte Systemdiagnose",
     settingsTitle: "Einstellungen",
     settingsDescription: "Konfiguration anzeigen",
+    accountsTitle: "Benutzerverwaltung",
+    accountsDescription: "Admin-Konten verwalten",
     // Status banner — main "Alles in Ordnung" / "Warnungen" / "Fehler" labels
     statusOk: "Alles in Ordnung",
     statusWarning: "Warnungen vorhanden",
