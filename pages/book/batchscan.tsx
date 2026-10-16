@@ -43,6 +43,7 @@ export default function BatchScan() {
   const [entries, setEntries] = useState<ScannedEntry[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [batchShelf, setBatchShelf] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -322,7 +323,7 @@ export default function BatchScan() {
           price: entry.bookData.price,
           externalLinks: entry.bookData.externalLinks,
           physicalSize: entry.bookData.physicalSize,
-          shelf: entry.bookData.shelf,
+          shelf: entry.bookData.shelf || batchShelf.trim() || undefined,
           otherPhysicalAttributes: entry.bookData.otherPhysicalAttributes,
           editionDescription: entry.bookData.editionDescription,
         };
@@ -382,7 +383,7 @@ export default function BatchScan() {
     }
 
     inputRef.current?.focus();
-  }, [entries]);
+  }, [entries, batchShelf]);
 
   // ── Clear all ─────────────────────────────────────────────────────────────
 
@@ -515,6 +516,15 @@ export default function BatchScan() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    <Input
+                      value={batchShelf}
+                      onChange={(e) => setBatchShelf(e.target.value)}
+                      placeholder="Regal für alle (optional)"
+                      aria-label="Regal für alle Bücher"
+                      disabled={isImporting}
+                      className="h-8 w-48"
+                      data-cy="batch-scan-shelf-input"
+                    />
                     <Button
                       variant="outline"
                       size="sm"
