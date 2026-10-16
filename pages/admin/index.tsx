@@ -364,38 +364,59 @@ export default function AdminPage() {
         <h2 className="text-base font-semibold text-foreground mb-3">
           {t("adminPage.quickActionsHeading")}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-          <ActionCard
-            title={t("adminPage.excelBackupTitle")}
-            dataCy="admin-excel-backup-button"
-            description={t("adminPage.excelBackupDescription")}
-            icon={Download}
-            onClick={handleBackup}
-            colorVar="var(--success)"
-            loading={backupLoading}
-          />
-          <ActionCard
-            title={t("adminPage.systemHealthTitle")}
-            description={t("adminPage.systemHealthDescription")}
-            icon={HeartPulse}
-            onClick={() => router.push("/admin/health")}
-            colorVar="var(--info)"
-          />
-          <ActionCard
-            title={t("adminPage.settingsTitle")}
-            description={t("adminPage.settingsDescription")}
-            icon={Settings}
-            onClick={() => router.push("/admin/settings")}
-            colorVar="var(--secondary)"
-          />
-          <ActionCard
-            title={t("adminPage.accountsTitle")}
-            dataCy="admin-accounts-button"
-            description={t("adminPage.accountsDescription")}
-            icon={UserCog}
-            onClick={() => router.push("/auth/accounts")}
-            colorVar="var(--primary)"
-          />
+        <div className="space-y-6 mb-8">
+          <section>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              {t("adminPage.groupAccess")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <ActionCard
+                title={t("adminPage.accountsTitle")}
+                dataCy="admin-accounts-button"
+                description={t("adminPage.accountsDescription")}
+                icon={UserCog}
+                onClick={() => router.push("/auth/accounts")}
+                colorVar="var(--primary)"
+              />
+            </div>
+          </section>
+          <section>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              {t("adminPage.groupSystem")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <ActionCard
+                title={t("adminPage.systemHealthTitle")}
+                description={t("adminPage.systemHealthDescription")}
+                icon={HeartPulse}
+                onClick={() => router.push("/admin/health")}
+                colorVar="var(--info)"
+              />
+              <ActionCard
+                title={t("adminPage.settingsTitle")}
+                description={t("adminPage.settingsDescription")}
+                icon={Settings}
+                onClick={() => router.push("/admin/settings")}
+                colorVar="var(--secondary)"
+              />
+            </div>
+          </section>
+          <section>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              {t("adminPage.groupData")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <ActionCard
+                title={t("adminPage.excelBackupTitle")}
+                dataCy="admin-excel-backup-button"
+                description={t("adminPage.excelBackupDescription")}
+                icon={Download}
+                onClick={handleBackup}
+                colorVar="var(--success)"
+                loading={backupLoading}
+              />
+            </div>
+          </section>
         </div>
 
         <div

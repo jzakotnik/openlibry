@@ -1031,6 +1031,9 @@ export const es: Dictionary = {
   adminPage: {
     pageTitle: "Administración | OpenLibry",
     quickActionsHeading: "Acciones rápidas",
+    groupData: "Datos",
+    groupSystem: "Sistema",
+    groupAccess: "Acceso y usuarios",
     statisticsHeading: "Estadísticas",
     systemInfoHeading: "Información del sistema",
     excelBackupTitle: "Copia de seguridad Excel",

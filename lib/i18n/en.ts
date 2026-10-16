@@ -1007,6 +1007,9 @@ export const en: Dictionary = {
   adminPage: {
     pageTitle: "Administration | OpenLibry",
     quickActionsHeading: "Quick actions",
+    groupData: "Data",
+    groupSystem: "System",
+    groupAccess: "Access & users",
     statisticsHeading: "Statistics",
     systemInfoHeading: "System info",
     excelBackupTitle: "Excel backup",
