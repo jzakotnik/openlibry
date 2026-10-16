@@ -1015,6 +1015,8 @@ export const en: Dictionary = {
     systemHealthDescription: "Detailed system diagnostics",
     settingsTitle: "Settings",
     settingsDescription: "View configuration",
+    accountsTitle: "Admin accounts",
+    accountsDescription: "Manage login accounts",
     statusOk: "Everything is fine",
     statusWarning: "Warnings present",
     statusError: "Errors detected",

@@ -14,6 +14,7 @@ import {
   Loader2,
   RefreshCw,
   Settings,
+  UserCog,
   Users,
   XCircle,
 } from "lucide-react";
@@ -386,6 +387,14 @@ export default function AdminPage() {
             icon={Settings}
             onClick={() => router.push("/admin/settings")}
             colorVar="var(--secondary)"
+          />
+          <ActionCard
+            title={t("adminPage.accountsTitle")}
+            dataCy="admin-accounts-button"
+            description={t("adminPage.accountsDescription")}
+            icon={UserCog}
+            onClick={() => router.push("/auth/accounts")}
+            colorVar="var(--primary)"
           />
         </div>
 
