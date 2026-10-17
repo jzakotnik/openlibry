@@ -155,12 +155,12 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
   }, [users, checked, confirmDelete, router]);
 
   const uniqueGrades = useMemo(() => {
-    return users.reduce<string[]>((unique, user) => {
-      if (user.schoolGrade && !unique.includes(user.schoolGrade)) {
-        unique.push(user.schoolGrade);
-      }
-      return unique;
-    }, []);
+    // Grades are matched case-insensitively, so list "4a" and "4A" once
+    const grades = new Set<string>();
+    users.forEach((user) => {
+      if (user.schoolGrade) grades.add(user.schoolGrade.toLowerCase());
+    });
+    return Array.from(grades);
   }, [users]);
 
   return (
