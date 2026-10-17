@@ -498,6 +498,16 @@ export const de = {
               "Dateiname eines Bildes im /public-Verzeichnis, das als Hintergrund der Login-Seite verwendet wird. Leer lassen für das mitgelieferte Standardbild.",
             hint: "z.B. schule_login.jpg (die Datei muss im /public-Verzeichnis der App liegen).",
           },
+          LOGIN_STYLE: {
+            label: "Login-Seite: Darstellung",
+            description:
+              "Legt fest, was neben dem Login-Formular angezeigt wird: das statische Hintergrundbild oder ein animiertes Skizzenbuch.",
+            hint: "Bei „Animiertes Buch“ wird LOGIN_IMAGE ignoriert.",
+            options: {
+              image: "Statisches Bild (Standard)",
+              book: "Animiertes Buch",
+            },
+          },
           MAX_MIGRATION_SIZE: {
             label: "Max. Import-Dateigröße",
             description:

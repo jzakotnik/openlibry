@@ -10,15 +10,18 @@ import { getCsrfToken } from "next-auth/react";
 import Head from "next/head";
 
 import { t } from "@/lib/i18n";
+import LoginBook from "@/components/auth/LoginBook";
 import { resolveLoginImage } from "@/lib/loginImage";
+import { resolveLoginStyle, type LoginStyle } from "@/lib/loginStyle";
 import loginsplash from "./loginsplashscreen.jpg";
 
 export default function Login({
   csrfToken,
   loginImage,
+  loginStyle,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  // Configurable via LOGIN_IMAGE (a file in /public); falls back to the bundled
-  // splash when unset.
+  // LOGIN_STYLE=book shows the animated sketch book; otherwise the static image
+  // is used: LOGIN_IMAGE (a file in /public), falling back to the bundled splash.
   const splashSrc = loginImage ?? loginsplash.src;
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
@@ -62,18 +65,22 @@ export default function Login({
       </Head>
 
       <div className="min-h-screen flex">
-        {/* Left: Background image — hidden on mobile */}
-        <div
-          className="hidden sm:block sm:w-5/12 md:w-7/12 relative"
-          style={{
-            backgroundImage: `url(${splashSrc})`,
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
-        </div>
+        {/* Left: animated book or background image — hidden on mobile */}
+        {loginStyle === "book" ? (
+          <LoginBook className="hidden sm:flex sm:w-5/12 md:w-7/12" />
+        ) : (
+          <div
+            className="hidden sm:block sm:w-5/12 md:w-7/12 relative"
+            style={{
+              backgroundImage: `url(${splashSrc})`,
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
+          </div>
+        )}
 
         {/* Right: Login form */}
         <div className="flex-1 flex items-center justify-center bg-white px-6 py-12 shadow-xl">
@@ -169,11 +176,13 @@ export default function Login({
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const loginImage = resolveLoginImage();
+  const loginStyle: LoginStyle = resolveLoginStyle();
 
   return {
     props: {
       csrfToken: (await getCsrfToken(context)) ?? null,
       loginImage,
+      loginStyle,
     },
   };
 }

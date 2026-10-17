@@ -493,6 +493,16 @@ export const es: Dictionary = {
               "Nombre de archivo de una imagen en el directorio /public usada como fondo de la página de inicio de sesión. Dejar vacío para usar la imagen predeterminada.",
             hint: "p. ej. schule_login.jpg (el archivo debe estar en el directorio /public de la aplicación).",
           },
+          LOGIN_STYLE: {
+            label: "Visual de la página de inicio de sesión",
+            description:
+              "Elige qué se muestra junto al formulario de inicio de sesión: la imagen de fondo estática o un libro de bocetos animado.",
+            hint: "Con «libro animado» se ignora LOGIN_IMAGE.",
+            options: {
+              image: "Imagen estática (predeterminado)",
+              book: "Libro animado",
+            },
+          },
           MAX_MIGRATION_SIZE: {
             label: "Tamaño máx. de archivo de importación",
             description:

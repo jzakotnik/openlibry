@@ -484,6 +484,16 @@ export const en: Dictionary = {
               "Filename of an image in the /public directory used as the login page background. Leave empty to use the built-in splash image.",
             hint: "e.g. schule_login.jpg (the file must be in the /public directory of the app).",
           },
+          LOGIN_STYLE: {
+            label: "Login page visual",
+            description:
+              "Choose what is shown beside the login form: the static background image or an animated sketch book.",
+            hint: "With the animated book, LOGIN_IMAGE is ignored.",
+            options: {
+              image: "Static image (default)",
+              book: "Animated book",
+            },
+          },
           MAX_MIGRATION_SIZE: {
             label: "Max import file size",
             description:
