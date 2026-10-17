@@ -194,6 +194,28 @@ const CONFIG_SECTIONS: ConfigSection[] = [
         default: "",
       },
       {
+        key: "LOGIN_STYLE",
+        label: tf("technical", "LOGIN_STYLE", "label"),
+        description: tf("technical", "LOGIN_STYLE", "description"),
+        hint: tf("technical", "LOGIN_STYLE", "hint"),
+        type: "select",
+        default: "",
+        options: [
+          {
+            value: "",
+            label: t(
+              "admin.sections.technical.fields.LOGIN_STYLE.options.book",
+            ),
+          },
+          {
+            value: "image",
+            label: t(
+              "admin.sections.technical.fields.LOGIN_STYLE.options.image",
+            ),
+          },
+        ],
+      },
+      {
         key: "MAX_MIGRATION_SIZE",
         label: tf("technical", "MAX_MIGRATION_SIZE", "label"),
         description: tf("technical", "MAX_MIGRATION_SIZE", "description"),
