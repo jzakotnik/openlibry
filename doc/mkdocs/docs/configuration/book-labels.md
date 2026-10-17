@@ -148,6 +148,7 @@ Vorlagen liegen in `database/custom/labels/templates/`:
 | `fontSizeMax` | Maximale Schriftgröße in pt — Text wird automatisch verkleinert, wenn er nicht passt. Bei Barcode-Feldern auf `0` setzen. |
 | `align` | Ausrichtung: `left`, `center` oder `right` |
 | `content` | Einer der Werte: `title`, `subtitle`, `author`, `id`, `school`, `topics`, `barcode`, `none` |
+| `barcodeWidthPercent` | Nur für Barcode-Felder: Breite des Barcodes in Prozent der Feldbreite (10–100, Standard 100). Die Position richtet sich nach `align`. Beispiel: `"align": "left", "barcodeWidthPercent": 60`. Bitte vor dem Druck eines ganzen Bogens einen Testscan machen. |
 
 ## Angefangene Bögen nutzen
 

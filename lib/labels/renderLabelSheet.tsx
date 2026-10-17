@@ -403,13 +403,25 @@ function HorizontalField({
     const barcodeText = book.id?.padStart(BARCODE_MIN_LENGTH, "0") ?? "";
     const textHeight = 5; // mm — reserve space for the number
     const imageHeight = heightMm - textHeight;
+    const pct = Math.min(
+      100,
+      Math.max(10, fieldConfig.barcodeWidthPercent ?? 100),
+    );
+    const barcodeWidthMm = (widthMm * pct) / 100;
+    const alignSelf =
+      fieldConfig.align === "left"
+        ? "flex-start"
+        : fieldConfig.align === "right"
+          ? "flex-end"
+          : "center";
     return (
       <View style={{ width: mm(widthMm), height: mm(heightMm) }}>
         <PdfImage
           src={barcodeUri}
           style={{
-            width: mm(widthMm),
+            width: mm(barcodeWidthMm),
             height: mm(imageHeight),
+            alignSelf,
             objectFit: "fill", // bars-only image can safely stretch
           }}
         />
@@ -417,7 +429,8 @@ function HorizontalField({
           style={{
             fontSize: 7,
             textAlign: "center",
-            width: mm(widthMm),
+            width: mm(barcodeWidthMm),
+            alignSelf,
           }}
         >
           {barcodeText}

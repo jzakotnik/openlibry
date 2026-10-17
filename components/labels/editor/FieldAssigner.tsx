@@ -174,30 +174,36 @@ export default function FieldAssigner({
                 <TooltipTrigger asChild>
                   <Input
                     type="number"
-                    min={1}
-                    max={999}
                     className="h-7 text-center text-xs px-1"
+                    min={isBarcode ? 10 : 1}
+                    max={isBarcode ? 100 : 999}
                     value={
-                      disableTextControls || field.maxLength == null
-                        ? ""
-                        : field.maxLength
+                      isBarcode
+                        ? (field.barcodeWidthPercent ?? "")
+                        : disableTextControls || field.maxLength == null
+                          ? ""
+                          : field.maxLength
                     }
                     onChange={(e) => {
                       const raw = e.target.value;
-                      onChange(key, {
-                        ...field,
-                        maxLength:
-                          raw === "" ? undefined : parseInt(raw) || undefined,
-                      });
+                      const parsed =
+                        raw === "" ? undefined : parseInt(raw) || undefined;
+                      onChange(
+                        key,
+                        isBarcode
+                          ? { ...field, barcodeWidthPercent: parsed }
+                          : { ...field, maxLength: parsed },
+                      );
                     }}
-                    disabled={disableTextControls}
-                    placeholder={disableTextControls ? "–" : "∞"}
+                    disabled={isNone}
+                    placeholder={isNone ? "–" : isBarcode ? "100" : "∞"}
                     data-cy={`field-maxlength-${key}`}
                   />
                 </TooltipTrigger>
                 <TooltipContent>
-                  Maximale Zeichenanzahl. Längere Texte werden mit … gekürzt.
-                  Leer lassen für unbegrenzte Länge.
+                  {isBarcode
+                    ? "Barcode-Breite in % der Feldbreite (10–100). Leer lassen für volle Breite. Die Position richtet sich nach der Ausrichtung."
+                    : "Maximale Zeichenanzahl. Längere Texte werden mit … gekürzt. Leer lassen für unbegrenzte Länge."}
                 </TooltipContent>
               </Tooltip>
 

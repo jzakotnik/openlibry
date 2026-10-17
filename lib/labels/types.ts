@@ -86,6 +86,11 @@ export interface LabelFieldConfig {
   maxLength?: number;
   // increase size of this field - fields below must be none
   increasedHeight?: number;
+  /**
+   * Barcode fields only: barcode width as percentage (10–100) of the field
+   * width. Defaults to 100. Positioned according to `align`.
+   */
+  barcodeWidthPercent?: number;
 }
 
 export interface LabelTemplate {
