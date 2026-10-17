@@ -497,10 +497,10 @@ export const es: Dictionary = {
             label: "Visual de la página de inicio de sesión",
             description:
               "Elige qué se muestra junto al formulario de inicio de sesión: la imagen de fondo estática o un libro de bocetos animado.",
-            hint: "Con «libro animado» se ignora LOGIN_IMAGE.",
+            hint: "Con el libro animado se ignora LOGIN_IMAGE. Si se deja vacío, se muestra el libro salvo que LOGIN_IMAGE esté definido.",
             options: {
-              image: "Imagen estática (predeterminado)",
-              book: "Libro animado",
+              image: "Imagen estática",
+              book: "Libro animado (predeterminado)",
             },
           },
           MAX_MIGRATION_SIZE: {

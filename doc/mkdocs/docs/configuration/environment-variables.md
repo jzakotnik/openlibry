@@ -21,7 +21,7 @@ DATABASE_URL=file:./database/dev.db
 | `NEXTAUTH_SECRET`  | Geheimer Seed für Session-Tokens | _(muss gesetzt werden)_ |
 | `SECURITY_HEADERS` | CSRP headers für HTTP calls      | `insecure`              |
 | `LOGIN_IMAGE`      | Hintergrundbild der Login-Seite  | _(leer, eingebautes Standardbild)_ |
-| `LOGIN_STYLE`      | Darstellung neben dem Login: `image` (statisches Bild) oder `book` (animiertes Skizzenbuch, in dem sich drehende Kreise „openlibry“ schreiben) | `image` |
+| `LOGIN_STYLE`      | Darstellung neben dem Login: `book` (animiertes Skizzenbuch, in dem sich drehende Kreise „openlibry“ schreiben) oder `image` (statisches Bild) | `book` (bzw. `image`, wenn `LOGIN_IMAGE` gesetzt ist) |
 | `OPENLIBRY_ROOT_ROUTE` | Seite, die unter `/` geöffnet wird. `/catalog` macht den öffentlichen Katalog zur Startseite (der interne Bereich bleibt unter `/manage` geschützt). Ungültige Werte fallen auf `/manage` zurück. | `/manage` |
 
 ```env
@@ -32,7 +32,7 @@ LOGIN_IMAGE=schule_login.jpg
 
 `LOGIN_IMAGE` erwartet den Dateinamen eines Bildes im `/public`-Verzeichnis der App. Bleibt die Variable leer, wird das mitgelieferte Standardbild verwendet.
 
-Mit `LOGIN_STYLE=book` wird statt des Bildes ein animiertes Buch angezeigt; `LOGIN_IMAGE` wird dann ignoriert.
+Ohne weitere Einstellung zeigt die Login-Seite ein animiertes Buch. Mit `LOGIN_STYLE=image` wird stattdessen das statische Bild angezeigt. Ist `LOGIN_IMAGE` gesetzt und `LOGIN_STYLE` leer, bleibt das eigene Bild erhalten; mit `LOGIN_STYLE=book` wird `LOGIN_IMAGE` ignoriert.
 
 !!! warning "AUTH_SECRET"
 Verwende einen langen, zufälligen String. Ändere ihn nicht nachträglich, sonst werden alle Nutzer ausgeloggt.

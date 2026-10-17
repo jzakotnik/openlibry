@@ -488,10 +488,10 @@ export const en: Dictionary = {
             label: "Login page visual",
             description:
               "Choose what is shown beside the login form: the static background image or an animated sketch book.",
-            hint: "With the animated book, LOGIN_IMAGE is ignored.",
+            hint: "With the animated book, LOGIN_IMAGE is ignored. If left empty, the book is shown unless LOGIN_IMAGE is set.",
             options: {
-              image: "Static image (default)",
-              book: "Animated book",
+              image: "Static image",
+              book: "Animated book (default)",
             },
           },
           MAX_MIGRATION_SIZE: {

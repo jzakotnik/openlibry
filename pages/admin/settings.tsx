@@ -204,13 +204,13 @@ const CONFIG_SECTIONS: ConfigSection[] = [
           {
             value: "",
             label: t(
-              "admin.sections.technical.fields.LOGIN_STYLE.options.image",
+              "admin.sections.technical.fields.LOGIN_STYLE.options.book",
             ),
           },
           {
-            value: "book",
+            value: "image",
             label: t(
-              "admin.sections.technical.fields.LOGIN_STYLE.options.book",
+              "admin.sections.technical.fields.LOGIN_STYLE.options.image",
             ),
           },
         ],

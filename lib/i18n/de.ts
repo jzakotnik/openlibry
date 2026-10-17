@@ -502,10 +502,10 @@ export const de = {
             label: "Login-Seite: Darstellung",
             description:
               "Legt fest, was neben dem Login-Formular angezeigt wird: das statische Hintergrundbild oder ein animiertes Skizzenbuch.",
-            hint: "Bei „Animiertes Buch“ wird LOGIN_IMAGE ignoriert.",
+            hint: "Beim animierten Buch wird LOGIN_IMAGE ignoriert. Bei leerem Wert wird das Buch angezeigt, außer LOGIN_IMAGE ist gesetzt.",
             options: {
-              image: "Statisches Bild (Standard)",
-              book: "Animiertes Buch",
+              image: "Statisches Bild",
+              book: "Animiertes Buch (Standard)",
             },
           },
           MAX_MIGRATION_SIZE: {
