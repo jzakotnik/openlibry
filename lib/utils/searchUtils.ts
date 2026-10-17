@@ -1,14 +1,16 @@
-import { BookType } from "@/entities/BookType";
-import { RentalsUserType } from "@/entities/RentalsUserType";
-import { UserType } from "@/entities/UserType";
+import type { BookType } from "@/entities/BookType";
+import type { RentalsUserType } from "@/entities/RentalsUserType";
+import type { UserType } from "@/entities/UserType";
 
 function hasOverdueBooks(rentals: Array<RentalsUserType>): boolean {
   return rentals.some((b) => b.remainingDays > 0);
 }
 
 export function searchAndRemoveKlasse(inputString: string) {
-  // Create a regex pattern to find "klasse?" followed by a number
-  const regex = /klasse\?\s?([\d,\w,\u00F0-\u02AF]+)/gi;
+  // Find "klasse?" followed by the grade, up to the next whitespace. Grades are
+  // free text ("1.1", "5-a", "1/2"), so don't whitelist characters here: any
+  // character left out would remain in the string and be searched as a name.
+  const regex = /klasse\?\s?(\S+)/gi;
 
   const match = regex.exec(inputString);
   //console.log("Klassenmatch", inputString, match);
