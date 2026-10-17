@@ -16,6 +16,7 @@ import ReactPDF, {
 } from "@react-pdf/renderer";
 import * as bwipjs from "bwip-js/node";
 
+import { authorSurnameFirst } from "../utils/authorName";
 import type {
   BookLabelData,
   LabelFieldConfig,
@@ -225,7 +226,7 @@ function getFieldText(
       text = book.shelf || "";
       break;
     case "author":
-      text = book.author || "";
+      text = authorSurnameFirst(book.author);
       break;
     case "id":
       text = book.id || "";
