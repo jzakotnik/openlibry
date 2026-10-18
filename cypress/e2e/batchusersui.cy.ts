@@ -90,7 +90,8 @@ describe("User list batch actions (UI)", () => {
 
     // Select-all acts on ALL users, not on the ones the search currently
     // shows, so "search one user, select all, delete" removes everybody.
-    // Enable this test once select-all only selects the visible users.
+    // See https://github.com/jzakotnik/openlibry/issues/554 — enable this test
+    // once select-all only selects the visible users.
     it.skip("KNOWN BUG: select-all with an active search selects only the visible users", () => {
       cy.get("[data-cy=rental_input_searchuser]").clear().type("Scnalpha");
       cy.get("[data-cy^=user_row_]").should("have.length", 1);
