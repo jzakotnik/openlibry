@@ -7,8 +7,8 @@ function hasOverdueBooks(rentals: Array<RentalsUserType>): boolean {
 }
 
 export function searchAndRemoveKlasse(inputString: string) {
-  // Create a regex pattern to find "klasse?" followed by a number
-  const regex = /klasse\?\s?([\d,\w,\u00F0-\u02AF]+)/gi;
+  // Find "klasse?" followed by a grade such as "4a", "2", "1.1" or "Eichhörnchen"
+  const regex = /klasse\?\s?([\w.\-\u00C0-\u024F]+)/gi;
 
   const match = regex.exec(inputString);
   //console.log("Klassenmatch", inputString, match);

@@ -10,6 +10,8 @@ export default function getMaxId(array: Array<{ id?: number }>): number {
 }
 
 export function increaseNumberInString(text: any) {
+  // Grades without a value (or non-strings) have nothing to increase
+  if (typeof text !== "string") return text;
   // Only the first number is increased, e.g. "1.1" -> "2.1", "4a" -> "5a"
   return text.replace(/\d+/, function (match: any) {
     // Convert the matched substring to a number, add 1, and return it
