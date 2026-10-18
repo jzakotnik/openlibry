@@ -76,6 +76,7 @@ Die vollständige Dokumentation findest du unter **[openlibry.de/site](https://o
 | [📖 Benutzerhandbuch](https://openlibry.de/site/user-guide/) | Tägliche Arbeit mit OpenLibry |
 | [🔄 Import/Export](https://openlibry.de/site/import/) | Daten migrieren und sichern |
 | [🛠️ API & Entwicklung](https://openlibry.de/site/development/) | Für Entwickler |
+| [🧪 Tests](https://openlibry.de/site/development/testing/) | End-to-End-Tests einrichten, ausführen und schreiben |
 
 ---
 
