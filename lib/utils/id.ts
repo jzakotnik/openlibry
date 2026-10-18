@@ -13,9 +13,9 @@ export function increaseNumberInString(text: any) {
   // Grades without a value (or non-strings) have nothing to increase
   if (typeof text !== "string") return text;
   // Only the first number is increased, e.g. "1.1" -> "2.1", "4a" -> "5a"
-  return text.replace(/\d+/, function (match: any) {
+  return text.replace(/\d+/, function (match: string) {
     // Convert the matched substring to a number, add 1, and return it
-    return parseInt(match, 10) + 1;
+    return String(parseInt(match, 10) + 1);
   });
 }
 
