@@ -9,7 +9,7 @@ Informationen für Entwickler, die OpenLibry verstehen, erweitern oder verbesser
 | [Architektur](architecture.md) | Tech-Stack und Projektstruktur |
 | [API-Referenz](api-reference.md) | REST-API Dokumentation |
 | [Lokale Entwicklung](local-development.md) | Dev-Environment aufsetzen |
-| [Tests](testing.md) | Cypress-Tests ausführen |
+| [Tests](testing.md) | End-to-End-Tests mit Cypress einrichten, ausführen und schreiben |
 | [Beitragen](contributing.md) | Zum Projekt beitragen |
 
 ## Tech-Stack
@@ -43,6 +43,21 @@ npm run dev
 ```
 
 Öffne [http://localhost:3000](http://localhost:3000).
+
+## Tests ausführen
+
+```bash
+# Einmalig: Test-Umgebung anlegen
+cp .env.test.local.example .env.test.local
+
+# Alle Tests
+npm run test:e2e
+
+# Eine einzelne Datei
+SPEC=cypress/e2e/rental.cy.ts npm run test:e2e:spec
+```
+
+Die Befehle bereiten eine eigene Test-Datenbank vor, starten die App und beenden sie wieder. Ablauf, Testdaten und das Schreiben neuer Tests stehen im [Test-Leitfaden](testing.md).
 
 ## Mitmachen
 
