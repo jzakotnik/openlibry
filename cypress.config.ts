@@ -531,7 +531,13 @@ export default defineConfig({
         async deleteBookCoverImage(bookId: string) {
           try {
             const extensions = [".jpg", ".jpeg", ".png", ".webp"];
-            const coverDir = path.join(__dirname, "public/coverimages");
+            // Same folder the app under test writes to (from .env.test.local),
+            // never the real public/coverimages.
+            const coverDir = path.resolve(
+              __dirname,
+              process.env.COVERIMAGE_FILESTORAGE_PATH ||
+                "prisma/database/test-images",
+            );
             let deletedCount = 0;
 
             for (const ext of extensions) {
