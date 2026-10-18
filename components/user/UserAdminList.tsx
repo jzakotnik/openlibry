@@ -162,12 +162,14 @@ export default function UserAdminList({
             <div
               key={user.id}
               className="flex items-stretch overflow-hidden rounded-xl border border-primary/10 bg-card/90 backdrop-blur-sm transition-all duration-200 hover:shadow-md"
+              data-cy={`user_row_${user.id}`}
             >
               {/* Checkbox Column */}
               <div className="flex items-center border-r border-primary/10 px-2">
                 <Checkbox
                   checked={isChecked}
                   onCheckedChange={() => handleCheckboxChange(userId)}
+                  data-cy={`user_checkbox_${user.id}`}
                 />
               </div>
 
@@ -229,7 +231,10 @@ export default function UserAdminList({
                             size={13}
                             className="text-muted-foreground/50"
                           />
-                          <span className="text-xs text-muted-foreground">
+                          <span
+                            className="text-xs text-muted-foreground"
+                            data-cy={`user_grade_${user.id}`}
+                          >
                             {user.schoolGrade &&
                               `${t("userAdminList.gradePrefix")} ${user.schoolGrade}`}
                             {user.schoolGrade &&

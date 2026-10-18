@@ -116,7 +116,12 @@ export default function UsersPage({ users, rentals }: UsersPageProps) {
       .map((u) => ({
         id: u.id,
         grade: increaseNumberInString(u.schoolGrade),
-      }));
+        oldGrade: u.schoolGrade,
+      }))
+      // skip users without a numeric grade (empty or e.g. "Eichhörnchen"),
+      // the API only accepts string grades and nothing needs to change
+      .filter((u) => typeof u.grade === "string" && u.grade !== u.oldGrade)
+      .map(({ id, grade }) => ({ id, grade }));
 
     fetch("/api/batch/grade", {
       method: "POST",
