@@ -1,15 +1,45 @@
 {
   "_comment": "Additive scenario for batch/rental API specs. Loaded with cy.task('seedScenario', 'batch') AFTER cy.resetAndSeed(). Last names are prefixed 'Scn' so they never collide with the baseline seed. Relative dates: rentedDaysAgo/dueDaysAgo (negative = in the future). Absolute dates: rentedDate/dueDate (ISO).",
   "users": [
-    { "firstName": "Anna", "lastName": "Scnalpha", "schoolGrade": "3a" },
-    { "firstName": "Ben", "lastName": "Scnbeta", "schoolGrade": "3b" },
-    { "firstName": "Cara", "lastName": "Scngamma", "schoolGrade": "4a" },
-    { "firstName": "Dan", "lastName": "Scndelta", "schoolGrade": "4a" },
+    {
+      "firstName": "Anna",
+      "lastName": "Scnalpha",
+      "schoolGrade": "3a"
+    },
+    {
+      "firstName": "Ben",
+      "lastName": "Scnbeta",
+      "schoolGrade": "3b"
+    },
+    {
+      "firstName": "Cara",
+      "lastName": "Scngamma",
+      "schoolGrade": "4a"
+    },
+    {
+      "firstName": "Dan",
+      "lastName": "Scndelta",
+      "schoolGrade": "4a"
+    },
     {
       "firstName": "Ina",
       "lastName": "Scninactive",
       "schoolGrade": "2c",
       "active": false
+    },
+    {
+      "firstName": "Susi",
+      "lastName": "Scnsquirrel",
+      "schoolGrade": "Eichhörnchen"
+    },
+    {
+      "firstName": "Nora",
+      "lastName": "Scnnograde"
+    },
+    {
+      "firstName": "Dora",
+      "lastName": "Scndotted",
+      "schoolGrade": "1.1"
     }
   ],
   "books": [
