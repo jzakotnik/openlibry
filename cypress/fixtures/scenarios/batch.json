@@ -1,0 +1,88 @@
+{
+  "_comment": "Additive scenario for batch/rental API specs. Loaded with cy.task('seedScenario', 'batch') AFTER cy.resetAndSeed(). Last names are prefixed 'Scn' so they never collide with the baseline seed. Relative dates: rentedDaysAgo/dueDaysAgo (negative = in the future). Absolute dates: rentedDate/dueDate (ISO).",
+  "users": [
+    { "firstName": "Anna", "lastName": "Scnalpha", "schoolGrade": "3a" },
+    { "firstName": "Ben", "lastName": "Scnbeta", "schoolGrade": "3b" },
+    { "firstName": "Cara", "lastName": "Scngamma", "schoolGrade": "4a" },
+    { "firstName": "Dan", "lastName": "Scndelta", "schoolGrade": "4a" },
+    {
+      "firstName": "Ina",
+      "lastName": "Scninactive",
+      "schoolGrade": "2c",
+      "active": false
+    }
+  ],
+  "books": [
+    {
+      "_label": "alphaBook1",
+      "title": "Scn Alpha Rented 1",
+      "author": "Scn Autor",
+      "rentalStatus": "rented",
+      "renewalCount": 1,
+      "rentedDaysAgo": 9,
+      "dueDaysAgo": -5,
+      "renterLastName": "Scnalpha"
+    },
+    {
+      "_label": "alphaBook2",
+      "title": "Scn Alpha Rented 2 Overdue",
+      "author": "Scn Autor",
+      "rentalStatus": "rented",
+      "renewalCount": 2,
+      "rentedDaysAgo": 30,
+      "dueDaysAgo": 3,
+      "renterLastName": "Scnalpha"
+    },
+    {
+      "_label": "betaBook",
+      "title": "Scn Beta Rented",
+      "author": "Scn Autor",
+      "rentalStatus": "rented",
+      "renewalCount": 0,
+      "rentedDaysAgo": 5,
+      "dueDaysAgo": -9,
+      "renterLastName": "Scnbeta"
+    },
+    {
+      "_label": "deltaBook",
+      "title": "Scn Delta Rented",
+      "author": "Scn Autor",
+      "rentalStatus": "rented",
+      "renewalCount": 0,
+      "rentedDaysAgo": 2,
+      "dueDaysAgo": -12,
+      "renterLastName": "Scndelta"
+    },
+    {
+      "_label": "freeBook",
+      "title": "Scn Free",
+      "author": "Scn Autor",
+      "rentalStatus": "available",
+      "renewalCount": 0
+    },
+    {
+      "_label": "freeBook2",
+      "title": "Scn Free 2",
+      "author": "Scn Autor",
+      "rentalStatus": "available",
+      "renewalCount": 0
+    },
+    {
+      "_label": "lostBook",
+      "title": "Scn Lost",
+      "author": "Scn Autor",
+      "rentalStatus": "lost",
+      "renewalCount": 0
+    },
+    {
+      "_label": "fixedDueBook",
+      "title": "Scn Fixed Due Date",
+      "author": "Scn Autor",
+      "rentalStatus": "rented",
+      "renewalCount": 0,
+      "rentedDate": "2028-02-01T12:00:00.000Z",
+      "dueDate": "2028-02-29T12:00:00.000Z",
+      "renterLastName": "Scndelta"
+    }
+  ]
+}

@@ -423,6 +423,82 @@ export default defineConfig({
           return { userId: user.id, bookAId: bookA.id, bookCId: bookC.id };
         },
 
+        /**
+         * Additive scenario seed: inserts the users and books of
+         * cypress/fixtures/scenarios/<name>.json on top of whatever
+         * resetAndSeed() created (call that first). Books may use relative
+         * dates (rentedDaysAgo / dueDaysAgo, negative = future) or absolute
+         * ISO dates (rentedDate / dueDate). Returns id maps keyed by lastName
+         * (users) and _label (books).
+         */
+        async seedScenario(name: string) {
+          const client = getPrismaClient();
+          const file = path.join(
+            __dirname,
+            "cypress/fixtures/scenarios",
+            `${path.basename(name)}.json`,
+          );
+          const scenario = JSON.parse(fs.readFileSync(file, "utf-8")) as {
+            users?: any[];
+            books?: any[];
+          };
+
+          const userIdByLastName: Record<string, number> = {};
+          for (const u of scenario.users ?? []) {
+            const { _comment, ...data } = u;
+            const created = await client.user.create({ data });
+            userIdByLastName[u.lastName] = created.id;
+          }
+
+          const bookIdByLabel: Record<string, number> = {};
+          const now = Date.now();
+          for (const b of scenario.books ?? []) {
+            const {
+              _comment,
+              _label,
+              rentedDaysAgo,
+              dueDaysAgo,
+              renterLastName,
+              rentedDate,
+              dueDate,
+              ...fields
+            } = b;
+            const rented =
+              rentedDate !== undefined
+                ? new Date(rentedDate)
+                : rentedDaysAgo !== undefined
+                  ? new Date(now - rentedDaysAgo * 86400000)
+                  : undefined;
+            const due =
+              dueDate !== undefined
+                ? new Date(dueDate)
+                : dueDaysAgo !== undefined
+                  ? new Date(now - dueDaysAgo * 86400000)
+                  : undefined;
+            const created = await client.book.create({
+              data: {
+                ...fields,
+                ...(rented && { rentedDate: rented }),
+                ...(due && { dueDate: due }),
+                ...(renterLastName && {
+                  userId: userIdByLastName[renterLastName],
+                }),
+              },
+            });
+            if (_label) bookIdByLabel[_label] = created.id;
+          }
+
+          console.log(
+            `✓ seedScenario(${name}): ${Object.keys(userIdByLastName).length} users, ${Object.keys(bookIdByLabel).length} labelled books`,
+          );
+          return { userIdByLastName, bookIdByLabel };
+        },
+
+        async verifyUser(userId: number) {
+          const client = getPrismaClient();
+          return await client.user.findUnique({ where: { id: userId } });
+        },
+
         async seedLoginUser({
           username,
           password,
