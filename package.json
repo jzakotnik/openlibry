@@ -12,7 +12,7 @@
     "dev:test:publicroot": "OPENLIBRY_ROOT_ROUTE=/catalog next dev",
     "cypress": "cypress open",
     "cypress:headless": "cypress run",
-    "test:e2e:prepare": "mkdir -p prisma/database/test-images && rm -f prisma/database/automated-test-db.db prisma/database/automated-test-db.db-wal prisma/database/automated-test-db.db-shm && dotenv -e .env.test.local -- sh -c 'prisma db push && prisma generate'",
+    "test:e2e:prepare": "rm -rf prisma/database/test-images && mkdir -p prisma/database/test-images && rm -f prisma/database/automated-test-db.db prisma/database/automated-test-db.db-wal prisma/database/automated-test-db.db-shm && dotenv -e .env.test.local -- sh -c 'prisma db push && prisma generate'",
     "pretest:e2e": "npm run test:e2e:prepare",
     "pretest:e2e:ui": "npm run test:e2e:prepare",
     "pretest:e2e:publicroot": "npm run test:e2e:prepare",
