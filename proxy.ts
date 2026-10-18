@@ -52,7 +52,11 @@ export default withAuth(
           isPublicRootRedirect ||
           pathname === "/publicbookview" ||
           isPublicRoutePath(pathname) ||
-          (loginImage !== null && pathname === loginImage);
+          (loginImage !== null && pathname === loginImage) ||
+          // Test-only: lets cypress.config.ts verify the server's database
+          // (the handler itself also answers 404 unless E2E_TEST_MODE=true).
+          (process.env.E2E_TEST_MODE === "true" &&
+            pathname === "/api/test/dbinfo");
 
         if (isPublicRoute) return true;
 

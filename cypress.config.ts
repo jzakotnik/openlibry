@@ -139,6 +139,71 @@ async function truncateAllTables(client: PrismaClient) {
   return tables;
 }
 
+// ── Server/database guard ────────────────────────────────────────────────────
+// Cypress seeds prisma/database/automated-test-db.db through its own
+// connection; the app under test reads DATABASE_URL. If the two differ (wrong
+// .env.test.local, server started without E2E_TEST_MODE=true, or a server that still
+// holds a deleted database file open after `test:e2e:prepare`), specs fail later
+// with confusing login/empty-data errors. Ask the server what it sees right
+// after seeding and fail here with the actual cause instead.
+
+async function assertServerUsesTestDb(
+  baseUrl: string,
+  expected: { books: number; users: number; loginUsers: number },
+) {
+  const url = `${baseUrl}/api/test/dbinfo`;
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    throw new Error(
+      `[db guard] Cannot reach the app at ${url}. Start it with ` +
+        `"npx dotenv -e .env.test.local -- npm run dev:test" (or use npm run ` +
+        `test:e2e / test:e2e:spec).`,
+    );
+  }
+  if (res.status === 404) {
+    throw new Error(
+      `[db guard] ${url} answered 404. The server was not started with ` +
+        `E2E_TEST_MODE=true, so it may not be using the test database. Add ` +
+        `E2E_TEST_MODE=true to .env.test.local (see .env.test.local.example) ` +
+        `and restart the server with "npx dotenv -e .env.test.local -- npm run dev:test".`,
+    );
+  }
+  if (!res.ok) {
+    throw new Error(`[db guard] ${url} answered ${res.status}`);
+  }
+
+  const info = (await res.json()) as {
+    file: string | null;
+    books: number;
+    users: number;
+    loginUsers: number;
+  };
+
+  if (!info.file || path.basename(info.file) !== "automated-test-db.db") {
+    throw new Error(
+      `[db guard] The server reads "${info.file}", not automated-test-db.db. ` +
+        `Check DATABASE_URL in .env.test.local ` +
+        `(file:./prisma/database/automated-test-db.db) and restart the server.`,
+    );
+  }
+  if (
+    info.books !== expected.books ||
+    info.users !== expected.users ||
+    info.loginUsers !== expected.loginUsers
+  ) {
+    throw new Error(
+      `[db guard] The server sees ${info.books} books / ${info.users} users / ` +
+        `${info.loginUsers} login users but ${expected.books} / ` +
+        `${expected.users} / ${expected.loginUsers} were just seeded. The ` +
+        `server most likely holds an old copy of the database file open ` +
+        `(e.g. test:e2e:prepare ran while it was running). Stop the server ` +
+        `and start it again.`,
+    );
+  }
+}
+
 // ── Config ───────────────────────────────────────────────────────────────────
 
 export default defineConfig({
@@ -266,6 +331,12 @@ export default defineConfig({
             } as any);
           }
 
+          await assertServerUsesTestDb(config.baseUrl as string, {
+            books: bookFixtures.length,
+            users: userFixtures.length,
+            loginUsers: loginUserFixtures.length,
+          });
+
           console.log("[resetAndSeed] Done ✓");
           return {
             userIdByLastName,
@@ -350,6 +421,82 @@ export default defineConfig({
             `✓ seedRentalData: user=${user.id} bookA=${bookA.id} bookC=${bookC.id}`,
           );
           return { userId: user.id, bookAId: bookA.id, bookCId: bookC.id };
+        },
+
+        /**
+         * Additive scenario seed: inserts the users and books of
+         * cypress/fixtures/scenarios/<name>.json on top of whatever
+         * resetAndSeed() created (call that first). Books may use relative
+         * dates (rentedDaysAgo / dueDaysAgo, negative = future) or absolute
+         * ISO dates (rentedDate / dueDate). Returns id maps keyed by lastName
+         * (users) and _label (books).
+         */
+        async seedScenario(name: string) {
+          const client = getPrismaClient();
+          const file = path.join(
+            __dirname,
+            "cypress/fixtures/scenarios",
+            `${path.basename(name)}.json`,
+          );
+          const scenario = JSON.parse(fs.readFileSync(file, "utf-8")) as {
+            users?: any[];
+            books?: any[];
+          };
+
+          const userIdByLastName: Record<string, number> = {};
+          for (const u of scenario.users ?? []) {
+            const { _comment, ...data } = u;
+            const created = await client.user.create({ data });
+            userIdByLastName[u.lastName] = created.id;
+          }
+
+          const bookIdByLabel: Record<string, number> = {};
+          const now = Date.now();
+          for (const b of scenario.books ?? []) {
+            const {
+              _comment,
+              _label,
+              rentedDaysAgo,
+              dueDaysAgo,
+              renterLastName,
+              rentedDate,
+              dueDate,
+              ...fields
+            } = b;
+            const rented =
+              rentedDate !== undefined
+                ? new Date(rentedDate)
+                : rentedDaysAgo !== undefined
+                  ? new Date(now - rentedDaysAgo * 86400000)
+                  : undefined;
+            const due =
+              dueDate !== undefined
+                ? new Date(dueDate)
+                : dueDaysAgo !== undefined
+                  ? new Date(now - dueDaysAgo * 86400000)
+                  : undefined;
+            const created = await client.book.create({
+              data: {
+                ...fields,
+                ...(rented && { rentedDate: rented }),
+                ...(due && { dueDate: due }),
+                ...(renterLastName && {
+                  userId: userIdByLastName[renterLastName],
+                }),
+              },
+            });
+            if (_label) bookIdByLabel[_label] = created.id;
+          }
+
+          console.log(
+            `✓ seedScenario(${name}): ${Object.keys(userIdByLastName).length} users, ${Object.keys(bookIdByLabel).length} labelled books`,
+          );
+          return { userIdByLastName, bookIdByLabel };
+        },
+
+        async verifyUser(userId: number) {
+          const client = getPrismaClient();
+          return await client.user.findUnique({ where: { id: userId } });
         },
 
         async seedLoginUser({
@@ -460,7 +607,13 @@ export default defineConfig({
         async deleteBookCoverImage(bookId: string) {
           try {
             const extensions = [".jpg", ".jpeg", ".png", ".webp"];
-            const coverDir = path.join(__dirname, "public/coverimages");
+            // Same folder the app under test writes to (from .env.test.local),
+            // never the real public/coverimages.
+            const coverDir = path.resolve(
+              __dirname,
+              process.env.COVERIMAGE_FILESTORAGE_PATH ||
+                "prisma/database/test-images",
+            );
             let deletedCount = 0;
 
             for (const ext of extensions) {

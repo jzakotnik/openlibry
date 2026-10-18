@@ -155,6 +155,7 @@ export default function UserSearchBar({
             }
             onClick={onSelectAll}
             badgeCount={hasSelection ? selectedCount : undefined}
+            data-cy="user_select_all_button"
           />
 
           <ActionButton
@@ -168,9 +169,14 @@ export default function UserSearchBar({
         {/* ── Selection action bar (slides in below) ── */}
         <Collapsible open={hasSelection}>
           <CollapsibleContent>
-            <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-primary/5 px-4 py-2">
+            <div
+              className="flex items-center justify-between rounded-xl border border-primary/10 bg-primary/5 px-4 py-2"
+              data-cy="user_selection_bar"
+            >
               <div className="flex items-center gap-2">
-                <Badge className="rounded-full">{selectedCount}</Badge>
+                <Badge className="rounded-full" data-cy="user_selected_count">
+                  {selectedCount}
+                </Badge>
                 <span className="text-sm font-medium text-muted-foreground">
                   {t("userSearchBar.selected", { total: totalUsers })}
                 </span>
@@ -179,6 +185,7 @@ export default function UserSearchBar({
                   size="sm"
                   onClick={onSelectAll}
                   className="ml-1 h-7 gap-1 px-2 text-xs text-muted-foreground"
+                  data-cy="user_deselect_button"
                 >
                   <X size={12} />
                   {t("userSearchBar.deselect")}
@@ -191,6 +198,7 @@ export default function UserSearchBar({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-muted-foreground"
+                    data-cy="user_actions_menu"
                   >
                     <MoreVertical size={18} />
                     <span className="sr-only">
@@ -203,6 +211,7 @@ export default function UserSearchBar({
                   <DropdownMenuItem
                     onClick={onIncreaseGrade}
                     className="gap-3 text-primary"
+                    data-cy="user_action_increase_grade"
                   >
                     <GraduationCap size={16} />
                     {t("userSearchBar.increaseGrade")}
@@ -223,6 +232,7 @@ export default function UserSearchBar({
                         ? "font-semibold text-destructive focus:text-destructive"
                         : "text-muted-foreground",
                     )}
+                    data-cy="user_action_delete"
                   >
                     <Trash2 size={16} />
                     {confirmDelete

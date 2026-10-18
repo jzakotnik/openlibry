@@ -12,8 +12,14 @@
     "dev:test:publicroot": "OPENLIBRY_ROOT_ROUTE=/catalog next dev",
     "cypress": "cypress open",
     "cypress:headless": "cypress run",
+    "test:e2e:prepare": "rm -rf prisma/database/test-images && mkdir -p prisma/database/test-images && rm -f prisma/database/automated-test-db.db prisma/database/automated-test-db.db-wal prisma/database/automated-test-db.db-shm && dotenv -e .env.test.local -- sh -c 'prisma db push && prisma generate'",
+    "pretest:e2e": "npm run test:e2e:prepare",
+    "pretest:e2e:ui": "npm run test:e2e:prepare",
+    "pretest:e2e:publicroot": "npm run test:e2e:prepare",
     "test:e2e": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:3000 cypress:headless",
-    "test:e2e:ui": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test dev http-get://localhost:3000 cypress",
+    "test:e2e:spec": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:3000 'cypress run --spec \"$SPEC\"'",
+    "pretest:e2e:spec": "npm run test:e2e:prepare",
+    "test:e2e:ui": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test dev:test http-get://localhost:3000 cypress",
     "test:e2e:publicroot": "NODE_ENV=test OPENLIBRY_ROOT_ROUTE=/catalog dotenv -e .env.test.local start-server-and-test 'dev:test:publicroot' http-get://localhost:3000 'cypress run --spec cypress/e2e/rootroute-public.cy.ts'"
   },
   "dependencies": {
