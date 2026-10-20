@@ -2,16 +2,16 @@ Hallo liebe OpenLibry-Community!
 
 Es gibt eine neue Version: **1.12** ist da. Sie bringt viele kleine Verbesserungen im Alltag, vor allem rund um Klassen und Versetzung, die Admin-Verwaltung und die Sicherheit. Ein herzliches Dankeschön an alle, die getestet, Feedback gegeben und mitgemacht haben!
 
-Außerdem hat unsere **Webseite ein neues Design** bekommen. Schaut vorbei auf [openlibry.de](https://openlibry.de)!
+Außerdem hat unsere **Homepage ein neues Design** bekommen. Schaut vorbei auf [openlibry.de](https://openlibry.de)!
 
 Macht bitte wie immer beim Update vorher ein **Backup** eurer Datenbank.
 
 Für den Austausch von Ideen und Erfahrungen gibt es unseren Discord-Kanal. Schaut gerne vorbei: [Discord](https://discord.gg/xTHhsTMNf)
 
 ---
-## 🌐 Neues Design für die Webseite
+## 🌐 Neues Design für die Homepage
 
-Unsere Webseite [openlibry.de](https://openlibry.de) präsentiert sich in frischem, neuem Design. Sie ist übersichtlicher und leichter zu bedienen. Dort findet ihr weiterhin alles Wichtige zu OpenLibry, von der Installation bis zur Dokumentation. Wir freuen uns über euer Feedback dazu!
+Unsere Homepage [openlibry.de](https://openlibry.de) präsentiert sich in frischem, neuem Design. Sie ist übersichtlicher und leichter zu bedienen. Dort findet ihr weiterhin alles Wichtige zu OpenLibry, von der Installation bis zur Dokumentation. Wir freuen uns über euer Feedback dazu!
 
 ---
 # OpenLibry v1.12 – Release Notes
