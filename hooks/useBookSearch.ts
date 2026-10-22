@@ -65,7 +65,7 @@ export function useBookSearch(
 
   // Stable fingerprint: changes when books are added/removed OR when a field
   // relevant to rendering changes. NOTE: `updatedAt` arrives from the API with
-  // day granularity (convertDateToDayString), so it does NOT change on a
+  // day granularity (formatInstantDayString), so it does NOT change on a
   // second same-day mutation — rentalStatus/dueDate/userId/renewalCount must
   // be part of the fingerprint or the index goes stale after e.g. a
   // return-then-rent on the same day.

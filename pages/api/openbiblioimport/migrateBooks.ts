@@ -1,14 +1,10 @@
 import { BookType } from "@/entities/BookType";
+import { convertDateOnlyToUtcIsoString } from "@/lib/utils/dateutils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 
-export const TIMEZONE = "Europe/Berlin";
-dayjs.extend(utc);
-dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
 import { normalizeIsbn } from "@/entities/book";
@@ -302,15 +298,26 @@ export default async function handler(
         //skip the books that are not needed
         //rented date has format 2022-11-11 12:37:39
         //if the book is in, the value in the DB is NULL
-        const rentedTime = dayjs(
+        //
+        // Only the calendar date from the OpenBiblio dump matters (rental
+        // dates have no meaningful time-of-day) — extract just the date
+        // portion and anchor it to UTC midnight, so the imported value
+        // doesn't shift depending on whichever OS timezone this migration
+        // script happens to run under.
+        const rentedDateOnly = dayjs(
           b.status_begin_dt,
           "YYYY-MM-DD HH:mm:ss",
           true
         ).isValid()
-          ? dayjs(b.status_begin_dt, "YYYY-MM-DD HH:mm:ss", true).toDate()
+          ? dayjs(b.status_begin_dt, "YYYY-MM-DD HH:mm:ss", true).format(
+              "YYYY-MM-DD"
+            )
+          : undefined;
+        const rentedTime = rentedDateOnly
+          ? convertDateOnlyToUtcIsoString(rentedDateOnly)
           : undefined;
         const dueDate = dayjs(b.due_back_dt, "YYYY-MM-DD", true).isValid()
-          ? dayjs(b.due_back_dt, "YYYY-MM-DD", true).toDate()
+          ? convertDateOnlyToUtcIsoString(b.due_back_dt)
           : undefined;
 
         console.log("Timestamps: ", rentedTime, dueDate);
