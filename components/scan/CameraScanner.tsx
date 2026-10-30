@@ -201,7 +201,7 @@ export default function CameraScanner({
               ) : (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div
-                    className="relative h-40 w-72 max-w-full"
+                    className="relative aspect-[9/5] max-h-[70%] w-4/5"
                     data-cy="scan_camera_frame"
                   >
                     <span className="absolute left-0 top-0 size-8 rounded-tl-md border-l-4 border-t-4 border-white" />
