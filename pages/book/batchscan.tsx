@@ -13,13 +13,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import { isIsbnLike } from "@/lib/isbn-services/types";
 import { t } from "@/lib/i18n";
 import { playSound } from "@/lib/utils/audioutils";
 import { currentTime } from "@/lib/utils/dateutils";
 import { generateId } from "@/lib/utils/id";
 import {
   AlertTriangle,
-  Camera,
   CheckCircle,
   Image,
   Loader2,
@@ -40,11 +40,10 @@ import {
 import { toast } from "sonner";
 
 // The scanner pulls in the whole zxing decoder, a 469 KB chunk. Imported
-// statically it landed in the first load of every page that can edit a book,
-// and the Pages Router waits for that chunk before it will even change the
-// URL. Loading it when the camera is actually opened keeps it out of the way.
+// statically it would hold up navigation to this page, as the Pages Router
+// waits for every chunk of a page before it changes the URL.
 const CameraScanner = dynamic(
-  () => import("@/components/book/CameraScanner"),
+  () => import("@/components/scan/CameraScanner"),
   { ssr: false },
 );
 
@@ -56,7 +55,6 @@ export default function BatchScan() {
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [batchShelf, setBatchShelf] = useState("");
-  const [cameraOpen, setCameraOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -78,9 +76,11 @@ export default function BatchScan() {
   const processIsbn = useCallback(
     async (rawIsbn: string) => {
       const cleanedIsbn = rawIsbn.trim().replace(/\D/g, "");
+
       if (!cleanedIsbn) return;
 
       const existingEntry = entries.find((e) => e.isbn === cleanedIsbn);
+
       if (existingEntry) {
         setEntries((prev) =>
           prev.map((entry) =>
@@ -122,27 +122,37 @@ export default function BatchScan() {
         prev.map((entry) =>
           entry.id === newEntry.id
             ? {
-                ...entry,
-                status: bookData ? "found" : "not_found",
-                bookData: bookData
-                  ? { ...bookData, isbn: cleanedIsbn }
-                  : { isbn: cleanedIsbn, title: "", author: "", rentalStatus: "available", renewalCount: 0 },
-                coverUrl,
-                hasCover: coverResult.exists,
-                coverBlob: coverResult.blob,
-                coverSource: coverResult.source,
-              }
+              ...entry,
+              status: bookData ? "found" : "not_found",
+              bookData: bookData
+                ? { ...bookData, isbn: cleanedIsbn }
+                : {
+                  isbn: cleanedIsbn,
+                  title: "",
+                  author: "",
+                  rentalStatus: "available",
+                  renewalCount: 0,
+                },
+              coverUrl,
+              hasCover: coverResult.exists,
+              coverBlob: coverResult.blob,
+              coverSource: coverResult.source,
+            }
             : entry,
         ),
       );
 
       if (bookData) {
         playSound("success");
-        const coverInfo = coverResult.exists ? ` (Cover von ${coverResult.source})` : "";
+        const coverInfo = coverResult.exists
+          ? ` (Cover von ${coverResult.source})`
+          : "";
         toast.success(`"${bookData.title}" gefunden${coverInfo}`);
       } else {
         playSound("error");
-        toast.warning("ISBN nicht in Datenbank gefunden - manuelle Eingabe möglich");
+        toast.warning(
+          "ISBN nicht in Datenbank gefunden - manuelle Eingabe möglich",
+        );
       }
     },
     [entries],
@@ -152,7 +162,6 @@ export default function BatchScan() {
 
   const handleCameraDetected = useCallback(
     (isbn: string) => {
-      setCameraOpen(false);
       inputRef.current?.focus();
       processIsbn(isbn);
     },
@@ -459,13 +468,6 @@ export default function BatchScan() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <>
-    {cameraOpen && (
-      <CameraScanner
-        onDetected={handleCameraDetected}
-        onClose={() => setCameraOpen(false)}
-      />
-    )}
     <Layout>
       <Head>
         <title>Batch-Scan | OpenLibry</title>
@@ -491,18 +493,8 @@ export default function BatchScan() {
                       autoFocus
                       placeholder="ISBN hier scannen oder eingeben…"
                       data-cy="batch-scan-isbn-input"
-                      className="pl-10 pr-10 h-11"
+                      className="pl-10 h-11"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setCameraOpen(true)}
-                      data-cy="batch-scan-camera-button"
-                      aria-label={t("cameraScanner.open")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2
-                                 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Camera className="size-5" />
-                    </button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1.5 ml-1">
                     Gleiche ISBN mehrfach scannen erhöht die Anzahl
@@ -516,6 +508,13 @@ export default function BatchScan() {
                   <PlusCircle />
                   Hinzufügen
                 </Button>
+              </div>
+              <div className="mt-3">
+                <CameraScanner
+                  onDetected={handleCameraDetected}
+                  accept={isIsbnLike}
+                  stopAfterScan
+                />
               </div>
             </CardContent>
           </Card>
@@ -639,6 +638,5 @@ export default function BatchScan() {
         </div>
       </TooltipProvider>
     </Layout>
-    </>
   );
 }

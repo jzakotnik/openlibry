@@ -22,20 +22,20 @@ describe("Camera barcode scanner", () => {
     });
   });
 
-  it("should offer a camera button next to the batch scan ISBN input", () => {
-    cy.visit("http://localhost:3000/book/batchscan");
-    cy.get("[data-cy=batch-scan-camera-button]").should("be.visible");
+  it("should offer the camera below the batch scan ISBN input", () => {
+    cy.visit("/book/batchscan");
+    cy.get("[data-cy=scan_camera_toggle]").should("be.visible");
   });
 
   it("should warn instead of clearing the field when the ISBN is empty", () => {
-    cy.visit("http://localhost:3000/book/batchscan");
+    cy.visit("/book/batchscan");
     cy.get("[data-cy=batch-scan-add-button]").click();
     cy.contains("Bitte eine gültige ISBN eingeben").should("be.visible");
     cy.get("[data-cy=batch-scan-entry]").should("not.exist");
   });
 
   it("should explain that HTTPS is needed when the page is not a secure context", () => {
-    cy.visit("http://localhost:3000/book/batchscan", {
+    cy.visit("/book/batchscan", {
       onBeforeLoad(win) {
         // Plain HTTP on a LAN: navigator.mediaDevices is undefined and the
         // zxing call throws. Without the guard this surfaced as the generic
@@ -47,14 +47,14 @@ describe("Camera barcode scanner", () => {
       },
     });
 
-    cy.get("[data-cy=batch-scan-camera-button]").click();
-    cy.contains("HTTPS").should("be.visible");
-    // Retrying cannot succeed without a secure context, so no retry button.
-    cy.contains("Erneut versuchen").should("not.exist");
+    cy.get("[data-cy=scan_camera_toggle]").click();
+    cy.get("[data-cy=scan_camera_error]")
+      .should("be.visible")
+      .and("contain", "HTTPS");
   });
 
-  it("should close the scanner overlay again", () => {
-    cy.visit("http://localhost:3000/book/batchscan", {
+  it("should turn the camera off again", () => {
+    cy.visit("/book/batchscan", {
       onBeforeLoad(win) {
         Object.defineProperty(win, "isSecureContext", {
           value: false,
@@ -63,17 +63,15 @@ describe("Camera barcode scanner", () => {
       },
     });
 
-    // Match the overlay itself, not its title: the page heading behind it
-    // reads "ISBN scannen oder eingeben" and would satisfy a text assertion.
-    cy.get("[data-cy=batch-scan-camera-button]").click();
-    cy.get("[data-cy=camera-scanner-overlay]").should("be.visible");
-    cy.get("[aria-label=Schließen]").click();
-    cy.get("[data-cy=camera-scanner-overlay]").should("not.exist");
+    cy.get("[data-cy=scan_camera_toggle]").click();
+    cy.get("[data-cy=scan_camera_preview]").should("be.visible");
+    cy.get("[data-cy=scan_camera_toggle]").click();
+    cy.get("[data-cy=scan_camera_preview]").should("not.exist");
     cy.get("[data-cy=batch-scan-isbn-input]").should("be.visible");
   });
 
-  it("should offer the camera button on the book edit ISBN field", () => {
-    cy.visit("http://localhost:3000/book/new");
-    cy.get("[data-cy=book-isbn-camera-button]").should("exist");
+  it("should offer the camera below the book edit ISBN field", () => {
+    cy.visit("/book/new");
+    cy.get("[data-cy=scan_camera_toggle]").should("exist");
   });
 });

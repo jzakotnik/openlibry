@@ -8,6 +8,10 @@ import { useEffect, useRef, useState } from "react";
 interface CameraScannerProps {
   /** Called with the decoded text once per newly-seen code. */
   onDetected: (text: string) => void;
+  /** Ignore codes this returns false for, e.g. anything that is not an ISBN. */
+  accept?: (text: string) => boolean;
+  /** Turn the camera off after the first accepted code. */
+  stopAfterScan?: boolean;
 }
 
 // Ignore a re-detection of the same code while it's still sitting in frame —
@@ -21,7 +25,11 @@ const SAME_CODE_COOLDOWN_MS = 2000;
  * so a plain USB scanner keyboard-wedge into the text field below still
  * works exactly as before.
  */
-export default function CameraScanner({ onDetected }: CameraScannerProps) {
+export default function CameraScanner({
+  onDetected,
+  accept,
+  stopAfterScan = false,
+}: CameraScannerProps) {
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -33,6 +41,14 @@ export default function CameraScanner({ onDetected }: CameraScannerProps) {
   useEffect(() => {
     if (!active || !videoRef.current) return;
 
+    // Browsers only expose the camera in a secure context. OpenLibry often
+    // runs over plain HTTP on a school LAN, so name the real cause instead of
+    // the generic error.
+    if (!window.isSecureContext || !navigator.mediaDevices) {
+      setError(t("scan.cameraInsecure"));
+      return;
+    }
+
     let cancelled = false;
     const reader = new BrowserMultiFormatReader();
     setError(null);
@@ -42,6 +58,7 @@ export default function CameraScanner({ onDetected }: CameraScannerProps) {
         if (cancelled || !result) return;
 
         const text = result.getText();
+        if (accept && !accept(text)) return;
         const now = Date.now();
         const last = lastDetectionRef.current;
         if (
@@ -52,6 +69,10 @@ export default function CameraScanner({ onDetected }: CameraScannerProps) {
           return;
         }
         lastDetectionRef.current = { text, time: now };
+        if (stopAfterScan) {
+          cancelled = true;
+          setActive(false);
+        }
         onDetected(text);
       })
       .then((controls) => {
@@ -70,7 +91,7 @@ export default function CameraScanner({ onDetected }: CameraScannerProps) {
       controlsRef.current?.stop();
       controlsRef.current = null;
     };
-  }, [active, onDetected]);
+  }, [active, onDetected, accept, stopAfterScan]);
 
   return (
     <div className="flex flex-col gap-2">
