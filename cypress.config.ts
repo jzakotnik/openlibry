@@ -209,7 +209,7 @@ async function assertServerUsesTestDb(
 export default defineConfig({
   e2e: {
     experimentalRunAllSpecs: true,
-    baseUrl: "http://localhost:3000",
+    baseUrl: `http://localhost:${process.env.PORT || 3000}`,
     video: false,
     videosFolder: "cypress/videos",
     videoCompression: 32,

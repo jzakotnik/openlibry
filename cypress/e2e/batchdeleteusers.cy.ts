@@ -4,7 +4,7 @@
 // user list. Deleting users must never delete books: a book that was still
 // rented out becomes "lost" and is detached from the deleted borrower.
 describe("Batch user deletion API", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   let users: Record<string, number>;
   let books: Record<string, number>;

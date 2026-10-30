@@ -3,7 +3,7 @@
 // Single-user API: POST /api/user, GET/PUT/DELETE /api/user/:id. Includes what
 // happens to a user's loans when the user is deactivated or deleted.
 describe("User API", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   let users: Record<string, number>;
   let books: Record<string, number>;

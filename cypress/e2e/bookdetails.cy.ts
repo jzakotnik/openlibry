@@ -18,7 +18,7 @@ describe("Book editing and upload of cover", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should navigate to the book screen", () => {
@@ -65,7 +65,7 @@ describe("Book editing and upload of cover", () => {
     cy.url({ timeout: 10000 }).should("not.include", "/edit");
     cy.get("body").should("be.visible");
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").type(String(bookId));
     cy.get(`[data-cy=book_summary_card_${bookId}]`).should("be.visible");
@@ -96,7 +96,7 @@ describe("Book editing and upload of cover", () => {
 
     cy.task("verifyBook", bookId).should("be.null");
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_book_button]").should("be.visible").click();
     cy.get("[data-cy=rental_input_searchbook]")
       .should("be.visible")

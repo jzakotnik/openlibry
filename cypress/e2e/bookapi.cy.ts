@@ -4,7 +4,7 @@
 // part is the link between a book and its borrower when a book is edited or
 // deleted while it is rented.
 describe("Book API", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   let users: Record<string, number>;
   let books: Record<string, number>;

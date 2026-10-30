@@ -38,6 +38,8 @@ cp .env.test.local.example .env.test.local
 
 Alle Befehle brauchen **ein** Terminal: Sie bereiten die Datenbank vor, starten und beenden den Server selbst.
 
+Der Testserver läuft auf Port 3000. Ist der belegt, etwa durch eine laufende OpenLibry-Instanz, setze `PORT` beim Aufruf: `PORT=3100 npm run test:e2e`. Die Variable muss auf der Kommandozeile stehen, in `.env.test.local` wirkt sie nicht. Die Skripte setzen `NEXTAUTH_URL` passend dazu, sonst würde der Login weiter Port 3000 ansprechen. Specs verwenden deshalb nur relative Pfade wie `cy.visit("/book")`, nie `http://localhost:3000`.
+
 !!! note "Rufe `cypress run` nicht direkt auf"
     Ohne die npm-Skripte fehlen die Vorbereitung und der laufende Testserver. Der Datenbank-Check bricht dann mit einer Meldung ab, die den Fehler benennt.
 
@@ -55,7 +57,7 @@ Dadurch beginnt jeder Lauf mit dem aktuellen Schema und ohne Reste früherer Lä
 
 ### 2. Starten
 
-`start-server-and-test` startet `next dev` mit den Werten aus `.env.test.local`, wartet bis `localhost:3000` antwortet und startet dann Cypress. Beim Start der Cypress-Konfiguration passiert Folgendes:
+`start-server-and-test` startet `next dev` mit den Werten aus `.env.test.local`, wartet bis `localhost:3000` (oder der Port aus `PORT`) antwortet und startet dann Cypress. Beim Start der Cypress-Konfiguration passiert Folgendes:
 
 - Die Ausleihregeln aus `.env.test.local` werden als `Cypress.env(...)` bereitgestellt.
 - Die Fixtures werden einmal geladen.

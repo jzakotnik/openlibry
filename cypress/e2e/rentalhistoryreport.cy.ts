@@ -21,7 +21,7 @@ describe("Rental History Report", () => {
   describe("Desktop view", () => {
     beforeEach(() => {
       cy.viewport(DESKTOP.width, DESKTOP.height);
-      cy.visit("http://localhost:3000/reports/userhistory");
+      cy.visit("/reports/userhistory");
     });
 
     it("displays the page structure with data", () => {
@@ -125,7 +125,7 @@ describe("Rental History Report", () => {
   describe("Mobile view", () => {
     beforeEach(() => {
       cy.viewport(MOBILE.width, MOBILE.height);
-      cy.visit("http://localhost:3000/reports/userhistory");
+      cy.visit("/reports/userhistory");
       // Uncheck "active only" so all seeded users appear regardless of
       // borrow history — the seed has no audit records so borrowCount=0
       // for everyone, meaning the default "active only" filter shows nobody.

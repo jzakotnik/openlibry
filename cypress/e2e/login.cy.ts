@@ -10,7 +10,7 @@ describe("Login", () => {
   });
 
   it("should navigate to the title screen", () => {
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get('input[id="user"]').type("cypress_test_admin");
     cy.get('input[id="password"]').type("CypressTest1234!");
     cy.get('input[id="password"]').type("{enter}");

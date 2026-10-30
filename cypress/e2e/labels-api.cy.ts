@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 describe("Label API", () => {
-  const API = "http://localhost:3000/api/labels";
+  const API = "/api/labels";
   const TEMPLATE_FILE =
     "database/custom/labels/templates/cypress-test-vorlage.json";
 
@@ -180,7 +180,7 @@ describe("Label API", () => {
     });
 
     it("should generate a PDF with bookFilter: IDs", () => {
-      cy.request("GET", "http://localhost:3000/api/book").then((booksResponse) => {
+      cy.request("GET", "/api/book").then((booksResponse) => {
         const ids = booksResponse.body.slice(0, 2).map((b: any) => b.id);
         expect(ids).to.have.length.greaterThan(0);
 

@@ -6,8 +6,6 @@
 // catalog, /api/public/*, /api/images*, /api/version, /api/auth/* and the
 // login pages (see lib/rootRoute.ts and proxy.ts).
 describe("Authentication gate", () => {
-  const BASE = "http://localhost:3000";
-
   let users: Record<string, number>;
   let books: Record<string, number>;
 
@@ -32,7 +30,7 @@ describe("Authentication gate", () => {
   ) =>
     cy.request({
       method,
-      url: `${BASE}${path}`,
+      url: path,
       body,
       followRedirect: false,
       failOnStatusCode: false,

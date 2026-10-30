@@ -19,7 +19,7 @@ describe("User list batch actions (UI)", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/user");
+    cy.visit("/user");
     cy.get("[data-cy=rental_input_searchuser]").should("be.visible");
   });
 

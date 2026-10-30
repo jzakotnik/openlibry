@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 describe("API input validation", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   before(() => {
     cy.resetAndSeed();

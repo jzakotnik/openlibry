@@ -4,7 +4,7 @@
 // catalogue, spaced from a supplier list, bare from a barcode reader. Storing
 // them in one canonical form is what lets a later lookup find the book at all.
 
-const API = "http://localhost:3000/api/book";
+const API = "/api/book";
 
 describe("Canonical ISBN storage", () => {
   before(() => {

@@ -5,7 +5,7 @@
 // dates. Fixed dates are seeded at 12:00 UTC so the expected day is the same in
 // every server timezone (the API formats in the server's local timezone).
 describe("Rental dates (API)", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   let users: Record<string, number>;
   let books: Record<string, number>;

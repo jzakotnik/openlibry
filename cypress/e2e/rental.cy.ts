@@ -30,7 +30,7 @@ describe("Rental of books", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   // ── Helpers ────────────────────────────────────────────────────────────────
