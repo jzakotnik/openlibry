@@ -282,6 +282,9 @@ export const es: Dictionary = {
     toastBookReturned: "¡Libro devuelto, genial!",
     toastReturnError: "Error al devolver el libro",
   },
+  batchScan: {
+    toastIsbnRequired: "Introduce un ISBN válido",
+  },
   bookSelect: {
     renewalNone: "No renovado",
     renewalCountFormat: "{n}x renovado",
@@ -1268,6 +1271,12 @@ export const es: Dictionary = {
     cameraStart: "Cámara encendida",
     cameraStop: "Cámara apagada",
     cameraError: "No se pudo iniciar la cámara. Comprueba los permisos.",
+    cameraInsecure: "La cámara solo está disponible con una conexión HTTPS.",
+    cameraPermissionDenied: "Acceso a la cámara denegado. Concede el permiso.",
+    cameraNotFound: "No se encontró ninguna cámara.",
+    cameraSwitch: "Cambiar de cámara",
+    cameraHint: "Coloca el código de barras dentro del marco",
+    cameraRetry: "Intentar de nuevo",
     logEmpty: "Todavía no hay escaneos en esta sesión",
     logPendingRent: 'Prestando "{title}" a {name} …',
     logPendingReturn: 'Devolviendo "{title}" …',
