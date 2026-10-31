@@ -1,11 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { Dispatch, useCallback, useState } from "react";
+import { Dispatch, useCallback, useRef, useState } from "react";
 
 import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
 import { AntolinResultType } from "@/entities/AntolinResultsType";
 import { BookType } from "@/entities/BookType";
+import { isIsbnLike } from "@/lib/isbn-services/types";
 import { t } from "@/lib/i18n";
 import React from "react";
 import { toast } from "sonner";
@@ -20,6 +22,14 @@ import BookSelect, {
   rentalStatusOptions,
 } from "./edit/BookSelect";
 import BookTopicsChips from "./edit/BookTopicsChips";
+
+// The scanner pulls in the whole zxing decoder, a 469 KB chunk. Imported
+// statically it would land in the first load of every page that can edit a
+// book, and the Pages Router waits for every chunk of a page before it
+// changes the URL.
+const CameraScanner = dynamic(() => import("@/components/scan/CameraScanner"), {
+  ssr: false,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -132,6 +142,10 @@ export default function BookEditForm({
   const [antolinDetailsDialog, setAntolinDetailsDialog] = useState(false);
   const [fetchingCover, setFetchingCover] = useState(false);
   const [internalIsAutoFilling, setInternalIsAutoFilling] = useState(false);
+  // Lets the scanner callback read the current book without changing identity,
+  // which would restart the camera on every keystroke.
+  const bookRef = useRef(book);
+  bookRef.current = book;
   const router = useRouter();
 
   const isAutoFilling = externalIsAutoFilling ?? internalIsAutoFilling;
@@ -228,6 +242,13 @@ export default function BookEditForm({
   }, [book.isbn, book.id]);
 
   const handleAntolinClick = () => setAntolinDetailsDialog(true);
+
+  const handleCameraDetected = useCallback(
+    (isbn: string) => {
+      setBookData({ ...bookRef.current, isbn });
+    },
+    [setBookData],
+  );
 
   // ── Sub-components ────────────────────────────────────────────────────────
 
@@ -380,7 +401,7 @@ export default function BookEditForm({
       <SectionDivider>{t("bookEditForm.sectionIsbn")}</SectionDivider>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end mb-6">
-        <div className="min-w-0">
+        <div className="relative min-w-0">
           <BookField
             fieldType="isbn"
             editable={editable}
@@ -388,6 +409,16 @@ export default function BookEditForm({
             book={book}
             autoFocus={isNewBook}
           />
+          {editable && (
+            <div className="absolute right-2.5 bottom-2">
+              <CameraScanner
+                onDetected={handleCameraDetected}
+                accept={isIsbnLike}
+                stopAfterScan
+                overlay
+              />
+            </div>
+          )}
         </div>
 
         <ActionButton
