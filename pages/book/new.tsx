@@ -4,6 +4,7 @@ import { getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
 import { prisma } from "@/entities/db";
 import { useBookEditor } from "@/hooks/useBookEditor";
+import { isAiTaggingEnabled } from "@/lib/ai-tagging/config";
 import { t } from "@/lib/i18n";
 import { pickCopyableBookFields } from "@/lib/utils/bookCopyFields";
 import {
@@ -20,6 +21,7 @@ interface NewBookProps {
   initialIsbn?: string;
   initialBookData?: Partial<BookType> | null;
   copyFromId?: number | null;
+  aiTaggingEnabled: boolean;
 }
 
 export default function NewBook({
@@ -28,6 +30,7 @@ export default function NewBook({
   initialIsbn,
   initialBookData,
   copyFromId,
+  aiTaggingEnabled,
 }: NewBookProps) {
   const editor = useBookEditor({
     kind: "new",
@@ -62,6 +65,7 @@ export default function NewBook({
         autofillAttempted={editor.autofillAttempted}
         onAutoFill={editor.handleAutoFill}
         isAutoFilling={editor.isAutoFilling}
+        aiTaggingEnabled={aiTaggingEnabled}
       />
     </Layout>
   );
@@ -97,6 +101,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       initialIsbn,
       initialBookData,
       copyFromId,
+      aiTaggingEnabled: isAiTaggingEnabled(),
     },
   };
 }

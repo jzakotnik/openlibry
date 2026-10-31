@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { Dispatch, useCallback, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useRef, useState } from "react";
 
 import { ArrowLeft, ImagePlus, Loader2, Save, Search } from "lucide-react";
 
@@ -37,7 +37,7 @@ const CameraScanner = dynamic(() => import("@/components/scan/CameraScanner"), {
 
 type BookEditFormPropType = {
   book: BookType;
-  setBookData: Dispatch<BookType>;
+  setBookData: Dispatch<SetStateAction<BookType>>;
   deleteBook: () => void;
   deleteSafetySeconds: number;
   saveBook: React.MouseEventHandler<HTMLButtonElement>;
@@ -50,6 +50,7 @@ type BookEditFormPropType = {
   autofillAttempted?: boolean;
   onAutoFill?: (isbn: string) => Promise<void>;
   isAutoFilling?: boolean;
+  aiTaggingEnabled?: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -136,6 +137,7 @@ export default function BookEditForm({
   autofillAttempted = false,
   onAutoFill,
   isAutoFilling: externalIsAutoFilling,
+  aiTaggingEnabled = false,
 }: BookEditFormPropType) {
   const [editable] = useState(true);
   const [loadingImage, setLoadingImage] = useState(1);
@@ -490,6 +492,9 @@ export default function BookEditForm({
                 setBookData={setBookData}
                 book={book}
                 topics={topics}
+                aiTaggingEnabled={aiTaggingEnabled}
+                autoSuggest={isNewBook}
+                isAutoFilling={isAutoFilling}
               />
               <AntolinResult />
             </div>

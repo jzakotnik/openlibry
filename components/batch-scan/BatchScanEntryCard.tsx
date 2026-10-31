@@ -8,8 +8,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BookType } from "@/entities/BookType";
+import { Dispatch, SetStateAction, useRef } from "react";
 import { AlertTriangle, Edit, Image, RefreshCw, Trash2 } from "lucide-react";
 
+import BookTopicsChips from "@/components/book/edit/BookTopicsChips";
 import { CoverThumbnail } from "./CoverThumbnail";
 import { EditField } from "./EditField";
 import { InlineChipRow } from "./InlineChipRow";
@@ -29,6 +31,13 @@ export interface BatchScanEntryCardProps {
   onUpdateQuantity: (id: string, delta: number) => void;
   onSetQuantity: (id: string, quantity: number) => void;
   onRetry: (id: string, isbn: string) => void;
+  /** Library topic vocabulary, for the shared tag editor's green/blue coloring. */
+  libraryTopics: string[];
+  /** Whether AI tag suggestions are available (provider key configured). */
+  aiTaggingEnabled: boolean;
+  /** Reports that this entry has a tag suggestion in flight, so the page can
+   *  hold Import until it lands. */
+  onSuggestingChange?: (entryId: string, suggesting: boolean) => void;
 }
 
 const borderColors = {
@@ -47,9 +56,33 @@ export function BatchScanEntryCard({
   onUpdateQuantity,
   onSetQuantity,
   onRetry,
+  libraryTopics,
+  aiTaggingEnabled,
+  onSuggestingChange,
 }: BatchScanEntryCardProps) {
   const borderColor = borderColors[entry.status];
   const isValid = !!entry.bookData.title;
+
+  // Bridge the shared tag editor to the batch card. The editor reads only
+  // bibliographic + topics fields (all present on the partial) and writes back
+  // via setBookData, which we funnel to the card's per-field update.
+  const bookData = entry.bookData as BookType;
+  // Accepts the functional form too, so a slow tag suggestion merges into the
+  // entry as it stands when the answer arrives rather than into the snapshot
+  // taken when it was asked for. Resolved against a ref rather than the
+  // captured `bookData`: the updater runs seconds later from a closure made at
+  // request time, so reading the render's own value put that old snapshot back
+  // and undid every topic edited while the request was in flight — the very
+  // thing the functional form is for.
+  const bookDataRef = useRef(bookData);
+  bookDataRef.current = bookData;
+  const setTopics: Dispatch<SetStateAction<BookType>> = (update) => {
+    const next =
+      typeof update === "function"
+        ? (update as (prev: BookType) => BookType)(bookDataRef.current)
+        : update;
+    onUpdateBookData(entry.id, "topics", next.topics ?? "");
+  };
 
   return (
     <Card
@@ -206,7 +239,23 @@ export function BatchScanEntryCard({
                     )}
                   </div>
 
-                  {/* Inline chip row for quick edits */}
+                  {/* Shared tag editor — same edit + AI-suggest flow as the
+                      single book form */}
+                  <div className="mt-2.5 pt-2.5 border-t border-dashed border-gray-100">
+                    <BookTopicsChips
+                      fieldType="topics"
+                      editable
+                      book={bookData}
+                      setBookData={setTopics}
+                      topics={libraryTopics}
+                      aiTaggingEnabled={aiTaggingEnabled}
+                      onSuggestingChange={(busy) =>
+                        onSuggestingChange?.(entry.id, busy)
+                      }
+                    />
+                  </div>
+
+                  {/* Inline chip row for quick edits (numeric fields) */}
                   <InlineChipRow
                     entry={entry}
                     onUpdateBookData={onUpdateBookData}
@@ -270,11 +319,19 @@ export function BatchScanEntryCard({
                     onUpdateBookData(entry.id, "publisherDate", v)
                   }
                 />
-                <EditField
-                  label="Schlagwörter"
-                  value={entry.bookData.topics || ""}
-                  onChange={(v) => onUpdateBookData(entry.id, "topics", v)}
-                />
+                <div className="sm:col-span-2">
+                  <BookTopicsChips
+                    fieldType="topics"
+                    editable
+                    book={bookData}
+                    setBookData={setTopics}
+                    topics={libraryTopics}
+                    aiTaggingEnabled={aiTaggingEnabled}
+                    onSuggestingChange={(busy) =>
+                      onSuggestingChange?.(entry.id, busy)
+                    }
+                  />
+                </div>
                 <EditField
                   label="Seiten"
                   value={String(entry.bookData.pages || "")}
