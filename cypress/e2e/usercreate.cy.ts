@@ -12,7 +12,7 @@ describe("Create a new library user", () => {
     cy.session("user-create-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_user_button]").click();
     cy.get("[data-cy=rental_input_searchuser]").should("be.visible");
   });

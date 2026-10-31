@@ -21,7 +21,7 @@ describe("Label Print Page", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/reports/labels/print");
+    cy.visit("/reports/labels/print");
 
     cy.document().then((doc) => {
       const style = doc.createElement("style");
@@ -46,7 +46,7 @@ describe("Label Print Page", () => {
 
   it("should populate sheet selector from API", () => {
     cy.intercept("GET", "/api/labels/sheets").as("loadSheets");
-    cy.visit("http://localhost:3000/reports/labels/print");
+    cy.visit("/reports/labels/print");
     cy.wait("@loadSheets").its("response.statusCode").should("be.oneOf", [200, 304]);
     cy.get("[data-cy=sheet-selector]").click();
     cy.get("[role=option]").should("have.length.greaterThan", 0);
@@ -55,7 +55,7 @@ describe("Label Print Page", () => {
 
   it("should populate template selector from API", () => {
     cy.intercept("GET", "/api/labels/templates").as("loadTemplates");
-    cy.visit("http://localhost:3000/reports/labels/print");
+    cy.visit("/reports/labels/print");
     cy.wait("@loadTemplates").its("response.statusCode").should("be.oneOf", [200, 304]);
     cy.get("[data-cy=template-selector]").click();
     cy.get("[role=option]").should("have.length.greaterThan", 0);

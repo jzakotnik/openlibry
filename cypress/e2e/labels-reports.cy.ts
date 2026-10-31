@@ -13,7 +13,7 @@ describe("Label cards on Reports page", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/reports");
+    cy.visit("/reports");
   });
 
   it("should show the print card", () => {

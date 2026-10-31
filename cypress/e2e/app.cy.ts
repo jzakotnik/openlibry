@@ -5,6 +5,6 @@ describe("Application is available", () => {
   });
 
   it("should navigate to the login page", () => {
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 });

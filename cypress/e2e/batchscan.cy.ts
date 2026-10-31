@@ -12,11 +12,11 @@ describe("Batch scan book import", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should batch scan multiple books with quantity controls and import them", () => {
-    cy.visit("http://localhost:3000/book/batchscan");
+    cy.visit("/book/batchscan");
     cy.get("[data-cy=batch-scan-isbn-input]").should("be.visible");
 
     const isbnHerrDerRinge = "978-3-608-93828-9";
@@ -67,7 +67,7 @@ describe("Batch scan book import", () => {
     cy.contains("erfolgreich importiert", { timeout: 30000 }).should("be.visible");
 
     // Verify books in the book list
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_book_button]").click();
     cy.url().should("include", "/book");
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");

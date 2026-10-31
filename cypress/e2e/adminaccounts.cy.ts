@@ -6,7 +6,7 @@ const NEW_EMAIL = "cypress-temp@openlibry.test";
 
 function visitAccountsPage() {
   cy.intercept("GET", "/api/login").as("loginList");
-  cy.visit("http://localhost:3000/auth/accounts");
+  cy.visit("/auth/accounts");
   cy.wait("@loginList");
   cy.get("[data-cy=accounts_list]").should("be.visible");
 }
@@ -30,7 +30,7 @@ describe("Admin account management", () => {
     cy.session("accounts-admin-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=indexpage]").should("be.visible");
   });
 
@@ -68,7 +68,7 @@ describe("Admin account management", () => {
     cy.session("accounts-admin-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=indexpage]").should("be.visible");
 
     // ── Step 4: delete the new account via UI ────────────────────────
@@ -105,7 +105,7 @@ describe("Admin account management", () => {
   });
 
   it("is reachable from the admin page via the accounts card", () => {
-    cy.visit("http://localhost:3000/admin");
+    cy.visit("/admin");
     cy.get("[data-cy=admin-accounts-button]").should("be.visible").click();
     cy.url().should("include", "/auth/accounts");
     cy.get("[data-cy=accounts_list]").should("be.visible");

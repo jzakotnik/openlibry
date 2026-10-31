@@ -12,7 +12,7 @@ describe("Rental cleanup on user deletion", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should rent a book, delete the user, and verify the book survives and is marked lost", () => {
@@ -55,7 +55,7 @@ describe("Rental cleanup on user deletion", () => {
     });
 
     cy.get("@rentedUserId").then((userId) => {
-      cy.visit(`http://localhost:3000/user/${userId}`);
+      cy.visit(`/user/${userId}`);
     });
 
     cy.url().should("include", "/user/");
@@ -66,7 +66,7 @@ describe("Rental cleanup on user deletion", () => {
 
     cy.url({ timeout: 10000 }).should("match", /\/user$/);
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_book_button]").click();
     cy.url().should("include", "/book");
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
@@ -82,7 +82,7 @@ describe("Rental cleanup on user deletion", () => {
       ).should("exist");
     });
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_user_button]").click();
     cy.url().should("include", "/user");
     cy.get("[data-cy=rental_input_searchuser]").should("be.visible");

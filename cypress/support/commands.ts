@@ -44,7 +44,7 @@ const SEEDED_ADMIN_PASSWORD = "CypressTest1234!";
 Cypress.Commands.add("login", () => {
   cy.clearCookies();
   cy.clearLocalStorage();
-  cy.visit("http://localhost:3000/");
+  cy.visit("/");
   cy.get('input[id="user"]').type(SEEDED_ADMIN_USERNAME);
   cy.get('input[id="password"]').type(SEEDED_ADMIN_PASSWORD);
   cy.get('input[id="password"]').type("{enter}");

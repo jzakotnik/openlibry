@@ -12,7 +12,7 @@ describe("List of users", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should navigate to the user screen", () => {

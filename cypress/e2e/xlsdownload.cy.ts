@@ -25,7 +25,7 @@ describe("Excel Export", () => {
   };
 
   it("should export Excel file and validate its content", () => {
-    cy.visit("http://localhost:3000/admin");
+    cy.visit("/admin");
     cy.url().should("include", "/admin");
 
     cy.intercept("GET", "/api/excel").as("excelDownload");

@@ -16,11 +16,11 @@
     "pretest:e2e": "npm run test:e2e:prepare",
     "pretest:e2e:ui": "npm run test:e2e:prepare",
     "pretest:e2e:publicroot": "npm run test:e2e:prepare",
-    "test:e2e": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:3000 cypress:headless",
-    "test:e2e:spec": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:3000 'cypress run --spec \"$SPEC\"'",
+    "test:e2e": "NODE_ENV=test NEXTAUTH_URL=http://localhost:${PORT:-3000} dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:${PORT:-3000} cypress:headless",
+    "test:e2e:spec": "NODE_ENV=test NEXTAUTH_URL=http://localhost:${PORT:-3000} dotenv -e .env.test.local start-server-and-test 'dev:test' http-get://localhost:${PORT:-3000} 'cypress run --spec \"$SPEC\"'",
     "pretest:e2e:spec": "npm run test:e2e:prepare",
-    "test:e2e:ui": "NODE_ENV=test dotenv -e .env.test.local start-server-and-test dev:test http-get://localhost:3000 cypress",
-    "test:e2e:publicroot": "NODE_ENV=test OPENLIBRY_ROOT_ROUTE=/catalog dotenv -e .env.test.local start-server-and-test 'dev:test:publicroot' http-get://localhost:3000 'cypress run --spec cypress/e2e/rootroute-public.cy.ts'"
+    "test:e2e:ui": "NODE_ENV=test NEXTAUTH_URL=http://localhost:${PORT:-3000} dotenv -e .env.test.local start-server-and-test dev:test http-get://localhost:${PORT:-3000} cypress",
+    "test:e2e:publicroot": "NODE_ENV=test NEXTAUTH_URL=http://localhost:${PORT:-3000} OPENLIBRY_ROOT_ROUTE=/catalog dotenv -e .env.test.local start-server-and-test 'dev:test:publicroot' http-get://localhost:${PORT:-3000} 'cypress run --spec cypress/e2e/rootroute-public.cy.ts'"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

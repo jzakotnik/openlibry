@@ -13,7 +13,7 @@ describe("Public book catalog", () => {
 
   // No login — this is the whole point of the test suite
   beforeEach(() => {
-    cy.visit("http://localhost:3000/catalog");
+    cy.visit("/catalog");
   });
 
   it("should load the catalog without authentication", () => {

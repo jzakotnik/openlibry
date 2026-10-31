@@ -61,7 +61,7 @@ describe("Book fields — fill all and verify persistence", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should fill all fields and save successfully", () => {
@@ -287,7 +287,7 @@ allStatuses.forEach((value) => {
       cy.session(`user-session-${value}`, () => {
         cy.login();
       });
-      cy.visit("http://localhost:3000/");
+      cy.visit("/");
     });
 
     it(`should save status "${value}" successfully`, () => {

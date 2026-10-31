@@ -23,7 +23,7 @@ describe("Book creation and validation", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should create a new book, fill in details, save, and verify it exists", () => {
@@ -62,7 +62,7 @@ describe("Book creation and validation", () => {
     cy.url().should("include", "/book");
     cy.url().should("not.include", "/book/new");
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").should("be.visible");
 
@@ -155,7 +155,7 @@ describe("Book creation and validation", () => {
     cy.url().should("include", "/book");
     cy.url().should("not.include", "/book/new");
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("@newDatedBookId").then((bookId) => {
       cy.navigateToBookEdit(String(bookId));
 

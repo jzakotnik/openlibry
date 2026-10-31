@@ -4,7 +4,7 @@
 // (DELETE /book/:id/user/:uid) and extend (POST /book/:id/extend). The UI
 // specs rental/rentalextension cover the screens; these pin the rules.
 describe("Rental rules (API)", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   const RENTAL_DURATION_DAYS: number =
     Cypress.env("RENTAL_DURATION_DAYS") ?? 21;

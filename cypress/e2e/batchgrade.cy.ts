@@ -4,7 +4,7 @@
 // user list. The client computes the new grade; the server only stores it, so
 // these tests cover what gets written and that nothing else changes.
 describe("Batch grade update API", () => {
-  const API = "http://localhost:3000/api";
+  const API = "/api";
 
   let users: Record<string, number>;
   let books: Record<string, number>;

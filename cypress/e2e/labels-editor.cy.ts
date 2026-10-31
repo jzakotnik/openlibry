@@ -25,7 +25,7 @@ describe("Label Template Editor", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/reports/labels/editor");
+    cy.visit("/reports/labels/editor");
 
     cy.document().then((doc) => {
       const style = doc.createElement("style");
@@ -55,7 +55,7 @@ describe("Label Template Editor", () => {
   });
 
   it("should load a template via deep link query param", () => {
-    cy.visit("http://localhost:3000/reports/labels/editor?template=default");
+    cy.visit("/reports/labels/editor?template=default");
     cy.get("[data-cy=template-name-input]", { timeout: 5000 }).should(
       "have.value",
       "Standard Buchetikett",

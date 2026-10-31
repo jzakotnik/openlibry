@@ -15,7 +15,7 @@ describe("Various Reports show data", () => {
   });
 
   it("should navigate to the rental screen and display rental data", () => {
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_reports_button]").click();
     cy.url().should("include", "/reports");
 

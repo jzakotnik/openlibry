@@ -16,7 +16,7 @@ describe("Book creation with ISBN autofill and editing", () => {
     cy.session("user-session", () => {
       cy.login();
     });
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
   });
 
   it("should create a new book and autofill data from ISBN", () => {
@@ -85,7 +85,7 @@ describe("Book creation with ISBN autofill and editing", () => {
 
     cy.url({ timeout: 10000 }).should("include", "/book");
 
-    cy.visit("http://localhost:3000/");
+    cy.visit("/");
     cy.get("[data-cy=index_book_button]").click();
     cy.get("[data-cy=rental_input_searchbook]").clear().type(bookId.toString());
     cy.wait(1000);
