@@ -87,6 +87,7 @@ export async function getPublicBookDetail(
       select: {
         id: true,
         title: true,
+        subtitle: true,
         author: true,
         isbn: true,
         topics: true,
@@ -134,6 +135,7 @@ export async function getPublicBookDetail(
       .map(({ book: b }) => ({
         id: b.id,
         title: b.title,
+        subtitle: b.subtitle,
         author: b.author,
         isbn: b.isbn,
         topics: b.topics,

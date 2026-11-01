@@ -18,6 +18,7 @@
 export interface PublicBookType {
   id: number;
   title: string | null;
+  subtitle: string | null;
   author: string | null;
   isbn: string | null;
   topics: string | null;

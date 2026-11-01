@@ -87,6 +87,7 @@ export async function getPublicBooks(
       select: {
         id: true,
         title: true,
+        subtitle: true,
         author: true,
         isbn: true,
         topics: true,
@@ -98,6 +99,7 @@ export async function getPublicBooks(
     return rawBooks.map((b) => ({
       id: b.id,
       title: b.title,
+      subtitle: b.subtitle,
       author: b.author,
       isbn: b.isbn,
       topics: b.topics,

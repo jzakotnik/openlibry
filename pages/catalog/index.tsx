@@ -49,6 +49,7 @@ function toCardBook(b: PublicBookType): CatalogBookType {
   return {
     id: b.id,
     title: b.title ?? "",
+    subtitle: b.subtitle ?? "",
     author: b.author ?? "",
     isbn: b.isbn ?? "",
     topics: b.topics ?? "",
