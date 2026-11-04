@@ -513,6 +513,35 @@ const CONFIG_SECTIONS: ConfigSection[] = [
 // State helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Returns an error message if the field's value is invalid, otherwise null.
+ * Currently only JSON fields are validated: the backend parses them with
+ * JSON.parse, so e.g. [250,70,#D98E04] (unquoted colour) would break printing.
+ */
+function validateField(field: ConfigField, value: string): string | null {
+  if (field.type !== "json") return null;
+  try {
+    JSON.parse(value);
+    return null;
+  } catch (e) {
+    return t("admin.validation.invalidJson", {
+      message: e instanceof Error ? e.message : String(e),
+    });
+  }
+}
+
+function getInvalidKeys(values: Record<string, string>): string[] {
+  const invalid: string[] = [];
+  for (const section of CONFIG_SECTIONS) {
+    for (const field of section.fields) {
+      if (validateField(field, values[field.key] ?? field.default)) {
+        invalid.push(field.key);
+      }
+    }
+  }
+  return invalid;
+}
+
 function buildDefaultValues(): Record<string, string> {
   const values: Record<string, string> = {};
   for (const section of CONFIG_SECTIONS) {
@@ -727,14 +756,26 @@ function FieldInput({
   }
 
   if (field.type === "json") {
+    const error = validateField(field, value);
     return (
-      <textarea
-        rows={2}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${base} resize-y`}
-        spellCheck={false}
-      />
+      <div className="space-y-1">
+        <textarea
+          rows={2}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${base} resize-y ${
+            error ? "border-destructive focus:ring-destructive" : ""
+          }`}
+          spellCheck={false}
+          aria-invalid={!!error}
+        />
+        {error && (
+          <p className="text-xs text-destructive flex items-start gap-1">
+            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </p>
+        )}
+      </div>
     );
   }
 
@@ -931,7 +972,11 @@ export default function SettingsPage() {
 
   const envContent = useMemo(() => generateEnvContent(values), [values]);
 
+  const invalidKeys = useMemo(() => getInvalidKeys(values), [values]);
+  const hasErrors = invalidKeys.length > 0;
+
   const handleDownload = () => {
+    if (hasErrors) return;
     const blob = new Blob([envContent], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -944,6 +989,7 @@ export default function SettingsPage() {
   };
 
   const handleCopy = async () => {
+    if (hasErrors) return;
     await navigator.clipboard.writeText(envContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -1041,12 +1087,20 @@ export default function SettingsPage() {
       {/* Sticky action bar */}
       <div className="fixed bottom-0 left-0 right-0 z-10 bg-background/90 backdrop-blur border-t border-border">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground hidden sm:block">
-            <Hash className="w-3.5 h-3.5 inline mr-1" />
-            {t("admin.stickyBar.varCount", {
-              count: Object.keys(values).length,
-            })}
-          </p>
+          {hasErrors ? (
+            <p className="text-xs text-destructive">
+              <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+              {t("admin.stickyBar.fixErrors", { count: invalidKeys.length })}
+              <span className="font-mono ml-1">{invalidKeys.join(", ")}</span>
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              <Hash className="w-3.5 h-3.5 inline mr-1" />
+              {t("admin.stickyBar.varCount", {
+                count: Object.keys(values).length,
+              })}
+            </p>
+          )}
           <div className="flex gap-3 ml-auto">
             <button
               type="button"
@@ -1058,7 +1112,8 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={handleDownload}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
+              disabled={hasErrors}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               {t("admin.stickyBar.download")}

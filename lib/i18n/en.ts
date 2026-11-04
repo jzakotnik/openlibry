@@ -391,6 +391,12 @@ export const en: Dictionary = {
       varCount: "{count} variables configured",
       reset: "Reset",
       download: "Download .env",
+      fixErrors: "Fix {count} invalid field(s) before downloading:",
+    },
+
+    validation: {
+      invalidJson:
+        'Invalid JSON ({message}). Text values must be in double quotes, e.g. "#D98E04".',
     },
 
     sectionCard: {

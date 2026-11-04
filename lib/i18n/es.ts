@@ -398,6 +398,12 @@ export const es: Dictionary = {
       varCount: "{count} variables configuradas",
       reset: "Restablecer",
       download: "Descargar .env",
+      fixErrors: "Corrige {count} campo(s) no válido(s) antes de descargar:",
+    },
+
+    validation: {
+      invalidJson:
+        'JSON no válido ({message}). Los valores de texto deben ir entre comillas dobles, p. ej. "#D98E04".',
     },
 
     sectionCard: {

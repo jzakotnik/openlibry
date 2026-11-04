@@ -404,6 +404,12 @@ export const de = {
       varCount: "{count} Variablen konfiguriert",
       reset: "Zurücksetzen",
       download: ".env herunterladen",
+      fixErrors: "{count} ungültige(s) Feld(er) vor dem Download korrigieren:",
+    },
+
+    validation: {
+      invalidJson:
+        'Ungültiges JSON ({message}). Textwerte müssen in doppelten Anführungszeichen stehen, z. B. "#D98E04".',
     },
 
     sectionCard: {
