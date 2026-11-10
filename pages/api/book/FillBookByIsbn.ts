@@ -3,6 +3,7 @@ import {
   cleanTitle,
   extractPageNumber,
   isValidBookData,
+  normalizeTopics,
 } from "@/lib/isbn-services/types";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -21,6 +22,10 @@ const SERVICES: IsbnLookupService[] = [
   IsbnSearchService,
   DnbScrapingService,
 ];
+
+// Opt-in: tags are curated by librarians in many libraries, so importing
+// them from ISBN lookup services is off unless explicitly enabled.
+const IMPORT_TOPICS = process.env.ISBN_LOOKUP_IMPORT_TOPICS === "true";
 
 // Built once at module load — locale is fixed per deployment.
 // Same pattern as errorMessages in error.tsx and CONFIG_SECTIONS in settings.tsx.
@@ -139,6 +144,7 @@ export default async function handler(
         ...bookDataWithoutTopics,
         title: cleanTitle(bookData.title),
         subtitle: cleanTitle(bookData.subtitle),
+        ...(IMPORT_TOPICS ? { topics: normalizeTopics(topics) } : {}),
         pages: pagesNum ?? null,
       }).map(([key, value]) => [
         key,

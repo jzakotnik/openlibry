@@ -209,7 +209,23 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       const data = await bookResponse.json();
 
       if (bookResponse.ok) {
-        setBookData((prev) => ({ ...prev, ...data, isbn: cleanedIsbn }));
+        setBookData((prev) => {
+          // Keep tags the librarian already entered; merge in imported ones.
+          const { topics: importedTopics, ...rest } = data;
+          const merged = { ...prev, ...rest, isbn: cleanedIsbn };
+          if (importedTopics) {
+            const existing = (prev.topics ?? "")
+              .split(";")
+              .map((t: string) => t.trim())
+              .filter(Boolean);
+            const lower = new Set(existing.map((t: string) => t.toLowerCase()));
+            const added = String(importedTopics)
+              .split(";")
+              .filter((t) => t && !lower.has(t.toLowerCase()));
+            merged.topics = [...existing, ...added].join(";");
+          }
+          return merged;
+        });
 
         if (coverResult.exists && coverResult.blob) {
           setCoverPreview(coverResult.blob);

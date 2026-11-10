@@ -141,3 +141,22 @@ export function cleanTitle(title: string | undefined): string | undefined {
       .trim()
   );
 }
+
+/**
+ * Converts a service's topic list ("a, b" or "a; b") into OpenLibry's
+ * ";"-separated tag format: trimmed, trailing punctuation removed, de-duplicated.
+ */
+export function normalizeTopics(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const part of raw.split(/[;,]/)) {
+    const tag = part.trim().replace(/[.:\s]+$/, "");
+    const key = tag.toLowerCase();
+    if (tag && !seen.has(key)) {
+      seen.add(key);
+      result.push(tag);
+    }
+  }
+  return result.length > 0 ? result.join(";") : undefined;
+}
