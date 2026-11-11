@@ -91,6 +91,8 @@ describe("Authentication gate", () => {
       "/api/rental",
       "/api/audit",
       "/api/excel",
+      "/api/export",
+      "/api/import",
       "/api/db/download",
       "/api/health",
       "/api/antolin/1",

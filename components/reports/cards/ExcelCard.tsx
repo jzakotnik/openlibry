@@ -21,14 +21,31 @@ export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
       </div>
 
       <div className="flex flex-col gap-2 mt-auto">
-        <a
-          href="api/excel"
-          data-cy="excel-export-button"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <Download size={15} />
-          {t("excelCard.exportButton")}
-        </a>
+        <div className="flex gap-2">
+          {[
+            {
+              format: "xlsx",
+              label: "Excel (.xlsx)",
+              cy: "excel-export-button",
+            },
+            {
+              format: "ods",
+              label: "OpenDocument (.ods)",
+              cy: "ods-export-button",
+            },
+          ].map(({ format, label, cy }) => (
+            <a
+              key={format}
+              href={`api/export?format=${format}`}
+              data-cy={cy}
+              title={label}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Download size={15} />
+              {t("excelCard.exportButton")} .{format}
+            </a>
+          ))}
+        </div>
         <a
           href="reports/xlsimport"
           data-cy="excel-import-button"

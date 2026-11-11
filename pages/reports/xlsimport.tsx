@@ -1,6 +1,10 @@
 import Layout from "@/components/layout/Layout";
 import { t } from "@/lib/i18n";
-import * as ExcelJS from "exceljs";
+import {
+  acceptedExtensions,
+  getFormatByFileName,
+  toImportPayload,
+} from "@/lib/spreadsheet";
 import {
   AlertTriangle,
   Book,
@@ -339,46 +343,6 @@ export default function XLSImport() {
 
   // ── Excel parsing ─────────────────────────────────────────────────────────
 
-  const convertSheetToJson = useCallback((worksheet: ExcelJS.Worksheet) => {
-    const json: any[] = [];
-
-    const getCellValue = (cellValue: ExcelJS.CellValue): any => {
-      if (cellValue === null || cellValue === undefined) return cellValue;
-      if (typeof cellValue === "object" && "result" in cellValue)
-        return (cellValue as ExcelJS.CellFormulaValue).result;
-      if (typeof cellValue === "object" && "richText" in cellValue)
-        return (cellValue as ExcelJS.CellRichTextValue).richText
-          .map((rt) => rt.text)
-          .join("");
-      if (typeof cellValue === "object" && "hyperlink" in cellValue)
-        return (
-          (cellValue as ExcelJS.CellHyperlinkValue).text ||
-          (cellValue as ExcelJS.CellHyperlinkValue).hyperlink
-        );
-      if (typeof cellValue === "object" && "error" in cellValue) return null;
-      return cellValue;
-    };
-
-    worksheet.eachRow(
-      { includeEmpty: false },
-      (row: ExcelJS.Row, rowNumber: number) => {
-        const rowValues = row.values as ExcelJS.CellValue[];
-        if (rowNumber === 1) {
-          json.push(rowValues.map((val) => getCellValue(val)));
-        } else {
-          const rowData: any = {};
-          rowValues.forEach((value, index) => {
-            if (json[0] && json[0][index]) {
-              rowData[json[0][index] as string] = getCellValue(value);
-            }
-          });
-          json.push(rowData);
-        }
-      },
-    );
-    return json;
-  }, []);
-
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleFileUpload = async (
@@ -407,27 +371,28 @@ export default function XLSImport() {
         ),
       );
 
-      const workbook = new ExcelJS.Workbook();
+      const format = getFormatByFileName(file.name);
+      if (!format) throw new Error(t("xlsImport.errUnsupportedFormat"));
       const arrayBuffer = await file.arrayBuffer();
       logs.push(createLog("info", t("xlsImport.logExcelReading")));
-      await workbook.xlsx.load(arrayBuffer);
+      const sheets = await format.read(arrayBuffer);
 
-      const sheetNames = workbook.worksheets.map((ws) => ws.name);
+      const sheetNames = sheets.map((ws) => ws.name);
       logs.push(
         createLog(
           "info",
           t("xlsImport.logSheetsFound", {
-            count: workbook.worksheets.length,
+            count: sheets.length,
             names: sheetNames.join(", "),
           }),
         ),
       );
 
       // Books
-      const worksheetBooks = workbook.worksheets[0];
+      const worksheetBooks = sheets[0];
       let booksJson: any[] = [];
       if (worksheetBooks) {
-        booksJson = convertSheetToJson(worksheetBooks);
+        booksJson = toImportPayload(worksheetBooks);
         const foundBooks = Math.max(0, booksJson.length - 1);
         const colCount = booksJson[0]
           ? (booksJson[0] as any[]).filter(Boolean).length
@@ -461,10 +426,10 @@ export default function XLSImport() {
       setBookData(booksJson);
 
       // Users
-      const worksheetUsers = workbook.worksheets[1];
+      const worksheetUsers = sheets[1];
       let usersJson: any[] = [];
       if (worksheetUsers) {
-        usersJson = convertSheetToJson(worksheetUsers);
+        usersJson = toImportPayload(worksheetUsers);
         const foundUsers = Math.max(0, usersJson.length - 1);
         const colCount = usersJson[0]
           ? (usersJson[0] as any[]).filter(Boolean).length
@@ -546,7 +511,7 @@ export default function XLSImport() {
     ]);
 
     try {
-      const response = await fetch("/api/excel", {
+      const response = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -695,7 +660,7 @@ export default function XLSImport() {
               <input
                 type="file"
                 hidden
-                accept=".xlsx,.xls"
+                accept={acceptedExtensions}
                 onChange={handleFileUpload}
                 disabled={isLoading || isImporting}
               />

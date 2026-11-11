@@ -52,6 +52,7 @@
     "formidable": "^3.5.4",
     "html-entities": "^2.6.0",
     "itemsjs": "^2.1.25",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",
     "n3": "^1.26.0",
     "next": "^16.0.6",

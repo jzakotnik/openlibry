@@ -4,7 +4,7 @@ Der einfachste Weg, viele Bücher und Nutzer auf einmal zu importieren.
 
 ## Übersicht
 
-Der Excel-Import liest eine `.xlsx`-Datei mit zwei Blättern:
+Der Import liest eine `.xlsx`- oder `.ods`-Datei (Excel bzw. OpenDocument/LibreOffice) mit zwei Blättern:
 
 1. **Bücherliste** (erstes Blatt)
 2. **Userliste** (zweites Blatt)
