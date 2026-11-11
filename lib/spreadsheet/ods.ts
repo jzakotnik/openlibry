@@ -34,7 +34,7 @@ function writeCell(v: Cell): string {
   return `<table:table-cell office:value-type="string">${paragraphs}</table:table-cell>`;
 }
 
-const ODF_VERSION = "1.2";
+const ODF_VERSION = "1.3";
 
 /** Namespaces Excel/LibreOffice expect on the root elements. */
 const NS_DECL =
@@ -71,7 +71,7 @@ function writeContent(sheets: SheetTable[]): string {
     `<office:font-face-decls><style:font-face style:name="Arial" svg:font-family="Arial" style:font-family-generic="swiss"/></office:font-face-decls>` +
     `<office:automatic-styles>` +
     `<style:style style:name="co1" style:family="table-column"><style:table-column-properties fo:break-before="auto" style:column-width="2.5cm"/></style:style>` +
-    `<style:style style:name="ta1" style:family="table"><style:table-properties table:display="true" style:writing-mode="lr-tb"/></style:style>` +
+    `<style:style style:name="ta1" style:family="table" style:master-page-name="Default"><style:table-properties table:display="true" style:writing-mode="lr-tb"/></style:style>` +
     `</office:automatic-styles>` +
     `<office:body><office:spreadsheet>${tables}</office:spreadsheet></office:body>` +
     `</office:document-content>`
@@ -84,8 +84,9 @@ const STYLES =
   `<office:font-face-decls><style:font-face style:name="Arial" svg:font-family="Arial" style:font-family-generic="swiss"/></office:font-face-decls>` +
   `<office:styles><style:default-style style:family="table-cell"><style:text-properties style:font-name="Arial" fo:font-size="10pt"/></style:default-style>` +
   `<style:style style:name="Default" style:family="table-cell"/></office:styles>` +
-  `<office:automatic-styles/>` +
-  `<office:master-styles/>` +
+  `<office:automatic-styles><style:page-layout style:name="Mpm1"><style:page-layout-properties style:writing-mode="lr-tb"/></style:page-layout></office:automatic-styles>` +
+  // Excel refuses ODS files whose sheets don't reference an existing master page.
+  `<office:master-styles><style:master-page style:name="Default" style:page-layout-name="Mpm1"/></office:master-styles>` +
   `</office:document-styles>`;
 
 const metaXml = () =>
