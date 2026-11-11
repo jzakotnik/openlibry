@@ -4,6 +4,10 @@ import { t } from "@/lib/i18n";
 import { uploadCoverBlob } from "@/lib/utils/coverutils";
 import { convertDateOnlyToUtcIsoString } from "@/lib/utils/dateutils";
 import { useRouter } from "next/router";
+import {
+  UnsavedChangesGuard,
+  useUnsavedChangesGuard,
+} from "./useUnsavedChangesGuard";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -35,6 +39,7 @@ export interface UseBookEditorReturn {
   setBookData: React.Dispatch<React.SetStateAction<BookType>>;
   isSaving: boolean;
   antolinResults: AntolinResultType | null;
+  leaveGuard: UnsavedChangesGuard;
 
   handleSave: () => Promise<void>;
   handleDelete: () => Promise<void>;
@@ -106,6 +111,14 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
   // --- Saving state ------------------------------------------------------
 
   const [isSaving, setIsSaving] = useState(false);
+
+  // --- Unsaved changes guard (edit mode only) ---------------------------
+
+  const isDirty =
+    mode.kind === "edit" &&
+    JSON.stringify(bookData) !== JSON.stringify(mode.book);
+  const leaveGuard = useUnsavedChangesGuard(isDirty);
+  const { allowNavigation } = leaveGuard;
 
   // --- Antolin (edit mode only) ------------------------------------------
 
@@ -323,6 +336,7 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
           coverInfo,
         }),
       );
+      allowNavigation();
       router.push("/book");
     }
 
@@ -350,9 +364,10 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       toast.success(
         t("bookEditForm.toastBookSaved", { title: bookData.title }),
       );
+      allowNavigation();
       router.push("/book");
     }
-  }, [bookData, bookId, isNew, coverData, router]);
+  }, [bookData, bookId, isNew, coverData, router, allowNavigation]);
 
   // --- Delete ------------------------------------------------------------
 
@@ -366,12 +381,13 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
       });
       await res.json();
       toast.success(t("bookEditForm.toastBookDeleted"));
+      allowNavigation();
       router.push("/book");
     } catch (error) {
       console.error("Failed to delete book:", error);
       toast.error(t("bookEditForm.toastDeleteError"));
     }
-  }, [bookId, router]);
+  }, [bookId, router, allowNavigation]);
 
   // --- Return book -------------------------------------------------------
 
@@ -410,6 +426,7 @@ export function useBookEditor(mode: BookEditorMode): UseBookEditorReturn {
     setBookData,
     isSaving,
     antolinResults,
+    leaveGuard,
 
     handleSave,
     handleDelete,

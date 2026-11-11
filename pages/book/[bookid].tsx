@@ -1,5 +1,6 @@
 import { parseIdParam } from "@/lib/utils/apiValidation";
 import BookEditForm from "@/components/book/BookEditForm";
+import UnsavedChangesDialog from "@/components/book/edit/UnsavedChangesDialog";
 import Layout from "@/components/layout/Layout";
 import { getBook } from "@/entities/book";
 import { BookType } from "@/entities/BookType";
@@ -29,6 +30,11 @@ export default function BookDetail({
   if (!router.query.bookid) {
     return (
       <Layout>
+      <UnsavedChangesDialog
+        open={editor.leaveGuard.open}
+        onStay={editor.leaveGuard.stay}
+        onLeave={editor.leaveGuard.leave}
+      />
         <p className="text-muted-foreground">ID not found</p>
       </Layout>
     );
