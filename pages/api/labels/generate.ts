@@ -52,6 +52,24 @@ async function resolveBookFilter(filter: BookFilter): Promise<BookLabelData[]> {
         .slice(0, filter.count ?? 50);
       break;
 
+    case "since": {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(filter.since ?? "");
+      if (!match) {
+        filtered = [];
+        break;
+      }
+      // Start of the given day in server-local time
+      const sinceDate = new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+      );
+      filtered = allBooks.filter(
+        (b) => b.createdAt != null && new Date(b.createdAt) >= sinceDate,
+      );
+      break;
+    }
+
     case "topic": {
       const selectedTopics = (filter.values ?? []).map((v) => v.toLowerCase());
       if (selectedTopics.length === 0) {

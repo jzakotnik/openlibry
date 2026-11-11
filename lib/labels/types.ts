@@ -132,9 +132,11 @@ export interface BookLabelData {
 
 /** Filter to select books from the database */
 export interface BookFilter {
-  type: "latest" | "topic" | "all" | "ids";
+  type: "latest" | "topic" | "all" | "ids" | "since";
   /** For "latest": number of most recent books */
   count?: number;
+  /** For "since": books created on or after this date (YYYY-MM-DD) */
+  since?: string;
   /** For "topic": topic/category string to match */
   values?: string[];
   /** For "ids": explicit list of book IDs */
