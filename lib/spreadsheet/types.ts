@@ -1,3 +1,5 @@
+import type { FormatMeta } from "./formats";
+
 /**
  * Format-neutral spreadsheet model.
  *
@@ -17,12 +19,7 @@ export interface SheetTable {
   rows: Row[];
 }
 
-export interface SpreadsheetFormat {
-  /** Value of the `?format=` query parameter. */
-  id: string;
-  /** Lower-case file extensions including the dot, e.g. ".xlsx". */
-  extensions: string[];
-  mime: string;
+export interface SpreadsheetFormat extends FormatMeta {
   /** Parse a file into tables (sheet order is preserved). */
   read(data: ArrayBuffer): Promise<SheetTable[]>;
   /** Serialize tables into a file. */

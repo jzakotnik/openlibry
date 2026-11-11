@@ -1,11 +1,12 @@
 import JSZip from "jszip";
+import { ODS_META } from "./formats";
 import type { Cell, Row, SheetTable, SpreadsheetFormat } from "./types";
 
 const NS_OFFICE = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
 const NS_TABLE = "urn:oasis:names:tc:opendocument:xmlns:table:1.0";
 const NS_TEXT = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
 
-const MIME = "application/vnd.oasis.opendocument.spreadsheet";
+const MIME = ODS_META.mime;
 
 /** Guard against files that "repeat" an empty cell/row a million times. */
 const MAX_REPEAT = 1000;
@@ -165,9 +166,7 @@ function readTable(table: Element): SheetTable {
 }
 
 export const odsFormat: SpreadsheetFormat = {
-  id: "ods",
-  extensions: [".ods"],
-  mime: MIME,
+  ...ODS_META,
 
   async read(data) {
     const zip = await JSZip.loadAsync(data);

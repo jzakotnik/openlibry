@@ -719,6 +719,7 @@ export const en: Dictionary = {
     subtitle: "Import and export of data",
     exportButton: "Download export",
     importButton: "Upload import",
+    formatLabel: "Format",
   },
   reminderCard: {
     reminderSingular: "reminder",

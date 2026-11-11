@@ -738,6 +738,7 @@ export const de = {
     subtitle: "Import und Export der Daten",
     exportButton: "Export herunterladen",
     importButton: "Import hochladen",
+    formatLabel: "Format",
   },
   reminderCard: {
     reminderSingular: "Mahnung",

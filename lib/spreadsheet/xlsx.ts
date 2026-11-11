@@ -1,4 +1,5 @@
 import Excel from "exceljs";
+import { XLSX_META } from "./formats";
 import type { Cell, Row, SheetTable, SpreadsheetFormat } from "./types";
 
 function cellValue(v: Excel.CellValue): Cell {
@@ -22,9 +23,7 @@ function cellValue(v: Excel.CellValue): Cell {
 }
 
 export const xlsxFormat: SpreadsheetFormat = {
-  id: "xlsx",
-  extensions: [".xlsx", ".xls"],
-  mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ...XLSX_META,
 
   async read(data) {
     const workbook = new Excel.Workbook();
