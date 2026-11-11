@@ -30,11 +30,6 @@ export default function BookDetail({
   if (!router.query.bookid) {
     return (
       <Layout>
-      <UnsavedChangesDialog
-        open={editor.leaveGuard.open}
-        onStay={editor.leaveGuard.stay}
-        onLeave={editor.leaveGuard.leave}
-      />
         <p className="text-muted-foreground">ID not found</p>
       </Layout>
     );
@@ -44,6 +39,11 @@ export default function BookDetail({
 
   return (
     <Layout>
+      <UnsavedChangesDialog
+        open={editor.leaveGuard.open}
+        onStay={editor.leaveGuard.stay}
+        onLeave={editor.leaveGuard.leave}
+      />
       <BookEditForm
         book={editor.bookData}
         setBookData={editor.setBookData}
