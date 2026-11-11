@@ -19,42 +19,39 @@ Darunter siehst du eine Schlagwort-Wolke mit den häufigsten Themen deiner Bibli
 
 So druckst du Barcode-Etiketten für deine Bücher:
 
+1. Klicke im Reports-Bereich auf **Buchetiketten drucken**
+2. Wähle eine **Vorlage** – der zur Vorlage gehörende Etikettenbogen wird automatisch mit ausgewählt
+3. Prüfe bzw. ändere bei Bedarf den **Etikettenbogen** (z.B. AVERY Zweckform 3474)
+4. Wähle die Bücher aus (siehe unten)
+5. Optional: Lege die **Position auf dem Bogen** fest
+6. Klicke **PDF herunterladen** und drucke das PDF auf Etikettenpapier
+
 ### Bücher auswählen
 
-Du hast vier Möglichkeiten:
+Unter **Bücher auswählen** stehen fünf Möglichkeiten zur Verfügung:
 
 | Methode | Beschreibung |
 |---------|--------------|
-| **Neueste Labels** | Gib eine Anzahl ein – OpenLibry wählt rückwärts von der höchsten ID |
-| **ID-Bereich** | Definiere "Von ID" bis "Bis ID" (leere Felder = ID 0 bzw. letzte ID) |
-| **Einzelnes Buch** | Gib eine spezifische Buch-ID ein |
-| **Schlagwort-Filter** | Zusätzlich nach Schlagwort filtern |
-
-![Reports - Buch Etiketten](../assets/booklabelIdSelect.png)
-
-### PDF erstellen
-
-1. Wähle deine Bücher mit einer der Methoden oben aus
-2. Klicke **Erzeuge PDF**
-3. Drucke das PDF auf Etikettenpapier (z.B. AVERY Zweckform)
+| **Neueste** | Gib eine Anzahl ein – OpenLibry wählt die zuletzt angelegten Bücher |
+| **Hinzugefügt ab** | Alle Bücher, die ab einem bestimmten Datum angelegt wurden |
+| **Schlagwort** | Ein oder mehrere Schlagwörter aus der Liste auswählen |
+| **Alle Bücher** | Etiketten für den gesamten Bestand |
+| **Buch-IDs** | Bestimmte Bücher per ID, kommagetrennt (z.B. `1, 5, 12, 42`) |
 
 ### Angefangene Bögen weiterverwenden
 
-Hast du einen Etikettenbogen, der schon teilweise benutzt ist?
+Hast du einen Etikettenbogen, der schon teilweise benutzt ist? Wähle unter **Position auf dem Bogen** einen Modus:
 
-1. Klicke **Überspringe Label**
-2. Klicke auf die Labels, die leer bleiben sollen (nur auf der ersten Seite möglich)
-3. Erzeuge das PDF
+- **Ab Position** – klicke auf das Feld, ab dem gedruckt werden soll. Alle Felder davor bleiben leer.
+- **Einzelne Felder** – klicke gezielt die freien Felder an, die bedruckt werden sollen.
 
-![Einzelne Label deaktivieren](../assets/printSkipLabels.png)
-
-So verschwendest du keine Etikettenbögen!
+Die Anzeige entspricht dem Raster des gewählten Etikettenbogens. So verschwendest du keine Etikettenbögen!
 
 !!! tip "Einzelnes Label"
     In der Bücherverwaltung kannst du auch direkt ein einzelnes Label für ein Buch drucken.
 
 !!! info "Konfiguration"
-    Die Größe und das Layout der Etiketten kannst du anpassen. Siehe [Bücherlabels konfigurieren](../configuration/book-labels.md).
+    Vorlagen (Layout und Inhalt) bearbeitest du über **Etiketten-Vorlage bearbeiten**, eigene Etikettenbögen legst du als JSON-Datei an. Siehe [Bücherlabels konfigurieren](../configuration/book-labels.md).
 
 ## Benutzerausweise drucken
 
