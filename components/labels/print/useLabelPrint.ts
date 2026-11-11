@@ -22,7 +22,20 @@ export function useLabelPrint() {
 
   // Selection state
   const [sheetId, setSheetId] = useState("");
-  const [templateId, setTemplateId] = useState("");
+  const [templateId, setTemplateIdState] = useState("");
+
+  // Selecting a template also applies the sheet format saved with it.
+  // The user can still change the format afterwards.
+  const setTemplateId = useCallback(
+    (id: string) => {
+      setTemplateIdState(id);
+      const template = templates.find((t) => t.id === id);
+      if (template?.sheetConfigId) {
+        setSheetId(template.sheetConfigId);
+      }
+    },
+    [templates],
+  );
   const [filter, setFilter] = useState<BookFilter>({
     type: "latest",
     count: 24,
