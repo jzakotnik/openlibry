@@ -1,7 +1,7 @@
 /**
  * Book filter controls for selecting which books to print labels for.
  *
- * Supports: latest N books, by topic (multi-select), all books, or explicit IDs.
+ * Supports: latest N books, books added since a date, by topic (multi-select), all books, or explicit IDs.
  */
 
 import { Check, ChevronsUpDown, X } from "lucide-react";
@@ -75,6 +75,7 @@ export default function BookFilterForm({
         onValueChange={(type) => {
           const newFilter: BookFilter = { type: type as BookFilter["type"] };
           if (type === "latest") newFilter.count = filter.count ?? 24;
+          if (type === "since") newFilter.since = filter.since ?? "";
           if (type === "topic") newFilter.values = filter.values ?? [];
           if (type === "ids") newFilter.ids = filter.ids ?? [];
           onChange(newFilter);
@@ -102,6 +103,22 @@ export default function BookFilterForm({
             data-cy="filter-latest-count"
           />
           <span className="text-sm text-muted-foreground">Bücher</span>
+        </div>
+
+        {/* Created since date */}
+        <div className="flex items-center gap-3">
+          <RadioGroupItem value="since" id="filter-since" />
+          <Label htmlFor="filter-since" className="font-normal">
+            Hinzugefügt ab
+          </Label>
+          <Input
+            type="date"
+            className="w-44 h-8"
+            value={filter.type === "since" ? (filter.since ?? "") : ""}
+            onChange={(e) => onChange({ type: "since", since: e.target.value })}
+            disabled={filter.type !== "since"}
+            data-cy="filter-since-date"
+          />
         </div>
 
         {/* By topic — multi-select */}
