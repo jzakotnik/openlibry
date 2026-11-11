@@ -34,9 +34,22 @@ function writeCell(v: Cell): string {
   return `<table:table-cell office:value-type="string">${paragraphs}</table:table-cell>`;
 }
 
+const ODF_VERSION = "1.2";
+
+/** Namespaces Excel/LibreOffice expect on the root elements. */
+const NS_DECL =
+  `xmlns:office="${NS_OFFICE}" xmlns:table="${NS_TABLE}" xmlns:text="${NS_TEXT}" ` +
+  `xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" ` +
+  `xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" ` +
+  `xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" ` +
+  `xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" ` +
+  `xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" ` +
+  `xmlns:dc="http://purl.org/dc/elements/1.1/"`;
+
 function writeContent(sheets: SheetTable[]): string {
   const tables = sheets
     .map((s) => {
+      const columns = `<table:table-column table:style-name="co1" table:number-columns-repeated="${Math.max(s.header.length, 1)}" table:default-cell-style-name="Default"/>`;
       const head = `<table:table-row>${s.header
         .map((h) => writeCell(h))
         .join("")}</table:table-row>`;
@@ -48,22 +61,47 @@ function writeContent(sheets: SheetTable[]): string {
               .join("")}</table:table-row>`,
         )
         .join("");
-      return `<table:table table:name="${esc(s.name)}">${head}${body}</table:table>`;
+      return `<table:table table:name="${esc(s.name)}" table:style-name="ta1">${columns}${head}${body}</table:table>`;
     })
     .join("");
   return (
     `<?xml version="1.0" encoding="UTF-8"?>` +
-    `<office:document-content xmlns:office="${NS_OFFICE}" xmlns:table="${NS_TABLE}" xmlns:text="${NS_TEXT}" office:version="1.2">` +
+    `<office:document-content ${NS_DECL} office:version="${ODF_VERSION}">` +
+    `<office:scripts/>` +
+    `<office:font-face-decls><style:font-face style:name="Arial" svg:font-family="Arial" style:font-family-generic="swiss"/></office:font-face-decls>` +
+    `<office:automatic-styles>` +
+    `<style:style style:name="co1" style:family="table-column"><style:table-column-properties fo:break-before="auto" style:column-width="2.5cm"/></style:style>` +
+    `<style:style style:name="ta1" style:family="table"><style:table-properties table:display="true" style:writing-mode="lr-tb"/></style:style>` +
+    `</office:automatic-styles>` +
     `<office:body><office:spreadsheet>${tables}</office:spreadsheet></office:body>` +
     `</office:document-content>`
   );
 }
 
+const STYLES =
+  `<?xml version="1.0" encoding="UTF-8"?>` +
+  `<office:document-styles ${NS_DECL} office:version="${ODF_VERSION}">` +
+  `<office:font-face-decls><style:font-face style:name="Arial" svg:font-family="Arial" style:font-family-generic="swiss"/></office:font-face-decls>` +
+  `<office:styles><style:default-style style:family="table-cell"><style:text-properties style:font-name="Arial" fo:font-size="10pt"/></style:default-style>` +
+  `<style:style style:name="Default" style:family="table-cell"/></office:styles>` +
+  `<office:automatic-styles/>` +
+  `<office:master-styles/>` +
+  `</office:document-styles>`;
+
+const metaXml = () =>
+  `<?xml version="1.0" encoding="UTF-8"?>` +
+  `<office:document-meta ${NS_DECL} office:version="${ODF_VERSION}">` +
+  `<office:meta><meta:generator>OpenLibry</meta:generator>` +
+  `<meta:creation-date>${new Date().toISOString().slice(0, 19)}</meta:creation-date></office:meta>` +
+  `</office:document-meta>`;
+
 const MANIFEST =
   `<?xml version="1.0" encoding="UTF-8"?>` +
-  `<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">` +
-  `<manifest:file-entry manifest:full-path="/" manifest:media-type="${MIME}"/>` +
+  `<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="${ODF_VERSION}">` +
+  `<manifest:file-entry manifest:full-path="/" manifest:version="${ODF_VERSION}" manifest:media-type="${MIME}"/>` +
   `<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>` +
+  `<manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>` +
+  `<manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/>` +
   `</manifest:manifest>`;
 
 /** Text of a <text:p>, honouring <text:s/>, <text:tab/> and <text:line-break/>. */
@@ -187,8 +225,12 @@ export const odsFormat: SpreadsheetFormat = {
     const zip = new JSZip();
     // The mimetype entry must come first and be stored uncompressed.
     zip.file("mimetype", MIME, { compression: "STORE" });
-    zip.file("META-INF/manifest.xml", MANIFEST);
-    zip.file("content.xml", writeContent(sheets));
+    // createFolders:false -> no explicit "META-INF/" directory entry in the zip
+    const opts = { createFolders: false };
+    zip.file("META-INF/manifest.xml", MANIFEST, opts);
+    zip.file("content.xml", writeContent(sheets), opts);
+    zip.file("styles.xml", STYLES, opts);
+    zip.file("meta.xml", metaXml(), opts);
     return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
   },
 };
