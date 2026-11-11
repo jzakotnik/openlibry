@@ -27,8 +27,8 @@ database/custom/labels/
 ## Schnellstart
 
 1. Gehe zu **Berichte** → **Buchetiketten drucken**
-2. Wähle eine Vorlage und einen Etikettenbogen aus
-3. Filtere die Bücher (neueste X, nach Thema, alle, oder bestimmte IDs)
+2. Wähle eine Vorlage (der zugehörige Etikettenbogen wird automatisch übernommen) und bei Bedarf einen anderen Etikettenbogen
+3. Filtere die Bücher (neueste X, hinzugefügt ab Datum, nach Schlagwort, alle, oder bestimmte IDs)
 4. Optional: Startposition festlegen, falls der Bogen schon teilweise bedruckt ist
 5. Klicke **PDF herunterladen**
 
@@ -48,6 +48,8 @@ Diese Bögen werden mit OpenLibry ausgeliefert:
 | `zweckform-3659` | Avery Zweckform 3659 | 97 × 42.3 mm | 12 | 2 × 6 |
 | `avery-l7160` | Avery L7160 | 63.5 × 38.1 mm | 21 | 3 × 7 |
 | `avery-l7163` | Avery L7163 | 99.1 × 38.1 mm | 14 | 2 × 7 |
+| `zweckform-3679` | Avery Zweckform 3679 | 97 × 55 mm | 10 | 2 × 5 |
+| `zweckform-5052` (ID `printation-45x30`) | Printation 45×30 (wie Zweckform 5052) | 45 × 30 mm | 36 | 4 × 9 |
 | `herma-4360` | HERMA 4360 | 70 × 37 mm | 24 | 3 × 8 |
 
 ## Eigenen Etikettenbogen hinzufügen
@@ -183,7 +185,8 @@ curl -X POST http://localhost:3000/api/labels/generate \
 | Filter | Beispiel |
 |--------|---------|
 | Neueste N | `{ "type": "latest", "count": 50 }` |
-| Nach Schlagwort | `{ "type": "topic", "value": "Abenteuer" }` |
+| Hinzugefügt ab Datum | `{ "type": "since", "since": "2025-01-31" }` |
+| Nach Schlagwort | `{ "type": "topic", "values": ["Abenteuer", "Tiere"] }` |
 | Alle Bücher | `{ "type": "all" }` |
 | Bestimmte IDs | `{ "type": "ids", "ids": [1, 5, 42] }` |
 
