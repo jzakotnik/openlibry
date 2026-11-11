@@ -49,34 +49,32 @@ export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
       </div>
 
       <div className="flex flex-col gap-2 mt-auto">
-        <div className="flex gap-2">
-          <a
-            href={`api/export?format=${format}`}
-            data-cy="excel-export-button"
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Download size={15} />
-            {t("excelCard.exportButton")}
-          </a>
-          {formatMetas.length > 1 && (
-            <Select value={format} onValueChange={onFormatChange}>
-              <SelectTrigger
-                aria-label={t("excelCard.formatLabel")}
-                data-cy="export-format-select"
-                className="w-auto"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {formatMetas.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    {f.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        {formatMetas.length > 1 && (
+          <Select value={format} onValueChange={onFormatChange}>
+            <SelectTrigger
+              aria-label={t("excelCard.formatLabel")}
+              data-cy="export-format-select"
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {formatMetas.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <a
+          href={`api/export?format=${format}`}
+          data-cy="excel-export-button"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Download size={15} />
+          {t("excelCard.exportButton")}
+        </a>
         <a
           href="reports/xlsimport"
           data-cy="excel-import-button"
