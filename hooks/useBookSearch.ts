@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BookType } from "@/entities/BookType";
 import { LogEvents } from "@/lib/logEvents";
 import { errorLogger } from "@/lib/logger";
+import { normalizeScanCode } from "@/lib/utils/barcodeAdapter";
 import { stripZerosFromSearch } from "@/lib/utils/lookups";
 import { promoteExactIdMatch } from "@/lib/utils/searchUtils";
 
@@ -103,7 +104,9 @@ export function useBookSearch(
   }, [booksFingerprint, searchableFields]);
 
   const searchBooks = useCallback(
-    (query: string) => {
+    (rawQuery: string) => {
+      // Extract the media id from configured barcode formats (e.g. SBC).
+      const query = normalizeScanCode(rawQuery);
       const currentBooks = booksRef.current;
 
       // Index not ready yet — show all books as a passthrough

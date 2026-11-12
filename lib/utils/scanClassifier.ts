@@ -1,4 +1,5 @@
 import { BookType } from "@/entities/BookType";
+import { normalizeScanCode } from "@/lib/utils/barcodeAdapter";
 import { cleanIsbn } from "@/lib/utils/isbn";
 
 /**
@@ -42,7 +43,7 @@ function isValidIsbn10(code: string): boolean {
  * ids are never pre-printed on media OpenLibry doesn't already know about.
  */
 export function classifyScan(raw: string): ClassifiedScan | null {
-  const cleaned = cleanIsbn(raw.trim());
+  const cleaned = cleanIsbn(normalizeScanCode(raw.trim()));
   if (!cleaned) return null;
 
   if (isValidIsbn13(cleaned) || isValidIsbn10(cleaned)) {

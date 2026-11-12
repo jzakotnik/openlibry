@@ -122,6 +122,7 @@ nav:
       - Benutzerausweise: configuration/user-cards.md
       - Mahnschreiben: configuration/reminders.md
       - Antolin: configuration/antolin.md
+      - Barcode-Adapter: configuration/barcode-adapter.md
       - Authentifizierung: configuration/authentication.md
   - Fehlerbehebung:
       - troubleshooting/index.md
