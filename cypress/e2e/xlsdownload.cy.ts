@@ -102,7 +102,7 @@ describe("Excel Export", () => {
       // ODS = zip whose first entry is the uncompressed "mimetype" file
       expect(res.body.slice(0, 2)).to.eq("PK");
       expect(res.body).to.include(
-        "mimeTypeapplication/vnd.oasis.opendocument.spreadsheet",
+        "mimetypeapplication/vnd.oasis.opendocument.spreadsheet",
       );
     });
   });
