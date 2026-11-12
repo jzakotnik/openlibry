@@ -5,8 +5,11 @@ Exportiere alle Daten aus OpenLibry in eine Excel-Datei.
 ## So geht's
 
 1. Gehe zu **Reports**
-2. Klicke auf **Excel Export** (oder direkt: `/api/excel`)
-3. Eine `.xlsx`-Datei wird heruntergeladen
+2. Wähle das Format: **.xlsx** (Excel) oder **.ods** (OpenDocument, z. B. LibreOffice)
+3. Die Datei wird heruntergeladen
+
+Direkter Aufruf: `/api/export?format=xlsx` bzw. `/api/export?format=ods`
+(`/api/excel` funktioniert weiterhin und liefert `.xlsx`). Beide Formate enthalten identische Inhalte.
 
 ## Inhalt der Datei
 

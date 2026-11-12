@@ -719,6 +719,7 @@ export const en: Dictionary = {
     subtitle: "Import and export of data",
     exportButton: "Download export",
     importButton: "Upload import",
+    formatLabel: "Format",
   },
   reminderCard: {
     reminderSingular: "reminder",
@@ -903,10 +904,10 @@ export const en: Dictionary = {
     step1Label: "Load file",
     step2Label: "Review & configure",
     step3Label: "Import",
-    uploadButton: "Choose Excel file",
+    uploadButton: "Choose Excel or ODS file",
     uploadButtonLoading: "Loading…",
     uploadFormatHint:
-      "Expected format: Excel file (.xlsx) with sheet 1 = books, sheet 2 = users",
+      "Expected format: Excel (.xlsx) or OpenDocument (.ods) file with sheet 1 = books, sheet 2 = users",
     uploadFormatTip:
       "Tip: use the Excel export as a template for the correct column format",
     summaryCardBooks: "Books",
@@ -950,7 +951,8 @@ export const en: Dictionary = {
     resetButton: "Reset",
     logInitial: "Ready for import.",
     logFileInfo: "File: {name} ({sizeKB} KB)",
-    logExcelReading: "Reading Excel file…",
+    logExcelReading: "Reading spreadsheet…",
+    errUnsupportedFormat: "Unsupported file format (allowed: .xlsx, .ods)",
     logSheetsFound: "{count} worksheets found: {names}",
     logBooksRecognized:
       '{rows} books with {cols} columns recognized (sheet: "{sheetName}")',

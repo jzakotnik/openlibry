@@ -1,11 +1,39 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatMetas } from "@/lib/spreadsheet/formats";
 import { t } from "@/lib/i18n";
 import { Download, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ExcelCardProps {
   dataCy?: string;
 }
 
+const STORAGE_KEY = "openlibry.exportFormat";
+
 export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
+  const [format, setFormat] = useState(formatMetas[0].id);
+
+  // Remember the last used format (per browser); ignore storage failures.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && formatMetas.some((f) => f.id === saved)) setFormat(saved);
+    } catch {}
+  }, []);
+
+  const onFormatChange = (value: string) => {
+    setFormat(value);
+    try {
+      localStorage.setItem(STORAGE_KEY, value);
+    } catch {}
+  };
+
   return (
     <div
       className="rounded-xl border bg-card text-card-foreground shadow-sm p-5 flex flex-col gap-4"
@@ -21,8 +49,26 @@ export default function ExcelCard({ dataCy = "excel-card" }: ExcelCardProps) {
       </div>
 
       <div className="flex flex-col gap-2 mt-auto">
+        {formatMetas.length > 1 && (
+          <Select value={format} onValueChange={onFormatChange}>
+            <SelectTrigger
+              aria-label={t("excelCard.formatLabel")}
+              data-cy="export-format-select"
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {formatMetas.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <a
-          href="api/excel"
+          href={`api/export?format=${format}`}
           data-cy="excel-export-button"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >

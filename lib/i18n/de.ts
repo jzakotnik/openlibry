@@ -738,6 +738,7 @@ export const de = {
     subtitle: "Import und Export der Daten",
     exportButton: "Export herunterladen",
     importButton: "Import hochladen",
+    formatLabel: "Format",
   },
   reminderCard: {
     reminderSingular: "Mahnung",
@@ -945,10 +946,10 @@ export const de = {
     step2Label: "Prüfen & Konfigurieren",
     step3Label: "Importieren",
     // File upload card
-    uploadButton: "Excel-Datei auswählen",
+    uploadButton: "Excel- oder ODS-Datei auswählen",
     uploadButtonLoading: "Laden…",
     uploadFormatHint:
-      "Erwartetes Format: Excel-Datei (.xlsx) mit Blatt 1 = Bücher, Blatt 2 = User",
+      "Erwartetes Format: Excel- (.xlsx) oder OpenDocument-Datei (.ods) mit Blatt 1 = Bücher, Blatt 2 = User",
     uploadFormatTip:
       "Tipp: Verwenden Sie den Excel-Export als Vorlage für das korrekte Spaltenformat",
     // Data summary cards (under upload card after file is loaded)
@@ -1005,7 +1006,8 @@ export const de = {
     logInitial: "Bereit für den Import.",
     // Log messages — file load phase
     logFileInfo: "Datei: {name} ({sizeKB} KB)",
-    logExcelReading: "Excel wird eingelesen…",
+    logExcelReading: "Tabelle wird eingelesen…",
+    errUnsupportedFormat: "Dateiformat nicht unterstützt (erlaubt: .xlsx, .ods)",
     logSheetsFound: "{count} Arbeitsblätter gefunden: {names}",
     logBooksRecognized:
       '{rows} Bücher mit {cols} Spalten erkannt (Blatt: "{sheetName}")',

@@ -323,7 +323,7 @@ export default function AdminPage() {
   const handleBackup = async () => {
     setBackupLoading(true);
     try {
-      const response = await fetch("/api/excel", { method: "GET" });
+      const response = await fetch("/api/export?format=xlsx", { method: "GET" });
       if (!response.ok) {
         throw new Error(t("adminPage.backupErrorCreating"));
       }

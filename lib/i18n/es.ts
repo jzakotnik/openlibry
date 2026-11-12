@@ -731,6 +731,7 @@ export const es: Dictionary = {
     subtitle: "Importación y exportación de datos",
     exportButton: "Descargar exportación",
     importButton: "Subir importación",
+    formatLabel: "Formato",
   },
   reminderCard: {
     reminderSingular: "aviso",
@@ -919,10 +920,10 @@ export const es: Dictionary = {
     step1Label: "Cargar archivo",
     step2Label: "Revisar y configurar",
     step3Label: "Importar",
-    uploadButton: "Seleccionar archivo Excel",
+    uploadButton: "Seleccionar archivo Excel u ODS",
     uploadButtonLoading: "Cargando…",
     uploadFormatHint:
-      "Formato esperado: archivo Excel (.xlsx) con hoja 1 = Libros, hoja 2 = Usuarios",
+      "Formato esperado: archivo Excel (.xlsx) u OpenDocument (.ods) con hoja 1 = Libros, hoja 2 = Usuarios",
     uploadFormatTip:
       "Consejo: usa la exportación Excel como plantilla para el formato de columnas correcto",
     summaryCardBooks: "Libros",
@@ -967,7 +968,8 @@ export const es: Dictionary = {
     resetButton: "Restablecer",
     logInitial: "Listo para importar.",
     logFileInfo: "Archivo: {name} ({sizeKB} KB)",
-    logExcelReading: "Leyendo Excel…",
+    logExcelReading: "Leyendo la hoja de cálculo…",
+    errUnsupportedFormat: "Formato de archivo no compatible (permitidos: .xlsx, .ods)",
     logSheetsFound: "{count} hojas encontradas: {names}",
     logBooksRecognized:
       '{rows} libros con {cols} columnas reconocidos (hoja: "{sheetName}")',

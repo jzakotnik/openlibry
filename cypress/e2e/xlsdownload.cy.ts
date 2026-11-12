@@ -28,7 +28,7 @@ describe("Excel Export", () => {
     cy.visit("/admin");
     cy.url().should("include", "/admin");
 
-    cy.intercept("GET", "/api/excel").as("excelDownload");
+    cy.intercept("GET", "/api/export*").as("excelDownload");
     cy.get("[data-cy=admin-excel-backup-button]").click();
     cy.wait("@excelDownload", { timeout: 15000 })
       .its("response.statusCode")
@@ -88,5 +88,28 @@ describe("Excel Export", () => {
         expect(result.usersRowCount).to.be.at.least(1);
       },
     );
+  });
+
+  it("should export an ODS file (valid zip with ODS mimetype)", () => {
+    cy.request({
+      url: "/api/export?format=ods",
+      encoding: "binary",
+    }).then((res) => {
+      expect(res.status).to.eq(200);
+      expect(res.headers["content-type"]).to.eq(
+        "application/vnd.oasis.opendocument.spreadsheet",
+      );
+      // ODS = zip whose first entry is the uncompressed "mimetype" file
+      expect(res.body.slice(0, 2)).to.eq("PK");
+      expect(res.body).to.include(
+        "mimetypeapplication/vnd.oasis.opendocument.spreadsheet",
+      );
+    });
+  });
+
+  it("should reject unknown export formats", () => {
+    cy.request({ url: "/api/export?format=foo", failOnStatusCode: false })
+      .its("status")
+      .should("eq", 400);
   });
 });
