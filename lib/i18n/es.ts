@@ -1321,5 +1321,10 @@ export const es: Dictionary = {
     loggedIn: "Sesión iniciada: {name}",
     sessionEnded: "¡Gracias y hasta pronto! Sesión terminada.",
     sessionTimeout: "Sesión terminada por inactividad.",
+    ready: "Listo para escanear",
+    notReady: "No listo – toca la pantalla",
+    cardNo: "Carné n.º {id}",
+    mediaNo: "Medio n.º {id}",
+    scannedCode: "Escaneado: {code}",
   },
 };

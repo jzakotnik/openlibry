@@ -1294,5 +1294,10 @@ export const en: Dictionary = {
     loggedIn: "Signed in: {name}",
     sessionEnded: "Thank you and see you soon! Session ended.",
     sessionTimeout: "Session ended because of inactivity.",
+    ready: "Ready to scan",
+    notReady: "Not ready – please touch the screen",
+    cardNo: "Card no. {id}",
+    mediaNo: "Media no. {id}",
+    scannedCode: "Scanned: {code}",
   },
 };

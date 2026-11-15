@@ -30,6 +30,8 @@ interface Result {
   title: string;
   text: string;
   bookId?: number;
+  /** Extra line identifying what was scanned (Mediennummer / raw code). */
+  detail?: string;
 }
 
 const TONE_STYLE: Record<Tone, string> = {
@@ -58,6 +60,10 @@ export default function KioskPage() {
   const [user, setUser] = useState<UserType | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
+  // True only while the page can actually receive scanner input.
+  const [ready, setReady] = useState(false);
+  // Raw text of the most recent scan, so staff can see what the reader sent.
+  const [lastScan, setLastScan] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const resultTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -99,10 +105,20 @@ export default function KioskPage() {
     const keepFocus = () => {
       if (document.activeElement !== inputRef.current)
         inputRef.current?.focus();
+      // Ready = this window is focused AND the scan input holds the focus.
+      setReady(
+        document.hasFocus() && document.activeElement === inputRef.current,
+      );
     };
     keepFocus();
     const timer = setInterval(keepFocus, 500);
-    return () => clearInterval(timer);
+    window.addEventListener("focus", keepFocus);
+    window.addEventListener("blur", keepFocus);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", keepFocus);
+      window.removeEventListener("blur", keepFocus);
+    };
   }, []);
 
   // Auto-reset: restart the idle timer on every state change while logged in.
@@ -130,6 +146,7 @@ export default function KioskPage() {
         tone: "warning",
         title: t("kiosk.scanCardFirst"),
         text: t("kiosk.scanCardFirstText"),
+        detail: t("kiosk.scannedCode", { code: raw }),
       });
       return;
     }
@@ -140,6 +157,7 @@ export default function KioskPage() {
         tone: "error",
         title: t("kiosk.unknownCard"),
         text: t("kiosk.unknownCardText"),
+        detail: t("kiosk.scannedCode", { code: raw }),
       });
       return;
     }
@@ -159,10 +177,12 @@ export default function KioskPage() {
         tone: "error",
         title: t("kiosk.unknownBook"),
         text: t("kiosk.unknownBookText"),
+        detail: t("kiosk.scannedCode", { code: raw }),
       });
       return;
     }
     const title = book.title ?? "";
+    const detail = t("kiosk.mediaNo", { id: book.id ?? "" });
 
     if (book.rentalStatus !== "available" && book.rentalStatus !== "rented") {
       playSound("warning");
@@ -170,6 +190,7 @@ export default function KioskPage() {
         tone: "warning",
         title,
         text: t("kiosk.unavailable"),
+        detail,
         bookId: book.id,
       });
       return;
@@ -189,6 +210,7 @@ export default function KioskPage() {
         tone: "error",
         title,
         text: t("kiosk.actionFailed"),
+        detail,
         bookId: book.id,
       });
       return;
@@ -203,6 +225,7 @@ export default function KioskPage() {
       text: renting
         ? t("kiosk.rentedText", { title, due: String(due ?? "") })
         : t("kiosk.returnedText", { title }),
+      detail,
       bookId: book.id,
     });
   };
@@ -212,6 +235,7 @@ export default function KioskPage() {
     const raw = e.currentTarget.value.trim();
     e.currentTarget.value = "";
     if (!raw || busy) return;
+    setLastScan(raw);
     if (user) handleBookScan(raw);
     else handleUserScan(raw);
   };
@@ -281,6 +305,14 @@ export default function KioskPage() {
               <p className="mt-2 text-xl text-muted-foreground">
                 {result.text}
               </p>
+              {result.detail && (
+                <p
+                  className="mt-2 text-lg font-mono text-muted-foreground"
+                  data-cy="kiosk_result_detail"
+                >
+                  {result.detail}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -298,6 +330,12 @@ export default function KioskPage() {
           <div className="w-full max-w-3xl flex flex-col items-center gap-6 text-center">
             <p className="text-3xl" data-cy="kiosk_user">
               {t("kiosk.hello", { name: user.firstName ?? "" })}
+            </p>
+            <p
+              className="-mt-4 text-lg font-mono text-muted-foreground"
+              data-cy="kiosk_user_id"
+            >
+              {t("kiosk.cardNo", { id: user.id ?? "" })}
             </p>
             {!result && (
               <>
@@ -335,6 +373,31 @@ export default function KioskPage() {
           </div>
         )}
       </main>
+
+      <footer className="flex items-center justify-between gap-4 px-8 py-3 border-t text-lg">
+        <span
+          data-cy="kiosk_ready"
+          data-ready={ready}
+          className={`flex items-center gap-2 font-medium ${
+            ready ? "text-primary" : "text-amber-600"
+          }`}
+        >
+          <span
+            className={`h-3 w-3 rounded-full ${
+              ready ? "bg-primary animate-pulse" : "bg-amber-500"
+            }`}
+          />
+          {ready ? t("kiosk.ready") : t("kiosk.notReady")}
+        </span>
+        {lastScan && (
+          <span
+            className="font-mono text-muted-foreground truncate"
+            data-cy="kiosk_last_scan"
+          >
+            {t("kiosk.scannedCode", { code: lastScan })}
+          </span>
+        )}
+      </footer>
     </div>
   );
 }

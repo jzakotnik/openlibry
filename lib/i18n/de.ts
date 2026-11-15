@@ -1395,6 +1395,11 @@ export const de = {
     loggedIn: "Angemeldet: {name}",
     sessionEnded: "Danke und bis bald! Die Sitzung ist beendet.",
     sessionTimeout: "Die Sitzung wurde wegen Inaktivität beendet.",
+    ready: "Bereit zum Scannen",
+    notReady: "Nicht bereit – bitte den Bildschirm berühren",
+    cardNo: "Ausweis-Nr. {id}",
+    mediaNo: "Mediennummer {id}",
+    scannedCode: "Gescannt: {code}",
   },
 };
 
