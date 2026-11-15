@@ -1291,5 +1291,8 @@ export const en: Dictionary = {
     rentedText: '"{title}" is yours until {due}.',
     returned: "Returned",
     returnedText: 'Thank you! "{title}" has been returned.',
+    loggedIn: "Signed in: {name}",
+    sessionEnded: "Thank you and see you soon! Session ended.",
+    sessionTimeout: "Session ended because of inactivity.",
   },
 };

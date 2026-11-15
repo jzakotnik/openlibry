@@ -1392,6 +1392,9 @@ export const de = {
     rentedText: '"{title}" ist bis {due} für dich ausgeliehen.',
     returned: "Zurückgegeben",
     returnedText: 'Danke! "{title}" ist zurückgegeben.',
+    loggedIn: "Angemeldet: {name}",
+    sessionEnded: "Danke und bis bald! Die Sitzung ist beendet.",
+    sessionTimeout: "Die Sitzung wurde wegen Inaktivität beendet.",
   },
 };
 

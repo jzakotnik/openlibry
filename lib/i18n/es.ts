@@ -1318,5 +1318,8 @@ export const es: Dictionary = {
     rentedText: '"{title}" es tuyo hasta el {due}.',
     returned: "Devuelto",
     returnedText: '¡Gracias! "{title}" ha sido devuelto.',
+    loggedIn: "Sesión iniciada: {name}",
+    sessionEnded: "¡Gracias y hasta pronto! Sesión terminada.",
+    sessionTimeout: "Sesión terminada por inactividad.",
   },
 };

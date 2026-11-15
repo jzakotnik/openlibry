@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 
 /** Seconds without a scan before a logged-in session resets itself. */
@@ -69,12 +70,20 @@ export default function KioskPage() {
   const rentals: RentalsUserType[] = data?.rentals ?? [];
 
   const showResult = useCallback((r: Result) => {
+    // Every outcome (success, warning, error) also raises a toast, so there
+    // is feedback even if the result card is out of view.
+    const message = `${r.title}: ${r.text}`;
+    if (r.tone === "success") toast.success(message);
+    else if (r.tone === "warning") toast.warning(message);
+    else toast.error(message);
     clearTimeout(resultTimer.current);
     setResult(r);
     resultTimer.current = setTimeout(() => setResult(null), RESULT_TIMEOUT_MS);
   }, []);
 
-  const reset = useCallback(() => {
+  const reset = useCallback((reason?: "finished" | "timeout") => {
+    if (reason === "finished") toast.info(t("kiosk.sessionEnded"));
+    else if (reason === "timeout") toast.info(t("kiosk.sessionTimeout"));
     clearTimeout(idleTimer.current);
     clearTimeout(resultTimer.current);
     setUser(null);
@@ -83,10 +92,24 @@ export default function KioskPage() {
     inputRef.current?.focus();
   }, []);
 
+  // The scanner types into the hidden input, so it must always have focus.
+  // React's autoFocus is not reliable after server rendering, which left a
+  // freshly loaded kiosk ignoring every scan until someone clicked the page.
+  useEffect(() => {
+    const keepFocus = () => {
+      if (document.activeElement !== inputRef.current)
+        inputRef.current?.focus();
+    };
+    keepFocus();
+    const timer = setInterval(keepFocus, 500);
+    return () => clearInterval(timer);
+  }, []);
+
   // Auto-reset: restart the idle timer on every state change while logged in.
   useEffect(() => {
     clearTimeout(idleTimer.current);
-    if (user) idleTimer.current = setTimeout(reset, IDLE_TIMEOUT_MS);
+    if (user)
+      idleTimer.current = setTimeout(() => reset("timeout"), IDLE_TIMEOUT_MS);
     return () => clearTimeout(idleTimer.current);
   }, [user, result, busy, reset]);
 
@@ -121,6 +144,7 @@ export default function KioskPage() {
       return;
     }
     playSound("success");
+    toast.success(t("kiosk.loggedIn", { name: found.firstName ?? "" }));
     setResult(null);
     setUser(found);
   };
@@ -224,7 +248,7 @@ export default function KioskPage() {
         {user && (
           <button
             type="button"
-            onClick={reset}
+            onClick={() => reset("finished")}
             data-cy="kiosk_finish"
             className="flex items-center gap-2 rounded-lg border px-6 py-3 text-lg font-medium hover:bg-muted"
           >
@@ -278,7 +302,10 @@ export default function KioskPage() {
             {!result && (
               <>
                 <ScanBarcode className="h-24 w-24 text-primary" />
-                <p className="text-3xl font-semibold" data-cy="kiosk_prompt_book">
+                <p
+                  className="text-3xl font-semibold"
+                  data-cy="kiosk_prompt_book"
+                >
                   {t("kiosk.promptBook")}
                 </p>
               </>
