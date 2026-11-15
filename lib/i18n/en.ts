@@ -1299,5 +1299,6 @@ export const en: Dictionary = {
     cardNo: "Card no. {id}",
     mediaNo: "Media no. {id}",
     scannedCode: "Scanned: {code}",
+    activityTitle: "This session",
   },
 };

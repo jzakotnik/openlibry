@@ -1400,6 +1400,7 @@ export const de = {
     cardNo: "Ausweis-Nr. {id}",
     mediaNo: "Mediennummer {id}",
     scannedCode: "Gescannt: {code}",
+    activityTitle: "In dieser Sitzung",
   },
 };
 

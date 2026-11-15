@@ -155,6 +155,11 @@ describe("Kiosk self-checkout", () => {
         `Mediennummer ${bookAId}`,
       );
       cy.contains("[data-sonner-toast]", "Ausgeliehen");
+      cy.get("[data-cy=kiosk_activity_item]")
+        .should("have.length", 1)
+        .first()
+        .should("have.attr", "data-action", "rent")
+        .and("contain.text", "Cypress Buch Erstausleihe");
       cy.get("[data-cy=kiosk_last_scan]").should(
         "contain.text",
         String(bookAId),
@@ -185,11 +190,54 @@ describe("Kiosk self-checkout", () => {
       );
       cy.contains("[data-sonner-toast]", "Zurückgegeben");
       cy.contains("Deine Bücher: 0");
+      cy.get("[data-cy=kiosk_activity_item]")
+        .first()
+        .should("have.attr", "data-action", "return");
 
       dbBook(bookAId).then((b) => {
         expect(b.rentalStatus).to.eq("available");
         expect(b.userId).to.eq(null);
       });
+    });
+
+    it("shows rent and return as separate, distinguishable entries when done back to back", () => {
+      scan(bookAId);
+      cy.get("[data-cy=kiosk_activity_item]").should("have.length", 1);
+      scan(bookAId);
+      cy.get("[data-cy=kiosk_activity_item]").should("have.length", 2);
+
+      // newest first: the return on top, the rent below it
+      cy.get("[data-cy=kiosk_activity_item]")
+        .eq(0)
+        .should("have.attr", "data-action", "return")
+        .and("contain.text", "Zurückgegeben");
+      cy.get("[data-cy=kiosk_activity_item]")
+        .eq(1)
+        .should("have.attr", "data-action", "rent")
+        .and("contain.text", "Ausgeliehen");
+      cy.get("[data-cy=kiosk_activity_item] svg")
+        .eq(0)
+        .invoke("attr", "class")
+        .should("match", /lucide-book-down/);
+      cy.get("[data-cy=kiosk_activity_item] svg")
+        .eq(1)
+        .invoke("attr", "class")
+        .should("match", /lucide-book-up/);
+
+      dbBook(bookAId).its("rentalStatus").should("eq", "available");
+    });
+
+    it("clears the session list when the session ends", () => {
+      scan(bookAId);
+      cy.get("[data-cy=kiosk_activity_item]").should("have.length", 1);
+      cy.get("[data-cy=kiosk_finish]").click();
+      cy.get("[data-cy=kiosk_activity]").should("not.exist");
+      scan(emmaId);
+      cy.get("[data-cy=kiosk_user]").should("be.visible");
+      cy.get("[data-cy=kiosk_activity]").should("not.exist");
+      // leave the book available for any following test
+      scan(bookAId);
+      cy.get("[data-cy=kiosk_result]").should("contain.text", "Zurückgegeben");
     });
 
     it("reports an unknown book with the scanned number and changes nothing", () => {

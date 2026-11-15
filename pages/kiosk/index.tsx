@@ -5,7 +5,9 @@ import { t } from "@/lib/i18n";
 import { playSound } from "@/lib/utils/audioutils";
 import { classifyScan, findBookForScan } from "@/lib/utils/scanClassifier";
 import {
+  BookDown,
   BookOpen,
+  BookUp,
   CheckCircle2,
   LogOut,
   ScanBarcode,
@@ -25,7 +27,24 @@ const RESULT_TIMEOUT_MS = 6_000;
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 type Tone = "success" | "warning" | "error";
+type Action = "rent" | "return";
+
+/** One rent/return done during the current session. */
+interface Activity {
+  id: number;
+  action: Action;
+  title: string;
+  mediaNo: number;
+}
+
+/** Same icon on the result card and in the session list, so they match. */
+const ACTION_ICON: Record<Action, (cls: string) => React.ReactNode> = {
+  rent: (cls) => <BookUp className={cls} />,
+  return: (cls) => <BookDown className={cls} />,
+};
+
 interface Result {
+  action?: Action;
   tone: Tone;
   title: string;
   text: string;
@@ -63,6 +82,9 @@ export default function KioskPage() {
   // True only while the page can actually receive scanner input.
   const [ready, setReady] = useState(false);
   // Raw text of the most recent scan, so staff can see what the reader sent.
+  // Everything rented/returned since the card was scanned, newest first.
+  const [activity, setActivity] = useState<Activity[]>([]);
+  const activityId = useRef(0);
   const [lastScan, setLastScan] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -94,6 +116,7 @@ export default function KioskPage() {
     clearTimeout(resultTimer.current);
     setUser(null);
     setResult(null);
+    setActivity([]);
     if (inputRef.current) inputRef.current.value = "";
     inputRef.current?.focus();
   }, []);
@@ -219,8 +242,20 @@ export default function KioskPage() {
     const due = (fresh?.books as BookType[] | undefined)?.find(
       (b) => b.id === book.id,
     )?.dueDate;
+    setActivity((prev) =>
+      [
+        {
+          id: ++activityId.current,
+          action: renting ? ("rent" as const) : ("return" as const),
+          title,
+          mediaNo: book.id!,
+        },
+        ...prev,
+      ].slice(0, 10),
+    );
     showResult({
       tone: "success",
+      action: renting ? "rent" : "return",
       title: renting ? t("kiosk.rented") : t("kiosk.returned"),
       text: renting
         ? t("kiosk.rentedText", { title, due: String(due ?? "") })
@@ -299,7 +334,9 @@ export default function KioskPage() {
                 className="h-40 w-auto rounded-md border object-cover shadow-sm"
               />
             )}
-            {TONE_ICON[result.tone]}
+            {result.action
+              ? ACTION_ICON[result.action]("h-14 w-14 text-primary shrink-0")
+              : TONE_ICON[result.tone]}
             <div className="min-w-0">
               <p className="text-3xl font-semibold">{result.title}</p>
               <p className="mt-2 text-xl text-muted-foreground">
@@ -370,6 +407,37 @@ export default function KioskPage() {
                 ))}
               </ul>
             </div>
+            {activity.length > 0 && (
+              <div
+                className="w-full rounded-xl border p-4 text-left"
+                data-cy="kiosk_activity"
+              >
+                <p className="text-lg font-medium mb-2">
+                  {t("kiosk.activityTitle")}
+                </p>
+                <ul className="text-lg space-y-1 max-h-40 overflow-hidden">
+                  {activity.slice(0, 5).map((a) => (
+                    <li
+                      key={a.id}
+                      data-cy="kiosk_activity_item"
+                      data-action={a.action}
+                      className="flex items-center gap-3"
+                    >
+                      {ACTION_ICON[a.action]("h-6 w-6 text-primary shrink-0")}
+                      <span className="font-medium whitespace-nowrap">
+                        {a.action === "rent"
+                          ? t("kiosk.rented")
+                          : t("kiosk.returned")}
+                      </span>
+                      <span className="truncate">{a.title}</span>
+                      <span className="ml-auto font-mono text-muted-foreground whitespace-nowrap">
+                        {t("kiosk.mediaNo", { id: a.mediaNo })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </main>
