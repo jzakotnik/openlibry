@@ -1372,6 +1372,27 @@ export const de = {
     lastScannedLabel: "Zuletzt gescannt",
     lastScannedEmpty: "Noch kein Cover",
   },
+  kiosk: {
+    title: "Selbstverbuchung",
+    inputAria: "Scanner-Eingabe",
+    promptCard: "Bitte scanne deinen Büchereiausweis",
+    promptBook: "Scanne jetzt dein Buch zum Ausleihen oder Zurückgeben",
+    hello: "Hallo {name}!",
+    finish: "Fertig",
+    yourBooks: "Deine Bücher: {count}",
+    scanCardFirst: "Erst den Ausweis scannen",
+    scanCardFirstText: "Bitte scanne zuerst deinen Büchereiausweis.",
+    unknownCard: "Ausweis nicht erkannt",
+    unknownCardText: "Dieser Ausweis ist unbekannt oder nicht aktiv.",
+    unknownBook: "Buch nicht gefunden",
+    unknownBookText: "Bitte frage in der Bücherei nach.",
+    unavailable: "Dieses Buch kann gerade nicht ausgeliehen werden.",
+    actionFailed: "Das hat nicht geklappt. Bitte versuche es noch einmal.",
+    rented: "Ausgeliehen",
+    rentedText: '"{title}" ist bis {due} für dich ausgeliehen.',
+    returned: "Zurückgegeben",
+    returnedText: 'Danke! "{title}" ist zurückgegeben.',
+  },
 };
 
 /**
