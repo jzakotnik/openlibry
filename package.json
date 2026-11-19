@@ -24,7 +24,9 @@
     "test:e2e:publicroot": "NODE_ENV=test NEXTAUTH_URL=http://localhost:${PORT:-3000} OPENLIBRY_ROOT_ROUTE=/catalog dotenv -e .env.test.local start-server-and-test 'dev:test:publicroot' http-get://localhost:${PORT:-3000} 'cypress run --spec cypress/e2e/rootroute-public.cy.ts'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@auth/prisma-adapter": "^2.10.0",
+    "@google/genai": "^2.10.0",
     "@prisma/adapter-better-sqlite3": "^7.0.1",
     "@prisma/client": "^7.0.1",
     "@radix-ui/react-icons": "^1.3.2",

@@ -2,10 +2,6 @@ import { BookType } from "@/entities/BookType";
 import { InlineChipField } from "./InlineChipField";
 import { ScannedEntry } from "./types";
 
-function formatTopics(v: string): string {
-  return v.split(";").filter(Boolean).join(", ") || "";
-}
-
 export function InlineChipRow({
   entry,
   onUpdateBookData,
@@ -18,14 +14,7 @@ export function InlineChipRow({
   ) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-dashed border-gray-100">
-      <InlineChipField
-        label="Schlagwörter"
-        value={entry.bookData.topics || ""}
-        onChange={(v) => onUpdateBookData(entry.id, "topics", v)}
-        placeholder="Abenteuer;Fantasy"
-        formatDisplay={formatTopics}
-      />
+    <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
       <InlineChipField
         label="Seiten"
         value={String(entry.bookData.pages || "")}
